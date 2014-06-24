@@ -25,11 +25,12 @@ Deploying Widgets
 
 Setting Up Repository for Development
 In order to develop and test widgets you need to deploy the solutions-webappbuilder-widgets folder to the stemapp/widgets directory in your webapp builder installation. If you use Github for windows this can be accomplished using the following steps.
-* 1. Sync the repository to your local machine.
-* 2. Close Open the Repository in Windows Explorer
-* 3. Close Github for Windows
-* 4. Cut and paste the entire solutions-webappbuilder-widgets folder into the stemapp/widgets folder
-* 5. Launch Github for Windows and choose the option to locate the repository. This will change the location on disk to the new location. 
+
+1. Sync the repository to your local machine.
+2. Close Open the Repository in Windows Explorer
+3. Close Github for Windows
+4. Cut and paste the entire solutions-webappbuilder-widgets folder into the stemapp/widgets folder
+5. Launch Github for Windows and choose the option to locate the repository. This will change the location on disk to the new location. 
 
 ### General Help
 [New to Github? Get started here.](http://htmlpreview.github.com/?https://github.com/Esri/esri.github.com/blob/master/help/esri-getting-to-know-github.html)

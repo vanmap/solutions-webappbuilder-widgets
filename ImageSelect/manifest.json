@@ -1,0 +1,10 @@
+{
+  "name": "ImageSelect",
+  "type": "widget",
+  "platform": "HTML",
+  "version": "",
+  "author": "James Tedrick (Esri DTC)",
+  "description": "",
+  "copyright": "",
+  "license": "http://www.apache.org/licenses/LICENSE-2.0"
+}

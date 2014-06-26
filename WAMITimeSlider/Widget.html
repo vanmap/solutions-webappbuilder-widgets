@@ -1,0 +1,27 @@
+<div>
+    <span class="head2">Select Video Layer</span>
+    <div id="slider"></div>
+    <div><select name="imageSelect" class="selectBox" data-dojo-attach-point="imageSelect" data-dojo-type="dijit/form/Select"></select></div>
+    <span class="qualityLabel">Image Quality (<span data-dojo-attach-point="qualityValue">0</span>):</span>
+    <div data-dojo-attach-point= "qualitySlider"
+         name="qualitySlider"
+         class="qualitySlider"
+         data-dojo-type="dijit/form/HorizontalSlider"
+         data-dojo-props="value:70,
+                          minimum: 0,
+                          maximum:100,
+                          discreteValues:11,
+                          intermediateChanges:false,
+                          showButtons:false">
+    </div>
+    <span class="framerateLabel">Frame Rate <!--(<span data-dojo-attach-point="framerateValue">0</span>)-->:</span>
+    <div data-dojo-attach-point= "framerateSpinner"
+         name="framerateSpinner"
+         class="framerateSpinner"
+         data-dojo-type="dijit/form/NumberSpinner"
+         data-dojo-props="smallDelta:0.2,constraints:{min:0,max:15,places:1},intermediateChanges:true"
+         style: width:"50px">
+    </div>
+    <p><input style='width:100%' type="text" id="sliderValue" data-dojo-type="dijit/form/TextBox" width=200px/></p>
+    <div data-dojo-attach-point="mapIdNode"></div>
+</div>

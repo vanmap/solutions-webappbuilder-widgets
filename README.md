@@ -1,8 +1,5 @@
 solutions-webappbuilder-widgets
 ===============================
-
-
-
 # solutions-builder-widgets
 Web App Builder created and managed by the Esri Solutions teams.
 

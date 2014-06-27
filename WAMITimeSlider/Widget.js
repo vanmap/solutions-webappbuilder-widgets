@@ -1,12 +1,12 @@
 define([
     'dojo/_base/declare', 'dijit/_WidgetsInTemplateMixin', 'dojo/_base/lang', 'dojo/dom', 'dojo/dom-style', 'dojo/dom-construct', 'dojo/dom-attr', 'dojo/dom-class', 'dojo/_base/array',
-    'dojo/data/ObjectStore', 'dojo/store/Memory', 'dijit/form/Select', 'dijit/form/HorizontalSlider', 'dijit/form/NumberSpinner',
+    'dojo/date/locale','dojo/data/ObjectStore', 'dojo/store/Memory', 'dijit/form/Select', 'dijit/form/HorizontalSlider', 'dijit/form/NumberSpinner',
     'jimu/BaseWidget', 
     'esri/layers/ArcGISImageServiceLayer','esri/TimeExtent','esri/dijit/TimeSlider'
 ],
        function (
         declare, _WidgetsInTemplateMixin, lang, dom,domStyle,domConstruct,domAttr,domClass,array,
-        ObjectStore,Memory,Select,HorizontalSlider, NumberSpinner,
+        locale,ObjectStore,Memory,Select,HorizontalSlider, NumberSpinner,
         BaseWidget,
         ArcGISImageServiceLayer,TimeExtent,TimeSlider
         
@@ -19,104 +19,74 @@ define([
             loaded: false,
             wamiLayer:null,
             imageLayers : [],
-            templateString: "<div>This is a very simple widget. <input type='button' value='Get Map Id' data-dojo-attach-event='click:_getMapId'>.</div>",
             framerate : null,
-            imageQuality:null,
+            playback:null,
+            imageQuality: null,
             //delete
             _getMapId: function () {alert(this.map.id);},
             
-            startup: function(){
+            
+            //Required Functions for Widget Lifecyle
+                postCreate: function() {
+                    this.inherited(arguments);
+                    console.log('postCreate');
+                },
+            startup: function() {
+                this.inherited(arguments);
+                
                 this.imageLayers = this.getImageLayers();
                 this.initImageSelect();
                 this.framerate = this.config.WAMITimeSlider.framerate;
+                this.playback = this.config.WAMITimeSlider.playback;
                 this.imageQuality = this.config.WAMITimeSlider.quality;
-                
-                //TODO: Change this to some other widget to set framerate
+
+                this.timeSlider = new TimeSlider({style: 'width: 100%;'}, dom.byId('wamiTimeSlider'));
                 this.qualitySlider.on('change', lang.hitch(this, this._updateQuality));
                 this.framerateSpinner.on('change', lang.hitch(this, this._updatreframerate));
+                this.map.on('time-extent-change',lang.hitch(this, this.timeExtentChangeHandler));
+                console.log('startup');
             },
             
-            onOpen: function() {
-                this.inherited(arguments);
-                if (!this.timeSliderDiv) {
-                    this.initDiv();
-                }
+            onOpen: function(){
+                
+                console.log('onOpen');
+            },
+            
+            onClose: function(){
+                
                 if (this.timeSlider) {
-                    domStyle.set(this.timeSlider.domNode, 'display', '');
-                }
-                
-                this.timeSliderDiv.innerHTML = '';
-                this.timeSlider = new TimeSlider({style: 'width: 100%;'}, this.timeSliderDiv);
-                this.map.setTimeSlider(this.timeSlider);
-                
-
-                
-            },
-            
-            onClose: function() {
-                if (this.timeSlider) {
-                    domStyle.set(this.timeSlider.domNode, 'display', 'none');
+                    domStyle.set(this.timeSlider.domNode, 'display', 'none');            
+                    console.log('onClose');
                 }
             },
             
-            initImageSelect:function(){
-                var _self = this;
-                var store = new Memory({
-                    data : this.imageLayers
-                });
-                var os = new ObjectStore({
-                    objectStore : store
-                });
+            onMinimize: function(){
                 
-                this.imageSelect.setStore(os, this.imageLayers[0]);
-                this.imageSelect.on('change',function(newValue){
-                    _self.updatewamiImageLayer();
-                });
+                console.log('onMinimize');
+            },
+            onMaximize: function(){
+                
+                console.log('onMaximize');
             },
             
-            //TODO:Replace with standard HTML in the Widget.html
-            initDiv: function() {
-                this.timeSliderDiv = domConstruct.create('div');
-                domAttr.set(this.timeSliderDiv, 'id', 'WAMITimeSliderDiv');
-                domClass.add(this.timeSliderDiv, 'esriTimeSlider');
-                domConstruct.place(this.timeSliderDiv, this.domNode);
-                this.timeSliderDiv.innerHTML = 'Loading......';
+            onSignIn: function(credential){
+                
+                /* jshint unused:false*/
+                console.log('onSignIn');
             },
             
-            wamiSlider: function (){
-                this.timeExtent = this.wamilayer.timeInfo.timeExtent;
-                //Manual Time Extent
-/*                this.timeExtent = new TimeExtent();
-                this.timeExtent.startTime = new Date(1305141105968);
-                his.timeExtent.endTime = new Date(1305141281468);
-                var configjson = this.config.WAMITimeSlider;*/
+            onSignOut: function(){
                 
-                
-                console.log('wamislider Framerate ' + this.framerate);
-                
-                //Time Slider Interval
-                this.timeSlider.setThumbCount(1);
-                this.timeSlider.createTimeStopsByTimeInterval(this.timeExtent, (1 / this.framerate) * 1000, 'esriTimeUnitsMilliseconds');
-                this.timeSlider.setThumbIndexes([0,1]);
-                this.timeSlider.setThumbMovingRate(this.framerate * 1000);
-                this.timeSlider.startup();
-                
+                console.log('onSignOut');
+            },
+                        
+            //End of Widget Lifecyle Functions
             
-/*                var slider = new HorizontalSlider({
-                    name: 'slider',
-                    value: 1305141105968,
-                    minimum: 1305141105968,
-                    maximum: 1305141281468,
-                    discreteValues: 1322765639474 - 1322763583474,
-                    intermediateChanges: false,
-                    style: 'width:300px;',
-                    onChange: function(value){
-                        dom.byId('sliderValue').value = Date(value);
-                    }
-                }, 'slider').startup();*/
             
-        },
+            //Create a list of Image Layers that can be annimated by the video play controls            
             getImageLayers: function() {
+            
+            //TODO: Filter list to only time enabled image layers with "fast refresh"
             var ids = this.map.layerIds;
             var len = ids.length;
                 for (var i = 0; i < len; i++) {
@@ -133,7 +103,80 @@ define([
             return this.imageLayers;
             },
             
-            updatewamiImageLayer:function(){
+            //Initialize the WAMI Select Widget with the Image Service Layers in the web map            
+            initImageSelect:function(){
+                var _self = this;
+                var store = new Memory({
+                    data : this.imageLayers
+                });
+                var os = new ObjectStore({
+                    objectStore : store
+                });
+                
+                //TODO: Remove the need to automatically select a layer. Need to add defensive/initialization logic to all elements.
+                this.imageSelect.setStore(os, this.imageLayers[0]);
+                this.imageSelect.on('change',function(newValue){ _self.selectwamiImageLayer();});
+            },
+            
+/*            //TODO:Replace with standard HTML in the Widget.html
+            initDiv: function() {
+                this.timeSliderDiv = domConstruct.create('div');
+                domAttr.set(this.timeSliderDiv, 'id', 'WAMITimeSliderDiv');
+                domClass.add(this.timeSliderDiv, 'esriTimeSlider');
+                domConstruct.place(this.timeSliderDiv, this.domNode);
+                this.timeSliderDiv.innerHTML = 'Loading......';
+            },
+            */
+            wamiSlider: function (){
+                this.timeExtent = this.wamilayer.timeInfo.timeExtent;
+                //setup the slider
+                //this.wamiTimeSlider.innerHTML = '';
+
+                this.map.setTimeSlider(this.timeSlider);
+                
+                //Manual Time Extent
+/*                this.timeExtent = new TimeExtent();
+                this.timeExtent.startTime = new Date(1305141105968);
+                his.timeExtent.endTime = new Date(1305141281468);
+                var configjson = this.config.WAMITimeSlider;*/
+                
+                
+                console.log('wamislider tic value ' + ((1 / this.framerate) * 1000));
+                console.log('Playback in Tics' + (this.playback * ((1 / this.framerate) * 1000)));
+                
+                //Time Slider Interval
+                this.timeSlider.setThumbCount(1);
+                //Sets the number of steps on the slider based on frames per second
+                this.timeSlider.createTimeStopsByTimeInterval(this.timeExtent, (1 / this.framerate) * 1000, 'esriTimeUnitsMilliseconds');
+                
+                //Set the moving rate, based on the frame rate * 1000 MS will make it play all the required frames in 1 second
+                
+                this.timeSlider.setThumbMovingRate (this.playback * ((1 / this.framerate) * 1000));
+                this.timeSlider.setThumbIndexes([0,1]);
+                
+                
+                this.timeSlider.startup();
+            },
+/*            manualSlider: function(){
+                this.timeExtent = this.wamilayer.timeInfo.timeExtent;
+                console.log('start time in ms ' + this.timeExtent.startTime.getTime());
+                var manualSlider = new HorizontalSlider({
+                    
+                    name: 'manualSlider',
+                    value: this.timeExtent.startTime.getTime(),
+                    minimum: this.timeExtent.startTime.getTime(),
+                    maximum: this.timeExtent.endTime.getTime(),
+                    discreteValues: this.timeExtent.endTime.getTime() - this.timeExtent.startTime.getTime(),
+                    intermediateChanges: false,
+                    style: 'width:300px;',
+                    onChange: function(value){
+                        dom.byId('manualValue').value = Date(value);
+                    }
+                }, 'manualSlider').startup();
+            },*/
+
+            
+            selectwamiImageLayer:function(){
                 console.log (this.imageSelect.get('value'));
                 for(var i = 0; i < this.imageLayers.length; i+= 1) {
                     //Turn on the Selected Layer and apply the currently defined properties. Zooms the map to the extent of the layer
@@ -141,7 +184,6 @@ define([
                     if (this.imageLayers[i].id == this.imageSelect.get('value')){
                         console.log(i);
                         this.wamilayer = this.map.getLayer(this.imageSelect.get('value'));
-                        this.wamilayer.format = 'jpg';
                         this.wamilayer.setVisibility(true);
                         this.wamilayer.setImageFormat(this.config.WAMITimeSlider.format);
                         this.wamilayer.setCompressionQuality(this.imageQuality);
@@ -153,16 +195,7 @@ define([
                     }
                         
                 }
-                //this.wamilayer = this.map.getLayer(this.imageSelect.get('value'));
-                
-                var lt = this.wamilayer;
-                //this.wamilayer.format = 'jpg';
-                //this.wamilayer.setVisibility(true);
-                
-                //this.wamilayer.setImageFormat(this.config.WAMITimeSlider.format);
-                //this.wamilayer.setCompressionQuality(this.imageQuality);
-                //this.wamilayer.refresh();
-                
+                var lt = this.wamilayer;            
                 console.log ('format '+lt.format+
                              'format '+lt.url+
                              'layer'
@@ -170,10 +203,21 @@ define([
                 
                 // Reset Slider to use the time extent from the WAMI Layer
                 this.wamiSlider();
+                //this.manualSlider();
                 
-                //Turn off other WAMI Layers
-                
-                //Disable Time Update on other layers?
+                //Disable Time Update on other layers
+            },
+            
+            timeExtentChangeHandler:function(e){
+                if (this.map.timeExtent){
+                    var d = locale.format(this.map.timeExtent.endTime,{datePattern:'MMM d, yyyy h:m:s.SSS a'});
+                    //console.log(d);
+                    dom.byId('manualValue').value = d;
+                }
+                else {
+                    console.log('No Time Extent Update');
+                }
+
             },
             
             _updateQuality: function() {
@@ -193,11 +237,8 @@ define([
                     //TODO: Change this implementation
                     this.wamiSlider();
                 }
-                
-                
-                
             }
-          
+
             
         });
         

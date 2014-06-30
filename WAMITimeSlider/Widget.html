@@ -21,10 +21,30 @@
          data-dojo-props="smallDelta:0.2,constraints:{min:0,max:15,places:1},intermediateChanges:true"
          style: width:"50px">
     </div>
-    <p><input style='width:100%' type="text" id="sliderValue" data-dojo-type="dijit/form/TextBox" width=200px/></p>
+    <p><input type="text" id="currentTimeText" data-dojo-type="dijit/form/TextBox"/></p>
+    <span class="qualityLabel">Video Playback (<span data-dojo-attach-point="playbackValue">0</span>):</span>
+    <table width="100%" cellspacing="0" cellpadding="0" border="0"><tr>
+        <td align="right" valign="middle">
+            <button name="playpause" id="playpause" data-dojo-type="dijit/form/ToggleButton"
+                    data-dojo-props="iconClass:'dijitCheckBoxIcon', checked: false">Play</button>
+        </td>
+        <td align="center" valign="middle" width="80%">
+            <div data-dojo-attach-point= "playbackSlider"
+                 name="playbackSlider"
+                 id="playbackSlider"
+                 class="playbackSlider"
+                 data-dojo-type="dijit/form/HorizontalSlider"
+                 data-dojo-props="value:1305141105968,
+                                  minimum: 1305141105968,
+                                  maximum:1305141281468,
+                                  discreteValues:100,
+                                  intermediateChanges:false,
+                                  showButtons:true">
+            </div>
+        </td>
+    </tr></table>
     <div id="wamiTimeSlider"></div>
-    <div id="manualSlider"></div>
-    <p><input type="text" id="manualValue" data-dojo-type="dijit/form/TextBox"/></p>
+<!--HTML Copied from the Time Slider    -->
 
 <!--        <div class="wamiTimeSlider">
         <table width="100%" cellspacing="0" cellpadding="0" border="0">

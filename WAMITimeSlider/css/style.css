@@ -1,0 +1,25 @@
+.esriwamisliderforwardimage{
+  background-image: url("../images/forward.png");
+  width: 16px;
+  height: 18px;
+}
+.esriwamisliderrewindimage{
+  background-image: url("../images/rewind.png");
+  width: 16px;
+  height: 18px;
+}
+.esriwamisliderplayimage{
+  background-image: url("../images/play.png");
+  width: 23px;
+  height: 18px;
+}
+.esriwamisliderpauseimage{
+  background-image: url("../images/pause.png");
+  width: 10px;
+  height: 18px;
+}
+.esriwamisliderstopimage{
+  background-image: url("../images/stop.png");
+  width: 14px;
+  height: 14px;
+}

@@ -1,11 +1,11 @@
 define([
-    'dojo/_base/declare', 'dijit/_WidgetsInTemplateMixin', 'dojo/_base/lang', 'dojo/dom', 'dojo/dom-style', 'dojo/dom-construct', 'dojo/dom-attr', 'dojo/dom-class', 'dojo/_base/array', 'dojo/parser',
+    'dojo/_base/declare', 'dijit/_WidgetsInTemplateMixin', 'dojo/_base/lang', 'dojo/dom', 'dojo/dom-style', 'dojo/dom-construct', 'dojo/dom-attr', 'dojo/dom-class', 'dojo/_base/array', 'dojo/parser', 'dojo/fx/Toggler',
     'dojo/date/locale', 'dijit/registry', 'dojo/data/ObjectStore', 'dojo/store/Memory', 'dijit/form/Select', 'dojox/timing/_base', 'dijit/form/HorizontalSlider', 'dijit/form/NumberSpinner',
     'jimu/BaseWidget', 
     'esri/layers/ArcGISImageServiceLayer','esri/TimeExtent','esri/dijit/TimeSlider'
 ],
        function (
-        declare, _WidgetsInTemplateMixin,lang, dom,domStyle,domConstruct,domAttr,domClass,array,parser,
+        declare, _WidgetsInTemplateMixin,lang, dom,domStyle,domConstruct,domAttr,domClass,array,parser,Toggler,
         locale,registry,ObjectStore,Memory,Select, timingBase, HorizontalSlider, NumberSpinner,
         BaseWidget,
         ArcGISImageServiceLayer,TimeExtent,TimeSlider
@@ -24,7 +24,9 @@ define([
             movingrate:null,
             imageQuality: null,
             _timer : null,
-            indexTime:null,
+            indexTime: null,
+            direction: null,
+            playbackToggle: null,
             
 //Required Functions for Widget Lifecyle
                 postCreate: function() {
@@ -47,12 +49,16 @@ define([
                 this.framerateSpinner.on('change', lang.hitch(this, this._updatreFramerate));
                 this.map.on('time-extent-change',lang.hitch(this, this.timeExtentChanged));
                 registry.byId('playbackSlider').on('change', lang.hitch(this, this._sliderTimeChange));
-                registry.byId('playpause').on('change',lang.hitch(this, this._playPauseControl));
+                registry.byId('playfwd').on('click',lang.hitch(this, this._playfwdControl));
+                registry.byId('playrev').on('click',lang.hitch(this, this._playrevControl));
+                registry.byId('pause').on('click',lang.hitch(this, this._pauseControl));
                 
+                this.playbackToggle = new Toggler({node: 'playbackDiv', showDuration:500,hideDuration:0});
+                this.playbackToggle.hide();
                 //Create the timer and set it's event, use the config file setting for initial values
                 this._timer = new timingBase.Timer();
                 this._timer.setInterval(this.movingrate);
-                this._timer.onTick = lang.hitch(this, '_advanceTime', 1);
+                this._timer.onTick = lang.hitch(this, '_setTime', 1);
                 
                 //this.timeSlider = new TimeSlider({style: 'width: 100%;'}, dom.byId('wamiTimeSlider'));
                 //this._createSlider();
@@ -69,7 +75,7 @@ define([
             onClose: function(){
                 
                 if (this.timeSlider) {
-                    domStyle.set(this.timeSlider.domNode, 'display', 'none');            
+                    domStyle.set(this.playbackDiv.domNode, 'display', 'none');            
                     console.log('onClose');
                 }
             },
@@ -98,6 +104,10 @@ define([
             
             imageLayerSelected:function(){
                 //console.log (this.imageSelect.get('value'));
+                //Enable the Video Slider Div
+                
+                this.playbackToggle.show(100);
+                //Set the Video Layers Properties
                 for(var i = 0; i < this.imageLayers.length; i+= 1) {
                     //Turn on the Selected Layer and apply the currently defined properties. Zooms the map to the extent of the layer. Turns off other Image Layers.
                     //TODO: Make the zoom a config option or possible widget option
@@ -123,8 +133,8 @@ define([
             timeExtentChanged:function(e){
                 if (this.map.timeExtent){
                     var d = locale.format(this.map.timeExtent.endTime,{selector:'time', timePattern:'H:m:ss.SSS'});
-                    //registry.byId('playbackSlider').attr('value',this.map.timeExtent.endTime.getTime()); 
-                    dom.byId('currentTimeText').value = d;
+                    registry.byId('playbackSlider').attr('value',this.map.timeExtent.endTime.getTime()); 
+                    dom.byId('playbackValue').innerHTML = d;
                     
                 }
                 else {
@@ -132,18 +142,41 @@ define([
                 }
 
             },
-            _playPauseControl:function(val){
-                console.log('Toggle On Change '+ val);
-                if(val){this._timer.start();}
-                else{this._timer.stop();}
+            _playrevControl:function(val){
+                console.log('Reverse');
+                if(this.direction != 'rev'){this._timer.start();this.direction='rev';}
+                
             },
-            _advanceTime:function(){
-                this.indexTime += this.movingrate;
+            _playfwdControl:function(val){
+                console.log('Forward');
+                if(this.direction != 'fwd'){this._timer.start();this.direction='fwd';}
+                
+            },
+            _pauseControl:function(val){
+                console.log('Pause');
+                this._timer.stop();
+                this.direction = null;
+                
+            },
+            _setTime:function(){
+                if (this.direction == 'fwd'){this.indexTime += this.movingrate;}
+                else if (this.direction == 'rev'){this.indexTime -= this.movingrate;}
+                else {console.log('paused');
+                      return;}
+                
                 console.log('Image Date using Index ' + this.indexTime);
-                var advTimeExtent = new TimeExtent();
-                advTimeExtent.startTime = this.wamilayer.timeInfo.timeExtent.startTime;
-                advTimeExtent.endTime = new Date(this.indexTime);
-                this.map.setTimeExtent(advTimeExtent);
+                //TODO: Need to protect against empty time extent
+                if (this.wamilayer){
+                    if (this.indexTime > this.wamilayer.timeInfo.timeExtent.startTime ){
+                        var vidTimeExtent = new TimeExtent();
+                        vidTimeExtent.startTime = this.wamilayer.timeInfo.timeExtent.startTime;
+                        vidTimeExtent.endTime = new Date(this.indexTime);
+                        this.map.setTimeExtent(vidTimeExtent);                    
+                    }
+                    else {console.log('paused');}
+                }
+                else{console.log('No Image Selected Fix this bug!');}
+      
             },
             _sliderTimeChange:function(){
                 var sliderTime = registry.byId('playbackSlider').value;

@@ -1,10 +1,59 @@
 <div>
-    <span class="head2">Select Video Layer</span>
-    <div><select name="imageSelect" class="selectBox" data-dojo-attach-point="imageSelect" data-dojo-type="dijit/form/Select"></select></div>
-    <span class="qualityLabel">Image Quality (<span data-dojo-attach-point="qualityValue">0</span>):</span>
+    <label>${nls.selectVideoLayers}</label>
+    <br>
+    <div><select name="imageSelect" class="selectBox"  style="width:96%;margin-top:10px;" data-dojo-attach-point="imageSelect" data-dojo-type="dijit/form/Select"></select></div>
+    <br>
+    <div id="imageInfoDiv">
+    </div>
+    <br>
+    <div id="playbackDiv">
+        <label>${nls.videoPlaybackControl}</label>
+        <br>
+        
+        <table width="100%" cellspacing="0" cellpadding="0" border="0">
+            <tr>
+                <td></td>
+                <td colspan="3" align="center"><!--<label>${nls.timeReadout}</label><label>${nls.timeReadout}</label>--><span id="playbackValue">0</span></td>
+                <td></td>
+            </tr>
+            <tr>
+                <td colspan="5">
+                    <div data-dojo-attach-point= "playbackSlider"
+                         name="playbackSlider"
+                         id="playbackSlider"
+                         class="playbackSlider"
+                         style="width:96%;margin-top:10px;"
+                         data-dojo-type="dijit/form/HorizontalSlider"
+                         data-dojo-props="value:1305141105968,
+                                          minimum: 1305141105968,
+                                          maximum:1305141281468,
+                                          discreteValues:100,
+                                          intermediateChanges:false,
+                                          showButtons:true">
+                    </div>
+                </td>
+            </tr>    
+        <tr>
+        <td width = "5%"></td>    
+        <td width = "30%" align="right">
+            <button name="playrev" id="playrev" data-dojo-type="dijit/form/Button"
+                    data-dojo-props="iconClass:'esriwamisliderrewindimage', showlabel: false">${nls.playReverse}</button></td>
+        <td width = "30%" align="center">
+            <button name="pause" id="pause" data-dojo-type="dijit/form/Button"
+                    data-dojo-props="iconClass:'esriwamisliderpauseimage', showlabel: false">${nls.playPause}</button></td>
+        <td width = "30%" align="left">
+            <button name="playfwd" id="playfwd" data-dojo-type="dijit/form/Button"
+                    data-dojo-props="iconClass:'esriwamisliderforwardimage style', showlabel: false">${nls.playForward}</button></td>
+        <td width = "5%"></td>
+        </tr>
+        </table>
+        <div id="wamiTimeSlider"></div>
+    </div>
+    <span class="qualityLabel">${nls.imagequality} (<span data-dojo-attach-point="qualityValue">0</span>):</span>
     <div data-dojo-attach-point= "qualitySlider"
          name="qualitySlider"
          class="qualitySlider"
+         style="width:96%;margin-top:10px;"
          data-dojo-type="dijit/form/HorizontalSlider"
          data-dojo-props="value:70,
                           minimum: 0,
@@ -13,37 +62,16 @@
                           intermediateChanges:false,
                           showButtons:false">
     </div>
-    <span class="framerateLabel">Frame Rate <!--(<span data-dojo-attach-point="framerateValue">0</span>)-->:</span>
+    <br>
+    <label class="framerateLabel">${nls.framerate}</label>
     <div data-dojo-attach-point= "framerateSpinner"
          name="framerateSpinner"
          class="framerateSpinner"
+         style="width:96%;margin-top:10px;"
          data-dojo-type="dijit/form/NumberSpinner"
          data-dojo-props="smallDelta:0.2,constraints:{min:0,max:15,places:1},intermediateChanges:true"
          style: width:"50px">
     </div>
-    <p><input type="text" id="currentTimeText" data-dojo-type="dijit/form/TextBox"/></p>
-    <span class="qualityLabel">Video Playback (<span data-dojo-attach-point="playbackValue">0</span>):</span>
-    <table width="100%" cellspacing="0" cellpadding="0" border="0"><tr>
-        <td align="right" valign="middle">
-            <button name="playpause" id="playpause" data-dojo-type="dijit/form/ToggleButton"
-                    data-dojo-props="iconClass:'dijitCheckBoxIcon', checked: false">Play</button>
-        </td>
-        <td align="center" valign="middle" width="80%">
-            <div data-dojo-attach-point= "playbackSlider"
-                 name="playbackSlider"
-                 id="playbackSlider"
-                 class="playbackSlider"
-                 data-dojo-type="dijit/form/HorizontalSlider"
-                 data-dojo-props="value:1305141105968,
-                                  minimum: 1305141105968,
-                                  maximum:1305141281468,
-                                  discreteValues:100,
-                                  intermediateChanges:false,
-                                  showButtons:true">
-            </div>
-        </td>
-    </tr></table>
-    <div id="wamiTimeSlider"></div>
 <!--HTML Copied from the Time Slider    -->
 
 <!--        <div class="wamiTimeSlider">

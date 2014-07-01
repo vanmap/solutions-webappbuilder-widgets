@@ -1,0 +1,40 @@
+{
+    "ERGChemicalGPServiceURL" : "http://arcgis-emergencymanagement-2057568539.us-east-1.elb.amazonaws.com/arcgis/rest/services/COP/ERGByChemical/GPServer/ERG%20By%20Chemical",
+    "ERGPlacardGPServiceURL" : "http://arcgis-emergencymanagement-2057568539.us-east-1.elb.amazonaws.com/arcgis/rest/services/COP/ERGByPlacard/GPServer/ERG%20By%20Placard",
+    "FindNearestWSServiceURL" : "http://arcgis-emergencymanagement-2057568539.us-east-1.elb.amazonaws.com/arcgis/rest/services/COP/FindNearestWS/GPServer/FindNearestWeatherStation",
+    "WindDirectionLayerURL": "http://arcgis-emergencymanagement-2057568539.us-east-1.elb.amazonaws.com/arcgis/rest/services/COP/EmergencyOperations/MapServer/11",
+    "WindDirectionField": "WindDirection",
+    "StationNameField": "StationName",
+    "DateTimeField": "UTC_DateTime",
+    "FacilitiesLayerURL": "http://arcgis-emergencymanagement-2057568539.us-east-1.elb.amazonaws.com/arcgis/rest/services/COP/EmergencyOperations/MapServer/0",
+    "FacilitiesFields":["NAME","FEATURECODE","FULLADDR"],
+    "FacilitiesSummaryField":"FEATURECODE",
+    "infrastructureLayer": {
+        "url": "http://arcgis-emergencymanagement-2057568539.us-east-1.elb.amazonaws.com/arcgis/rest/services/COP/EmergencyOperations/MapServer/0",
+        "labelField": "NAME",
+        "fields": ["NAME", "FEATURECODE", "STATE"]
+    },
+    "demographicLayer": {
+        "label": "Age under 5",
+        "url": "http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Census_USA/MapServer/1",
+        "labelField": "AGE_UNDER5",
+        "fields": ["AGE_UNDER5", "AGE_5_17", "AGE_18_21"],
+        "medias": [
+            {
+                "chartField": "AGE_UNDER5",
+                "title": "Potential Number of Affected Children Under Age 5",
+                "type": "columnschart"
+            },
+            {
+                "chartField": "AGE_5_17",
+                "title": "Potential Number of Affected Children Between Ages 5 Through 17",
+                "type": "columnschart"
+            },
+            {
+                "chartField": "AGE_18_21",
+                "title": "Potential Number of Affected Children Ages 18 Through 21",
+                "type": "columnschart"
+            }
+        ]
+    }
+}

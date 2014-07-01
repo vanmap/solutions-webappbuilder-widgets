@@ -1,0 +1,71 @@
+{
+    "symbols": {
+        "simplemarkersymbol": {
+            "type": "esriSMS",
+            "style": "esriSMSCircle",
+            "color": [0, 0, 0, 255],
+            "size": 14,
+            "outline": {
+                "color": [0, 0, 0, 255],
+                "width": 1
+            }
+        },
+        "picturemarkersymbol": {
+            "url": "widgets/BombThreat/images/icon.png",
+            "width": 16,
+            "height": 16
+        },
+        "simplelinesymbol": null,
+        "insideFillSymbol": {
+            "type": "esriSFS",
+            "style": "esriSFSSolid",
+            "color": [255, 0, 0, 100],
+            "outline": {
+                "type": "esriSLS",
+                "style": "esriSLSSolid",
+                "color": [255, 0, 0, 100],
+                "width": 1
+            }
+        },
+        "outsideFillSymbol": {
+            "type": "esriSFS",
+            "style": "esriSFSSolid",
+            "color": [232, 158, 28, 100],
+            "outline": {
+                "type": "esriSLS",
+                "style": "esriSLSSolid",
+                "color": [232, 158, 28, 100],
+                "width": 1
+            }
+        }
+    },
+    "infrastructureLayer": {
+        "url": "http://arcgis-emergencymanagement-2057568539.us-east-1.elb.amazonaws.com/arcgis/rest/services/COP/EmergencyOperations/MapServer/0",
+        "labelField": "NAME",
+        "fields": ["NAME", "FEATURECODE", "STATE"]
+    },
+    "demographicLayer": {
+        "label": "Age under 5",
+        "url": "http://sampleserver1.arcgisonline.com/ArcGIS/rest/services/Demographics/ESRI_Census_USA/MapServer/1",
+        "labelField": "AGE_UNDER5",
+        "fields": ["AGE_UNDER5", "AGE_5_17", "AGE_18_21"],
+        "medias": [
+            {
+                "chartField": "AGE_UNDER5",
+                "title": "Potential Number of Affected Children Under Age 5",
+                "type": "columnschart"
+            },
+            {
+                "chartField": "AGE_5_17",
+                "title": "Potential Number of Affected Children Between Ages 5 Through 17",
+                "type": "columnschart"
+            },
+            {
+                "chartField": "AGE_18_21",
+                "title": "Potential Number of Affected Children Ages 18 Through 21",
+                "type": "columnschart"
+            }
+        ]
+    },
+    "highLightColor": "#f5f50e"
+}

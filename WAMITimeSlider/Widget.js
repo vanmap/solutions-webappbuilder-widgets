@@ -1,12 +1,18 @@
 define([
-    'dojo/_base/declare', 'dijit/_WidgetsInTemplateMixin', 'dojo/_base/lang', 'dojo/dom', 'dojo/dom-style', 'dojo/dom-construct', 'dojo/dom-attr', 'dojo/dom-class', 'dojo/_base/array', 'dojo/parser', 'dojo/fx/Toggler',
-    'dojo/date/locale', 'dijit/registry', 'dojo/data/ObjectStore', 'dojo/store/Memory', 'dijit/form/Select', 'dojox/timing/_base', 'dijit/form/HorizontalSlider', 'dijit/form/NumberSpinner',
+    'dojo/_base/declare', 'dijit/_WidgetsInTemplateMixin', 'dojo/_base/lang', 'dojo/dom', 
+    'dojo/dom-style', 'dojo/dom-construct', 'dojo/dom-attr', 'dojo/dom-class', 'dojo/_base/array', 
+    'dojo/parser', 'dojo/fx/Toggler','dojo/date/locale', 'dijit/registry', 'dojo/data/ObjectStore', 
+    'dojo/store/Memory', 'dijit/form/Select', 'dojox/timing/_base', 'dijit/form/HorizontalSlider', 
+    'dijit/form/NumberSpinner', 
     'jimu/BaseWidget', 
     'esri/layers/ArcGISImageServiceLayer','esri/TimeExtent','esri/dijit/TimeSlider'
 ],
        function (
-        declare, _WidgetsInTemplateMixin,lang, dom,domStyle,domConstruct,domAttr,domClass,array,parser,Toggler,
-        locale,registry,ObjectStore,Memory,Select, timingBase, HorizontalSlider, NumberSpinner,
+        declare, _WidgetsInTemplateMixin,lang, dom,
+        domStyle,domConstruct,domAttr,domClass,array,
+        parser,Toggler,locale,registry,ObjectStore,
+        Memory,Select, timingBase, HorizontalSlider, 
+        NumberSpinner,
         BaseWidget,
         ArcGISImageServiceLayer,TimeExtent,TimeSlider
         
@@ -48,6 +54,8 @@ define([
                 this.qualitySlider.on('change', lang.hitch(this, this._updateQuality));
                 this.framerateSpinner.on('change', lang.hitch(this, this._updatreFramerate));
                 this.map.on('time-extent-change',lang.hitch(this, this.timeExtentChanged));
+                
+                
                 registry.byId('playbackSlider').on('change', lang.hitch(this, this._sliderTimeChange));
                 registry.byId('playfwd').on('click',lang.hitch(this, this._playfwdControl));
                 registry.byId('playrev').on('click',lang.hitch(this, this._playrevControl));
@@ -109,9 +117,10 @@ define([
                 this.playbackToggle.show(100);
                 //Set the Video Layers Properties
                 for(var i = 0; i < this.imageLayers.length; i+= 1) {
-                    //Turn on the Selected Layer and apply the currently defined properties. Zooms the map to the extent of the layer. Turns off other Image Layers.
+                    //Turn on the Selected Layer and apply the currently defined properties. 
+                    //Zooms the map to the extent of the layer. Turns off other Image Layers.
                     //TODO: Make the zoom a config option or possible widget option
-                    if (this.imageLayers[i].id == this.imageSelect.get('value')){
+                    if (this.imageLayers[i].id === this.imageSelect.get('value')){
                         //console.log(i);
                         this.wamilayer = this.map.getLayer(this.imageSelect.get('value'));
                         this.wamilayer.setVisibility(true);
@@ -144,12 +153,12 @@ define([
             },
             _playrevControl:function(val){
                 console.log('Reverse');
-                if(this.direction != 'rev'){this._timer.start();this.direction='rev';}
+                if(this.direction !== 'rev'){this._timer.start();this.direction='rev';}
                 
             },
             _playfwdControl:function(val){
                 console.log('Forward');
-                if(this.direction != 'fwd'){this._timer.start();this.direction='fwd';}
+                if(this.direction !== 'fwd'){this._timer.start();this.direction='fwd';}
                 
             },
             _pauseControl:function(val){
@@ -159,8 +168,8 @@ define([
                 
             },
             _setTime:function(){
-                if (this.direction == 'fwd'){this.indexTime += this.movingrate;}
-                else if (this.direction == 'rev'){this.indexTime -= this.movingrate;}
+                if (this.direction === 'fwd'){this.indexTime += this.movingrate;}
+                else if (this.direction === 'rev'){this.indexTime -= this.movingrate;}
                 else {console.log('paused');
                       return;}
                 
@@ -276,9 +285,11 @@ define([
                 //Time Slider Interval
                 this.timeSlider.setThumbCount(1);
                 //Sets the number of steps on the slider based on frames per second
-                this.timeSlider.createTimeStopsByTimeInterval(this.timeExtent, (1 / this.framerate) * 1000, 'esriTimeUnitsMilliseconds');
+                this.timeSlider.createTimeStopsByTimeInterval(this.timeExtent, 
+                (1 / this.framerate) * 1000, 'esriTimeUnitsMilliseconds');
                 
-                //Set the moving rate, based on the frame rate * 1000 MS will make it play all the required frames in 1 second
+                //Set the moving rate, based on the frame rate * 1000 MS
+                //makes it play all the required frames in 1 second
                 
                 this.timeSlider.setThumbMovingRate (this.playback * ((1 / this.framerate) * 1000));
                 this.timeSlider.setThumbIndexes([0,1]);

@@ -1,8 +1,7 @@
-solutions-webappbuilder-widgets
-===============================
 # solutions-builder-widgets
-Web App Builder created and managed by the Esri Solutions teams.
+The ArcGIS Solutions Builder Widgets is a set of widgets for use with the ArcGIS Web App Builder. These widgets adress specialized workflow created and managed by the Esri Solutions teams. These widgets are used in creating many applications created by the solutions team. 
 
+Important Note: These widgets are only tested with the Beta 1 release of the Web App Builder. All the Widgets in this repo should be considered Beta (or possibly untested) until the final release of the ArcGIS Web App Builder.
 ## Sections
 
 * [Features](#features)
@@ -14,8 +13,23 @@ Web App Builder created and managed by the Esri Solutions teams.
 * [Licensing](#licensing)
 
 ## Features
+The Widget Reposistory currently includes:
+
+Emergency Management Widgets
+
+* [Bomb Threat Tool](./BombThreat/README.md)
+* [Emergency Response Guide](./ERG/README.md)
+
+Imagery Analysis Widgets
+
+* [Image Info](./ImageInfo/README.md)
+* [Image Mensuration](./ImageMensuration/README.md)
+* [Image Properties](./ImageProperties/README.md)
+* [Image Select](./ImageSelect/README.md)
+
 
 ## Requirements
+Requires ArcGIS Web App Builder Beta 1.
 
 ## Instructions
 Deploying Widgets
@@ -45,6 +59,12 @@ In order to develop and test widgets you need to deploy the solutions-webappbuil
 
 Esri welcomes contributions from anyone and everyone. Please see our [guidelines for contributing](https://github.com/esri/contributing).
 
+All web application produced follow Esri's tailcoat style guide
+http://arcgis.github.io/tailcoat/styleguides/css/
+
+If you are using [JS Hint](http://http://www.jshint.com/) there is a .jshintrc file included in the root folder which enforces this style.
+We allow for 120 characters per line instead of the highly restrictive 80. 
+
 ## Licensing
 
 Copyright 2013 Esri
@@ -64,5 +84,5 @@ limitations under the License.
 A copy of the license is available in the repository's
 [license.txt](license.txt) file.
 
-[](Esri Tags: ArcGIS Defense and Intelligence Military Environment Planning Analysis Emergency Management )
+[](Esri Tags: ArcGIS Defense and Intelligence Military Environment Planning Analysis Emergency Management Local-Government Local Government State-Government State Government Utilities)
 [](Esri Language: Javascript)

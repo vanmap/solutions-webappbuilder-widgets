@@ -1,7 +1,7 @@
 # solutions-builder-widgets
-The ArcGIS Solutions Builder Widgets is a set of widgets for use with the ArcGIS Web App Builder. These widgets adress specialized workflow created and managed by the Esri Solutions teams. These widgets are used in creating many applications created by the solutions team. 
+The ArcGIS Solutions Builder Widgets is a set of widgets for use with the Web AppBuilder for ArcGIS. These widgets adress specialized workflow created and managed by the Esri Solutions teams. These widgets are used in creating many applications created by the solutions team. 
 
-Important Note: These widgets are only tested with the Beta 1 release of the Web App Builder. All the Widgets in this repo should be considered Beta (or possibly untested) until the final release of the ArcGIS Web App Builder.
+Important Note: These widgets are only tested with the Beta 1 release of the Web AppBuilder for ArcGIS. All the Widgets in this repo should be considered Beta (or possibly untested) until the final release of Web AppBuilder for ArcGIS.
 ## Sections
 
 * [Features](#features)
@@ -29,7 +29,7 @@ Imagery Analysis Widgets
 
 
 ## Requirements
-Requires ArcGIS Web App Builder Beta 1.
+Requires Web AppBuilder for ArcGIS Beta 1.
 
 ## Instructions
 Deploying Widgets

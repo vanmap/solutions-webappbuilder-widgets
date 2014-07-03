@@ -1,0 +1,9 @@
+{
+  "name": "Batch Editor",
+  "platform": "HTML",
+  "version": "1.0",
+  "author": "Esri, Inc.",
+  "description": "Batch Editor",
+  "copyright": "",
+  "license": "http://www.apache.org/licenses/LICENSE-2.0"
+}

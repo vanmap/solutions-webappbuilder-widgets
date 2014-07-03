@@ -1,6 +1,6 @@
 define([
-    'dojo/_base/declare', 'dijit/_WidgetsInTemplateMixin', 'dojo/_base/lang', 'dojo/dom', 'dojo/on',
-    'dojo/query', 'dojo/dom-style', 'dojo/dom-construct', 'dojo/dom-attr', 'dojo/dom-class', 'dojo/_base/array', 
+    'dojo/_base/declare', 'dijit/_WidgetsInTemplateMixin', 'dojo/_base/lang', 'dojo/dom', 
+    'dojo/dom-style', 'dojo/dom-construct', 'dojo/dom-attr', 'dojo/dom-class', 'dojo/_base/array', 
     'dojo/parser', 'dojo/fx/Toggler','dojo/date/locale', 'dijit/registry', 'dojo/data/ObjectStore', 
     'dojo/store/Memory', 'dijit/form/Select', 'dojox/timing/_base', 'dijit/form/HorizontalSlider', 
     'dijit/form/NumberSpinner', 
@@ -8,8 +8,8 @@ define([
     'esri/layers/ArcGISImageServiceLayer','esri/TimeExtent','esri/dijit/TimeSlider'
 ],
        function (
-        declare,_WidgetsInTemplateMixin,lang,dom,on,
-        query,domStyle,domConstruct,domAttr,domClass,array,
+        declare, _WidgetsInTemplateMixin,lang, dom,
+        domStyle,domConstruct,domAttr,domClass,array,
         parser,Toggler,locale,registry,ObjectStore,
         Memory,Select, timingBase, HorizontalSlider, 
         NumberSpinner,
@@ -41,7 +41,7 @@ define([
                 },
             startup: function() {
                 this.inherited(arguments);
-                console.log(this.nls.selectVideoLayers);
+                
                 this.imageLayers = this._getImageLayers();
                 this._initImageSelect();
                 this.framerate = this.config.WAMITimeSlider.framerate;
@@ -57,13 +57,12 @@ define([
                 
                 
                 registry.byId('playbackSlider').on('change', lang.hitch(this, this._sliderTimeChange));
-
-                dom.byId('playRevBtn').addEventListener('click',lang.hitch(this, this._playRevControl));
-                dom.byId('playPauseBtn').addEventListener('click',lang.hitch(this, this._playPauseControl));
-                dom.byId('playForwardBtn').addEventListener('click',lang.hitch(this, this._playForwardControl));
+                registry.byId('playfwd').on('click',lang.hitch(this, this._playfwdControl));
+                registry.byId('playrev').on('click',lang.hitch(this, this._playrevControl));
+                registry.byId('pause').on('click',lang.hitch(this, this._pauseControl));
                 
-                //this.playbackToggle = new Toggler({node: 'playbackDiv', showDuration:500,hideDuration:0});
-                //this.playbackToggle.hide();
+                this.playbackToggle = new Toggler({node: 'playbackDiv', showDuration:500,hideDuration:0});
+                this.playbackToggle.hide();
                 //Create the timer and set it's event, use the config file setting for initial values
                 this._timer = new timingBase.Timer();
                 this._timer.setInterval(this.movingrate);
@@ -111,10 +110,11 @@ define([
                         
 //End of Widget Lifecyle Functions
             
-            imageLayerSelected:function(e){
-                console.log (this.imageSelect.get('value'));
+            imageLayerSelected:function(){
+                //console.log (this.imageSelect.get('value'));
                 //Enable the Video Slider Div
-                //this.playbackToggle.show(100);
+                
+                this.playbackToggle.show(100);
                 //Set the Video Layers Properties
                 for(var i = 0; i < this.imageLayers.length; i+= 1) {
                     //Turn on the Selected Layer and apply the currently defined properties. 
@@ -123,19 +123,14 @@ define([
                     if (this.imageLayers[i].id === this.imageSelect.get('value')){
                         //console.log(i);
                         this.wamilayer = this.map.getLayer(this.imageSelect.get('value'));
-                        if (this.wamilayer){
-                            this.wamilayer.setVisibility(true);
-                            this.wamilayer.setImageFormat(this.config.WAMITimeSlider.format);
-                            this.wamilayer.setCompressionQuality(this.imageQuality);
-                            this.map.setExtent(this.wamilayer.fullExtent);
-                        }
-
+                        this.wamilayer.setVisibility(true);
+                        this.wamilayer.setImageFormat(this.config.WAMITimeSlider.format);
+                        this.wamilayer.setCompressionQuality(this.imageQuality);
+                        this.map.setExtent(this.wamilayer.fullExtent);
                     }
                     else{
                        var layer = this.map.getLayer(this.imageLayers[i].id);
-                        if (layer){
-                            layer.setVisibility(false);
-                        }
+                        layer.setVisibility(false);
                     }
                         
                 }                
@@ -156,17 +151,17 @@ define([
                 }
 
             },
-            _playRevControl:function(val){
+            _playrevControl:function(val){
                 console.log('Reverse');
                 if(this.direction !== 'rev'){this._timer.start();this.direction='rev';}
                 
             },
-            _playForwardControl:function(val){
+            _playfwdControl:function(val){
                 console.log('Forward');
                 if(this.direction !== 'fwd'){this._timer.start();this.direction='fwd';}
                 
             },
-            _playPauseControl:function(val){
+            _pauseControl:function(val){
                 console.log('Pause');
                 this._timer.stop();
                 this.direction = null;
@@ -229,21 +224,21 @@ define([
 //UX Setup Functions          
             //Setup the Slider based on the time extent of the selected layer
             _setupSlider: function(){
-                if (this.wamilayer){
-                    this.timeExtent = this.wamilayer.timeInfo.timeExtent;
-                    this.map.setTimeExtent(this.timeExtent);
-                    var slider = registry.byId('playbackSlider');
-
-                    //Set the time index to the start time 
-                    this.indexTime = this.timeExtent.startTime.getTime();
-                    //Set up the slider extent to equal the video layer extent
-                    slider.set({
-                        value:this.timeExtent.startTime.getTime(),
-                        minimum:this.timeExtent.startTime.getTime(),
-                        maximum:this.timeExtent.endTime.getTime(),
-                        discreteValues:(this.timeExtent.endTime - this.timeExtent.startTime)
-                    });
-                }
+                
+                this.timeExtent = this.wamilayer.timeInfo.timeExtent;
+                this.map.setTimeExtent(this.timeExtent);
+                var slider = registry.byId('playbackSlider');
+                
+                //Set the time index to the start time 
+                this.indexTime = this.timeExtent.startTime.getTime();
+                //Set up the slider extent to equal the video layer extent
+                slider.set({
+                    value:this.timeExtent.startTime.getTime(),
+                    minimum:this.timeExtent.startTime.getTime(),
+                    maximum:this.timeExtent.endTime.getTime(),
+                    discreteValues:(this.timeExtent.endTime - this.timeExtent.startTime)
+                });
+              
             },           
             //Create a list of Image Layers that can be annimated by the video play controls            
             _getImageLayers: function() {
@@ -254,12 +249,13 @@ define([
                     var layer = this.map.getLayer(ids[i]);
                     //if (layer.setMosaicRule)
                     if (layer.declaredClass === 'esri.layers.ArcGISImageServiceLayer'){
-                        this.imageLayers.push({label : layer.arcgisProps.title,id : layer.id});
+                        this.imageLayers.push({
+                            label : layer.arcgisProps.title,
+                            id : layer.id
+                    });
                     }
                     
                 }
-            //Add the select statement. Includes blank string to force it to the top of the sort    
-            this.imageLayers.push({label : ' ' + this.nls.selectVideoLayers, id : '-1'});
             return this.imageLayers;
             },
             
@@ -269,13 +265,11 @@ define([
                 var store = new Memory({
                     data : this.imageLayers
                 });
-                //Add an empty item to represent the first item in the store
                 var os = new ObjectStore({
                     objectStore : store
                 });
                 this.imageSelect.setStore(os/*,this.imageLayers[0]*/);
                 this.imageSelect.on('change',function(newValue){ _self.imageLayerSelected();});
-                this.imageSelect.sortByLabel = false;
             }
 /*,
 //Built In Time Slider - Remove

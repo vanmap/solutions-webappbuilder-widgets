@@ -1,8 +1,8 @@
 {
     "WAMITimeSlider":{
-        "framerate" : 3.0,
+        "framerate" : 1.4,
         "playback" : 0.5,
         "format" : "jpg",
-        "quality" : 70
+        "quality" : 30
     }
 }

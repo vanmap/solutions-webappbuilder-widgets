@@ -1,54 +1,54 @@
-<div>
-    <h3 class="icon-globe"> Around the World </h3>
-    <label>${nls.selectVideoLayers}</label>
-    <br>
-    <div><select name="imageSelect" class="selectBox"  style="width:96%;margin-top:10px;" data-dojo-attach-point="imageSelect" data-dojo-type="dijit/form/Select"></select></div>
+    <div class="content-area">
+    <select name="imageSelect" style="width:96%;margin-top:10px;" data-dojo-attach-point="imageSelect" data-dojo-type="dijit/form/Select" fetchProperties="{sort:[{attribute:'id', descending:false}]}"></select>
+    <div class="panel">  
+        <label>${nls.timeReadout}<div id="playbackValue">0</div></label>
+        <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit.</p>
+    </div>
+    <div class="container">
+    <div class = "row">
+    <div class="column-24">
+        <div class="progress">
+            <div class="progress-bar">
+                <div class="button-holder">
+                    <div class="progress-button"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+    <div class="row">
+        <div class="btn-group blue column-24" id="playBtnGroup">
+            <!--<a href="#" class="column-4 blue sr-only" id="playRevBtn"><span class="icon-left-arrow"></span> ${nls.playReverse}</a>
+            <a href="#" class="column-4 blue" id="playPauseBtn">${nls.playPause}</a>
+            <a href="#" class="column-4 blue" id="playForwardBtn">${nls.playForward} <span class="icon-right-arrow"></span></a>-->
+            <a href="#" class="column-4 blue sr-only" id="playRevEndBtn"><span class="icon-left-arrow"></span></a>
+            <a href="#" class="column-4 blue" id="playRevStep"><span class="icon-push-left"></span></a>
+            <a href="#" class="column-4 blue" id="playRevBtn"><span class="icon-left-arrow"></span></a>
+            <a href="#" class="column-4 blue" id="playForwardBtn"><span class="icon-right-arrow"></span></a>
+            <a href="#" class="column-4 blue" id="playForwardStep"><span class="icon-push-right"></span></a>
+            <a href="#" class="column-4 blue" id="playPauseBtn"><span class="icon-right-arrow"></span></a>
+        </div>
+    </div>
+    </div>
     <br>
     <div id="imageInfoDiv">
     </div>
     <br>
     <div id="playbackDiv">
         <label>${nls.videoPlaybackControl}</label>
-        <br>
-        
-        <table width="100%" cellspacing="0" cellpadding="0" border="0">
-            <tr>
-                <td></td>
-                <td colspan="3" align="center"><!--<label>${nls.timeReadout}</label><label>${nls.timeReadout}</label>--><span id="playbackValue">0</span></td>
-                <td></td>
-            </tr>
-            <tr>
-                <td colspan="5">
-                    <div data-dojo-attach-point= "playbackSlider"
-                         name="playbackSlider"
-                         id="playbackSlider"
-                         class="playbackSlider"
-                         style="width:96%;margin-top:10px;"
-                         data-dojo-type="dijit/form/HorizontalSlider"
-                         data-dojo-props="value:1305141105968,
-                                          minimum: 1305141105968,
-                                          maximum:1305141281468,
-                                          discreteValues:100,
-                                          intermediateChanges:false,
-                                          showButtons:true">
-                    </div>
-                </td>
-            </tr>    
-        <tr>
-        <td width = "5%"></td>    
-        <td width = "30%" align="right">
-            <button name="playrev" id="playrev" data-dojo-type="dijit/form/Button"
-                    data-dojo-props="iconClass:'esriwamisliderrewindimage', showlabel: false">${nls.playReverse}</button></td>
-        <td width = "30%" align="center">
-            <button name="pause" id="pause" data-dojo-type="dijit/form/Button"
-                    data-dojo-props="iconClass:'esriwamisliderpauseimage', showlabel: false">${nls.playPause}</button></td>
-        <td width = "30%" align="left">
-            <button name="playfwd" id="playfwd" data-dojo-type="dijit/form/Button"
-                    data-dojo-props="iconClass:'esriwamisliderforwardimage style', showlabel: false">${nls.playForward}</button></td>
-        <td width = "5%"></td>
-        </tr>
-        </table>
-        <div id="wamiTimeSlider"></div>
+        <div data-dojo-attach-point= "playbackSlider"
+             name="playbackSlider"
+             id="playbackSlider"
+             class="playbackSlider"
+             style="width:96%;margin-top:10px;"
+             data-dojo-type="dijit/form/HorizontalSlider"
+             data-dojo-props="value:1305141105968,
+                              minimum: 1305141105968,
+                              maximum:1305141281468,
+                              discreteValues:100,
+                              intermediateChanges:false,
+                              showButtons:true">
+        </div>
     </div>
     <span class="qualityLabel">${nls.imagequality} (<span data-dojo-attach-point="qualityValue">0</span>):</span>
     <div data-dojo-attach-point= "qualitySlider"
@@ -63,7 +63,6 @@
                           intermediateChanges:false,
                           showButtons:false">
     </div>
-    <br>
     <label class="framerateLabel">${nls.framerate}</label>
     <div data-dojo-attach-point= "framerateSpinner"
          name="framerateSpinner"
@@ -73,16 +72,4 @@
          data-dojo-props="smallDelta:0.2,constraints:{min:0,max:15,places:1},intermediateChanges:true"
          style: width:"50px">
     </div>
-<!--HTML Copied from the Time Slider    -->
-
-<!--        <div class="wamiTimeSlider">
-        <table width="100%" cellspacing="0" cellpadding="0" border="0">
-            <tr>
-                <td align="right" valign="middle"><button dojoType="dijit.form.Button" showLabel="false" iconClass="tsButton tsPlayButton" dojoAttachEvent="onClick:_onPlay" dojoAttachPoint="playPauseBtn" type="button">Play</button></td>
-                <td align="center" valign="middle" width="80%" class="tsTmp"></td>
-                <td align="left" valign="middle" width="30"><button dojoType="dijit.form.Button" showLabel="false" iconClass="tsButton tsPrevButton" dojoAttachEvent="onClick:_onPrev" dojoAttachPoint="previousBtn" type="button">Previous</button></td>
-                <td align="left" valign="middle"><button dojoType="dijit.form.Button" showLabel="false" iconClass="tsButton tsNextButton" dojoAttachEvent="onClick:_onNext" dojoAttachPoint="nextBtn" type="button">Next</button></td>
-            </tr>
-        </table>
-    </div>-->
 </div>

@@ -1,7 +1,12 @@
-# solutions-builder-widgets
-The ArcGIS Solutions Builder Widgets is a set of widgets for use with the Web AppBuilder for ArcGIS. These widgets adress specialized workflow created and managed by the Esri Solutions teams. These widgets are used in creating many applications created by the solutions team. 
+# Batch Attribute Editor 
+The Batch Attribute Editor widget allows users to select a set features, by either using shapes or another layer, and edit all their attributes at once. 
 
-Important Note: These widgets are only tested with the Beta 1 release of the Web AppBuilder for ArcGIS. All the Widgets in this repo should be considered Beta (or possibly untested) until the final release of Web AppBuilder for ArcGIS.
+Usage examples: 
+* electric company wants to assign a set of poles in an area to be maintained by a particular work crew.
+* gas company wants to assign a set of meters in an area to be inspected by a particular work crew.
+* water company wants to assign a set of hydrants in an area to be serviced by a particular work crew.
+
+Important Note: These widgets are only tested with the Beta 1 release of or ArcGIS WebApp Builder. All the Widgets in this repo should be considered Beta (or possibly untested) until the final release of Web AppBuilder for ArcGIS.
 ## Sections
 
 * [Features](#features)
@@ -13,43 +18,35 @@ Important Note: These widgets are only tested with the Beta 1 release of the Web
 * [Licensing](#licensing)
 
 ## Features
-The Widget Reposistory currently includes:
 
-Emergency Management Widgets
-
-* [Bomb Threat Tool](./BombThreat/README.md)
-* [Emergency Response Guide](./ERG/README.md)
-
-Imagery Analysis Widgets
-
-* [Image Info](./ImageInfo/README.md)
-* [Image Mensuration](./ImageMensuration/README.md)
-* [Image Properties](./ImageProperties/README.md)
-* [Image Select](./ImageSelect/README.md)
-
+* Select by Polygon Layer.
+* Select by Shape.
+* Ability to select from any type of feature class.
+* Ability to select type of spatial relationship between features and user selection..
+* Set style of symbol for drawn shape.
+* Set style of symbol for selected features.
 
 ## Requirements
-Requires Web AppBuilder for ArcGIS Beta 1.
+* ArcGIS WebApp Builder Beta 1.
 
 ## Instructions
-Deploying Widgets
+Deploying Widget
 
 Setting Up Repository for Development
-In order to develop and test widgets you need to deploy the solutions-webappbuilder-widgets folder to the stemapp/widgets directory in your webapp builder installation. If you use Github for windows this can be accomplished using the following steps.
+In order to develop and test widgets you need to deploy the BatchEditor folder to the stemapp/widgets directory in your WebApp Builder installation. If you use Github for windows this can be accomplished using the following steps.
 
 1. Sync the repository to your local machine.
 2. Close Open the Repository in Windows Explorer
 3. Close Github for Windows
-4. Cut and paste the entire solutions-webappbuilder-widgets folder into the stemapp/widgets folder
+4. Cut and paste the entire BatchEditor folder into the stemapp/widgets folder
 5. Launch Github for Windows and choose the option to locate the repository. This will change the location on disk to the new location. 
 
 ### General Help
-[New to Github? Get started here.](http://htmlpreview.github.com/?https://github.com/Esri/esri.github.com/blob/master/help/esri-getting-to-know-github.html)
-
+[New to Github? Get started here.](http://htmlpreview.github.io/?https://github.com/Esri/esri.github.com/blob/master/help/esri-getting-to-know-github.html)
 
 ## Resources
 
-* Learn more about Esri's [ArcGIS for Defense maps and apps](http://resources.arcgis.com/en/communities/defense-and-intelligence/).
+* Learn more about Esri's [Solutions for ArcGIS](http://solutions.arcgis.com/).
 
 ## Issues
 
@@ -84,5 +81,5 @@ limitations under the License.
 A copy of the license is available in the repository's
 [license.txt](license.txt) file.
 
-[](Esri Tags: ArcGIS Defense and Intelligence Military Environment Planning Analysis Emergency Management Local-Government Local Government State-Government State Government Utilities)
+[](Esri Tags: ArcGIS Gas Electric Telco Telecommunications Utilities)
 [](Esri Language: Javascript)

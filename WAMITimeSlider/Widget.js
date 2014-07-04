@@ -18,7 +18,7 @@ define([
         
     ) {
         var clazz = declare([BaseWidget, _WidgetsInTemplateMixin], {
-            name: 'WAMITimeSlider',
+            name: 'WAMI Time Slider',
             baseClass: 'jimu-widget-wamitimeslider',
             timeSlider: null,
             timeSliderDiv: null,
@@ -33,12 +33,16 @@ define([
             indexTime: null,
             direction: null,
             playbackToggle: null,
+            progressClick:null,
+            progressIndex:null,
+            startx:0,
             
 //Required Functions for Widget Lifecyle
-                postCreate: function() {
+            postCreate: function() {
                     this.inherited(arguments);
                     console.log('postCreate');
                 },
+            
             startup: function() {
                 this.inherited(arguments);
                 console.log(this.nls.selectVideoLayers);
@@ -58,10 +62,12 @@ define([
                 
                 registry.byId('playbackSlider').on('change', lang.hitch(this, this._sliderTimeChange));
 
-                dom.byId('playRevBtn').addEventListener('click',lang.hitch(this, this._playRevControl));
-                dom.byId('playPauseBtn').addEventListener('click',lang.hitch(this, this._playPauseControl));
-                dom.byId('playForwardBtn').addEventListener('click',lang.hitch(this, this._playForwardControl));
+                dom.byId('playRevBtn').addEventListener('click',lang.hitch(this, this.playRev));
+                dom.byId('playForwardBtn').addEventListener('click',lang.hitch(this, this._playForward));
                 
+                dom.byId('progButton').addEventListener('mousedown',lang.hitch(this, this._progressClick));
+                dom.byId('progButton').addEventListener('mousemove',lang.hitch(this, this._progressMove));
+                dom.byId('playArea').addEventListener('mouseup',lang.hitch(this, this._progressDone));
                 //this.playbackToggle = new Toggler({node: 'playbackDiv', showDuration:500,hideDuration:0});
                 //this.playbackToggle.hide();
                 //Create the timer and set it's event, use the config file setting for initial values
@@ -142,13 +148,28 @@ define([
                 // Reset Slider to use the time extent from the WAMI Layer
                 //this.wamiSlider(); //Built in Time Slider
                 this._setupSlider();
+                if (this.wamilayer){
+                    var vstart = locale.format(this.wamilayer.timeInfo.timeExtent.startTime,
+                                                 {selector:'time', timePattern:'H:m:ss'});
+                    var vend = locale.format(this.wamilayer.timeInfo.timeExtent.endTime,
+                                                {selector:'time', timePattern:'H:m:ss'});
+                    var vdstart = locale.format(this.wamilayer.timeInfo.timeExtent.startTime,
+                                                 {selector:'date', datePattern:'MMM d, yyy'});
+                    var vdend = locale.format(this.wamilayer.timeInfo.timeExtent.endTime,
+                                                {selector:'date', datePattern:'MMM d, yyy'});
+                    
+                    dom.byId('timeExtentValue').innerHTML = this.nls.videoDate + ' : ' + vstart + ' - ' + vend;
+                    dom.byId('dateExtentValue').innerHTML = this.nls.videoDate + ' : ' + vdstart + ' - ' + vdend;
+                    }
             },
             
             timeExtentChanged:function(e){
                 if (this.map.timeExtent){
-                    var d = locale.format(this.map.timeExtent.endTime,{selector:'time', timePattern:'H:m:ss.SSS'});
+                    var vidtime = locale.format(this.map.timeExtent.endTime,
+                                                {selector:'time', timePattern:'H:m:ss.SSS'});
                     registry.byId('playbackSlider').attr('value',this.map.timeExtent.endTime.getTime()); 
-                    dom.byId('playbackValue').innerHTML = d;
+                    dom.byId('playbackValue').innerHTML = ' ' + this.nls.timeReadout + ' : ' + vidtime;
+                    
                     
                 }
                 else {
@@ -156,41 +177,101 @@ define([
                 }
 
             },
-            _playRevControl:function(val){
-                console.log('Reverse');
-                if(this.direction !== 'rev'){this._timer.start();this.direction='rev';}
+            playRev:function(val){
+                if(this.direction !== 'rev'){
+                    console.log('Reverse');
+                    this._timer.start();
+                    this.direction='rev';
+                    query('span',dom.byId('playRevBtn')).removeClass('icon-left-arrow').addClass('icon-analytics');
+                    query('span',dom.byId('playForwardBtn')).removeClass('icon-analytics').addClass('icon-right-arrow');
+                }
+                else{
+                    console.log('Pause');
+                    this._timer.stop();
+                    this.direction = null;
+                    query('span',dom.byId('playRevBtn')).removeClass('icon-analytics').addClass('icon-left-arrow');
+                    query('span',dom.byId('playForwardBtn')).removeClass('icon-analytics').addClass('icon-right-arrow'); 
+                }
                 
             },
-            _playForwardControl:function(val){
-                console.log('Forward');
-                if(this.direction !== 'fwd'){this._timer.start();this.direction='fwd';}
-                
-            },
-            _playPauseControl:function(val){
-                console.log('Pause');
-                this._timer.stop();
-                this.direction = null;
+            _playForward:function(val){
+                if(this.direction !== 'fwd'){
+                    console.log('Forward');
+                    this._timer.start();
+                    this.direction='fwd';
+                    //var t = query('span',dom.byId('playForwardBtn'));
+                    //console.log(t);
+                    query('span',dom.byId('playForwardBtn')).removeClass('icon-right-arrow').addClass('icon-analytics');
+                    query('span',dom.byId('playRevBtn')).removeClass('icon-analytics').addClass('icon-left-arrow');
+                }
+                else{
+                    console.log('Pause');
+                    this._timer.stop();
+                    this.direction = null;
+                    query('span',dom.byId('playForwardBtn')).removeClass('icon-analytics').addClass('icon-right-arrow');
+                    query('span',dom.byId('playRevBtn')).removeClass('icon-analytics').addClass('icon-left-arrow');
+                }
                 
             },
             _setTime:function(){
                 if (this.direction === 'fwd'){this.indexTime += this.movingrate;}
                 else if (this.direction === 'rev'){this.indexTime -= this.movingrate;}
-                else {console.log('paused');
+                else {console.log('not moving');
                       return;}
-                
                 console.log('Image Date using Index ' + this.indexTime);
                 //TODO: Need to protect against empty time extent
                 if (this.wamilayer){
-                    if (this.indexTime > this.wamilayer.timeInfo.timeExtent.startTime ){
+                      //console.log('Test Tic ' + this.indexTime);
+                   if (this.indexTime > this.wamilayer.timeInfo.timeExtent.startTime ){
                         var vidTimeExtent = new TimeExtent();
                         vidTimeExtent.startTime = this.wamilayer.timeInfo.timeExtent.startTime;
                         vidTimeExtent.endTime = new Date(this.indexTime);
-                        this.map.setTimeExtent(vidTimeExtent);                    
+                        this.map.setTimeExtent(vidTimeExtent);
                     }
                     else {console.log('paused');}
                 }
                 else{console.log('No Image Selected Fix this bug!');}
       
+            },
+            _progressClick:function(e){
+                
+                this.progressClick = true;
+                this.progressIndex = domStyle.get('progressBarIndicator','width');
+                this.startx = e.pageX;
+                console.log('Click StartX ' + this.startx);
+                
+            },
+            _progressMove:function(e){
+                if(this.progressClick){
+                    var progMove=0;
+                    var progBarWidth = dom.byId('progressBar').offsetWidth;
+                    var buttonWidth = dom.byId('progButton').offsetWidth;
+                    var x = e.pageX;
+                    
+                    //Current Positions for Prgress Bar and Progress Button
+                    var deltax = x - this.startx;
+                    var newx = deltax + this.progressIndex;
+                    if(newx < 0){
+                        progMove = 0;
+                        //Add Current Time here
+                        
+                    }
+                    else if (newx > progBarWidth){
+                        //set time here
+                        progMove = progBarWidth;
+                        
+                    }
+                    else{
+                        progMove = newx;
+                        
+                    }
+                    
+                    domStyle.set('progressBarIndicator',{'width' : progMove + 'px'});
+                    domStyle.set('progButton',{'left' : (progMove - buttonWidth) + 'px'});
+                }
+            },
+            _progressDone:function(e){
+                this.progressClick = false;
             },
             _sliderTimeChange:function(){
                 var sliderTime = registry.byId('playbackSlider').value;

@@ -1,16 +1,21 @@
     <div class="content-area">
-    <select name="imageSelect" style="width:96%;margin-top:10px;" data-dojo-attach-point="imageSelect" data-dojo-type="dijit/form/Select" fetchProperties="{sort:[{attribute:'id', descending:false}]}"></select>
-    <div class="panel">  
-        <label>${nls.timeReadout}<div id="playbackValue">0</div></label>
+    <select name="imageSelect" style="width:90%;margin-top:10px;" data-dojo-attach-point="imageSelect" data-dojo-type="dijit/form/Select" fetchProperties="{sort:[{attribute:'id', descending:false}]}"></select>
+   
+    <div class="panel">
+        <h3>Video Information</h3>
+        <div id="dateExtentValue">${nls.videoDate}: 00/00/00-00/00/00</div>
+        <div id="timeExtentValue">${nls.videoTime}: 00:00:0-00:00:0</div>
+        <div id="playbackValue">${nls.timeReadout}: 0</div>
+        <br>
         <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit.</p>
     </div>
-    <div class="container">
+    <div id="playArea" class="container">
     <div class = "row">
     <div class="column-24">
-        <div class="progress">
-            <div class="progress-bar">
+        <div id="progressBar" class="progress">
+            <div id="progressBarIndicator" class="progress-bar">
                 <div class="button-holder">
-                    <div class="progress-button"></div>
+                    <div id='progButton' class="progress-button"></div>
                 </div>
             </div>
         </div>
@@ -18,10 +23,7 @@
     </div>
     <div class="row">
         <div class="btn-group blue column-24" id="playBtnGroup">
-            <!--<a href="#" class="column-4 blue sr-only" id="playRevBtn"><span class="icon-left-arrow"></span> ${nls.playReverse}</a>
-            <a href="#" class="column-4 blue" id="playPauseBtn">${nls.playPause}</a>
-            <a href="#" class="column-4 blue" id="playForwardBtn">${nls.playForward} <span class="icon-right-arrow"></span></a>-->
-            <a href="#" class="column-4 blue sr-only" id="playRevEndBtn"><span class="icon-left-arrow"></span></a>
+            <a href="#" class="column-4 blue" id="playRevEndBtn"><span class="icon-left-arrow"></span></a>
             <a href="#" class="column-4 blue" id="playRevStep"><span class="icon-push-left"></span></a>
             <a href="#" class="column-4 blue" id="playRevBtn"><span class="icon-left-arrow"></span></a>
             <a href="#" class="column-4 blue" id="playForwardBtn"><span class="icon-right-arrow"></span></a>

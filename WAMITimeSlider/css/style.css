@@ -44,7 +44,7 @@
     height: 100%;
     position: relative;
     z-index: 999;
-    width: 0;
+    width: 10px;
 }
  
 .button-holder {

@@ -33,14 +33,14 @@ define([
             indexTime: null,
             direction: null,
             playbackToggle: null,
-            progressClick:null,
-            progressIndex:null,
-            startx:0,
             
+//***********************************            
 //Required Functions for Widget Lifecyle
+//**************************************
+            
             postCreate: function() {
                     this.inherited(arguments);
-                    console.log('postCreate');
+                    //console.log('postCreate');
                 },
             
             startup: function() {
@@ -52,67 +52,69 @@ define([
                 this.playback = this.config.WAMITimeSlider.playback;
                 this.imageQuality = this.config.WAMITimeSlider.quality;
                 this.movingrate = (this.playback * (1 / this.framerate) * 1000);
-
                 
-                //UX Elements for the player
-                this.qualitySlider.on('change', lang.hitch(this, this._updateQuality));
-                this.framerateSpinner.on('change', lang.hitch(this, this._updatreFramerate));
-                this.map.on('time-extent-change',lang.hitch(this, this.timeExtentChanged));
-                
-                
-                registry.byId('playbackSlider').on('change', lang.hitch(this, this._sliderTimeChange));
-
-                dom.byId('playRevBtn').addEventListener('click',lang.hitch(this, this.playRev));
-                dom.byId('playForwardBtn').addEventListener('click',lang.hitch(this, this._playForward));
-                
-                dom.byId('progButton').addEventListener('mousedown',lang.hitch(this, this._progressClick));
-                dom.byId('progButton').addEventListener('mousemove',lang.hitch(this, this._progressMove));
-                dom.byId('playArea').addEventListener('mouseup',lang.hitch(this, this._progressDone));
-                //this.playbackToggle = new Toggler({node: 'playbackDiv', showDuration:500,hideDuration:0});
-                //this.playbackToggle.hide();
                 //Create the timer and set it's event, use the config file setting for initial values
                 this._timer = new timingBase.Timer();
                 this._timer.setInterval(this.movingrate);
                 this._timer.onTick = lang.hitch(this, '_setTime', 1);
                 
+                
+                this.map.on('time-extent-change',lang.hitch(this, this.timeExtentChanged));
+
+                //UX Elements for the player
+                //this.initProgressSlider();
+                this.progressSlider.startup();
+                
+                this.initPlayBtn();
+                
+                registry.byId('playbackSlider').on('change', lang.hitch(this, this._sliderTimeChange));
+
+
+
+                
+                
+                //old UX to replace
+                this.qualitySlider.on('change', lang.hitch(this, this._updateQuality));
+                this.framerateSpinner.on('change', lang.hitch(this, this._updatreFramerate));
+                
                 //this.timeSlider = new TimeSlider({style: 'width: 100%;'}, dom.byId('wamiTimeSlider'));
                 //this._createSlider();
                 
                 
-                console.log('startup');
+                //console.log('startup');
             },
             
             onOpen: function(){
                 
-                console.log('onOpen');
+               // console.log('onOpen');
             },
             
             onClose: function(){
                 
                 if (this.timeSlider) {
                     domStyle.set(this.playbackDiv.domNode, 'display', 'none');            
-                    console.log('onClose');
+                   // console.log('onClose');
                 }
             },
             
             onMinimize: function(){
                 
-                console.log('onMinimize');
+               // console.log('onMinimize');
             },
             onMaximize: function(){
                 
-                console.log('onMaximize');
+               // console.log('onMaximize');
             },
             
             onSignIn: function(credential){
                 
                 /* jshint unused:false*/
-                console.log('onSignIn');
+                //console.log('onSignIn');
             },
             
             onSignOut: function(){
                 
-                console.log('onSignOut');
+               // console.log('onSignOut');
             },
                         
 //End of Widget Lifecyle Functions
@@ -145,10 +147,20 @@ define([
                     }
                         
                 }                
+                
                 // Reset Slider to use the time extent from the WAMI Layer
-                //this.wamiSlider(); //Built in Time Slider
+                // Set the end time/start time to the same so it starts at begining of video
                 this._setupSlider();
                 if (this.wamilayer){
+                    var vidTimeExtent = new TimeExtent();
+                    
+                    vidTimeExtent.startTime = this.wamilayer.timeInfo.timeExtent.startTime;
+                    vidTimeExtent.endTime = this.wamilayer.timeInfo.timeExtent.startTime;
+                    this.map.setTimeExtent(vidTimeExtent);
+                
+                //TODO: Move this to it's own function    
+                //Add the text to the info box
+                
                     var vstart = locale.format(this.wamilayer.timeInfo.timeExtent.startTime,
                                                  {selector:'time', timePattern:'H:m:ss'});
                     var vend = locale.format(this.wamilayer.timeInfo.timeExtent.endTime,
@@ -169,49 +181,13 @@ define([
                                                 {selector:'time', timePattern:'H:m:ss.SSS'});
                     registry.byId('playbackSlider').attr('value',this.map.timeExtent.endTime.getTime()); 
                     dom.byId('playbackValue').innerHTML = ' ' + this.nls.timeReadout + ' : ' + vidtime;
-                    
+                    this.progressSlider.setValue(this.map.timeExtent.endTime.getTime());
                     
                 }
                 else {
                     console.log('No Time Extent Update');
                 }
 
-            },
-            playRev:function(val){
-                if(this.direction !== 'rev'){
-                    console.log('Reverse');
-                    this._timer.start();
-                    this.direction='rev';
-                    query('span',dom.byId('playRevBtn')).removeClass('icon-left-arrow').addClass('icon-analytics');
-                    query('span',dom.byId('playForwardBtn')).removeClass('icon-analytics').addClass('icon-right-arrow');
-                }
-                else{
-                    console.log('Pause');
-                    this._timer.stop();
-                    this.direction = null;
-                    query('span',dom.byId('playRevBtn')).removeClass('icon-analytics').addClass('icon-left-arrow');
-                    query('span',dom.byId('playForwardBtn')).removeClass('icon-analytics').addClass('icon-right-arrow'); 
-                }
-                
-            },
-            _playForward:function(val){
-                if(this.direction !== 'fwd'){
-                    console.log('Forward');
-                    this._timer.start();
-                    this.direction='fwd';
-                    //var t = query('span',dom.byId('playForwardBtn'));
-                    //console.log(t);
-                    query('span',dom.byId('playForwardBtn')).removeClass('icon-right-arrow').addClass('icon-analytics');
-                    query('span',dom.byId('playRevBtn')).removeClass('icon-analytics').addClass('icon-left-arrow');
-                }
-                else{
-                    console.log('Pause');
-                    this._timer.stop();
-                    this.direction = null;
-                    query('span',dom.byId('playForwardBtn')).removeClass('icon-analytics').addClass('icon-right-arrow');
-                    query('span',dom.byId('playRevBtn')).removeClass('icon-analytics').addClass('icon-left-arrow');
-                }
-                
             },
             _setTime:function(){
                 if (this.direction === 'fwd'){this.indexTime += this.movingrate;}
@@ -233,46 +209,137 @@ define([
                 else{console.log('No Image Selected Fix this bug!');}
       
             },
-            _progressClick:function(e){
+
+//*******************************
+//Button Toolbar Control.
+//***************************
+            
+            initPlayBtn:function(){
                 
-                this.progressClick = true;
-                this.progressIndex = domStyle.get('progressBarIndicator','width');
-                this.startx = e.pageX;
-                console.log('Click StartX ' + this.startx);
+                dom.byId('playRevBtn').addEventListener('click',lang.hitch(this, this.playRev));
+                dom.byId('playForwardBtn').addEventListener('click',lang.hitch(this, this.playForward)); 
                 
             },
-            _progressMove:function(e){
-                if(this.progressClick){
-                    var progMove=0;
-                    var progBarWidth = dom.byId('progressBar').offsetWidth;
-                    var buttonWidth = dom.byId('progButton').offsetWidth;
-                    var x = e.pageX;
-                    
-                    //Current Positions for Prgress Bar and Progress Button
-                    var deltax = x - this.startx;
-                    var newx = deltax + this.progressIndex;
-                    if(newx < 0){
-                        progMove = 0;
-                        //Add Current Time here
+            
+            playRev:function(val){
+                if(this.direction !== 'rev'){
+                    console.log('Reverse');
+                    this._timer.start();
+                    this.direction='rev';
+                    query('span',dom.byId('playRevBtn')).removeClass('icon-left-arrow').addClass('icon-analytics');
+                    query('span',dom.byId('playForwardBtn')).removeClass('icon-analytics').addClass('icon-right-arrow');
+                }
+                else{
+                    console.log('Pause');
+                    this._timer.stop();
+                    this.direction = null;
+                    query('span',dom.byId('playRevBtn')).removeClass('icon-analytics').addClass('icon-left-arrow');
+                    query('span',dom.byId('playForwardBtn')).removeClass('icon-analytics').addClass('icon-right-arrow'); 
+                }
+                
+            },
+            playForward:function(val){
+                if(this.direction !== 'fwd'){
+                    console.log('Forward');
+                    this._timer.start();
+                    this.direction='fwd';
+                    //var t = query('span',dom.byId('playForwardBtn'));
+                    //console.log(t);
+                    query('span',dom.byId('playForwardBtn')).removeClass('icon-right-arrow').addClass('icon-analytics');
+                    query('span',dom.byId('playRevBtn')).removeClass('icon-analytics').addClass('icon-left-arrow');
+                }
+                else{
+                    console.log('Pause');
+                    this._timer.stop();
+                    this.direction = null;
+                    query('span',dom.byId('playForwardBtn')).removeClass('icon-analytics').addClass('icon-right-arrow');
+                    query('span',dom.byId('playRevBtn')).removeClass('icon-analytics').addClass('icon-left-arrow');
+                }
+                
+            },
+//*******************************
+//Progress Slider Controls.
+//***************************
+            progressSlider: {
+                progressIndex:null,
+                progressClick:null,
+                startx:null,
+                value:null,
+                minimum:null,
+                maximum:null,
+                valueConversion:1.0,
+                self:this,
+                startup : function(){
+                  //Event Listeners to enable dragging os slider button
+                  dom.byId('progButton').addEventListener('mousedown',this._progressClick.bind(this), false);
+                  dom.byId('progButton').addEventListener('mousemove',this._progressMove.bind(this),false);
+                  dom.byId('playArea').addEventListener('mouseup',this._progressDone.bind(this),false);
+                    console.log('valueConversion initial Value '+ this.valueConversion);
+              },
+                _progressClick:function(e){
+                    this.progressClick = true;
+                    this.progressIndex = domStyle.get('progressBarIndicator','width');
+                    this.startx = e.pageX;
+                    //console.log('Click StartX ' + this.startx);   
+                },
+                _progressDone:function(e){
+                    this.sliderCurrentValue();
+                    this.progressClick = false;
+                    console.log(this.value);
+                },
+                _progressMove:function(e){
+                    if(this.progressClick){
+                        var progMove=0;
+                        var progBarWidth = dom.byId('progressBar').offsetWidth;
+                        var buttonWidth = dom.byId('progButton').offsetWidth;
+                        var x = e.pageX;
                         
-                    }
-                    else if (newx > progBarWidth){
-                        //set time here
-                        progMove = progBarWidth;
-                        
-                    }
-                    else{
-                        progMove = newx;
-                        
-                    }
-                    
+                        //Current Positions for Prgress Bar and Progress Button
+                        var deltax = x - this.startx;
+                        var newx = deltax + this.progressIndex;
+                        if(newx < 0){
+                            progMove = 0;
+                            //Add Current Time here
+                        }
+                        else if (newx > progBarWidth){
+                            //set time here
+                            progMove = progBarWidth;
+                        }
+                        else{
+                            progMove = newx;
+                        }
                     domStyle.set('progressBarIndicator',{'width' : progMove + 'px'});
                     domStyle.set('progButton',{'left' : (progMove - buttonWidth) + 'px'});
+                                        
+                    }
+                },
+                
+                sliderCurrentValue:function(){
+                    var barWidth = domStyle.get('progressBarIndicator','width');
+                    this.value = Math.floor(this.valueConversion * barWidth + this.minimum);
+                    return this.value;
+                },
+                setTimeExtent:function(extent){
+                        this.value = extent && extent.startTime.getTime();
+                        this.minimum = extent && extent.startTime.getTime();
+                        this.maximum = extent && extent.endTime.getTime();
+                        this.discreteValues = extent && (extent.endTime - extent.startTime);
+                        this.valueConversion = this.discreteValues / dom.byId('progressBar').offsetWidth;
+                    
+                    console.log('slider width to milisecond: ' + this.maximum);
+                },
+                setValue:function(time){
+                    this.value = time;
+                    var relVaule = time - this.minimum;
+                    var position = relVaule / this.valueConversion;
+                    var buttonWidth = dom.byId('progButton').offsetWidth;
+                    domStyle.set('progressBarIndicator',{'width' : position + 'px'});
+                    domStyle.set('progButton',{'left' : (position - buttonWidth) + 'px'}); 
                 }
+                
+
             },
-            _progressDone:function(e){
-                this.progressClick = false;
-            },
+            
             _sliderTimeChange:function(){
                 var sliderTime = registry.byId('playbackSlider').value;
                 this.playbackValue = this.indexTime;
@@ -312,12 +379,15 @@ define([
             _setupSlider: function(){
                 if (this.wamilayer){
                     this.timeExtent = this.wamilayer.timeInfo.timeExtent;
-                    this.map.setTimeExtent(this.timeExtent);
+                    this.progressSlider.setTimeExtent(this.timeExtent);
                     var slider = registry.byId('playbackSlider');
+                    
+                    
 
                     //Set the time index to the start time 
                     this.indexTime = this.timeExtent.startTime.getTime();
                     //Set up the slider extent to equal the video layer extent
+                    
                     slider.set({
                         value:this.timeExtent.startTime.getTime(),
                         minimum:this.timeExtent.startTime.getTime(),
@@ -358,6 +428,7 @@ define([
                 this.imageSelect.on('change',function(newValue){ _self.imageLayerSelected();});
                 this.imageSelect.sortByLabel = false;
             }
+            
 /*,
 //Built In Time Slider - Remove
             wamiSlider: function (){
@@ -386,7 +457,7 @@ define([
             }
 */
 
-            
+          
         });
         
         clazz.hasStyle = false;

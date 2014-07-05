@@ -64,22 +64,13 @@ define([
                 //UX Elements for the player
                 //this.initProgressSlider();
                 this.progressSlider.startup();
-                
                 this.initPlayBtn();
-                
-                registry.byId('playbackSlider').on('change', lang.hitch(this, this._sliderTimeChange));
 
 
-
-                
-                
                 //old UX to replace
                 this.qualitySlider.on('change', lang.hitch(this, this._updateQuality));
                 this.framerateSpinner.on('change', lang.hitch(this, this._updatreFramerate));
-                
-                //this.timeSlider = new TimeSlider({style: 'width: 100%;'}, dom.byId('wamiTimeSlider'));
-                //this._createSlider();
-                
+                            
                 
                 //console.log('startup');
             },
@@ -90,11 +81,9 @@ define([
             },
             
             onClose: function(){
-                
-                if (this.timeSlider) {
-                    domStyle.set(this.playbackDiv.domNode, 'display', 'none');            
+                            
                    // console.log('onClose');
-                }
+                
             },
             
             onMinimize: function(){
@@ -121,9 +110,6 @@ define([
             
             imageLayerSelected:function(e){
                 console.log (this.imageSelect.get('value'));
-                //Enable the Video Slider Div
-                //this.playbackToggle.show(100);
-                //Set the Video Layers Properties
                 for(var i = 0; i < this.imageLayers.length; i+= 1) {
                     //Turn on the Selected Layer and apply the currently defined properties. 
                     //Zooms the map to the extent of the layer. Turns off other Image Layers.
@@ -178,8 +164,7 @@ define([
             timeExtentChanged:function(e){
                 if (this.map.timeExtent){
                     var vidtime = locale.format(this.map.timeExtent.endTime,
-                                                {selector:'time', timePattern:'H:m:ss.SSS'});
-                    registry.byId('playbackSlider').attr('value',this.map.timeExtent.endTime.getTime()); 
+                                                {selector:'time', timePattern:'H:m:ss.SSS'}); 
                     dom.byId('playbackValue').innerHTML = ' ' + this.nls.timeReadout + ' : ' + vidtime;
                     this.progressSlider.setValue(this.map.timeExtent.endTime.getTime());
                     
@@ -189,25 +174,11 @@ define([
                 }
 
             },
-            _setTime:function(){
-                if (this.direction === 'fwd'){this.indexTime += this.movingrate;}
-                else if (this.direction === 'rev'){this.indexTime -= this.movingrate;}
-                else {console.log('not moving');
-                      return;}
-                console.log('Image Date using Index ' + this.indexTime);
-                //TODO: Need to protect against empty time extent
-                if (this.wamilayer){
-                      //console.log('Test Tic ' + this.indexTime);
-                   if (this.indexTime > this.wamilayer.timeInfo.timeExtent.startTime ){
-                        var vidTimeExtent = new TimeExtent();
-                        vidTimeExtent.startTime = this.wamilayer.timeInfo.timeExtent.startTime;
-                        vidTimeExtent.endTime = new Date(this.indexTime);
-                        this.map.setTimeExtent(vidTimeExtent);
-                    }
-                    else {console.log('paused');}
+            setIndex:function(){
+              var sliderVal = this.progressSlider.sliderCurrentValue();
+                if (sliderVal !== this.indexTime){
+                    this.indexTime = sliderVal;
                 }
-                else{console.log('No Image Selected Fix this bug!');}
-      
             },
 
 //*******************************
@@ -226,15 +197,15 @@ define([
                     console.log('Reverse');
                     this._timer.start();
                     this.direction='rev';
-                    query('span',dom.byId('playRevBtn')).removeClass('icon-left-arrow').addClass('icon-analytics');
-                    query('span',dom.byId('playForwardBtn')).removeClass('icon-analytics').addClass('icon-right-arrow');
+                    query('span',dom.byId('playRevBtn')).removeClass('icon-left-arrow').addClass('icon-pause');
+                    query('span',dom.byId('playForwardBtn')).removeClass('icon-pause').addClass('icon-right-arrow');
                 }
                 else{
                     console.log('Pause');
                     this._timer.stop();
                     this.direction = null;
-                    query('span',dom.byId('playRevBtn')).removeClass('icon-analytics').addClass('icon-left-arrow');
-                    query('span',dom.byId('playForwardBtn')).removeClass('icon-analytics').addClass('icon-right-arrow'); 
+                    query('span',dom.byId('playRevBtn')).removeClass('icon-pause').addClass('icon-left-arrow');
+                    query('span',dom.byId('playForwardBtn')).removeClass('icon-pause').addClass('icon-right-arrow'); 
                 }
                 
             },
@@ -245,15 +216,15 @@ define([
                     this.direction='fwd';
                     //var t = query('span',dom.byId('playForwardBtn'));
                     //console.log(t);
-                    query('span',dom.byId('playForwardBtn')).removeClass('icon-right-arrow').addClass('icon-analytics');
-                    query('span',dom.byId('playRevBtn')).removeClass('icon-analytics').addClass('icon-left-arrow');
+                    query('span',dom.byId('playForwardBtn')).removeClass('icon-right-arrow').addClass('icon-pause');
+                    query('span',dom.byId('playRevBtn')).removeClass('icon-pause').addClass('icon-left-arrow');
                 }
                 else{
                     console.log('Pause');
                     this._timer.stop();
                     this.direction = null;
-                    query('span',dom.byId('playForwardBtn')).removeClass('icon-analytics').addClass('icon-right-arrow');
-                    query('span',dom.byId('playRevBtn')).removeClass('icon-analytics').addClass('icon-left-arrow');
+                    query('span',dom.byId('playForwardBtn')).removeClass('icon-pause').addClass('icon-right-arrow');
+                    query('span',dom.byId('playRevBtn')).removeClass('icon-pause').addClass('icon-left-arrow');
                 }
                 
             },
@@ -283,7 +254,6 @@ define([
                     //console.log('Click StartX ' + this.startx);   
                 },
                 _progressDone:function(e){
-                    this.sliderCurrentValue();
                     this.progressClick = false;
                     console.log(this.value);
                 },
@@ -313,7 +283,6 @@ define([
                                         
                     }
                 },
-                
                 sliderCurrentValue:function(){
                     var barWidth = domStyle.get('progressBarIndicator','width');
                     this.value = Math.floor(this.valueConversion * barWidth + this.minimum);
@@ -339,16 +308,30 @@ define([
                 
 
             },
-            
-            _sliderTimeChange:function(){
-                var sliderTime = registry.byId('playbackSlider').value;
-                this.playbackValue = this.indexTime;
-                console.log('Playback Slider changed to : ' + registry.byId('playbackSlider').value);
-                console.log('Index Time Before Update' + this.indexTime);
-                this.indexTime = sliderTime;
-                console.log('Index Time After Update' + Math.floor(this.indexTime));
-            },
-            
+            _setTime:function(){
+                //Temporary fix to make change the index when the slider changes
+                //Need to figure out how to wire up events
+                this.setIndex();
+                console.log('Image Date Starting Index ' + this.indexTime);
+                if (this.direction === 'fwd'){this.indexTime += this.movingrate;}
+                else if (this.direction === 'rev'){this.indexTime -= this.movingrate;}
+                else {console.log('not moving');
+                      return;}
+                console.log('Image Date using Index ' + this.indexTime);
+                //TODO: Need to protect against empty time extent
+                if (this.wamilayer){
+                      //console.log('Test Tic ' + this.indexTime);
+                   if (this.indexTime > this.wamilayer.timeInfo.timeExtent.startTime ){
+                        var vidTimeExtent = new TimeExtent();
+                        vidTimeExtent.startTime = this.wamilayer.timeInfo.timeExtent.startTime;
+                        vidTimeExtent.endTime = new Date(this.indexTime);
+                        this.map.setTimeExtent(vidTimeExtent);
+                    }
+                    else {console.log('paused');}
+                }
+                else{console.log('No Image Selected Fix this bug!');}
+      
+            },            
             _updateQuality: function() {
                 this.imageQuality = this.qualitySlider.value;
                 if (this.wamilayer){
@@ -380,20 +363,9 @@ define([
                 if (this.wamilayer){
                     this.timeExtent = this.wamilayer.timeInfo.timeExtent;
                     this.progressSlider.setTimeExtent(this.timeExtent);
-                    var slider = registry.byId('playbackSlider');
-                    
-                    
-
                     //Set the time index to the start time 
                     this.indexTime = this.timeExtent.startTime.getTime();
                     //Set up the slider extent to equal the video layer extent
-                    
-                    slider.set({
-                        value:this.timeExtent.startTime.getTime(),
-                        minimum:this.timeExtent.startTime.getTime(),
-                        maximum:this.timeExtent.endTime.getTime(),
-                        discreteValues:(this.timeExtent.endTime - this.timeExtent.startTime)
-                    });
                 }
             },           
             //Create a list of Image Layers that can be annimated by the video play controls            

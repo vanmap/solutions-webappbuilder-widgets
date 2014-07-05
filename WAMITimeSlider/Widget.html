@@ -1,7 +1,6 @@
-    <div class="content-area">
+    <div class="esriwamicontent-area">
     <select name="imageSelect" style="width:90%;margin-top:10px;" data-dojo-attach-point="imageSelect" data-dojo-type="dijit/form/Select" fetchProperties="{sort:[{attribute:'id', descending:false}]}"></select>
-   
-    <div class="panel">
+    <div class="esriwamipanel">
         <h3>Video Information</h3>
         <div id="dateExtentValue">${nls.videoDate}: 00/00/00-00/00/00</div>
         <div id="timeExtentValue">${nls.videoTime}: 00:00:0-00:00:0</div>
@@ -9,26 +8,24 @@
         <br>
         <p>Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit.</p>
     </div>
-    <div id="playArea" class="container">
-    <div class = "row">
-    <div class="column-24">
-        <div id="progressBar" class="progress">
-            <div id="progressBarIndicator" class="progress-bar">
-                <div class="button-holder">
-                    <div id='progButton' class="progress-button"></div>
+    <div id="playArea" class="esriwamicontainer">
+    <div class = "esriwamirow">
+        <div id="progressBar" class="vidprogress">
+            <div id="progressBarIndicator" class="vidprogress-bar">
+                <div class="vidbutton-holder">
+                    <div id='progButton' class="vidprogress-button"></div>
                 </div>
             </div>
         </div>
     </div>
-    </div>
-    <div class="row">
-        <div class="btn-group blue column-24" id="playBtnGroup">
-            <a href="#" class="column-4 blue" id="playRevEndBtn"><span class="icon-left-arrow"></span></a>
-            <a href="#" class="column-4 blue" id="playRevStep"><span class="icon-push-left"></span></a>
-            <a href="#" class="column-4 blue" id="playRevBtn"><span class="icon-left-arrow"></span></a>
-            <a href="#" class="column-4 blue" id="playForwardBtn"><span class="icon-right-arrow"></span></a>
-            <a href="#" class="column-4 blue" id="playForwardStep"><span class="icon-push-right"></span></a>
-            <a href="#" class="column-4 blue" id="playPauseBtn"><span class="icon-right-arrow"></span></a>
+    <div class="esriwamirow">
+        <div class="esriwamibtn-group blue esriwamicolumn-24" id="playBtnGroup">
+            <a href="#" class="esriwamicolumn-4 blue" id="playRevEndBtn"><span class="icon-first"></span></a>
+            <a href="#" class="esriwamicolumn-4 blue" id="playRevStep"><span class="icon-previous"></span></a>
+            <a href="#" class="esriwamicolumn-4 blue" id="playRevBtn"><span class="icon-left-arrow"></span></a>
+            <a href="#" class="esriwamicolumn-4 blue" id="playForwardBtn"><span class="icon-right-arrow"></span></a>
+            <a href="#" class="esriwamicolumn-4 blue" id="playForwardStep"><span class="icon-next"></span></a>
+            <a href="#" class="esriwamicolumn-4 blue" id="playPauseBtn"><span class="icon-last"></span></a>
         </div>
     </div>
     </div>
@@ -36,22 +33,6 @@
     <div id="imageInfoDiv">
     </div>
     <br>
-    <div id="playbackDiv">
-        <label>${nls.videoPlaybackControl}</label>
-        <div data-dojo-attach-point= "playbackSlider"
-             name="playbackSlider"
-             id="playbackSlider"
-             class="playbackSlider"
-             style="width:96%;margin-top:10px;"
-             data-dojo-type="dijit/form/HorizontalSlider"
-             data-dojo-props="value:1305141105968,
-                              minimum: 1305141105968,
-                              maximum:1305141281468,
-                              discreteValues:100,
-                              intermediateChanges:false,
-                              showButtons:true">
-        </div>
-    </div>
     <span class="qualityLabel">${nls.imagequality} (<span data-dojo-attach-point="qualityValue">0</span>):</span>
     <div data-dojo-attach-point= "qualitySlider"
          name="qualitySlider"

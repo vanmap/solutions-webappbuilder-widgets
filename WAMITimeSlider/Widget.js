@@ -1,3 +1,19 @@
+///////////////////////////////////////////////////////////////////////////
+// Copyright © 2014 Esri. All Rights Reserved.
+//
+// Licensed under the Apache License Version 2.0 (the 'License');
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//  http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an 'AS IS' BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+///////////////////////////////////////////////////////////////////////////
+
 define([
     'dojo/_base/declare', 'dijit/_WidgetsInTemplateMixin', 'dojo/_base/lang', 'dojo/dom', 'dojo/on',
     'dojo/query', 'dojo/dom-style', 'dojo/dom-construct', 'dojo/dom-attr', 'dojo/dom-class', 'dojo/_base/array', 
@@ -45,7 +61,6 @@ define([
             
             startup: function() {
                 this.inherited(arguments);
-                console.log(this.nls.selectVideoLayers);
                 this.imageLayers = this._getImageLayers();
                 this._initImageSelect();
                 this.framerate = this.config.WAMITimeSlider.framerate;
@@ -56,7 +71,7 @@ define([
                 //Create the timer and set it's event, use the config file setting for initial values
                 this._timer = new timingBase.Timer();
                 this._timer.setInterval(this.movingrate);
-                this._timer.onTick = lang.hitch(this, '_setTime', 1);
+                this._timer.onTick = lang.hitch(this, '_onTick', 1);
                 
                 
                 this.map.on('time-extent-change',lang.hitch(this, this.timeExtentChanged));
@@ -109,7 +124,6 @@ define([
 //End of Widget Lifecyle Functions
             
             imageLayerSelected:function(e){
-                console.log (this.imageSelect.get('value'));
                 for(var i = 0; i < this.imageLayers.length; i+= 1) {
                     //Turn on the Selected Layer and apply the currently defined properties. 
                     //Zooms the map to the extent of the layer. Turns off other Image Layers.
@@ -143,24 +157,23 @@ define([
                     vidTimeExtent.startTime = this.wamilayer.timeInfo.timeExtent.startTime;
                     vidTimeExtent.endTime = this.wamilayer.timeInfo.timeExtent.startTime;
                     this.map.setTimeExtent(vidTimeExtent);
-                
-                //TODO: Move this to it's own function    
-                //Add the text to the info box
-                
-                    var vstart = locale.format(this.wamilayer.timeInfo.timeExtent.startTime,
-                                                 {selector:'time', timePattern:'H:m:ss'});
-                    var vend = locale.format(this.wamilayer.timeInfo.timeExtent.endTime,
-                                                {selector:'time', timePattern:'H:m:ss'});
-                    var vdstart = locale.format(this.wamilayer.timeInfo.timeExtent.startTime,
-                                                 {selector:'date', datePattern:'MMM d, yyy'});
-                    var vdend = locale.format(this.wamilayer.timeInfo.timeExtent.endTime,
-                                                {selector:'date', datePattern:'MMM d, yyy'});
-                    
-                    dom.byId('timeExtentValue').innerHTML = this.nls.videoDate + ' : ' + vstart + ' - ' + vend;
-                    dom.byId('dateExtentValue').innerHTML = this.nls.videoDate + ' : ' + vdstart + ' - ' + vdend;
+                    this.infoBoxText();
+                        
+
                     }
             },
-            
+            infoBoxText:function(){
+                var vstart = locale.format(this.wamilayer.timeInfo.timeExtent.startTime,
+                                                 {selector:'time', timePattern:'H:m:ss'});
+                var vend = locale.format(this.wamilayer.timeInfo.timeExtent.endTime,
+                                                {selector:'time', timePattern:'H:m:ss'});
+                var vdstart = locale.format(this.wamilayer.timeInfo.timeExtent.startTime,
+                                                 {selector:'date', datePattern:'MMM d, yyy'});
+                var vdend = locale.format(this.wamilayer.timeInfo.timeExtent.endTime,
+                                                {selector:'date', datePattern:'MMM d, yyy'});
+                dom.byId('timeExtentValue').innerHTML = this.nls.videoDate + ' : ' + vstart + ' - ' + vend;
+                dom.byId('dateExtentValue').innerHTML = this.nls.videoDate + ' : ' + vdstart + ' - ' + vdend;  
+            },
             timeExtentChanged:function(e){
                 if (this.map.timeExtent){
                     var vidtime = locale.format(this.map.timeExtent.endTime,
@@ -169,9 +182,7 @@ define([
                     this.progressSlider.setValue(this.map.timeExtent.endTime.getTime());
                     
                 }
-                else {
-                    console.log('No Time Extent Update');
-                }
+                //else {console.log('No Time Extent Update');}
 
             },
             setIndex:function(){
@@ -187,46 +198,71 @@ define([
             
             initPlayBtn:function(){
                 
+                dom.byId('playRevEndBtn').addEventListener('click',lang.hitch(this, this.playRevEnd));
+                dom.byId('playRevStep').addEventListener('click',lang.hitch(this, this.playRevStep));
                 dom.byId('playRevBtn').addEventListener('click',lang.hitch(this, this.playRev));
-                dom.byId('playForwardBtn').addEventListener('click',lang.hitch(this, this.playForward)); 
+                dom.byId('playForwardBtn').addEventListener('click',lang.hitch(this, this.playForward));
+                dom.byId('playForwardStepBtn').addEventListener('click',lang.hitch(this, this.playForwardStep));
+                dom.byId('playForwardEndBtn').addEventListener('click',lang.hitch(this, this.playForwardEnd));
                 
             },
-            
+            playRevEnd:function(){
+                this.indexTime = this.wamilayer.timeInfo.timeExtent.startTime.getTime();
+                this._setTime();
+            },
+            playRevStep:function(){
+                this._timer.stop();
+                this.indexTime -= this.movingrate;
+                this._setTime();
+                this.resetPlayBtn();
+                
+            },
             playRev:function(val){
                 if(this.direction !== 'rev'){
-                    console.log('Reverse');
+                    //console.log('Reverse');
                     this._timer.start();
                     this.direction='rev';
-                    query('span',dom.byId('playRevBtn')).removeClass('icon-left-arrow').addClass('icon-pause');
-                    query('span',dom.byId('playForwardBtn')).removeClass('icon-pause').addClass('icon-right-arrow');
+                    query('span',dom.byId('playRevBtn')).removeClass('icon-chevron-left').addClass('icon-pause');
+                    query('span',dom.byId('playForwardBtn')).removeClass('icon-pause').addClass('icon-chevron-right');
                 }
-                else{
-                    console.log('Pause');
-                    this._timer.stop();
-                    this.direction = null;
-                    query('span',dom.byId('playRevBtn')).removeClass('icon-pause').addClass('icon-left-arrow');
-                    query('span',dom.byId('playForwardBtn')).removeClass('icon-pause').addClass('icon-right-arrow'); 
+                else {
+                    //console.log('Pause');
+                    this.resetPlayBtn();
                 }
                 
             },
             playForward:function(val){
                 if(this.direction !== 'fwd'){
-                    console.log('Forward');
+                    //console.log('Forward');
                     this._timer.start();
                     this.direction='fwd';
                     //var t = query('span',dom.byId('playForwardBtn'));
                     //console.log(t);
-                    query('span',dom.byId('playForwardBtn')).removeClass('icon-right-arrow').addClass('icon-pause');
-                    query('span',dom.byId('playRevBtn')).removeClass('icon-pause').addClass('icon-left-arrow');
+                    query('span',dom.byId('playForwardBtn')).removeClass('icon-chevron-right').addClass('icon-pause');
+                    query('span',dom.byId('playRevBtn')).removeClass('icon-pause').addClass('icon-chevron-left');
                 }
-                else{
-                    console.log('Pause');
-                    this._timer.stop();
-                    this.direction = null;
-                    query('span',dom.byId('playForwardBtn')).removeClass('icon-pause').addClass('icon-right-arrow');
-                    query('span',dom.byId('playRevBtn')).removeClass('icon-pause').addClass('icon-left-arrow');
+                else {
+                    //console.log('Pause');
+                    this.resetPlayBtn();
                 }
                 
+            },                        
+            playForwardStep:function(){
+                this._timer.stop();
+                this.indexTime += this.movingrate;
+                this._setTime();
+                this.resetPlayBtn();
+                
+            },
+            playForwardEnd:function(){
+                this.indexTime = this.wamilayer.timeInfo.timeExtent.endTime.getTime();
+                this._setTime();
+            },
+            resetPlayBtn:function(){
+                this._timer.stop();
+                this.direction = null;
+                query('span',dom.byId('playForwardBtn')).removeClass('icon-pause').addClass('icon-chevron-right');
+                query('span',dom.byId('playRevBtn')).removeClass('icon-pause').addClass('icon-chevron-left');
             },
 //*******************************
 //Progress Slider Controls.
@@ -245,7 +281,7 @@ define([
                   dom.byId('progButton').addEventListener('mousedown',this._progressClick.bind(this), false);
                   dom.byId('progButton').addEventListener('mousemove',this._progressMove.bind(this),false);
                   dom.byId('playArea').addEventListener('mouseup',this._progressDone.bind(this),false);
-                    console.log('valueConversion initial Value '+ this.valueConversion);
+                    //console.log('valueConversion initial Value '+ this.valueConversion);
               },
                 _progressClick:function(e){
                     this.progressClick = true;
@@ -255,7 +291,7 @@ define([
                 },
                 _progressDone:function(e){
                     this.progressClick = false;
-                    console.log(this.value);
+                    //console.log(this.value);
                 },
                 _progressMove:function(e){
                     if(this.progressClick){
@@ -295,7 +331,7 @@ define([
                         this.discreteValues = extent && (extent.endTime - extent.startTime);
                         this.valueConversion = this.discreteValues / dom.byId('progressBar').offsetWidth;
                     
-                    console.log('slider width to milisecond: ' + this.maximum);
+                    //console.log('slider width to milisecond: ' + this.maximum);
                 },
                 setValue:function(time){
                     this.value = time;
@@ -308,28 +344,35 @@ define([
                 
 
             },
-            _setTime:function(){
+//Time Control Functions
+            _onTick:function(){
                 //Temporary fix to make change the index when the slider changes
-                //Need to figure out how to wire up events
+                //Need to figure out how to wire up events to handle this.
                 this.setIndex();
-                console.log('Image Date Starting Index ' + this.indexTime);
+                //console.log('Image Date Starting Index ' + this.indexTime);
                 if (this.direction === 'fwd'){this.indexTime += this.movingrate;}
                 else if (this.direction === 'rev'){this.indexTime -= this.movingrate;}
-                else {console.log('not moving');
-                      return;}
-                console.log('Image Date using Index ' + this.indexTime);
+                else {
+                    //console.log('not moving');
+                      return;
+                }
+                this._setTime();
+                
+            },
+            _setTime:function(){
+                //console.log('Image Date using Index ' + this.indexTime);
                 //TODO: Need to protect against empty time extent
                 if (this.wamilayer){
                       //console.log('Test Tic ' + this.indexTime);
-                   if (this.indexTime > this.wamilayer.timeInfo.timeExtent.startTime ){
+                   if (this.indexTime >= this.wamilayer.timeInfo.timeExtent.startTime ){
                         var vidTimeExtent = new TimeExtent();
                         vidTimeExtent.startTime = this.wamilayer.timeInfo.timeExtent.startTime;
                         vidTimeExtent.endTime = new Date(this.indexTime);
                         this.map.setTimeExtent(vidTimeExtent);
                     }
-                    else {console.log('paused');}
+                    //else {console.log('paused');}
                 }
-                else{console.log('No Image Selected Fix this bug!');}
+                //else{console.log('No Image Selected Fix this bug!');}
       
             },            
             _updateQuality: function() {
@@ -337,7 +380,7 @@ define([
                 if (this.wamilayer){
                     this.wamilayer.setCompressionQuality(this.imageQuality);
                 }
-                console.log('Slider Change Quality ' + this.imageQuality);
+                //console.log('Slider Change Quality ' + this.imageQuality);
                 //TODO: Figure out how to show initial value
                 this.qualityValue.innerHTML = this.qualitySlider.value;
                 
@@ -346,7 +389,7 @@ define([
             _updatreFramerate:function(){
                 if(this.framerateSpinner.value){
                     this.framerate = this.framerateSpinner.value;
-                    console.log('Framerate Change ' + this.framerate);
+                    //console.log('Framerate Change ' + this.framerate);
                     //This seems expensive to do on every framerate change
                     //TODO: Change this implementation
                     //this.wamiSlider(); //Built In Time Slider
@@ -401,40 +444,9 @@ define([
                 this.imageSelect.sortByLabel = false;
             }
             
-/*,
-//Built In Time Slider - Remove
-            wamiSlider: function (){
-                this.timeExtent = this.wamilayer.timeInfo.timeExtent;
-                //setup the slider
-                //this.wamiTimeSlider.innerHTML = '';
-
-                this.map.setTimeSlider(this.timeSlider);                
-                console.log('wamislider tic value ' + ((1 / this.framerate) * 1000));
-                console.log('Playback in Tics' + (this.playback * ((1 / this.framerate) * 1000)));
-                
-                //Time Slider Interval
-                this.timeSlider.setThumbCount(1);
-                //Sets the number of steps on the slider based on frames per second
-                this.timeSlider.createTimeStopsByTimeInterval(this.timeExtent, 
-                (1 / this.framerate) * 1000, 'esriTimeUnitsMilliseconds');
-                
-                //Set the moving rate, based on the frame rate * 1000 MS
-                //makes it play all the required frames in 1 second
-                
-                this.timeSlider.setThumbMovingRate (this.playback * ((1 / this.framerate) * 1000));
-                this.timeSlider.setThumbIndexes([0,1]);
-                
-                
-                this.timeSlider.startup();
-            }
-*/
 
           
         });
         
-        clazz.hasStyle = false;
-        clazz.hasUIFile = false;
-        clazz.hasLocale = false;
-        clazz.hasConfig = false;
         return clazz;
         });

@@ -5,7 +5,13 @@ define({
     noneSelectOption: "None",
     layers: "Layers:",
     drawSymbol: "Draw Symbol:",
-    highlightSymbol: "Highlight Symbol:"
-  },
-  "fr-CA": true
+    highlightSymbol: "Highlight Symbol:",
+    spatialRelationship: "Spatial Relationship:",
+    intersects: "Intersects",
+    contains: "Contains",
+    crosses: "Crosses",
+    overlaps: "Overlaps",
+    touches: "Touches",
+    within: "Within"
+  }
 });

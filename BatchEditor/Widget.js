@@ -40,6 +40,7 @@ define([
     'dojo/fx',
     'dojo/dom-style',
 
+    'jimu/dijit/ViewStack',
     'jimu/dijit/SymbolChooser',
     'jimu/dijit/DrawBox'
   ],
@@ -47,7 +48,7 @@ define([
   function (declare, lang, html, array, _WidgetsInTemplateMixin, BaseWidget,
     AttributeInspector, Graphic, InfoTemplate, FeatureLayer, FeatureSet,
     Query, symbolJsonUtils, on, dom, domAttr, domConstruct, domClass,
-    dojoQuery, string, coreFx, style, SymbolChooser, DrawBox) { /*jshint unused: false*/
+    dojoQuery, string, coreFx, style, ViewStack, SymbolChooser, DrawBox) { /*jshint unused: false*/
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
       name: 'Draw',
       baseClass: 'jimu-widget-draw',
@@ -95,9 +96,6 @@ define([
         this.own(on(this.drawBox, 'IconSelected', lang.hitch(this, this
           ._onIconSelected)));
         this.own(on(this.drawBox, 'DrawEnd', lang.hitch(this, this._onDrawEnd)));
-
-        this.own(on(this.drawBox.drawLayer, 'graphics-clear', lang.hitch(
-          this, lang.hitch(this, this._onGraphicsClear))));
 
         // Layer events
         this.own(this.selectWithLayer.on('click', lang.hitch(this, this

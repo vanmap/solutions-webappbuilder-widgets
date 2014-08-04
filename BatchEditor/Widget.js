@@ -40,7 +40,6 @@ define([
     'dojo/fx',
     'dojo/dom-style',
 
-    'jimu/dijit/ViewStack',
     'jimu/dijit/SymbolChooser',
     'jimu/dijit/DrawBox'
   ],
@@ -48,7 +47,7 @@ define([
   function (declare, lang, html, array, _WidgetsInTemplateMixin, BaseWidget,
     AttributeInspector, Graphic, InfoTemplate, FeatureLayer, FeatureSet,
     Query, symbolJsonUtils, on, dom, domAttr, domConstruct, domClass,
-    dojoQuery, string, coreFx, style, ViewStack, SymbolChooser, DrawBox) { /*jshint unused: false*/
+    dojoQuery, string, coreFx, style, SymbolChooser, DrawBox) { /*jshint unused: false*/
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
       name: 'Draw',
       baseClass: 'jimu-widget-draw',
@@ -93,8 +92,6 @@ define([
       _bindEvents: function () {
 
         // DrawBox events
-        this.own(on(this.drawBox, 'IconSelected', lang.hitch(this, this
-          ._onIconSelected)));
         this.own(on(this.drawBox, 'DrawEnd', lang.hitch(this, this._onDrawEnd)));
 
         // Layer events
@@ -131,15 +128,14 @@ define([
       // store: where to store the layer
       // returns: true if layer found and stored, false otherwise.
       _findLayer: function (layerName, where) {
-        var widget = this;
         var result = null;
 
         array.forEach(this.map.graphicsLayerIds, function (layerId) {
-          var layer = widget.map.getLayer(layerId);
+          var layer = this.map.getLayer(layerId);
           if (layer.name === layerName && layer.url) {
             result = layer;
           }
-        });
+        }, this);
 
         if (result !== null) {
           if (where === 'with') {
@@ -219,7 +215,6 @@ define([
       // value then helper layer gets a blank string in that field otherwise, // keep the same value.
       // returns: nothing
       _summarizeFeatureFields: function (features) {
-        var widget = this;
         var fields = this.helperLayer.infoTemplate.info.fieldInfos;
 
         array.forEach(fields, function (field) {
@@ -232,14 +227,14 @@ define([
             }).length > 0;
 
             if (different) {
-              widget.helperLayer.graphics[0].attributes[fieldName] =
-                widget.nls.editorPopupMultipleValues;
+              this.helperLayer.graphics[0].attributes[fieldName] =
+                this.nls.editorPopupMultipleValues;
             } else {
-              widget.helperLayer.graphics[0].attributes[fieldName] =
+              this.helperLayer.graphics[0].attributes[fieldName] =
                 first;
             }
           }
-        });
+        }, this);
       },
 
       // Event handler for info window (hide).
@@ -353,8 +348,6 @@ define([
       // Callback function for 'Select From Layer' selection.
       // returns: nothing
       _selectFromLayerCallback: function (features) {
-        var widget = this;
-
         if (this.config.highlightSymbol) {
           var highlightSymbol = symbolJsonUtils.fromJson(this.config.highlightSymbol);
 
@@ -365,21 +358,21 @@ define([
 
         if (features.length > 0) {
           if (features.length >= 1000) {
-            widget._toggleMaxRecordWarning(features[0]._graphicsLayer.maxRecordCount);
+            this._toggleMaxRecordWarning(features[0]._graphicsLayer.maxRecordCount);
           } else {
-            widget._toggleMaxRecordWarning();
+            this._toggleMaxRecordWarning();
           }
 
-          widget._summarizeFeatureFields(features);
+          this._summarizeFeatureFields(features);
 
           var q = new Query();
           q.objectIds = [1];
-          widget.helperLayer.selectFeatures(q, FeatureLayer.SELECTION_NEW,
-            lang.hitch(widget, widget._helperLayerSelectCallback));
+          this.helperLayer.selectFeatures(q, FeatureLayer.SELECTION_NEW,
+            lang.hitch(this, this._helperLayerSelectCallback));
         } else {
-          widget._togglePanelLoadingIcon();
+          this._togglePanelLoadingIcon();
         }
-        widget._updateSelectedFeaturesCount(features.length);
+        this._updateSelectedFeaturesCount(features.length);
       },
 
       // Callback function for 'Helper Layer' selection.
@@ -452,7 +445,6 @@ define([
       // returns: nothing
       _attrInspectorAttrChange: function (evt) {
         var saveBtn = dom.byId('attrInspectorSaveBtn');
-        var widget = this;
 
         //hacky way to check if fields arent validated.
         if (this.attrInspector.domNode.innerHTML.indexOf('Error') < 0) {
@@ -463,10 +455,10 @@ define([
 
         array.forEach(this.selectFromLayer.getSelectedFeatures(),
           function (feature) {
-            if (evt.fieldValue !== widget.nls.editorPopupMultipleValues) {
+            if (evt.fieldValue !== this.nls.editorPopupMultipleValues) {
               feature.attributes[evt.fieldName] = evt.fieldValue;
             }
-          });
+          }, this);
       },
 
       // Event handler for when the Save button is clicked in the attribute inspector.
@@ -476,7 +468,6 @@ define([
           return;
         }
 
-        var widget = this;
         this._togglePopupLoadingIcon();
 
         //disable the save button
@@ -484,16 +475,17 @@ define([
 
         this.selectFromLayer.applyEdits(null, this.selectFromLayer.getSelectedFeatures(),
           null,
-          function (added, updated, removed) {
-            widget._updateUpdatedFeaturesCount(updated.length);
-            widget._hideInfoWindow();
-          },
-          function (err) {
+          lang.hitch(this, function (added, updated, removed) {
+            this._updateUpdatedFeaturesCount(updated.length);
+            this._hideInfoWindow();
+          }),
+          lang.hitch(this, function (err) {
             console.log('ERROR: ' + err);
-            widget._updateUpdatedFeaturesCount(0);
-            widget._clearSelected();
-            widget._hideInfoWindow();
-          });
+            this._updateUpdatedFeaturesCount(0);
+            this._clearSelected();
+            this._hideInfoWindow();
+          })
+          );
       },
 
       // Hide the Info Window.

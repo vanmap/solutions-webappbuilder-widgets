@@ -83,8 +83,7 @@ define([
               this.own(this.selectWithLayerSelect.on('change', lang.hitch(this, this.onSelectWithChange)));
 
               //spatial relationship chooser
-              this.own(this.spatialRelationshipChooser.on('change', lang.hitch(this, 
-                                                                               this.onSpatialRelationshipChange)));
+              this.own(this.spatialRelChooser.on('change', lang.hitch(this, this.onSpatialRelChange)));
 
               //highlight symbol choosers
               this.own(this.pointHighlightChooser.on('change', lang.hitch(this, this.onHighlightSymbolChange)));
@@ -97,7 +96,7 @@ define([
               this.own(this.fillDrawChooser.on('change', lang.hitch(this, this.onDrawSymbolChange)));
           },
 
-          onSpatialRelationshipChange: function (evt) {
+          onSpatialRelChange: function (evt) {
               this.currentSpatialRel = evt;
           },
 
@@ -109,7 +108,6 @@ define([
           },
 
           onSelectWithChange: function (evt) {
-
           },
 
           onSelectFromChange: function (evt) {
@@ -194,7 +192,7 @@ define([
               }
 
               if (config.spatialRel) {
-                  this.spatialRelationshipChooser.set('value', config.spatialRel);
+                  this.spatialRelChooser.set('value', config.spatialRel);
               }
 
               if (config.highlightSymbol) {
@@ -224,7 +222,7 @@ define([
 
               this.config.layers.selectWith.name = this.selectWithLayerSelect.getValue();
 
-              this.config.spatialRel = this.spatialRelationshipChooser.getValue();
+              this.config.spatialRel = this.spatialRelChooser.getValue();
 
               this.config.highlightSymbol = this.mode.getSymbol().toJson();
 

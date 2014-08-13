@@ -6,14 +6,6 @@
   display: none;
 }
 
-.esriPopup .actionsPane .zoomTo {
-  display: none;
-}
-
-.esriPopup .titleButton.maximize {
-  display: none;
-}
-
 .center {
   width: 50%;
   margin: 0 auto;

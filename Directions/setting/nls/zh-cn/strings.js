@@ -1,0 +1,21 @@
+﻿define({
+  routeUrl: "网络服务URL",
+  locatorUrl: "地理编码服务URL",
+  geocoderOptions: "地理编码选项",
+  autoComplete: "自动完成",
+  maxLocations: "最多点数量",
+  minCharacters: "最小字符数",
+  searchDelay: "查询延时",
+  placeholder: "占位符",
+  routeOptions: "路径选项",
+  directionsLanguage: "路径方向语言",
+  directionsLengthUnits: "路径方向长度单位",
+  directionsOutputType: "路径方向输出类型",
+  impedanceAttribute: "阻力属性",
+  kilometers: '公里',
+  miles: '英里',
+  meters: '米',
+  feet: '英尺',
+  yards: '码',
+  nauticalMiles: '海里'
+});

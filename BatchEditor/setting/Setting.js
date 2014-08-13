@@ -19,11 +19,18 @@ define([
 
     'dijit/_WidgetsInTemplateMixin',
 
+    'esri/symbols/jsonUtils',
+
+    'esri/symbols/SimpleMarkerSymbol',
+    'esri/symbols/PictureMarkerSymbol',
+    'esri/symbols/SimpleLineSymbol',
+    'esri/symbols/SimpleFillSymbol',
+
     'jimu/BaseWidgetSetting',
     'jimu/dijit/SymbolChooser',
 
-    'dojo/on',
     'dojo/fx',
+    'dojo/on',
 
     'dojo/_base/array',
     'dojo/_base/lang',
@@ -31,175 +38,198 @@ define([
 
     'dijit/form/Select'
   ],
-  function(
+  function (
     declare,
     _WidgetsInTemplateMixin,
+    jsonUtils, SimpleMarkerSymbol, PictureMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol,
     BaseWidgetSetting,
     SymbolChooser,
-    on,
     coreFx,
+    on,
     array, lang, html) {
-    return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
-      //these two properties is defined in the BaseWidget
-      baseClass: 'jimu-widget-batch-editor-setting',
-      currentSymbol: null,
-      currentSpatialRel: null,
-      currentHighlightSymbol: null,
-      currentDrawSymbol: null,
+      return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
+          //these two properties is defined in the BaseWidget
+          baseClass: 'jimu-widget-batch-editor-setting',
+          mode: null,
+          currentSymbol: null,
+          currentSpatialRel: null,
+          currentDrawSymbol: null,
 
-      startup: function() {
-        this.inherited(arguments);
-        if (!this.config.layers) {
-          this.config.layers = {};
-        }
+          startup: function () {
+              this.inherited(arguments);
+              if (!this.config.layers) {
+                  this.config.layers = {};
+              }
 
-        if (!this.config.highlightSymbol) {
-          this.config.highlightSymbol = {};
-        }
+              this.addLayerOptions();
 
-        this.addLayerOptions();
+              this.bindEvents();
+              //this.bindAnimations();
 
-        this.bindEvents();
-        //this.bindAnimations();
+              this.setConfig(this.config);
+          },
 
-        this.setConfig(this.config);
-      },
+          bindAnimations: function () {
+              this.own(on(this.selectFromLayerSelect, 'change', function () {
+                  coreFx.wipeIn({
+                      node: this.settingContent
+                  }).play();
+              }));
+          },
 
-      bindAnimations: function () {
-        this.own(on(this.selectFromLayerSelect, 'change', function () {
-            coreFx.wipeIn({
-                node: this.settingContent
-            }).play();
-        }));
-      },
+          bindEvents: function () {
+              this.own(this.selectFromLayerSelect.on('change', lang.hitch(this, this.onSelectFromChange)));
 
-      bindEvents: function () {
-        this.own(this.selectFromLayerSelect.on('change', lang.hitch(this, this.onSelectFromChange)));
+              this.own(this.selectWithLayerSelect.on('change', lang.hitch(this, this.onSelectWithChange)));
 
-        this.own(this.selectWithLayerSelect.on('change', lang.hitch(this, this.onSelectWithChange)));
+              //spatial relationship chooser
+              this.own(this.spatialRelChooser.on('change', lang.hitch(this, this.onSpatialRelChange)));
 
-        //spatial relationship chooser
-        this.own(this.spatialRelationshipChooser.on('change', lang.hitch(this, this.onSpatialRelationshipChange)));
+              //highlight symbol choosers
+              this.own(this.pointHighlightChooser.on('change', lang.hitch(this, this.onHighlightSymbolChange)));
 
-        //highlight symbol choosers
-        this.own(this.pointHighlightChooser.on('change', lang.hitch(this, this.onHighlightSymbolChange)));
+              this.own(this.lineHighlightChooser.on('change', lang.hitch(this, this.onHighlightSymbolChange)));
 
-        this.own(this.lineHighlightChooser.on('change', lang.hitch(this, this.onHighlightSymbolChange)));
+              this.own(this.fillHighlightChooser.on('change', lang.hitch(this, this.onHighlightSymbolChange)));
 
-        this.own(this.fillHighlightChooser.on('change', lang.hitch(this, this.onHighlightSymbolChange)));
+              //draw symbol chooser
+              this.own(this.fillDrawChooser.on('change', lang.hitch(this, this.onDrawSymbolChange)));
+          },
 
-        //draw symbol chooser
-        this.own(this.fillDrawChooser.on('change', lang.hitch(this, this.onDrawSymbolChange)));
-      },
+          onSpatialRelChange: function (evt) {
+              this.currentSpatialRel = evt;
+          },
 
-      onSpatialRelationshipChange: function (evt) {
-        this.currentSpatialRel = evt;
-      },
+          onHighlightSymbolChange: function (evt) {
+          },
 
-      onHighlightSymbolChange: function (evt) {
-        this.currentHighlightSymbol = evt;
-      },
+          onDrawSymbolChange: function (evt) {
+              this.currentDrawSymbol = evt;
+          },
 
-      onDrawSymbolChange: function (evt) {
-        this.currentDrawSymbol = evt;
-      },
+          onSelectWithChange: function (evt) {
+          },
 
-      onSelectFromChange: function(evt) {
+          onSelectFromChange: function (evt) {
 
-        var map = this.map;
+              var map = this.map;
 
-        html.addClass(this.pointHighlightSection, 'hide');
-        html.addClass(this.lineHighlightSection, 'hide');
-        html.addClass(this.fillHighlightSection, 'hide');
+              html.addClass(this.pointHighlightSection, 'hide');
+              html.addClass(this.lineHighlightSection, 'hide');
+              html.addClass(this.fillHighlightSection, 'hide');
 
-        if (evt) {
-          html.removeClass(this.settingHighlight, 'hide');
+              if (evt) {
+                  html.removeClass(this.settingHighlight, 'hide');
 
-          var layerIds = array.filter(map.graphicsLayerIds, function (layerId) {
-              return map.getLayer(layerId).name === evt;
-            });
+                  var layerIds = array.filter(map.graphicsLayerIds, function (layerId) {
+                      return map.getLayer(layerId).name === evt;
+                  });
 
-          if (layerIds.length > 0) {
-            var layer = map.getLayer(layerIds[0]);
+                  if (layerIds.length > 0) {
+                      var layer = map.getLayer(layerIds[0]);
 
-            switch (layer.geometryType) {
-              case 'esriGeometryPoint':
-                html.removeClass(this.pointHighlightSection, 'hide');
-                this.currentHighlightSymbol = this.pointHighlightChooser.getSymbol();
-                break;
+                      switch (layer.geometryType) {
+                          //http://help.arcgis.com/en/sdk/10.0/arcobjects_net/componenthelp/index.html#//002m0000001p000000 
+                          case 'esriGeometryPoint':
+                              html.removeClass(this.pointHighlightSection, 'hide');
+                              this.mode = this.pointHighlightChooser;
+                              break;
 
-              case 'esriGeometryLine':
-              case 'esriGeometryPolyline':
-                html.removeClass(this.lineHighlightSection, 'hide');
-                this.currentHighlightSymbol = this.lineHighlightChooser.getSymbol();
-                break;
+                          case 'esriGeometryLine':
+                          case 'esriGeometryPolyline':
+                              html.removeClass(this.lineHighlightSection, 'hide');
+                              this.mode = this.lineHighlightChooser;
+                              break;
 
-              case 'esriGeometryPolygon':
-                html.removeClass(this.fillHighlightSection, 'hide');
-                this.currentHighlightSymbol = this.fillHighlightChooser.getSymbol();
-                break;
-            }
+                          case 'esriGeometryPolygon':
+                              html.removeClass(this.fillHighlightSection, 'hide');
+                              this.mode = this.fillHighlightChooser;
+                              break;
+                      }
+                  }
+              } else {
+                  html.addClass(this.settingHighlight, 'hide');
+              }
+          },
+
+          addLayerOptions: function () {
+              var map = this.map;
+              var settings = this;
+
+              array.forEach(map.graphicsLayerIds, function (layerId) {
+                  var layer = map.getLayer(layerId);
+                  var maxRecordCount = layer.maxRecordCount;
+                  var o1, o2;
+
+                  if (layer.url != null) { //ignore helper layer.
+                      o1 = { 'label': layer.name + ' (' + maxRecordCount + ')',
+                          'value': layer.name
+                      };
+
+                      //need a copy so selects are independant of each other.
+                      o2 = { 'label': layer.name + ' (' + maxRecordCount + ')',
+                          'value': layer.name
+                      };
+
+                      if (layer.geometryType === 'esriGeometryPolygon') {
+                          settings.selectWithLayerSelect.addOption(o1);
+                      }
+
+                      settings.selectFromLayerSelect.addOption(o2);
+                  }
+              });
+          },
+
+          setConfig: function (config) {
+              this.config = config;
+
+              if (config.layers.selectWith) {
+                  this.selectWithLayerSelect.set('value', config.layers.selectWith.name);
+              }
+
+              if (config.layers.selectFrom) {
+                  this.selectFromLayerSelect.set('value', config.layers.selectFrom.name);
+              }
+
+              if (config.spatialRel) {
+                  this.spatialRelChooser.set('value', config.spatialRel);
+              }
+
+              if (config.highlightSymbol) {
+                  var hs = jsonUtils.fromJson(config.highlightSymbol);
+                  if (hs instanceof SimpleMarkerSymbol || hs instanceof PictureMarkerSymbol) {
+                      this.mode = this.pointHighlightChooser;
+                  }
+
+                  else if (hs instanceof SimpleLineSymbol) {
+                      this.mode = this.lineHighlightChooser;
+                  }
+
+                  else if (hs instanceof SimpleFillSymbol) {
+                      this.mode = this.fillHighlightChooser;
+                  }
+
+                  this.mode.showBySymbol(hs);
+              }
+
+              if (this.config.drawSymbol) {
+                  this.fillDrawChooser.showBySymbol(jsonUtils.fromJson(this.config.drawSymbol));
+              }
+          },
+
+          getConfig: function () {
+              this.config.layers.selectFrom.name = this.selectFromLayerSelect.getValue();
+
+              this.config.layers.selectWith.name = this.selectWithLayerSelect.getValue();
+
+              this.config.spatialRel = this.spatialRelChooser.getValue();
+
+              this.config.highlightSymbol = this.mode.getSymbol().toJson();
+
+              this.config.drawSymbol = this.fillDrawChooser.getSymbol().toJson();
+
+              return this.config;
           }
-        } else {
-          html.addClass(this.settingHighlight, 'hide');
-        }
-      },
 
-      addLayerOptions: function () {
-        var map = this.map;
-        var settings = this;
-
-        array.forEach(map.graphicsLayerIds, function (layerId) {
-          var layer = map.getLayer(layerId);
-          var maxRecordCount = layer.maxRecordCount;
-          var option;
-
-          if (layer.url !== null) { //ignore helper layer.
-            option = {'label': layer.name + ' (' + maxRecordCount + ')',
-                      'value': layer.name};
-
-            if (layer.geometryType === 'esriGeometryPolygon') {
-              settings.selectWithLayerSelect.addOption(option);
-            }
-
-            settings.selectFromLayerSelect.addOption(option);
-          }
-        });
-      },
-
-      setConfig: function (config) {
-        this.config = config;
-
-        if (config.layers.selectFrom) {
-          this.selectFromLayerSelect.set('value', config.layers.selectFrom.name);
-        }
-
-        if (config.layers.selectWith) {
-          this.selectWithLayerSelect.set('value', config.layers.selectWith.name);
-        }
-
-        if (config.spatialRel) {
-          this.spatialRelationshipChooser.set('value', config.spatialRel);
-        }
-      },
-
-      getConfig: function () {
-        this.config.layers.selectFrom.name = this.selectFromLayerSelect.getValue();
-
-        this.config.layers.selectWith.name = this.selectWithLayerSelect.getValue();
-
-        this.config.spatialRel = this.spatialRelationshipChooser.getValue();
-
-        if (this.currentHighlightSymbol) {
-          this.config.highlightSymbol = this.currentHighlightSymbol.toJson();
-        }
-
-        if (this.currentDrawSymbol) {
-          this.config.drawSymbol = this.currentDrawSymbol.toJson();
-        }
-
-        return this.config;
-      }
-
-    });
+      });
   });

@@ -1,15 +1,16 @@
 {
-  "name": "WAMITimeSlider"
-  "platform": "HTML",
-  "version": "0.0.2",
-  "author": "Defense Solutions",
-  "description": "Widget for playing and interacting with WAMI Video",
-  "copyright": "Copyright 2014 Esri. All Rights Reserved",
-  "license": "http://www.apache.org/licenses/LICENSE-2.0",
-  "properties": {
-    "hasConfig": true,
-    "hasStyle": true,
-    "hasLocale": true,
-    "hasUIFile": true
-  }
+    "name": "WAMITimeSlider",
+    "title":"WAMI Time Slider",
+    "platform": "HTML",
+    "version": "0.0.2",
+    "author": "Defense Solutions",
+    "description": "Widget for playing and interacting with WAMI Video",
+    "copyright": "Copyright 2014 Esri. All Rights Reserved",
+    "license": "http://www.apache.org/licenses/LICENSE-2.0",
+    "properties": {
+        "hasConfig": true,
+        "hasStyle": true,
+        "hasLocale": true,
+        "hasUIFile": true
+    }
 }

@@ -1,12 +1,13 @@
 {
-  "name": "Directions",
-  "platform": "HTML",
-  "version": "",
-  "author": "Esri R&D Center Beijing",
-  "description": "",
-  "copyright": "",
-  "license": "http://www.apache.org/licenses/LICENSE-2.0",
-  "properties": {
-    "hasLocale": false
-  }
+    "name": "Directions",
+    "title" : "Directions",
+    "platform": "HTML",
+    "version": "",
+    "author": "Esri R&D Center Beijing",
+    "description": "",
+    "copyright": "",
+    "license": "http://www.apache.org/licenses/LICENSE-2.0",
+    "properties": {
+        "hasLocale": false
+    }
 }

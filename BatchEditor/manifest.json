@@ -1,10 +1,9 @@
 {
   "name": "BatchEditor",
-  "type": "Widget",
   "platform": "HTML",
-  "version": "0.0.1",
+  "version": "",
   "author": "Esri, Inc.",
-  "description": "Widget for WebApp Builder beta 2 to batch edit features",
-  "copyright": "Copyright (c) 2014 Esri",
+  "description": "Batch Editor",
+  "copyright": "",
   "license": "http://www.apache.org/licenses/LICENSE-2.0"
 }

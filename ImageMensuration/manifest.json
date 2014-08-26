@@ -7,5 +7,11 @@
     "author": "Esri R&D Center Beijing",
     "description": "",
     "copyright": "",
-    "license": "http://www.apache.org/licenses/LICENSE-2.0"
+    "license": "http://www.apache.org/licenses/LICENSE-2.0",
+    "properties": {
+        "hasConfig": true,
+        "hasStyle": true,
+        "hasLocale": true,
+        "hasUIFile": true
+    }
 }

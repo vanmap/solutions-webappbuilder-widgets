@@ -15,10 +15,13 @@ Important Note: These widgets are only tested with the Beta 1 release of the Web
 ## Features
 The Widget Reposistory currently includes:
 
+* [Batch Editor](./BatchEditor/README.md)
+
 Emergency Management Widgets
 
 * [Bomb Threat Tool](./BombThreat/README.md)
 * [Emergency Response Guide](./ERG/README.md)
+* [Enhanced Directions](./Directions/README.md)
 
 Imagery Analysis Widgets
 
@@ -32,7 +35,9 @@ Imagery Analysis Widgets
 Requires Web AppBuilder for ArcGIS Beta 1.
 
 ## Instructions
-Deploying Widgets
+Deploying Widgets.
+
+To use the widgets with you should copy any of the widgets to the stemapp/widget directory. This is located in %webappbuilder_install%/client directory. 
 
 Setting Up Repository for Development
 In order to develop and test widgets you need to deploy the solutions-webappbuilder-widgets folder to the stemapp/widgets directory in your webapp builder installation. If you use Github for windows this can be accomplished using the following steps.
@@ -43,6 +48,7 @@ In order to develop and test widgets you need to deploy the solutions-webappbuil
 4. Cut and paste the entire solutions-webappbuilder-widgets folder into the stemapp/widgets folder
 5. Launch Github for Windows and choose the option to locate the repository. This will change the location on disk to the new location. 
 
+Note: For Beta 2, Widgets only show up in the builder UX if you edit/modify a file in the widget folder while Node.js is running. Saving the manifest.json file will work. If you are testing with a static configuration file you do not need to modify the files.
 ### General Help
 [New to Github? Get started here.](http://htmlpreview.github.com/?https://github.com/Esri/esri.github.com/blob/master/help/esri-getting-to-know-github.html)
 

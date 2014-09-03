@@ -559,11 +559,7 @@ define([
                             lang.hitch(this, this.onERGGPStatusCallback));
                     }
 
-                } else {
-					html.setStyle(this.progressBar.domNode, 'display', 'none');
-					html.setStyle(this.resultsSection, 'display', 'block');
-					html.setStyle(this.noresultsSection, 'display', 'block');				
-				}
+                }
             },
 
             postCreate: function () {

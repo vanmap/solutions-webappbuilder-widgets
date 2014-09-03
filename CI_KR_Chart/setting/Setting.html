@@ -1,0 +1,22 @@
+<div style="width:100%;height:100%;">
+	<div data-dojo-attach-point="chartsSection">
+		<div data-dojo-attach-point="viewStack">
+			<div data-dojo-attach-point="sourcesTabNode">
+				<div class="add-btn-section">
+					<div data-dojo-attach-point="btnAddChartSource" data-dojo-attach-event="onclick: _onBtnAddChartSourceClicked" class="btn-add-chart enable">
+						<span class="add-chart-icon"></span>
+						<span class="add-chart-label">${nls.addAChartSource}</span>
+					</div>
+				</div>
+				<div data-dojo-attach-point="chartsTable" data-dojo-type="jimu/dijit/SimpleTable" data-dojo-props='fields:[{name:"label",title:"${nls.sourceLabel}","class":"label",type:"text",editable:false},{name:"labelField",title:"${nls.labelField}","class":"label-field",type:"text", width: 200, editable:false},{name:"actions",title:"${nls.actions}","class":"actions",width: 180,type:"actions",actions:["up","down","edit","delete"]}]'></div>
+			</div>
+			<div data-dojo-attach-point="generalTabNode">
+				<div style="margin:24px;">
+					<div style="float:left;height:36px;line-height:36px;">${nls.hightLightColor}</div>
+					<div data-dojo-attach-point="highLightColor" data-dojo-type="jimu/dijit/ColorPicker" data-dojo-props='color:"#F5F50E"' style="float:left;margin-left:14px;"></div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div data-dojo-attach-point="singleChartSection"></div>
+</div>

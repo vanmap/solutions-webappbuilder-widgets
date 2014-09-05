@@ -1,9 +1,10 @@
 {
   "name": "BatchEditor",
+  "type": "Widget",
   "platform": "HTML",
-  "version": "",
+  "version": "0.0.1",
   "author": "Esri, Inc.",
-  "description": "Batch Editor",
-  "copyright": "",
+  "description": "The Batch Editor widget allows users to visually select features and edit all their attributes simultaneously.",
+  "copyright": "Copyright (c) 2014 Esri",
   "license": "http://www.apache.org/licenses/LICENSE-2.0"
 }

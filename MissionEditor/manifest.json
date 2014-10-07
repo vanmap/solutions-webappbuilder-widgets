@@ -1,5 +1,6 @@
 {
-  "name": "Edit",
+  "name": "MissionEditor",
+	"label": "Mission Editor",
   "platform": "HTML",
   "version": "",
   "author": "Esri R&D Center Beijing",

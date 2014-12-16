@@ -1,5 +1,5 @@
 # solutions-builder-widgets
-The ArcGIS Solutions Builder Widgets is a set of widgets for use with the Web AppBuilder for ArcGIS. These widgets adress specialized workflow created and managed by the Esri Solutions teams. These widgets are used in creating many applications created by the solutions team. 
+The ArcGIS Solutions Builder Widgets is a set of widgets for use with the Web AppBuilder for ArcGIS. These widgets adress specialized workflow created and managed by the Esri Solutions teams. These widgets are used in creating many applications created by the solutions team.
 
 Important Note: These widgets are only tested with the Beta 1 release of the Web AppBuilder for ArcGIS. All the Widgets in this repo should be considered Beta (or possibly untested) until the final release of Web AppBuilder for ArcGIS.
 ## Sections
@@ -46,7 +46,7 @@ In order to develop and test widgets you need to deploy the solutions-webappbuil
 2. Close Open the Repository in Windows Explorer
 3. Close Github for Windows
 4. Cut and paste the entire solutions-webappbuilder-widgets folder into the stemapp/widgets folder
-5. Launch Github for Windows and choose the option to locate the repository. This will change the location on disk to the new location. 
+5. Launch Github for Windows and choose the option to locate the repository. This will change the location on disk to the new location.
 
 Note: For Beta 2, Widgets only show up in the builder UX if you edit/modify a file in the widget folder while Node.js is running. Saving the manifest.json file will work. If you are testing with a static configuration file you do not need to modify the files.
 ### General Help
@@ -69,7 +69,7 @@ All web application produced follow Esri's tailcoat style guide
 http://arcgis.github.io/tailcoat/styleguides/css/
 
 If you are using [JS Hint](http://http://www.jshint.com/) there is a .jshintrc file included in the root folder which enforces this style.
-We allow for 120 characters per line instead of the highly restrictive 80. 
+We allow for 120 characters per line instead of the highly restrictive 80.
 
 ## Licensing
 
@@ -90,5 +90,5 @@ limitations under the License.
 A copy of the license is available in the repository's
 [license.txt](license.txt) file.
 
-[](Esri Tags: ArcGIS Defense and Intelligence Military Environment Planning Analysis Emergency Management Local-Government Local Government State-Government State Government Utilities)
+[](Esri Tags: ArcGISSolutions ArcGIS Defense and Intelligence Military Environment Planning Analysis Emergency Management Local-Government Local Government State-Government State Government Utilities ArcGISSolutions)
 [](Esri Language: Javascript)

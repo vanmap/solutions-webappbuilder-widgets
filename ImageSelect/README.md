@@ -1,21 +1,18 @@
 # Image Select
- 
+The Image Select widget is used with other image widgets to set the active image layer. 
 
+This widget is in Beta.
 ## Sections
 
 * [Features](#features)
-* [Requirements](#requirements)
-* [Instructions](#instructions)
 * [Resources](#resources)
 * [Issues](#issues)
 * [Contributing](#contributing)
 * [Licensing](#licensing)
 
 ## Features
-The 
+The Image Select widget is used with other image widgets to set the active image layer. 
 
-## Instructions
-Deploying Widget
 
 ## Issues
 

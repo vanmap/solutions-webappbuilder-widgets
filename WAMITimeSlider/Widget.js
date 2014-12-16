@@ -279,7 +279,7 @@ define([
                 startup : function(){
                   //Event Listeners to enable dragging os slider button
                   dom.byId('progButton').addEventListener('mousedown',this._progressClick.bind(this), false);
-                  dom.byId('progButton').addEventListener('mousemove',this._progressMove.bind(this),false);
+                  dom.byId('playArea').addEventListener('mousemove',this._progressMove.bind(this),false);
                   dom.byId('playArea').addEventListener('mouseup',this._progressDone.bind(this),false);
                     //console.log('valueConversion initial Value '+ this.valueConversion);
               },

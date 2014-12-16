@@ -1,7 +1,7 @@
 # solutions-builder-widgets
-The ArcGIS Solutions Builder Widgets is a set of widgets for use with the Web AppBuilder for ArcGIS. These widgets adress specialized workflow created and managed by the Esri Solutions teams. These widgets are used in creating many applications created by the solutions team.
+The ArcGIS Solutions Builder Widgets is a set of widgets for use with the Web AppBuilder for ArcGIS. These widgets adress specialized workflow created and managed by the Esri Solutions teams. These widgets as a component of many of the applications created by the solutions team.
 
-Important Note: These widgets are only tested with the Beta 1 release of the Web AppBuilder for ArcGIS. All the Widgets in this repo should be considered Beta (or possibly untested) until the final release of Web AppBuilder for ArcGIS.
+Important Note: All the Widgets in this repo should be considered Beta. There has been some testing with Web AppBuilder for ArcGIS 1.0 but there are still some minor issues which are being captured as part of this repository.
 ## Sections
 
 * [Features](#features)
@@ -15,13 +15,20 @@ Important Note: These widgets are only tested with the Beta 1 release of the Web
 ## Features
 The Widget Reposistory currently includes:
 
-* [Batch Editor](./BatchEditor/README.md)
+Utilities Widgets
 
-Emergency Management Widgets
+* [Batch Editor](./BatchEditor/README.md)
+* [Cost Analysis](./CostAnalysis/README.md)
+* [GeoEnrich](./GeoEnrich/README.md)
+
+Emergency Management & Domestic Operations Widgets
 
 * [Bomb Threat Tool](./BombThreat/README.md)
 * [Emergency Response Guide](./ERG/README.md)
-* [Enhanced Directions](./Directions/README.md)
+* [Directions with Barriers](./DirectionsWithBarriers/README.md)
+* [Critical Infrastructure Chart](./CI_KR_Chart/README.md)
+* [MissionEditor](./MissionEditor/README.md)
+* [Swipe](./Swipe/README.md)
 
 Imagery Analysis Widgets
 
@@ -29,33 +36,26 @@ Imagery Analysis Widgets
 * [Image Mensuration](./ImageMensuration/README.md)
 * [Image Properties](./ImageProperties/README.md)
 * [Image Select](./ImageSelect/README.md)
-
+* [WAMI Time Slider](./WAMITimeSlider/README.md)
 
 ## Requirements
-Requires Web AppBuilder for ArcGIS Beta 1.
+Requires Web AppBuilder for ArcGIS 1.0
 
 ## Instructions
 Deploying Widgets.
 
 To use the widgets with you should copy any of the widgets to the stemapp/widget directory. This is located in %webappbuilder_install%/client directory. 
 
-Setting Up Repository for Development
-In order to develop and test widgets you need to deploy the solutions-webappbuilder-widgets folder to the stemapp/widgets directory in your webapp builder installation. If you use Github for windows this can be accomplished using the following steps.
+For more resources on developing modifying widgets please visit
+[Web AppBuilder for ArcGIS Documentation](http://doc.arcgis.com/en/web-appbuilder/)
 
-1. Sync the repository to your local machine.
-2. Close Open the Repository in Windows Explorer
-3. Close Github for Windows
-4. Cut and paste the entire solutions-webappbuilder-widgets folder into the stemapp/widgets folder
-5. Launch Github for Windows and choose the option to locate the repository. This will change the location on disk to the new location.
-
-Note: For Beta 2, Widgets only show up in the builder UX if you edit/modify a file in the widget folder while Node.js is running. Saving the manifest.json file will work. If you are testing with a static configuration file you do not need to modify the files.
 ### General Help
 [New to Github? Get started here.](http://htmlpreview.github.com/?https://github.com/Esri/esri.github.com/blob/master/help/esri-getting-to-know-github.html)
 
 
 ## Resources
 
-* Learn more about Esri's [ArcGIS for Defense maps and apps](http://resources.arcgis.com/en/communities/defense-and-intelligence/).
+* Learn more about Esri's Solutions [Focused Maps and Apps for Your Organization](http://solutions.arcgis.com/).
 
 ## Issues
 

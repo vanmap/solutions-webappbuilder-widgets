@@ -1,17 +1,27 @@
 {
     "name": "ImageMensuration",
     "title": "Image Mensuration",
-    "type": "widget",
+    "2D": true,
+    "3D": true,
     "platform": "HTML",
-    "version": "",
-    "author": "Esri R&D Center Beijing",
-    "description": "",
-    "copyright": "",
+    "version": "0.0.2",
+    "author": "Defense Solutions",
+    "description": "Widget for playing and interacting with WAMI Video",
+    "copyright": "Copyright 2014 Esri. All Rights Reserved",
     "license": "http://www.apache.org/licenses/LICENSE-2.0",
+    "wabVersion":"1.0.0",
     "properties": {
-        "hasConfig": true,
-        "hasStyle": true,
+        "inPanel": true,
         "hasLocale": true,
-        "hasUIFile": true
+        "hasStyle": true,
+        "hasConfig": true,
+        "hasUIFile": true,
+        "hasSettingPage":false,
+        "hasSettingUIFile":false,
+        "hasSettingLocale":false,
+        "hasSettingStyle":false,
+        "isController":false,
+        "keepConfigAfterMapSwitched":false,
+        "hasVersionManager":false
     }
 }

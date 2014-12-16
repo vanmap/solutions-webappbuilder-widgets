@@ -1,5 +1,5 @@
 # solutions-builder-widgets
-The ArcGIS Solutions Builder Widgets is a set of widgets for use with the Web AppBuilder for ArcGIS. These widgets adress specialized workflow created and managed by the Esri Solutions teams. These widgets as a component of many of the applications created by the solutions team.
+The ArcGIS Solutions Builder Widgets is a set of widgets for use with the Web AppBuilder for ArcGIS. These widgets adress specialized workflow created and managed by the Esri Solutions teams. These widgets are a component of many of the applications created by the solutions team.
 
 Important Note: All the Widgets in this repo should be considered Beta. There has been some testing with Web AppBuilder for ArcGIS 1.0 but there are still some minor issues which are being captured as part of this repository.
 ## Sections

@@ -1,6 +1,8 @@
 # Image Properties
 The Image Properties widget allows standard display properties like band combination, Gamma, and DRA to be set on an image. 
 
+This widget is in Beta.
+
 ## Sections
 
 * [Features](#features)

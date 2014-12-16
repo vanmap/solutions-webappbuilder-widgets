@@ -1,21 +1,18 @@
 # Image Info
- 
+The Image Info widget displays key metadata information from images in an Image Service.  
+
+This widget is in Beta.
 
 ## Sections
 
 * [Features](#features)
-* [Requirements](#requirements)
-* [Instructions](#instructions)
 * [Resources](#resources)
 * [Issues](#issues)
 * [Contributing](#contributing)
 * [Licensing](#licensing)
 
 ## Features
-The 
-
-## Instructions
-Deploying Widget
+The Image Info widget displays key metadata information from images in an Image Service.  
 
 ## Issues
 

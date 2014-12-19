@@ -3,7 +3,7 @@ define([
     'dijit/_WidgetsInTemplateMixin',
     'jimu/BaseWidget',
     'jimu/dijit/TabContainer',
-    'jimu/dijit/List',
+    './List',
     'jimu/utils',
     "esri/tasks/query",
     "esri/tasks/QueryTask",

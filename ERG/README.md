@@ -1,5 +1,5 @@
-# Emergency Response Guide
- 
+# Bomb Threat
+The Emergency Response Guide (ERG) widget allows users to determine potential hazards based on the type of chemical spill and user-selected location on the map. 
 
 ## Sections
 
@@ -12,17 +12,23 @@
 * [Licensing](#licensing)
 
 ## Features
-The 
+* Select chemical type
+* Select spill size
+* Select wind direction and speed
+* Select time of day the spill occurred
+* Ability to allow user select a location on the map 
+* Displays affected location, demography and facilities
+
+## Requirements
+* ArcGIS WebApp Builder v.1.0
 
 ## Instructions
-Deploying Widget
+In order to develop and test widgets you need to deploy the ERG directory to the stemapp/widgets directory in your WebApp Builder installation.
 
 ## Issues
-
 * Find a bug or want to request a new feature?  Please let us know by submitting an issue.
 
 ## Contributing
-
 Esri welcomes contributions from anyone and everyone. Please see our [guidelines for contributing](https://github.com/esri/contributing).
 
 All web application produced follow Esri's tailcoat style guide
@@ -32,7 +38,6 @@ If you are using [JS Hint](http://http://www.jshint.com/) there is a .jshintrc f
 We allow for 120 characters per line instead of the highly restrictive 80. 
 
 ## Licensing
-
 Copyright 2013 Esri
 
 Licensed under the Apache License, Version 2.0 (the "License");

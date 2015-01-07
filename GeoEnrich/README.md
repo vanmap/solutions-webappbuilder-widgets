@@ -20,15 +20,10 @@ Important Note:
 
 ## Features
 
-* Select by Polygon Layer.
-* Select by Shape.
-* Ability to select from any type of feature class.
-* Ability to select type of spatial relationship between features and user selection..
-* Set style of symbol for drawn shape.
-* Set style of symbol for selected features.
+
 
 ## Requirements
-* ArcGIS WebApp Builder Beta 1.
+* ArcGIS WebApp Builder 1.0
 
 ## Instructions
 Deploying Widget

@@ -1,14 +1,14 @@
 ///////////////////////////////////////////////////////////////////////////
 // Copyright © 2014 Esri. All Rights Reserved.
 //
-// Licensed under the Apache License Version 2.0 (the 'License');
+// Licensed under the Apache License Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
 //    http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an 'AS IS' BASIS,
+// distributed under the License is distributed on an "AS IS" BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
@@ -16,220 +16,439 @@
 
 define([
     'dojo/_base/declare',
-
     'dijit/_WidgetsInTemplateMixin',
-
-    'esri/symbols/jsonUtils',
-
-    'esri/symbols/SimpleMarkerSymbol',
-    'esri/symbols/PictureMarkerSymbol',
-    'esri/symbols/SimpleLineSymbol',
-    'esri/symbols/SimpleFillSymbol',
-
+    'dijit/form/RadioButton',
     'jimu/BaseWidgetSetting',
-    'jimu/dijit/SymbolChooser',
-
-    'dojo/fx',
-    'dojo/on',
-
+    'jimu/dijit/SimpleTable',
+    'dojo/query',
+    'dojo/dom-style',
     'dojo/_base/array',
-    'dojo/_base/lang',
-    'dojo/_base/html',
+    'dijit/form/Select',
+    'dojo/dom-construct'
 
-    'dijit/form/Select'
-  ],
+],
   function (
     declare,
     _WidgetsInTemplateMixin,
-    jsonUtils, SimpleMarkerSymbol, PictureMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol,
+    RadioButton,
     BaseWidgetSetting,
-    SymbolChooser,
-    coreFx,
-    on,
-    array, lang, html) {
+    SimpleTable,
+    query,
+    domStyle,
+    array,
+    Select,
+    domConstruct) {
       return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
           //these two properties is defined in the BaseWidget
-          baseClass: 'jimu-widget-batch-editor-setting',
-          mode: null,
-          currentSymbol: null,
-          currentSpatialRel: null,
-          currentDrawSymbol: null,
-
+          baseClass: 'solution-widget-batcheditor-setting',
+          displayLayersTable: null,
+          displayFieldsTable: null,
+          layerSelects: null,
+          toolOption: {
+              Shape: { value: 0 },
+              FeatureSpatial: { value: 1 },
+              FeatureQuery: { value: 2 },
+              Query: { value: 3 },
+          },
           startup: function () {
               this.inherited(arguments);
-              if (!this.config.layers) {
-                  this.config.layers = {};
-              }
-
-              this.addLayerOptions();
-
-              this.bindEvents();
-              //this.bindAnimations();
-
               this.setConfig(this.config);
+              this.createFieldsTable();
           },
 
-          bindAnimations: function () {
-              this.own(on(this.selectFromLayerSelect, 'change', function () {
-                  coreFx.wipeIn({
-                      node: this.settingContent
-                  }).play();
-              }));
-          },
-
-          bindEvents: function () {
-              this.own(this.selectFromLayerSelect.on('change', lang.hitch(this, this.onSelectFromChange)));
-
-              this.own(this.selectWithLayerSelect.on('change', lang.hitch(this, this.onSelectWithChange)));
-
-              //spatial relationship chooser
-              this.own(this.spatialRelChooser.on('change', lang.hitch(this, this.onSpatialRelChange)));
-
-              //highlight symbol choosers
-              this.own(this.pointHighlightChooser.on('change', lang.hitch(this, this.onHighlightSymbolChange)));
-
-              this.own(this.lineHighlightChooser.on('change', lang.hitch(this, this.onHighlightSymbolChange)));
-
-              this.own(this.fillHighlightChooser.on('change', lang.hitch(this, this.onHighlightSymbolChange)));
-
-              //draw symbol chooser
-              this.own(this.fillDrawChooser.on('change', lang.hitch(this, this.onDrawSymbolChange)));
-          },
-
-          onSpatialRelChange: function (evt) {
-              this.currentSpatialRel = evt;
-          },
-
-          onHighlightSymbolChange: function (evt) {
-          },
-
-          onDrawSymbolChange: function (evt) {
-              this.currentDrawSymbol = evt;
-          },
-
-          onSelectWithChange: function (evt) {
-          },
-
-          onSelectFromChange: function (evt) {
-
-              var map = this.map;
-
-              html.addClass(this.pointHighlightSection, 'hide');
-              html.addClass(this.lineHighlightSection, 'hide');
-              html.addClass(this.fillHighlightSection, 'hide');
-
-              if (evt) {
-                  html.removeClass(this.settingHighlight, 'hide');
-
-                  var layerIds = array.filter(map.graphicsLayerIds, function (layerId) {
-                      return map.getLayer(layerId).name === evt;
-                  });
-
-                  if (layerIds.length > 0) {
-                      var layer = map.getLayer(layerIds[0]);
-
-                      switch (layer.geometryType) {
-                          //http://help.arcgis.com/en/sdk/10.0/arcobjects_net/componenthelp/index.html#//002m0000001p000000 
-                          case 'esriGeometryPoint':
-                              html.removeClass(this.pointHighlightSection, 'hide');
-                              this.mode = this.pointHighlightChooser;
-                              break;
-
-                          case 'esriGeometryLine':
-                          case 'esriGeometryPolyline':
-                              html.removeClass(this.lineHighlightSection, 'hide');
-                              this.mode = this.lineHighlightChooser;
-                              break;
-
-                          case 'esriGeometryPolygon':
-                              html.removeClass(this.fillHighlightSection, 'hide');
-                              this.mode = this.fillHighlightChooser;
-                              break;
-                      }
-                  }
-              } else {
-                  html.addClass(this.settingHighlight, 'hide');
+          getSelectedTool: function () {
+              if (this.selectByShape.checked) {
+                  return this.toolOption.Shape;
+              }
+              else if (this.selectByFeature.checked) {
+                  return this.toolOption.FeatureSpatial;
+              }
+              else if (this.selectByFeatureQuery.checked) {
+                  return this.toolOption.FeatureQuery;
+              }
+              else if (this.selectByQuery.checked) {
+                  return this.toolOption.Query;
               }
           },
+          page1ToPage2: function (evt) {
 
-          addLayerOptions: function () {
-              var map = this.map;
-              var settings = this;
+              if (this.selectByShape.checked === false && this.selectByFeature.checked === false &&
+                  this.selectByFeatureQuery.checked === false && this.selectByQuery.checked === false) {
+                  domStyle.set(this.settingsFirstPageError, 'display', '');
 
-              array.forEach(map.graphicsLayerIds, function (layerId) {
-                  var layer = map.getLayer(layerId);
-                  var maxRecordCount = layer.maxRecordCount;
-                  var o1, o2;
+              } else {
+                  this.savePageToConfig("1");
+                  this.showPage2();
 
-                  if (layer.url != null) { //ignore helper layer.
-                      o1 = { 'label': layer.name + ' (' + maxRecordCount + ')',
-                          'value': layer.name
-                      };
+              }
 
-                      //need a copy so selects are independant of each other.
-                      o2 = { 'label': layer.name + ' (' + maxRecordCount + ')',
-                          'value': layer.name
-                      };
-
-                      if (layer.geometryType === 'esriGeometryPolygon') {
-                          settings.selectWithLayerSelect.addOption(o1);
-                      }
-
-                      settings.selectFromLayerSelect.addOption(o2);
-                  }
-              });
           },
+          page2ToPage1: function (evt) {
+              this.savePageToConfig("2");
+              this.showPage1();
+          },
+          page2ToPage3: function (evt) {
+              this.savePageToConfig("2");
+              this.showPage3();
+          },
+          savePageToConfig: function (page) {
+              if (page === "1") {
+                  this.config.selectByShape = this.selectByShape.checked;
+                  this.config.selectByFeature = this.selectByFeature.checked;
+                  this.config.selectByFeatureQuery = this.selectByFeatureQuery.checked;
+                  this.config.selectByQuery = this.selectByQuery.checked;
+              }
+              else if (page === "2") {
+
+                  if (this.displayLayersTable != null) {
+                      this.config.updateLayers = [];
+                      this.config.selectByLayer = {};
+                      array.forEach(this.displayLayersTable.getRows(), function (row) {
+
+                          var rowData = this.displayLayersTable.getRowData(row);
+
+                          if (rowData.update === true) {
+                              this.config.updateLayers.push({
+                                  "ID": rowData.ID,
+                                  "name": rowData.label,
+                                  "queryField": rowData.queryField
+                              });
+                          }
+                          if (rowData.selectByLayer === true) {
+                              this.config.selectByLayer = {
+                                  "ID": rowData.ID,
+                                  "name": rowData.label,
+                                  "queryField": rowData.queryField
+                              };
+                          }
+
+                      },this);
+
+
+                  }
+              }
+
+          },
+          showPage1: function (evt) {
+              this.selectByShape.set('checked', this.config.selectByShape);
+              this.selectByFeature.set('checked', this.config.selectByFeature);
+              this.selectByFeatureQuery.set('checked', this.config.selectByFeatureQuery);
+              this.selectByQuery.set('checked', this.config.selectByQuery);
+
+              domStyle.set(this.firstPageDiv, 'display', '');
+              domStyle.set(this.secondPageDiv, 'display', 'none');
+
+              domStyle.set(this.settingsFirstPageError, 'display', 'none');
+          },
+          showPage2: function (evt) {
+              var selectedTool = this.getSelectedTool();
+              var selectByLayerVisible, queryFieldVisible;
+
+              if (selectedTool === this.toolOption.Shape) {
+                  selectByLayerVisible = false;
+                  queryFieldVisible = false;
+                  showOnlyEditable = true;
+              }
+              else if (selectedTool === this.toolOption.FeatureSpatial) {
+                  selectByLayerVisible = true;
+                  queryFieldVisible = false;
+                  showOnlyEditable = false;
+              }
+              else if (selectedTool === this.toolOption.FeatureQuery) {
+                  selectByLayerVisible = true;
+                  queryFieldVisible = true;
+                  showOnlyEditable = false;
+              }
+              else if (selectedTool === this.toolOption.Query) {
+                  selectByLayerVisible = false;
+                  queryFieldVisible = true;
+                  showOnlyEditable = false;
+              }
+              this.createLayerTable(selectByLayerVisible, queryFieldVisible)
+              this.displayLayersTable.clear();
+              this.loadLayerTable(showOnlyEditable, selectByLayerVisible, queryFieldVisible);
+
+              domStyle.set(this.firstPageDiv, 'display', 'none');
+              domStyle.set(this.secondPageDiv, 'display', '');
+          },
+          showPage3: function (evt) {
+              this.loadFieldsTable();
+              domStyle.set(this.firstPageDiv, 'display', 'none');
+              domStyle.set(this.secondPageDiv, 'display', 'none');
+              domStyle.set(this.thirdPageDiv, 'display', '');
+          },
+
 
           setConfig: function (config) {
               this.config = config;
+              this.showPage1();
+              //this.addQueryFields();
 
-              if (config.layers.selectWith) {
-                  this.selectWithLayerSelect.set('value', config.layers.selectWith.name);
-              }
+          },
+          getConfig: function () {
+              this.config.UpdateLayers = [];
 
-              if (config.layers.selectFrom) {
-                  this.selectFromLayerSelect.set('value', config.layers.selectFrom.name);
-              }
+              this.config.selectByShape = this.selectByShape.checked;
+              this.config.selectByFeature = this.selectByFeature.checked;
+              this.config.selectByFeatureQuery = this.selectByFeatureQuery.checked;
+              this.config.selectByQuery = this.selectByQuery.checked;
 
-              if (config.spatialRel) {
-                  this.spatialRelChooser.set('value', config.spatialRel);
-              }
+              array.forEach(this.displayLayersTable.getRows(), function (row) {
 
-              if (config.highlightSymbol) {
-                  var hs = jsonUtils.fromJson(config.highlightSymbol);
-                  if (hs instanceof SimpleMarkerSymbol || hs instanceof PictureMarkerSymbol) {
-                      this.mode = this.pointHighlightChooser;
+                  var rowData = this.displayLayersTable.getRowData(row);
+
+                  if (rowData.update === true) {
+                      this.config.UpdateLayers.push({
+                          "ID": rowData.ID,
+                          "name": rowData.label,
+                          "queryField": rowData.queryField
+                      });
+                  }
+                  if (rowData.selectByLayer === true) {
+                      this.config.SelectByLayer = {
+                          "ID": rowData.ID,
+                          "name": rowData.label,
+                          "queryField": rowData.queryField
+                      };
                   }
 
-                  else if (hs instanceof SimpleLineSymbol) {
-                      this.mode = this.lineHighlightChooser;
+              }, this);
+              return this.config;
+          },
+          addQueryFields: function () {
+              this.layerSelects = [];
+
+              array.forEach(this.displayLayersTable.getRows(), function (row) {
+                  var queryFldCell = query('.queryField.empty-text-td', row).shift();
+
+                  var rowData = this.displayLayersTable.getRowData(row);
+                  var layer = this.map.getLayer(rowData.ID);
+                  var fields = this.getVisibleFields(layer.infoTemplate.info.fieldInfos)
+
+                  var s = new Select({
+                      name: 'queryFldSelect',
+                      options: fields
+                  });
+
+                  s.placeAt(queryFldCell);
+
+                  this.layerSelects.push(s);
+
+              }, this);
+          },
+          getEditableFields: function (fields) {
+              return dojo.filter(fields, function (field) {
+                  return field.isEditable === true;
+              });
+
+          },
+          getVisibleFields: function (fields) {
+              var result = [{ label: 'Do Not Query', value: 'Do Not Query' }];
+
+              array.forEach(fields, function (field) {
+                  if (field.visible === true) {
+                      var opt = {
+                          label: field.label,
+                          value: field.fieldName
+                      };
+                      result.push(opt);
+                  }
+              });
+              return result;
+
+          },
+          arrayObjectIndexOf: function (myArray, searchTerm, property) {
+              for (var i = 0, len = myArray.length; i < len; i++) {
+                  if (myArray[i][property] === searchTerm) return i;
+              }
+              return -1;
+          },
+          intersect_array: function (array1, array2) {
+              // Return array of array1 items not found in array2
+              var array1Uniques = array.filter(array1, function (item, i) {
+                  if (this.arrayObjectIndexOf(array2, item.fieldName, "fieldName") >= 0) {
+                      return true;
+                  }
+                  else {
+                      return false;
                   }
 
-                  else if (hs instanceof SimpleFillSymbol) {
-                      this.mode = this.fillHighlightChooser;
+              }, this);
+              return array1Uniques;
+
+
+          },
+        
+
+          loadFieldsTable: function () {
+              this.displayFieldsTable.clear();
+              var rows = this.displayLayersTable.getRows();
+              var commonFields = null;
+              var firstLay = true;
+              array.forEach(this.displayLayersTable.getRows(), function (row) {
+                  var rowData = this.displayLayersTable.getRowData(row);
+                  if (rowData.update === true) {
+
+                      var layer = this.map.getLayer(rowData.ID);
+                      var fields = this.getEditableFields(layer.infoTemplate.info.fieldInfos)
+                      if (firstLay === true) {
+                          commonFields = fields;
+                          firstLay = false;
+                      }
+                      else {
+                          commonFields = this.intersect_array(commonFields, fields);
+                      }
                   }
+              }, this);
+              if (commonFields === null) {
+                  domStyle.set(this.tableFieldInfosError, 'display', '');
+                  domStyle.set(this.tableFieldInfos, 'display', 'none');
+                  domStyle.set(this.tableFieldHeader, 'display', 'none');
 
-                  this.mode.showBySymbol(hs);
+                  this.tableFieldInfosError.innerHTML = this.nls.noCommonFields;
               }
+              else if (commonFields.length === 0) {
+                  domStyle.set(this.tableFieldInfosError, 'display', '');
+                  domStyle.set(this.tableFieldInfos, 'display', 'none');
+                  domStyle.set(this.tableFieldHeader, 'display', 'none');
 
-              if (this.config.drawSymbol) {
-                  this.fillDrawChooser.showBySymbol(jsonUtils.fromJson(this.config.drawSymbol));
+                  this.tableFieldInfosError.innerHTML = this.nls.noCommonFields;
               }
+              else {
+                  array.forEach(commonFields, function (field) {
+                      var row = this.displayFieldsTable.addRow({
+                          fieldName: field.fieldName,
+                          label: field.label
+                      });
+
+                  }, this);
+
+                  domStyle.set(this.tableFieldInfosError, 'display', 'none');
+                  domStyle.set(this.tableFieldInfos, 'display', '');
+                  domStyle.set(this.tableFieldHeader, 'display', '');
+
+              }
+           
+
+          },
+          createFieldsTable: function () {
+              var commonFields = [{
+                  name: 'isEditable',
+                  title: this.nls.page3.fieldTable.colEdit,
+                  type: 'checkbox',
+                  'class': 'editable'
+              }, {
+                  name: 'fieldName',
+                  title: this.nls.page3.fieldTable.colName,
+                  type: 'text'
+              }, {
+                  name: 'label',
+                  title: this.nls.page3.fieldTable.colAlias,
+                  type: 'text',
+                  editable: true
+              }, {
+                  name: 'actions',
+                  title: this.nls.page3.fieldTable.colAction,
+                  type: 'actions',
+                  actions: ['up', 'down'],
+                  'class': 'editable'
+              }];
+              var commonFieldArgs = {
+                  fields: commonFields,
+                  selectable: false
+              };
+              this.displayFieldsTable = new SimpleTable(commonFieldArgs);
+              this.displayFieldsTable.placeAt(this.tableFieldInfos);
+              this.displayFieldsTable.startup();
           },
 
-          getConfig: function () {
-              this.config.layers.selectFrom.name = this.selectFromLayerSelect.getValue();
+          loadLayerTable: function (showOnlyEditable, selectByLayerVisible, queryFieldVisible) {
 
-              this.config.layers.selectWith.name = this.selectWithLayerSelect.getValue();
+              var selectedLayers = array.map(this.config.updateLayers, function (updateLayer) {
+                  return updateLayer.name;
+              });
 
-              this.config.spatialRel = this.spatialRelChooser.getValue();
 
-              this.config.highlightSymbol = this.mode.getSymbol().toJson();
 
-              this.config.drawSymbol = this.fillDrawChooser.getSymbol().toJson();
+              var label = '';
+              array.forEach(this.map.itemInfo.itemData.operationalLayers, function (layer) {
+                  if (layer.layerObject != null && layer.layerObject != undefined) {
+                      if (layer.layerObject.type === 'Feature Layer' && layer.url) {
+                          if ((showOnlyEditable && layer.layerObject.isEditable === false)) {
+                          } else {
 
-              return this.config;
-          }
+                              label = layer.layerObject.name;
+                              update = false;
+                              selectByLayer = false;
+                              if (selectedLayers.indexOf(label) > -1) {
+                                  update = true;
+                              }
+                              if (this.config.selectByLayer.name === label) {
+                                  selectByLayer = true;
+
+                              }
+
+                              var row = this.displayLayersTable.addRow({
+                                  label: label,
+                                  update: update,
+                                  ID: layer.layerObject.id,
+                                  selectByLayer: selectByLayer
+
+                              });
+                              tableValid = true;
+                              if (layer.layerObject.isEditable() === false) {
+                                  query('input[type="checkbox"]', row.tr).attr('disabled', 'disabled');
+                              }
+                          }
+                      }
+                  }
+              }, this);
+
+              if (!tableValid) {
+                  domStyle.set(this.tableLayerInfosError, 'display', '');
+                  if (queryFieldVisible === true) {
+                      this.addQueryFields();
+                  }
+
+              } else {
+                  domStyle.set(this.tableLayerInfosError, 'display', 'none');
+              }
+          },
+          createLayerTable: function (selectByLayerVisible, queryFieldVisible) {
+              var editFeaturesTableFields = [{
+                  name: 'update',
+                  title: this.nls.page2.layerTable.colUpdate,
+                  type: 'checkbox',
+                  'class': 'editable'
+              }, {
+                  name: 'label',
+                  title: this.nls.page2.layerTable.colLabel,
+                  type: 'text'
+              }, {
+                  name: 'selectByLayer',
+                  title: this.nls.page2.layerTable.colSelectByLayer,
+                  type: 'radio',
+                  hidden: !selectByLayerVisible
+              },
+              {
+                  name: 'queryField',
+                  title: this.nls.page2.layerTable.colSelectByField,
+                  type: 'empty',
+                  hidden: !queryFieldVisible
+              }, {
+                  name: 'ID',
+                  type: 'text',
+                  hidden: true
+              }];
+              var args = {
+                  fields: editFeaturesTableFields,
+                  selectable: false
+              };
+              domConstruct.empty(this.tableLayerInfos);
+              this.displayLayersTable = new SimpleTable(args);
+              this.displayLayersTable.placeAt(this.tableLayerInfos);
+              this.displayLayersTable.startup();
+          },
 
       });
   });

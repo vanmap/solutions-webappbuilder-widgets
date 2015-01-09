@@ -1,23 +1,89 @@
-.jimu-widget-batch-editor-setting{
+.solution-widget-batcheditor-setting{
   margin: 0;
   padding: 0;
   font-size: 15px;
 }
 
-.jimu-widget-batch-editor-setting .dijitArrowButtonContainer{
+.solution-widget-batcheditor-setting .dijitArrowButtonContainer{
   width: 17px;
 }
 
-.jimu-widget-batch-editor-setting .dijitSelect{
+.solution-widget-batcheditor-setting .dijitSelect{
   height: 30px;
   width: 100%;
 }
-
+.solution-widget-batcheditor-setting .editable{
+  width: 100px;
+}
 .hide {
   display: none;
 }
 
-.settings-subheading {
-  font-size: 1.5em;
+/*Shared Page*/
+.settings-heading{
+  font-size: 1.35em;
   margin-top: 15px;
 }
+.settings-description {
+  font-size: 1.1em;
+  margin-top: 15px;
+}
+.settings-error {
+  font-size: 1.1em;
+  color: orangered;
+}
+/*Navigation Buttons*/
+.solution-widget-batcheditor-setting .settings-navigation-table > tbody > tr > .controls{
+  width:100%;
+}
+.solution-widget-batcheditor-setting .settings-navigation-table > tbody > tr > td{
+ 
+  vertical-align:middle;
+  font-size: 1em;
+}
+/*Page 1*/
+.solution-widget-batcheditor-setting .setting-tool-table{
+  margin:15px; 
+  padding-right:15px;
+  outline: #000000 solid thin;
+}
+.solution-widget-batcheditor-setting .setting-tool-table > tbody > tr > .controls{
+  width:100%;
+}
+.solution-widget-batcheditor-setting .setting-tool-table > tbody > tr > td > span{
+  margin-left: 20px;
+}
+.solution-widget-batcheditor-setting .setting-tool-table > tbody > tr > td > input{
+  margin-left: 5px
+}
+.solution-widget-batcheditor-setting  .setting-tool-table > thead > tr > th,
+.solution-widget-batcheditor-setting  .setting-tool-table > tbody > tr > td{
+  height:40px;
+  line-height:40px;
+  vertical-align:middle;
+  font-size: 1em;
+}
+
+/*Page 2*/
+.solution-widget-batcheditor-setting .setting-layer-table{
+  margin:15px; 
+  padding-right:15px;
+ 
+}
+.solution-widget-batcheditor-setting .setting-layer-table > tbody > tr > .controls{
+  width:100%;
+}
+.solution-widget-batcheditor-setting .setting-layer-table > tbody > tr > td > span{
+  margin-left: 20px;
+}
+.solution-widget-batcheditor-setting .setting-layer-table > tbody > tr > td > input{
+  margin-left: 5px
+}
+.solution-widget-batcheditor-setting  .setting-layer-table > thead > tr > th,
+.solution-widget-batcheditor-setting  .setting-layer-table > tbody > tr > td{
+  height:40px;
+  line-height:40px;
+  vertical-align:middle;
+  font-size: 1em;
+}
+

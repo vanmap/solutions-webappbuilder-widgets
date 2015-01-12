@@ -41,8 +41,8 @@ define([
       return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
           //these two properties is defined in the BaseWidget
           baseClass: 'solution-widget-batcheditor-setting',
-          displayLayersTable: null,
-          displayFieldsTable: null,
+          layersTable: null,
+          commonFieldsTable: null,
           layerSelects: null,
           toolOption: {
               Shape: { value: 0 },
@@ -88,8 +88,24 @@ define([
               this.showPage1();
           },
           page2ToPage3: function (evt) {
-              this.savePageToConfig("2");
-              this.showPage3();
+              var rows = this.layersTable.getRows();
+
+              result = array.some(this.layersTable.getRows(), function (row) {
+                  var rowData = this.layersTable.getRowData(row);
+                  return rowData.update;
+              },this    );
+              if (!result) {
+                  domStyle.set(this.settingsSecondPageError, 'display', '');
+
+              } else {
+                  this.savePageToConfig("2");
+                  this.showPage3();
+              }
+
+          },
+          page3ToPage2: function (evt) {
+              this.savePageToConfig("3");
+              this.showPage2();
           },
           savePageToConfig: function (page) {
               if (page === "1") {
@@ -100,12 +116,12 @@ define([
               }
               else if (page === "2") {
 
-                  if (this.displayLayersTable != null) {
+                  if (this.layersTable != null) {
                       this.config.updateLayers = [];
                       this.config.selectByLayer = {};
-                      array.forEach(this.displayLayersTable.getRows(), function (row) {
+                      array.forEach(this.layersTable.getRows(), function (row) {
 
-                          var rowData = this.displayLayersTable.getRowData(row);
+                          var rowData = this.layersTable.getRowData(row);
 
                           if (rowData.update === true) {
                               this.config.updateLayers.push({
@@ -122,7 +138,7 @@ define([
                               };
                           }
 
-                      },this);
+                      }, this);
 
 
                   }
@@ -139,6 +155,7 @@ define([
               domStyle.set(this.secondPageDiv, 'display', 'none');
 
               domStyle.set(this.settingsFirstPageError, 'display', 'none');
+              this.hideOkError();
           },
           showPage2: function (evt) {
               var selectedTool = this.getSelectedTool();
@@ -165,20 +182,47 @@ define([
                   showOnlyEditable = false;
               }
               this.createLayerTable(selectByLayerVisible, queryFieldVisible)
-              this.displayLayersTable.clear();
+              this.layersTable.clear();
               this.loadLayerTable(showOnlyEditable, selectByLayerVisible, queryFieldVisible);
 
               domStyle.set(this.firstPageDiv, 'display', 'none');
               domStyle.set(this.secondPageDiv, 'display', '');
+              domStyle.set(this.thirdPageDiv, 'display', 'none');
+
+              domStyle.set(this.settingsSecondPageError, 'display', 'none');
+              this.hideOkError();
+
           },
           showPage3: function (evt) {
               this.loadFieldsTable();
               domStyle.set(this.firstPageDiv, 'display', 'none');
               domStyle.set(this.secondPageDiv, 'display', 'none');
               domStyle.set(this.thirdPageDiv, 'display', '');
+              this.hideOkError();
           },
-
-
+          hideOkError: function () {
+              domStyle.set(this.settingsFirstPageSaveError, 'display', 'none');
+              domStyle.set(this.settingsSecondPageSaveError, 'display', 'none');
+              domStyle.set(this.settingsThirdPageSaveError, 'display', 'none');
+          },
+          showOKError: function () {
+              var display = domStyle.get(this.firstPageDiv, 'display');
+              if (display != 'none')
+              {
+                  domStyle.set(this.settingsFirstPageSaveError, 'display', '');
+                  return;
+              }
+              display = domStyle.get(this.secondPageDiv, 'display');
+              if (display != 'none') {
+                  domStyle.set(this.settingsSecondPageSaveError, 'display', '');
+                  return;
+              }
+              display = domStyle.get(this.thirdPageDiv, 'display');
+              if (display != 'none') {
+                  domStyle.set(this.settingsThirdPageSaveError, 'display', '');
+                  return;
+              }
+          },
           setConfig: function (config) {
               this.config = config;
               this.showPage1();
@@ -192,10 +236,21 @@ define([
               this.config.selectByFeature = this.selectByFeature.checked;
               this.config.selectByFeatureQuery = this.selectByFeatureQuery.checked;
               this.config.selectByQuery = this.selectByQuery.checked;
+              if (this.selectByShape.checked === false && this.selectByFeature.checked === false
+                  && this.selectByFeatureQuery.checked === false && this.selectByQuery.checked === false)
+              {
+                  this.showOKError();
+                  return false;
+              }
+              if (this.layersTable === null || this.layersTable === undefined) {
+                  this.showOKError();
+                  return false;
+              }
+              
+              this.config.UpdateLayers = []
+              array.forEach(this.layersTable.getRows(), function (row) {
 
-              array.forEach(this.displayLayersTable.getRows(), function (row) {
-
-                  var rowData = this.displayLayersTable.getRowData(row);
+                  var rowData = this.layersTable.getRowData(row);
 
                   if (rowData.update === true) {
                       this.config.UpdateLayers.push({
@@ -213,15 +268,55 @@ define([
                   }
 
               }, this);
+              if (this.config.UpdateLayers.length === 0)
+              {
+                  this.showOKError();
+                  return false;
+              }
+
+              if (this.commonFieldsTable === null || this.commonFieldsTable === undefined) {
+                  this.showOKError();
+                  return false;
+              }
+              var rows = this.commonFieldsTable.getRows();
+
+              if (rows === null) {
+                  this.showOKError();
+                  return false;
+              }
+
+              if (rows.length === 0) {
+                  this.showOKError();
+                  return false;
+              }
+              this.config.CommonFields = [];
+
+              array.forEach(rows, function (row) {
+
+                  var rowData = this.commonFieldsTable.getRowData(row);
+
+                  if (rowData.isEditable === true) {
+                      this.config.CommonFields.push({
+                          "alias": rowData.label,
+                          "name": rowData.fieldName,
+                      });
+                  }
+                  
+
+              }, this);
+              if (this.config.CommonFields.length === 0) {
+                  this.showOKError();
+                  return false;
+              }
               return this.config;
           },
           addQueryFields: function () {
               this.layerSelects = [];
 
-              array.forEach(this.displayLayersTable.getRows(), function (row) {
+              array.forEach(this.layersTable.getRows(), function (row) {
                   var queryFldCell = query('.queryField.empty-text-td', row).shift();
 
-                  var rowData = this.displayLayersTable.getRowData(row);
+                  var rowData = this.layersTable.getRowData(row);
                   var layer = this.map.getLayer(rowData.ID);
                   var fields = this.getVisibleFields(layer.infoTemplate.info.fieldInfos)
 
@@ -278,15 +373,13 @@ define([
 
 
           },
-        
-
           loadFieldsTable: function () {
-              this.displayFieldsTable.clear();
-              var rows = this.displayLayersTable.getRows();
+              this.commonFieldsTable.clear();
+              var rows = this.layersTable.getRows();
               var commonFields = null;
               var firstLay = true;
-              array.forEach(this.displayLayersTable.getRows(), function (row) {
-                  var rowData = this.displayLayersTable.getRowData(row);
+              array.forEach(this.layersTable.getRows(), function (row) {
+                  var rowData = this.layersTable.getRowData(row);
                   if (rowData.update === true) {
 
                       var layer = this.map.getLayer(rowData.ID);
@@ -316,19 +409,17 @@ define([
               }
               else {
                   array.forEach(commonFields, function (field) {
-                      var row = this.displayFieldsTable.addRow({
+                      var row = this.commonFieldsTable.addRow({
                           fieldName: field.fieldName,
                           label: field.label
                       });
 
                   }, this);
 
-                  domStyle.set(this.tableFieldInfosError, 'display', 'none');
-                  domStyle.set(this.tableFieldInfos, 'display', '');
-                  domStyle.set(this.tableFieldHeader, 'display', '');
+
 
               }
-           
+
 
           },
           createFieldsTable: function () {
@@ -357,9 +448,9 @@ define([
                   fields: commonFields,
                   selectable: false
               };
-              this.displayFieldsTable = new SimpleTable(commonFieldArgs);
-              this.displayFieldsTable.placeAt(this.tableFieldInfos);
-              this.displayFieldsTable.startup();
+              this.commonFieldsTable = new SimpleTable(commonFieldArgs);
+              this.commonFieldsTable.placeAt(this.tableCommonFields);
+              this.commonFieldsTable.startup();
           },
 
           loadLayerTable: function (showOnlyEditable, selectByLayerVisible, queryFieldVisible) {
@@ -388,7 +479,7 @@ define([
 
                               }
 
-                              var row = this.displayLayersTable.addRow({
+                              var row = this.layersTable.addRow({
                                   label: label,
                                   update: update,
                                   ID: layer.layerObject.id,
@@ -445,9 +536,9 @@ define([
                   selectable: false
               };
               domConstruct.empty(this.tableLayerInfos);
-              this.displayLayersTable = new SimpleTable(args);
-              this.displayLayersTable.placeAt(this.tableLayerInfos);
-              this.displayLayersTable.startup();
+              this.layersTable = new SimpleTable(args);
+              this.layersTable.placeAt(this.tableLayerInfos);
+              this.layersTable.startup();
           },
 
       });

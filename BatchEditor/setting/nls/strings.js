@@ -2,7 +2,7 @@ define({
     root: {
         page1:{
             selectToolHeader: "Select a method to select records to batch update.",
-            selectToolDesc:"This tool support 4 different methods for generating a selected set of records to update.  Select one of the method and click next.  If you require more than one of these methods, please create another configuration of the widget.",
+            selectToolDesc:"This tool supports 4 different methods for generating a selected set of records to update.  Select one of the method and click next.  If you require more than one of these methods, please create another configuration of the widget.",
             selectByShape: "Select by Area",
             selectBySpatQuery: "Select by Feature",
             selectByAttQuery: "Select by Feature & Related Features",
@@ -18,7 +18,8 @@ define({
                 colSelectByLayer: "Select By Layer",       
                 colSelectByField: "Query field"
             },
-            noEditableLayers: "No Editable Layers"
+            noEditableLayers: "No Editable Layers",
+            noLayersSelected:"Select one of more layers before proceeding"
         },
         page3: {
             commonFieldsHeader: "Select the fields to batch update.",
@@ -31,6 +32,7 @@ define({
                 colAction: "Action"
             },
         },
+        errorOnOk:"Please fill out all parameters before saving config",
         next: "Next",
         back: "Back",
 

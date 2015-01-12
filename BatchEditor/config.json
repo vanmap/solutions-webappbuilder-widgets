@@ -1,6 +1,7 @@
 {
-    "selectByLayer": {name: "",ID: "" },
+    "selectByLayer": {"name": "","ID": "" },
     "updateLayers": [ { } ],
+    "commonFields": [ { } ],
     "selectByShape": true,
     "selectByFeature": false,
     "selectByFeatureQuery": false,

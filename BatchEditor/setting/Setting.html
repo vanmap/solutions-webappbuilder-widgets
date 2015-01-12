@@ -53,7 +53,7 @@
                 </tr>
             </tbody>
         </table>
-     
+        <span class="settings-error" data-dojo-attach-point="settingsFirstPageSaveError" style="display:none">${nls.errorOnOk}</span>
     </div>
     <div data-dojo-attach-point="secondPageDiv" style="display:none">
 
@@ -72,10 +72,14 @@
                     <td>
                         <button data-dojo-type="dijit/form/Button" type="button" class="navButtons" data-dojo-attach-event="click:page2ToPage1">${nls.back}</button>
                         <button data-dojo-type="dijit/form/Button" type="button" class="navButtons" data-dojo-attach-event="click:page2ToPage3">${nls.next}</button>
+                        <span class="settings-error" data-dojo-attach-point="settingsSecondPageError" style="display:none">${nls.page2.noLayersSelected}</span>
+
                     </td>
                 </tr>
             </tbody>
         </table>
+        <span class="settings-error" data-dojo-attach-point="settingsSecondPageSaveError" style="display:none">${nls.errorOnOk}</span>
+
     </div>
     <div data-dojo-attach-point="thirdPageDiv" style="display:none">
 
@@ -93,5 +97,6 @@
                 </tr>
             </tbody>
         </table>
+        <span class="settings-error" data-dojo-attach-point="settingsThirdPageSaveError" style="display:none">${nls.errorOnOk}</span>
     </div>
 </div>

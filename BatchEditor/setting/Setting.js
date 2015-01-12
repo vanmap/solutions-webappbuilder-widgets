@@ -40,7 +40,7 @@ define([
     domConstruct) {
       return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
           //these two properties is defined in the BaseWidget
-          baseClass: 'solution-widget-batcheditor-setting',
+          baseClass: 'solutions-widget-batcheditor-setting',
           layersTable: null,
           commonFieldsTable: null,
           layerSelects: null,
@@ -447,7 +447,7 @@ define([
               array.forEach(this.map.itemInfo.itemData.operationalLayers, function (layer) {
                   if (layer.layerObject != null && layer.layerObject != undefined) {
                       if (layer.layerObject.type === 'Feature Layer' && layer.url) {
-                          if ((showOnlyEditable && layer.layerObject.isEditable === false)) {
+                          if ((showOnlyEditable && layer.layerObject.isEditable() === false)) {
                           } else {
 
                               label = layer.layerObject.name;
@@ -479,12 +479,13 @@ define([
 
               if (!tableValid) {
                   domStyle.set(this.tableLayerInfosError, 'display', '');
-                  if (queryFieldVisible === true) {
-                      this.addQueryFields();
-                  }
+                 
 
               } else {
                   domStyle.set(this.tableLayerInfosError, 'display', 'none');
+                  if (queryFieldVisible === true) {
+                      this.addQueryFields();
+                  }
               }
           },
           createLayerTable: function (selectByLayerVisible, queryFieldVisible) {

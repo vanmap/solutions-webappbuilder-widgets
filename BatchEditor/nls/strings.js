@@ -1,6 +1,11 @@
 define({
   root: ({
-    _widgetLabel: "Batch Editor",
+      _widgetLabel: "Batch Editor",
+      layerTable: {
+          colLabel: "Layer Name",
+          numSelected:"Selection Count"
+      },
+      noConfiguredLayers:"No editable layers configured",
     selectWithLayerBtn: "Select with Layer",
     selectWithShapeBtn: "Select with Shape",
     selectByLayerStep1: "Click [Select with Layer]",

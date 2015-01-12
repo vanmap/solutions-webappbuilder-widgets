@@ -1,44 +1,33 @@
 define(['dojo/_base/declare', 'dijit/_WidgetsInTemplateMixin', 'jimu/BaseWidget',
-        "dojo/_base/array", "dojo/_base/lang", "dojo/number", "dojo/i18n!widgets/ImageMensuration/nls/strings.js", "esri/request",
-        "esri/toolbars/draw", "dojo/i18n!esri/nls/jsapi", "dijit/form/Button",
-       "dijit/form/Select", "dijit/form/DropDownButton", "dojo/dom-attr", "dijit/registry"],
-function(declare, _WidgetsInTemplateMixin, BaseWidget, array, lang, number, nls, esriRequest, Draw, bundle, Button, Select, ToggleButton, domAttr, registry) {
+        'dojo/_base/array', 'dojo/_base/lang', 'dojo/number', 
+         'esri/request',
+        'esri/toolbars/draw', 'dojo/i18n!esri/nls/jsapi', 'dijit/form/Button',
+       'dijit/form/Select', 'dijit/form/DropDownButton', 'dojo/dom-attr', 'dijit/registry'],
+function(declare, _WidgetsInTemplateMixin, BaseWidget, 
+          array, lang, number, 
+          esriRequest, 
+          Draw, bundle, Button, 
+          Select, ToggleButton, domAttr, registry) {
   //To create a widget, you need to derive from BaseWidget.
   return declare([BaseWidget, _WidgetsInTemplateMixin], {
-    // DemoWidget code goes here 
+      
     baseClass: 'dtc-mensuration',
     imageService: null,
-      //drawToolbar: esri.toolbars.Draw
     drawToolbar : null,
-      //measureMethod: string -> esriMensurationHeightFromBaseAndTop|esriMensurationHeightFromBaseAndTopShadow|esriMensurationHeightFromTopAndTopShadow
     measureMethod : null,
-		//measureLine: esri.geometry.Polyline (in this application, it will always be a 2 point line)
     measureLine : null,
-		//units: string (Linear units from esri.Units)
     units : null,
-		//_MENSURATIONOPTIONS: The types of mensuration operations that can be done.  Populates the buttons during startup
-    _MENSURATIONOPTIONS : [{
-        method : "esriMensurationHeightFromBaseAndTop",
-        title : nls.baseTopDesc,
-        iconClass : "iconBaseTop"
-      }, {
-        method : "esriMensurationHeightFromBaseAndTopShadow",
-        title : nls.baseShadowDesc,
-        iconClass : "iconBaseTopShadow"
-      }, {
-        method : "esriMensurationHeightFromTopAndTopShadow",
-        title : nls.topShadowDesc,
-        iconClass : "iconTopTopShadow"
-      }],
+    //_MENSURATIONOPTIONS: The types of mensuration operations that can be done.  Populates the buttons during startup
+
       //_UNITS: the types of valid (i.e., linear) units. Populates this.unitsSelect during startup
       _UNITS : [{
-          value : "esriFeet",
+          value : 'esriFeet',
           label : bundle.widgets.measurement.NLS_length_feet
         }, {
-          value : "esriYards",
+          value : 'esriYards',
           label : bundle.widgets.measurement.NLS_length_yards
         }, {
-          value : "esriMeters",
+          value : 'esriMeters',
           label : bundle.widgets.measurement.NLS_length_meters,
           selected : true
         }],
@@ -57,7 +46,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, array, lang, number, nls,
         if (this.map.loaded) {
             this._init();
         } else {
-            this.map.on("load", lang.hitch(this, function() {
+            this.map.on('load', lang.hitch(this, function() {
                 _self._init();
             }));
         }
@@ -73,12 +62,24 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, array, lang, number, nls,
           this.unitsSelect.addOption(this._UNITS);
           this.units = 'esriMeters';
           
-          this.unitsSelect.on("change", function(newValue){
+          this.unitsSelect.on('change', function(newValue){
               _self.units = newValue;
               _self.measureBuilding(null);
           });
-          
-          array.forEach(this._MENSURATIONOPTIONS, function(option) {
+          var _MENSURATIONOPTIONS = [{
+              method : 'esriMensurationHeightFromBaseAndTop',
+              title : this.nls.baseTopDesc,
+              iconClass : 'iconBaseTop'
+          }, {
+              method : 'esriMensurationHeightFromBaseAndTopShadow',
+              title : this.nls.baseShadowDesc,
+              iconClass : 'iconBaseTopShadow'
+          }, {
+              method : 'esriMensurationHeightFromTopAndTopShadow',
+              title : this.nls.topShadowDesc,
+              iconClass : 'iconTopTopShadow'
+          }];
+          array.forEach(_MENSURATIONOPTIONS, function(option) {
               new Button({
                   onClick: lang.hitch(_self, function() {
                       _self.drawBuildingHeight(option.method);
@@ -122,9 +123,9 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, array, lang, number, nls,
               f : 'json'
           };
           new esriRequest({
-              url : lang.replace("{0}/{1}", [imageServiceLayer, 'measure']),
+              url : lang.replace('{0}/{1}', [imageServiceLayer, 'measure']),
               content : contentObj,
-              callbackParamName : "callback",
+              callbackParamName : 'callback',
               load : lang.hitch(this, this.onResult),
               error : lang.hitch(this, this.onResultError)
           });
@@ -169,7 +170,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, array, lang, number, nls,
       onReceiveData: function(name, source, params) {
         var _self = this;
         var service = null;
-        if(params && params.serviceId && params.target === "ImageAnalysis") {
+        if(params && params.serviceId && params.target === 'ImageAnalysis') {
             service = this.map.getLayer(params.serviceId);
             if (service.loaded === true) { 
                 this.imageService = service;
@@ -192,7 +193,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, array, lang, number, nls,
               });
           } else {
               var _self = this;
-              this.map.on("load", lang.hitch(this, function(){
+              this.map.on('load', lang.hitch(this, function(){
                   console.log('map loaded');
                   _self.publishData({
                   'target':'ImageSelect',

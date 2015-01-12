@@ -1,11 +1,11 @@
 # Image Mensuration
- 
+The Image Mensuration widget allows for precise measurement on Imagery in an Image Service.
+
+This widget is in Beta.
 
 ## Sections
 
 * [Features](#features)
-* [Requirements](#requirements)
-* [Instructions](#instructions)
 * [Resources](#resources)
 * [Issues](#issues)
 * [Contributing](#contributing)
@@ -14,8 +14,6 @@
 ## Features
 The 
 
-## Instructions
-Deploying Widget
 
 ## Issues
 

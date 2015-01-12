@@ -1,11 +1,15 @@
 define(['dojo/_base/declare', 'dijit/_WidgetsInTemplateMixin', 'jimu/BaseWidget',
-        "dojo/_base/array", "dojo/_base/lang", "dojo/on", "dojo/i18n!widgets/ImageInfo/nls/strings.js",
-       "dijit/form/ToggleButton", "dijit/form/CheckBox",
-       'esri/layers/GraphicsLayer', "esri/symbols/SimpleFillSymbol", "esri/symbols/SimpleLineSymbol", "dojo/_base/Color",
-        "esri/tasks/ImageServiceIdentifyParameters", "esri/tasks/ImageServiceIdentifyTask",
-        "esri/tasks/query", "esri/tasks/QueryTask"
+        'dojo/_base/array', 'dojo/_base/lang', 'dojo/on',
+       'dijit/form/ToggleButton', 'dijit/form/CheckBox',
+       'esri/layers/GraphicsLayer', 'esri/symbols/SimpleFillSymbol','esri/symbols/SimpleLineSymbol', 'dojo/_base/Color',
+        'esri/tasks/ImageServiceIdentifyParameters', 'esri/tasks/ImageServiceIdentifyTask',
+        'esri/tasks/query', 'esri/tasks/QueryTask'
        ],
-function(declare, _WidgetsInTemplateMixin, BaseWidget, array, lang, on, nls, Button, CheckBox, GraphicsLayer, SFS, SLS, Color, ImageServiceIdentifyParameters, ImageServiceIdentifyTask, Query, Task) {
+function(declare, _WidgetsInTemplateMixin, BaseWidget, 
+          array, lang, on, 
+          Button, CheckBox, GraphicsLayer, SFS, SLS, Color, 
+          ImageServiceIdentifyParameters, ImageServiceIdentifyTask, 
+          Query, Task) {
   //To create a widget, you need to derive from BaseWidget.
   return declare([BaseWidget, _WidgetsInTemplateMixin], {
     // DemoWidget code goes here 
@@ -34,7 +38,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, array, lang, on, nls, But
         if (this.map.loaded) {
             this._init();
         } else {
-            this.map.on("load", lang.hitch(this, function() {
+            this.map.on('load', lang.hitch(this, function() {
                 _self._init();
             }));
         }
@@ -48,7 +52,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, array, lang, on, nls, But
                                       new Color([255,255,0,0.1]));
           this.map.on('extent-change', lang.hitch(this, this._onExtentChange));
 			//Allow the user to click on the map and get image info
-          this.btnIdentify.set('title', nls.selectImage);
+          this.btnIdentify.set('title', this.nls.selectImage);
           this.btnIdentify.on('click', lang.hitch(this, this._startIdentify));
 			//Toggle the footprint on/off
           this.chkFootprint.on('change', lang.hitch(this, this._toggleFootprint));
@@ -99,10 +103,11 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, array, lang, on, nls, But
 			//Find the visible image from the catalog results
 			var visibleItem;
 			array.forEach(result.catalogItemVisibilities, function(isVis, index){
-				if (isVis === 1) visibleItem = index;
+				if (isVis === 1) 
+                {visibleItem = index;}
 			});
 			if (visibleItem === null) {
-				_self._updateError("No images found.");
+				_self._updateError('No images found.');
 				return;
 			}
 
@@ -112,8 +117,8 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, array, lang, on, nls, But
 			_self.graphics.add(thisImage);
 			
 			//and insert the text
-			var htmlText = "<div class='details'>";
-			_self.copyText = "";
+			var htmlText = '<div class=\'details\'>';
+			_self.copyText = '';
 			
 			var fieldNames = Object.keys(_self.fields);
 			var excludeFields = [result.catalogItems.objectIdFieldName, 'Shape', 'Shape_Area', 'Shape_Length'];
@@ -128,16 +133,16 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, array, lang, on, nls, But
 								v = codedValue.name;
 							}
 						});
-					} else if (_self.fields[name].type === "esriFieldTypeDate") {
-						var thisDate = new Date(parseInt(thisImage.attributes[name]));
+					} else if (_self.fields[name].type === 'esriFieldTypeDate') {
+						var thisDate = new Date(parseInt(thisImage.attributes[name],10));
 						v = thisDate.toISOString();
 					} else {
 						//Otherwise, get the string representation
 						v = String(thisImage.attributes[name]);
 					}
 					//add to our outputs
-					htmlText +="<span class='field'>"+ l + ":</span>";
-					htmlText += "<span class='value'>"+ v + "</span>";
+					htmlText +='<span class=\'field\'>'+ l + ':</span>';
+					htmlText += '<span class=\'value\'>'+ v + '</span>';
 					_self.copyText += l + '\t' + v + '\n';
 				}
 			});
@@ -148,19 +153,19 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, array, lang, on, nls, But
       //Clear out the information on a new request
 		_clearInfo: function() {
 			this.graphics.clear();
-			this.copyText = "";
-			this.imageDetails.innerHTML = "";
+			this.copyText = '';
+			this.imageDetails.innerHTML = '';
 		},
 		
 		//Present the error to the user
 		_updateError: function(error) {
-			this.imageDetails.innerHTML = "An error has occured.<br />" + error;
+			this.imageDetails.innerHTML = 'An error has occured.<br />' + error;
 			console.log(error);
 		},
 		
 		//Turn the footprint or off
 		_toggleFootprint: function(){
-			this.graphics.setVisibility(this.chkFootprint.get('value') == 'on');
+			this.graphics.setVisibility(this.chkFootprint.get('value') === 'on');
 		},
 		
 		//_getData: copy/download the metadata text.  Stubbed for future use
@@ -171,7 +176,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, array, lang, on, nls, But
       onReceiveData: function(name, source, params) {
         var _self = this;
         var service = null;
-        if(params && params.serviceId && params.target === "ImageAnalysis") {
+        if(params && params.serviceId && params.target === 'ImageAnalysis') {
             service = this.map.getLayer(params.serviceId);
             if (service.loaded === true) { 
                 this.imageService = service;
@@ -213,7 +218,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, array, lang, on, nls, But
         }
     },
     checkForImageService: function() {
-        console.log('hello')
+        console.log('hello');
           if (this.map.loaded) {
               console.log('map loaded');
               this.publishData({
@@ -222,7 +227,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, array, lang, on, nls, But
               });
           } else {
               var _self = this;
-              this.map.on("load", lang.hitch(this, function(){
+              this.map.on('load', lang.hitch(this, function(){
                   console.log('map loaded');
                   _self.publishData({
                   'target':'ImageSelect',

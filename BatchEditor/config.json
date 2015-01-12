@@ -5,5 +5,5 @@
     "selectByShape": true,
     "selectByFeature": false,
     "selectByFeatureQuery": false,
-    "selectByQuery": true
+    "selectByQuery": false
 }

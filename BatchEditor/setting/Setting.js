@@ -93,7 +93,7 @@ define([
               result = array.some(this.layersTable.getRows(), function (row) {
                   var rowData = this.layersTable.getRowData(row);
                   return rowData.update;
-              },this    );
+              }, this);
               if (!result) {
                   domStyle.set(this.settingsSecondPageError, 'display', '');
 
@@ -115,10 +115,10 @@ define([
                   this.config.selectByQuery = this.selectByQuery.checked;
               }
               else if (page === "2") {
-
+                  this.config.updateLayers = [];
+                  this.config.selectByLayer = {};
                   if (this.layersTable != null) {
-                      this.config.updateLayers = [];
-                      this.config.selectByLayer = {};
+
                       array.forEach(this.layersTable.getRows(), function (row) {
 
                           var rowData = this.layersTable.getRowData(row);
@@ -142,6 +142,23 @@ define([
 
 
                   }
+              }
+              else if (page === "3") {
+                  this.config.commonFields = [];
+
+                  array.forEach(this.commonFieldsTable.getRows(), function (row) {
+
+                      var rowData = this.commonFieldsTable.getRowData(row);
+
+                      if (rowData.isEditable === true) {
+                          this.config.commonFields.push({
+                              "alias": rowData.label,
+                              "name": rowData.fieldName,
+                          });
+                      }
+
+
+                  }, this);
               }
 
           },
@@ -207,8 +224,7 @@ define([
           },
           showOKError: function () {
               var display = domStyle.get(this.firstPageDiv, 'display');
-              if (display != 'none')
-              {
+              if (display != 'none') {
                   domStyle.set(this.settingsFirstPageSaveError, 'display', '');
                   return;
               }
@@ -230,15 +246,10 @@ define([
 
           },
           getConfig: function () {
-              this.config.UpdateLayers = [];
+              this.savePageToConfig("1");
 
-              this.config.selectByShape = this.selectByShape.checked;
-              this.config.selectByFeature = this.selectByFeature.checked;
-              this.config.selectByFeatureQuery = this.selectByFeatureQuery.checked;
-              this.config.selectByQuery = this.selectByQuery.checked;
               if (this.selectByShape.checked === false && this.selectByFeature.checked === false
-                  && this.selectByFeatureQuery.checked === false && this.selectByQuery.checked === false)
-              {
+                  && this.selectByFeatureQuery.checked === false && this.selectByQuery.checked === false) {
                   this.showOKError();
                   return false;
               }
@@ -246,30 +257,10 @@ define([
                   this.showOKError();
                   return false;
               }
-              
-              this.config.UpdateLayers = []
-              array.forEach(this.layersTable.getRows(), function (row) {
+              this.savePageToConfig("2");
 
-                  var rowData = this.layersTable.getRowData(row);
 
-                  if (rowData.update === true) {
-                      this.config.UpdateLayers.push({
-                          "ID": rowData.ID,
-                          "name": rowData.label,
-                          "queryField": rowData.queryField
-                      });
-                  }
-                  if (rowData.selectByLayer === true) {
-                      this.config.SelectByLayer = {
-                          "ID": rowData.ID,
-                          "name": rowData.label,
-                          "queryField": rowData.queryField
-                      };
-                  }
-
-              }, this);
-              if (this.config.UpdateLayers.length === 0)
-              {
+              if (this.config.UpdateLayers.length === 0) {
                   this.showOKError();
                   return false;
               }
@@ -278,33 +269,9 @@ define([
                   this.showOKError();
                   return false;
               }
-              var rows = this.commonFieldsTable.getRows();
+              this.savePageToConfig("3");
 
-              if (rows === null) {
-                  this.showOKError();
-                  return false;
-              }
-
-              if (rows.length === 0) {
-                  this.showOKError();
-                  return false;
-              }
-              this.config.CommonFields = [];
-
-              array.forEach(rows, function (row) {
-
-                  var rowData = this.commonFieldsTable.getRowData(row);
-
-                  if (rowData.isEditable === true) {
-                      this.config.CommonFields.push({
-                          "alias": rowData.label,
-                          "name": rowData.fieldName,
-                      });
-                  }
-                  
-
-              }, this);
-              if (this.config.CommonFields.length === 0) {
+              if (this.config.commonFields.length === 0) {
                   this.showOKError();
                   return false;
               }
@@ -408,10 +375,24 @@ define([
                   this.tableFieldInfosError.innerHTML = this.nls.noCommonFields;
               }
               else {
+
+                  var selectedFields = array.map(this.config.commonFields, function (commonField) {
+                      return commonField.name;
+                  });
+
+
+                  var isEditable = false;
                   array.forEach(commonFields, function (field) {
+                      if (selectedFields.indexOf(field.fieldName) > -1) {
+                          isEditable = true;
+                      }
+                      else {
+                          isEditable = false;
+                      }
                       var row = this.commonFieldsTable.addRow({
                           fieldName: field.fieldName,
-                          label: field.label
+                          label: field.label,
+                          isEditable: isEditable
                       });
 
                   }, this);
@@ -462,6 +443,7 @@ define([
 
 
               var label = '';
+              var tableValid = false;
               array.forEach(this.map.itemInfo.itemData.operationalLayers, function (layer) {
                   if (layer.layerObject != null && layer.layerObject != undefined) {
                       if (layer.layerObject.type === 'Feature Layer' && layer.url) {

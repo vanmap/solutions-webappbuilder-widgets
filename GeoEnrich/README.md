@@ -20,11 +20,8 @@ Important Note:
 
 ## Features
 
-<<<<<<< HEAD
 =======
 
-
->>>>>>> origin/master
 ## Requirements
 * ArcGIS WebApp Builder 1.0
 

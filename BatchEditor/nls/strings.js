@@ -1,5 +1,6 @@
 define({
-  root: {
+  root: ({
+    _widgetLabel: "Layer List",
     selectWithLayerBtn: "Select with Layer",
     selectWithShapeBtn: "Select with Shape",
     selectByLayerStep1: "Click [Select with Layer]",
@@ -13,5 +14,6 @@ define({
     editorPopupTitle: "Batch Editor",
     editorPopupSaveBtn: "Save",
     editorPopupMultipleValues: ""
-  }
+   
+  })
 });

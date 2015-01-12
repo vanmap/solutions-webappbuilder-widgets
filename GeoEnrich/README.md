@@ -20,8 +20,13 @@ Important Note:
 
 ## Features
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> origin/master
 ## Requirements
-* ArcGIS WebApp Builder Beta 1.
+* ArcGIS WebApp Builder 1.0
 
 ## Instructions
 Deploying Widget

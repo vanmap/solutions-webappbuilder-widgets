@@ -73,7 +73,7 @@ define(['dojo/_base/declare',
                 on(c, 'drop', this._handleCSVDrop);
             },
 
-            _handleCSVDrop: function() {
+            _handleCSVDrop: function(event) {
                 event.preventDefault();
                 var dataTransfer = event.dataTransfer,
                     files = dataTransfer.files;

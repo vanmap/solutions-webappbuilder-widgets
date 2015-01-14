@@ -15,6 +15,9 @@
 .solutions-widget-batcheditor-setting .editable{
   width: 100px;
 }
+.solutions-widget-batcheditor-setting .symbolselector{
+  width: 140px;
+}
 .hide {
   display: none;
 }

@@ -23,10 +23,20 @@ define([
     'dojo/dom-construct',
     'dojo/_base/array',
     'dojo/dom-style',
+    'dojo/query',
+    'dojo/promise/all',
+    'dojo/dom-class',
     'jimu/BaseWidget',
     'jimu/dijit/DrawBox',
     'jimu/dijit/SimpleTable',
-    'esri/graphic'],
+    'esri/graphic',
+    'esri/InfoTemplate',
+    'esri/layers/FeatureLayer',
+    'esri/tasks/FeatureSet',
+    'esri/dijit/AttributeInspector',
+    'esri/tasks/query',
+    'esri/symbols/jsonUtils'
+],
 function (declare,
           _WidgetsInTemplateMixin,
           lang,
@@ -35,14 +45,27 @@ function (declare,
           domConstruct,
           array,
           domStyle,
+          query,
+          all,
+          domClass,
           BaseWidget,
           DrawBox,
           SimpleTable,
-          Graphic
+          Graphic,
+          InfoTemplate,
+          FeatureLayer,
+          FeatureSet,
+          AttributeInspector,
+          EsriQuery,
+          symbolJsonUtils
           ) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
         baseClass: 'solutions-widget-batcheditor',
         layersTable: null,
+        updateLayers: null,
+        helperLayer: null,
+        helperEditFieldInfo: null,
+        attrInspector: null,
         startup: function () {
             this.inherited(arguments);
 
@@ -58,6 +81,9 @@ function (declare,
             this._bindEvents();
             this.createLayerTable();
             this.loadLayerTable();
+            this._addHelperLayer();
+            this._createAttributeInspector();
+            this._createQueryParams();
 
         },
         _bindEvents: function () {
@@ -66,20 +92,81 @@ function (declare,
 
             this.own(on(this.drawBox, 'DrawEnd', lang.hitch(this, this._onDrawEnd)));
 
+            this.own(on(this.drawBox, 'OnClear', lang.hitch(this, this._onClear)));
         },
+        _selectInShape: function (shape) {
+            var defs = {};
+            var q = new EsriQuery();
+            q.geometry = shape;
+            q.spatialRelationship = EsriQuery.SPATIAL_REL_INTERSECTS;
+            array.forEach(this.updateLayers, function (layer) {
+                var def = layer.layerObject.selectFeatures(q, FeatureLayer.SELECTION_NEW);
+                //var sym = layer.layerObject.getSelectionSymbol();
+                defs[layer.id] = def;
+            }, this);
+            all(defs).then(lang.hitch(this, this._layerQueriesComplete));
 
+        },
+        _layerQueriesComplete: function (results) {
+            var features = [];
+
+            array.forEach(this.layersTable.getRows(), function (row) {
+                if (this.config.highlightSymbol) {
+                    var highlightSymbol = symbolJsonUtils.fromJson(this.config.highlightSymbol);
+
+                    array.forEach(features, function (feature) {
+                        feature.setSymbol(highlightSymbol);
+                    });
+                }
+                var rowData = this.layersTable.getRowData(row);
+                var layerRes = results[rowData.ID];
+                features = features.concat(layerRes);
+
+                var editData = { numSelected: layerRes.length.toString() };
+                this.layersTable.editRow(row, editData);
+             
+
+            }, this);
+            this._summarizeFeatureFields(features);
+            this._createAttributeInspector();
+            
+            this.helperLayer.selectFeatures(this.selectQuery, FeatureLayer.SELECTION_NEW,
+                lang.hitch(this, this._helperLayerSelectCallback),
+                lang.hitch(this, this._errorCallback));
+        },
         // Event handler for when a drawing is finished.
         // returns: nothing
         _onDrawEnd: function (graphic) {
-            if (graphic._graphicsLayer.graphics.length > 1) {
-                this._clearGraphics();
-                this._clearSelected();
-                this.drawBox.drawLayer.add(graphic);
+            this._togglePanelLoadingIcon();
+            this._clearGraphics();
+            this._hideInfoWindow();
+          
+            this.mouseClickPos = graphic._extent.getCenter();
+            this._selectInShape(graphic.geometry);
+
+
+        },
+        _errorCallback: function (evt) {
+            console.log(evt);
+            this._togglePanelLoadingIcon();
+        },
+        // Callback function for 'Helper Layer' selection.
+        // returns: nothing
+        _helperLayerSelectCallback: function (features) {
+            if (features.length > 0) {
+                this.map.infoWindow.setTitle(this.nls.editorPopupTitle);
+              
+                this.map.infoWindow.setContent(this.attrInspector.domNode);
+                this.map.infoWindow.show(this.mouseClickPos, this.map.getInfoWindowAnchor(this.mouseClickPos));
+            }
+            else {
+                this._hideInfoWindow();
             }
 
-            this.mouseClickPos = graphic._extent.getCenter();
             this._togglePanelLoadingIcon();
-            this._selectInExtent(graphic);
+        },
+        _onClear: function (graphic) {
+            console.log("Clear");
         },
         // Clear the drawn graphics.
         // returns: nothing
@@ -87,21 +174,24 @@ function (declare,
             this.drawBox.drawLayer.clear();
         },
         _togglePanelLoadingIcon: function () {
-            var loading = dojo.byId('panelLoadingIcon');
 
-            if (html.hasClass(loading, 'hide')) {
-                html.removeClass(loading, 'hide');
+            if (html.hasClass(this.loadingImage, 'hide')) {
+                html.removeClass(this.loadingImage, 'hide');
             } else {
-                html.addClass(loading, 'hide');
+                html.addClass(this.loadingImage, 'hide');
             }
         },
+        _createQueryParams: function () {
+            this.selectQuery = new EsriQuery();
+            //this.selectQuery.where = '1=1';
+            this.selectQuery.objectIds = [1];
+            //this.selectQuery.outFields = ["*"];
+        },
         loadLayerTable: function () {
-
+            this.updateLayers = [];
             var selectedLayers = array.map(this.config.updateLayers, function (updateLayer) {
                 return updateLayer.name;
             });
-
-
 
             var label = '';
             var tableValid = false;
@@ -109,18 +199,12 @@ function (declare,
                 if (layer.layerObject != null && layer.layerObject != undefined) {
                     if (layer.layerObject.type === 'Feature Layer' && layer.url) {
                         if (selectedLayers.indexOf(layer.layerObject.name) > -1 && layer.layerObject.isEditable() === true) {
-
+                            this.updateLayers.push(layer);
                             label = layer.layerObject.name;
-                            update = false;
-                            selectByLayer = false;
-                            if (selectedLayers.indexOf(label) > -1) {
-                                update = true;
-                            }
-
                             var row = this.layersTable.addRow({
                                 label: label,
                                 ID: layer.layerObject.id,
-                                numSelected: 0
+                                numSelected: "0"
                             });
                             tableValid = true;
 
@@ -180,12 +264,235 @@ function (declare,
                 }
             }
         },
+        // Add the helper layer for use in Attribute Inspector.
+        // returns: nothing
+        _addHelperLayer: function () {
+            this.helperLayer = this._createHelperLayer();
+            this.map.addLayer(this.helperLayer);
+        },
+        // Create helper layer for Attribute Inspector.
+        // returns: helper layer (FeatureLayer)
+        _createHelperLayer: function () {
+            if (this.updateLayers.length === 0) {
+                return;
+            }
+
+            var firstUpdateLayer = this.updateLayers[0];
+            var jsonFS = {
+                'geometryType': "esriGeometryPoint",
+                'features': [{
+                    'attributes': this._generateHelperLayerAttributes(firstUpdateLayer)
+                }]
+            };
+
+            var fs = new FeatureSet(jsonFS);
+
+            var layerDefinition = {
+                'name': "",
+                'fields': this._generateHelperLayerFields(firstUpdateLayer)
+            };
 
 
+            var featureCollection = {
+                layerDefinition: layerDefinition,
+                featureSet: fs
+            };
 
+            var fL = new FeatureLayer(featureCollection, {
+                outFields: ['*'],
+                infoTemplate: null
+            });
+            fL.setEditable(true);
 
+            this.helperEditFieldInfo = this._generateHelperLayerFieldsInfos(firstUpdateLayer, layerDefinition.fields);
+            return fL;
+        },
+        // Generate the attributes for the helper layer.
+        // returns: {'field1': 'value1'...}
+        _generateHelperLayerAttributes: function (layer) {
+            var result = {};
 
+            var fieldNames = array.map(this.config.commonFields, function (fieldInfo) {
+                return fieldInfo.name;
+            });
+            array.forEach(layer.layerObject.fields, function (field) {
+                var val = null;
+                if (field.type === 'esriFieldTypeOID') {
+                    result[field.name] = 1;
+                }
+                else if (fieldNames.indexOf(field.name) > -1) {
+                    result[field.name] = val;
+                }
+            }, this);
 
+            return result;
+        },
+        // Generate the fields for the helper layer.
+        // returns: [field1, field2,...]
+        _generateHelperLayerFields: function (layer) {
+            var fields = [];
+
+            var fieldNames = array.map(this.config.commonFields, function (fieldInfo) {
+                return fieldInfo.name;
+            });
+            array.forEach(layer.layerObject.fields, function (field) {
+                if (field.type === 'esriFieldTypeOID') {
+                    fields.push(field);
+                }
+                else if (fieldNames.indexOf(field.name) > -1) {
+                    fields.push(field);
+
+                }
+            }, this);
+
+            return fields;
+        },
+        // Generate the field Infos used in the Attribute Inspector
+        // returns fieldInfos
+        _generateHelperLayerFieldsInfos: function (layer, fields) {
+            var fieldInfos = [];
+
+            var fieldNames = array.map(fields, function (field) {
+                return field.name;
+            });
+            array.forEach(layer.layerObject.infoTemplate.info.fieldInfos, function (field) {
+
+                if (fieldNames.indexOf(field.fieldName) > -1) {
+                    if (field.fieldName === 'OBJECTID') {
+                        field.isEditable = false;
+                        field.visible = false;
+                    }
+                    else {
+                        field.isEditable = true;
+                        field.visible = true;
+                        fieldInfos.push(field);
+                    }
+
+                }
+            }, this);
+            return fieldInfos;
+
+        },
+
+        // Create the attribute inspector
+        _createAttributeInspector: function () {
+            var layerInfos = [{
+                'featureLayer': this.helperLayer,
+                'isEditable': true,
+                'showDeleteButton': false,
+                'fieldInfos': this.helperEditFieldInfo
+            }];
+
+            var attrInspector = new AttributeInspector({
+                layerInfos: layerInfos,
+                _hideNavButtons: true
+            }, domConstruct.create('div'));
+
+            var saveButton = domConstruct.create('div', {
+                'id': 'attrInspectorSaveBtn',
+                'class': 'jimu-btn',
+                innerHTML: this.nls.editorPopupSaveBtn
+            });
+
+            var loadingIcon = domConstruct.create('div', {
+                'id': 'popupLoadingIcon',
+                'class': 'loading hide'
+            });
+
+            domConstruct.place(saveButton,
+              attrInspector.deleteBtn.domNode,
+              'after');
+
+            domConstruct.place(loadingIcon,
+              attrInspector.deleteBtn.domNode,
+              'after');
+
+            on(saveButton, 'click',
+              lang.hitch(this, this._attrInspectorOnSave));
+
+            attrInspector.on('attribute-change',
+              lang.hitch(this, this._attrInspectorAttrChange));
+
+            this.attrInspector = attrInspector;
+
+        },
+        // Event handler for when an attribute is changed in the attribute
+        // inspector.
+        // returns: nothing
+        _attrInspectorAttrChange: function (evt) {
+            var saveBtn = dojo.byId('attrInspectorSaveBtn');
+
+            //hacky way to check if fields arent validated.
+            if (this.attrInspector.domNode.innerHTML.indexOf('Error') < 0) {
+                html.removeClass(saveBtn, 'jimu-state-disabled');
+            } else {
+                html.addClass(saveBtn, 'jimu-state-disabled');
+            }
+            array.forEach(this.updateLayers, function(layer){
+                array.forEach(layer.layerObject.getSelectedFeatures(),
+                  function (feature) {
+                      if (evt.fieldValue !== this.nls.editorPopupMultipleValues) {
+                          feature.attributes[evt.fieldName] = evt.fieldValue;
+                      }
+                  }, this);
+            }, this);
+        },
+        // Event handler for when the Save button is clicked in the attribute inspector.
+        // returns: nothing
+        _attrInspectorOnSave: function (evt) {
+            if (domClass.contains(evt.target, 'jimu-state-disabled')) {
+                return;
+            }
+
+            this._togglePopupLoadingIcon();
+
+            //disable the save button
+            html.addClass(evt.target, 'jimu-state-disabled');
+            var defs = {};
+            array.forEach(this.updateLayers, function (layer) {
+                var def = layer.applyEdits(null, layer.layerObject.getSelectedFeatures());
+                defs[layer.id] = def;
+            }, this);
+            all(defs).then(lang.hitch(this, this._saveComplete));
+             
+         
+        },
+        _saveComplete: function (added, updated, removed) {
+           console.log(updated.length);
+            this._hideInfoWindow();
+        },
+        _hideInfoWindow: function () {
+            if (this.map.infoWindow.isShowing) {
+                this.map.infoWindow.hide();
+                this.map.infoWindow.highlight = false;
+                this.map.graphics.clear();
+            }
+        },
+        // Summarizes selected features' fields. If a field has more than one
+        // value then helper layer gets a blank string in that field otherwise, // keep the same value.
+        // returns: nothing
+        _summarizeFeatureFields: function (features) {
+            var fields = this.helperEditFieldInfo;
+
+            array.forEach(fields, function (field) {
+                if (field.visible) {
+                    var fieldName = field.fieldName;
+                    var different = false;
+                    var first = features[0].attributes[fieldName];
+                    different = array.filter(features, function (feature) {
+                        return (feature.attributes[fieldName] !== first);
+                    }).length > 0;
+
+                    if (different) {
+                        this.helperLayer.graphics[0].attributes[fieldName] =
+                          this.nls.editorPopupMultipleValues;
+                    } else {
+                        this.helperLayer.graphics[0].attributes[fieldName] =
+                          first;
+                    }
+                }
+            }, this);
+        },
 
 
 

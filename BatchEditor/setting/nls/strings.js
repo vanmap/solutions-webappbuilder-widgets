@@ -16,7 +16,8 @@ define({
                 colUpdate: "Update",
                 colLabel: "Layer",
                 colSelectByLayer: "Select By Layer",       
-                colSelectByField: "Query field"
+                colSelectByField: "Query field",
+                colhighlightSymbol:"Highlight Symbol"
             },
             noEditableLayers: "No Editable Layers",
             noLayersSelected:"Select one of more layers before proceeding"
@@ -35,20 +36,7 @@ define({
         errorOnOk:"Please fill out all parameters before saving config",
         next: "Next",
         back: "Back",
-
-
-       
-        updateLayersHeader: "Select the layers to update",
-        fields: "Fields",
-        actions: "Actions",
-        edit: "Editable",
-        editpageName: "Name",
-        editpageAlias: "Alias",
-        editpageVisible: "Visible",
-        editpageEditable: "Editable",
-        selectBatchFields: "Select Fields to batch update",
-        commonFieldList: "Select fields to batch update",
-       
-       
+        ok: "OK",
+        cancel: "Cancel"
     }
 });

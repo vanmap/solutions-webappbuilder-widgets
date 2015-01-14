@@ -23,9 +23,13 @@ define([
     'dojo/query',
     'dojo/dom-style',
     'dojo/_base/array',
+    'dojo/on',
+    'dojo/_base/lang',
+    'dojo/json',
     'dijit/form/Select',
-    'dojo/dom-construct'
-
+    'dojo/dom-construct',
+    'jimu/dijit/SymbolChooser',
+    'esri/symbols/jsonUtils'
 ],
   function (
     declare,
@@ -36,14 +40,21 @@ define([
     query,
     domStyle,
     array,
+    on,
+    lang,
+    JSON,
     Select,
-    domConstruct) {
+    domConstruct,
+    SymbolChooser,
+    symbolJsonUtils
+        ) {
       return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
           //these two properties is defined in the BaseWidget
           baseClass: 'solutions-widget-batcheditor-setting',
           layersTable: null,
           commonFieldsTable: null,
           layerSelects: null,
+          currentRow: null,
           toolOption: {
               Shape: { value: 0 },
               FeatureSpatial: { value: 1 },
@@ -52,6 +63,18 @@ define([
           },
           startup: function () {
               this.inherited(arguments);
+              if (this.config === null) {
+                  this.config = {};
+
+              }
+              if (this.config === undefined) {
+                  this.config = {};
+
+              }
+              if (this.config === '') {
+                  this.config = {};
+
+              }
               this.setConfig(this.config);
               this.createFieldsTable();
           },
@@ -109,10 +132,34 @@ define([
           },
           savePageToConfig: function (page) {
               if (page === "1") {
-                  this.config.selectByShape = this.selectByShape.checked;
-                  this.config.selectByFeature = this.selectByFeature.checked;
-                  this.config.selectByFeatureQuery = this.selectByFeatureQuery.checked;
-                  this.config.selectByQuery = this.selectByQuery.checked;
+                  if (this.selectByShape.checked === true) {
+                      this.config.selectByShape = this.selectByShape.checked;
+                  }
+                  else {
+                      this.config.selectByShape = false;
+                  }
+
+                  if (this.selectByFeature.checked === true) {
+                      this.config.selectByFeature = this.selectByFeature.checked;
+
+                  }
+                  else {
+                      this.config.selectByFeature = false;
+                  }
+
+                  if (this.selectByFeatureQuery.checked === true) {
+                      this.config.selectByFeatureQuery = this.selectByFeatureQuery.checked;
+                  }
+                  else {
+                      this.config.selectByFeatureQuery = false;
+                  }
+
+                  if (this.selectByQuery.checked === true) {
+                      this.config.selectByQuery = this.selectByQuery.checked;
+                  }
+                  else {
+                      this.config.selectByQuery = false;
+                  }
               }
               else if (page === "2") {
                   this.config.updateLayers = [];
@@ -124,10 +171,31 @@ define([
                           var rowData = this.layersTable.getRowData(row);
 
                           if (rowData.update === true) {
+                              var symbol = null;
+                              if (rowData.selectionSymbol === "") {
+                                  if (rowData.geometryType == "esriGeometryPolygon") {
+                                      this.symbolSelector.showByType('fill');
+                                  }
+                                  else if (rowData.geometryType == "esriGeometryPoint") {
+                                      this.symbolSelector.showByType('marker');
+                                  }
+                                  else if (rowData.geometryType == "esriGeometryPolyline") {
+                                      this.symbolSelector.showByType('line');
+
+                                  }
+                                  var rowUpdate = { "selectionSymbol": JSON.stringify(this.symbolSelector.getSymbol() )};
+                                  rowData.selectionSymbol = rowUpdate.selectionSymbol;
+                                  this.layersTable.editRow(row, rowUpdate);
+
+
+                              }
+                              symbol = JSON.parse(rowData.selectionSymbol);//JSON.stringify(rowData.symbol);
+
                               this.config.updateLayers.push({
                                   "ID": rowData.ID,
                                   "name": rowData.label,
-                                  "queryField": rowData.queryField
+                                  "queryField": rowData.queryField,
+                                  "selectionSymbol": symbol
                               });
                           }
                           if (rowData.selectByLayer === true) {
@@ -253,25 +321,29 @@ define([
                   this.showOKError();
                   return false;
               }
-              if (this.layersTable === null || this.layersTable === undefined) {
-                  this.showOKError();
-                  return false;
-              }
+             
               this.savePageToConfig("2");
 
-
-              if (this.config.UpdateLayers.length === 0) {
+              if (this.config.updateLayers) {
+                  if (this.config.updateLayers.length === 0) {
+                      this.showOKError();
+                      return false;
+                  }
+              } else {
                   this.showOKError();
                   return false;
               }
-
               if (this.commonFieldsTable === null || this.commonFieldsTable === undefined) {
                   this.showOKError();
                   return false;
               }
               this.savePageToConfig("3");
-
-              if (this.config.commonFields.length === 0) {
+              if (this.config) {
+                  if (this.config.commonFields.length === 0) {
+                      this.showOKError();
+                      return false;
+                  }
+              } else {
                   this.showOKError();
                   return false;
               }
@@ -436,14 +508,10 @@ define([
 
           loadLayerTable: function (showOnlyEditable, selectByLayerVisible, queryFieldVisible) {
 
-              var selectedLayers = array.map(this.config.updateLayers, function (updateLayer) {
-                  return updateLayer.name;
-              });
-
-
-
               var label = '';
               var tableValid = false;
+              var update = false;
+              var symbol = null;
               array.forEach(this.map.itemInfo.itemData.operationalLayers, function (layer) {
                   if (layer.layerObject != null && layer.layerObject != undefined) {
                       if (layer.layerObject.type === 'Feature Layer' && layer.url) {
@@ -453,19 +521,30 @@ define([
                               label = layer.layerObject.name;
                               update = false;
                               selectByLayer = false;
-                              if (selectedLayers.indexOf(label) > -1) {
+
+                              var filteredArr = dojo.filter(this.config.updateLayers, function (layerInfo) {
+                                  return layerInfo.name == label;
+                              });
+                              if (filteredArr.length > 0) {
+                                  symbol = JSON.stringify(filteredArr[0].selectionSymbol)
                                   update = true;
                               }
-                              if (this.config.selectByLayer.name === label) {
-                                  selectByLayer = true;
-
+                              if (symbol === undefined) {
+                                  symbol = null;
                               }
+                              if (this.config.selectByLayer) {
+                                  if (this.config.selectByLayer.name === label) {
+                                      selectByLayer = true;
 
+                                  }
+                              }
                               var row = this.layersTable.addRow({
                                   label: label,
                                   update: update,
                                   ID: layer.layerObject.id,
-                                  selectByLayer: selectByLayer
+                                  selectByLayer: selectByLayer,
+                                  geometryType: layer.layerObject.geometryType,
+                                  selectionSymbol: symbol
 
                               });
                               tableValid = true;
@@ -479,7 +558,7 @@ define([
 
               if (!tableValid) {
                   domStyle.set(this.tableLayerInfosError, 'display', '');
-                 
+
 
               } else {
                   domStyle.set(this.tableLayerInfosError, 'display', 'none');
@@ -510,7 +589,21 @@ define([
                   type: 'empty',
                   hidden: !queryFieldVisible
               }, {
+                  name: 'actions',
+                  title: this.nls.page2.layerTable.colhighlightSymbol,
+                  type: 'actions',
+                  'class': 'symbolselector',
+                  actions: ['edit']
+              }, {
                   name: 'ID',
+                  type: 'text',
+                  hidden: true
+              }, {
+                  name: 'selectionSymbol',
+                  type: 'text',
+                  hidden: true
+              }, {
+                  name: 'geometryType',
                   type: 'text',
                   hidden: true
               }];
@@ -522,6 +615,53 @@ define([
               this.layersTable = new SimpleTable(args);
               this.layersTable.placeAt(this.tableLayerInfos);
               this.layersTable.startup();
+              this.own(on(this.layersTable, 'actions-edit', lang.hitch(this, this.showSymbolSelector)));
+
+          },
+          showSymbolSelector: function (tr) {
+              var tds = query('.action-item-parent', tr);
+              if (tds && tds.length) {
+
+                  var data = this.layersTable.getRowData(tr);
+                  if (data.selectionSymbol != "") {
+                      var jsonSym = JSON.parse(data.selectionSymbol);
+                      var sym = symbolJsonUtils.fromJson(jsonSym);
+                      this.symbolSelector.showBySymbol(sym);
+                  }
+                  else {
+                      if (data.geometryType == "esriGeometryPolygon") {
+
+                          this.symbolSelector.showByType('fill');
+                      }
+                      else if (data.geometryType == "esriGeometryPoint") {
+                          this.symbolSelector.showByType('marker');
+                      }
+                      else if (data.geometryType == "esriGeometryPolyline") {
+                          this.symbolSelector.showByType('line');
+                      }
+                  }
+
+                  this.currentRow = tr;
+                  domStyle.set(this.secondPageDiv, 'display', 'none');
+                  domStyle.set(this.symbolPage, 'display', '');
+              }
+          },
+          saveSymbol: function () {
+              var data = {};
+              var sym = this.symbolSelector.getSymbol().toJson();
+              data.selectionSymbol = JSON.stringify(sym);
+              
+              var result = this.layersTable.editRow(this.currentRow, data);
+              domStyle.set(this.secondPageDiv, 'display', '');
+              domStyle.set(this.symbolPage, 'display', 'none');
+
+              this.currentRow = null;
+          },
+          cancelSymbol: function () {
+              domStyle.set(this.secondPageDiv, 'display', '');
+              domStyle.set(this.symbolPage, 'display', 'none');
+              this.currentRow = null;
+
           },
 
       });

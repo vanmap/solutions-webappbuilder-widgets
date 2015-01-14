@@ -29,7 +29,7 @@ Important Note:
 Deploying Widget
 
 Setting Up Repository for Development
-In order to develop and test widgets you need to deploy the BatchEditor folder to the stemapp/widgets directory in your WebApp Builder installation. If you use Github for windows this can be accomplished using the following steps.
+In order to develop and test widgets you need to deploy the GeoEnrich folder to the stemapp/widgets directory in your WebApp Builder installation. If you use Github for windows this can be accomplished using the following steps.
 
 1. Sync the repository to your local machine.
 2. Close Open the Repository in Windows Explorer

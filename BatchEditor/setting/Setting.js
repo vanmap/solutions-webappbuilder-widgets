@@ -17,6 +17,7 @@
 define([
     'dojo/_base/declare',
     'dijit/_WidgetsInTemplateMixin',
+    'dijit/form/Button',
     'dijit/form/RadioButton',
     'jimu/BaseWidgetSetting',
     'jimu/dijit/SimpleTable',
@@ -35,6 +36,7 @@ define([
     declare,
     _WidgetsInTemplateMixin,
     RadioButton,
+    Button,
     BaseWidgetSetting,
     SimpleTable,
     query,
@@ -54,7 +56,8 @@ define([
           layersTable: null,
           commonFieldsTable: null,
           layerSelects: null,
-          currentRow: null,
+          currentLayer: null,
+          selectionSymbols: {},
           toolOption: {
               Shape: { value: 0 },
               FeatureSpatial: { value: 1 },
@@ -172,7 +175,7 @@ define([
 
                           if (rowData.update === true) {
                               var symbol = null;
-                              if (rowData.selectionSymbol === "") {
+                              if (this.selectionSymbols[rowData.id] === undefined) {
                                   if (rowData.geometryType == "esriGeometryPolygon") {
                                       this.symbolSelector.showByType('fill');
                                   }
@@ -183,16 +186,12 @@ define([
                                       this.symbolSelector.showByType('line');
 
                                   }
-                                  var rowUpdate = { "selectionSymbol": JSON.stringify(this.symbolSelector.getSymbol() )};
-                                  rowData.selectionSymbol = rowUpdate.selectionSymbol;
-                                  this.layersTable.editRow(row, rowUpdate);
-
-
+                                  this.selectionSymbols[rowData.id] = this.symbolSelector.getSymbol().toJson();
                               }
-                              symbol = JSON.parse(rowData.selectionSymbol);//JSON.stringify(rowData.symbol);
+                              symbol = this.selectionSymbols[rowData.id];
 
                               this.config.updateLayers.push({
-                                  "ID": rowData.ID,
+                                  "id": rowData.id,
                                   "name": rowData.label,
                                   "queryField": rowData.queryField,
                                   "selectionSymbol": symbol
@@ -200,7 +199,7 @@ define([
                           }
                           if (rowData.selectByLayer === true) {
                               this.config.selectByLayer = {
-                                  "ID": rowData.ID,
+                                  "id": rowData.id,
                                   "name": rowData.label,
                                   "queryField": rowData.queryField
                               };
@@ -321,7 +320,7 @@ define([
                   this.showOKError();
                   return false;
               }
-             
+
               this.savePageToConfig("2");
 
               if (this.config.updateLayers) {
@@ -356,7 +355,7 @@ define([
                   var queryFldCell = query('.queryField.empty-text-td', row).shift();
 
                   var rowData = this.layersTable.getRowData(row);
-                  var layer = this.map.getLayer(rowData.ID);
+                  var layer = this.map.getLayer(rowData.id);
                   var fields = this.getVisibleFields(layer.infoTemplate.info.fieldInfos)
 
                   var s = new Select({
@@ -421,7 +420,7 @@ define([
                   var rowData = this.layersTable.getRowData(row);
                   if (rowData.update === true) {
 
-                      var layer = this.map.getLayer(rowData.ID);
+                      var layer = this.map.getLayer(rowData.id);
                       var fields = this.getEditableFields(layer.infoTemplate.info.fieldInfos)
                       if (firstLay === true) {
                           commonFields = fields;
@@ -433,20 +432,27 @@ define([
                   }
               }, this);
               if (commonFields === null) {
-                  domStyle.set(this.tableFieldInfosError, 'display', '');
-                  domStyle.set(this.tableFieldInfos, 'display', 'none');
-                  domStyle.set(this.tableFieldHeader, 'display', 'none');
+                  domStyle.set(this.tableCommonFieldsError, 'display', '');
+                  domStyle.set(this.tableCommonFieldDesc, 'display', 'none');
+                  domStyle.set(this.tableCommonFieldHeader, 'display', 'none');
+                  domStyle.set(this.tableCommonFields, 'display', 'none');
 
-                  this.tableFieldInfosError.innerHTML = this.nls.noCommonFields;
+                  this.tableCommonFieldsError.innerHTML = this.nls.page3.noCommonFields;
               }
               else if (commonFields.length === 0) {
-                  domStyle.set(this.tableFieldInfosError, 'display', '');
-                  domStyle.set(this.tableFieldInfos, 'display', 'none');
-                  domStyle.set(this.tableFieldHeader, 'display', 'none');
+                  domStyle.set(this.tableCommonFieldsError, 'display', '');
+                  domStyle.set(this.tableCommonFieldDesc, 'display', 'none');
+                  domStyle.set(this.tableCommonFieldHeader, 'display', 'none');
+                  domStyle.set(this.tableCommonFields, 'display', 'none');
 
-                  this.tableFieldInfosError.innerHTML = this.nls.noCommonFields;
+
+                  this.tableCommonFieldsError.innerHTML = this.nls.page3.noCommonFields;
               }
               else {
+                  domStyle.set(this.tableCommonFieldsError, 'display', 'none');
+                  domStyle.set(this.tableCommonFieldDesc, 'display', '');
+                  domStyle.set(this.tableCommonFieldHeader, 'display', '');
+                  domStyle.set(this.tableCommonFields, 'display', '');
 
                   var selectedFields = array.map(this.config.commonFields, function (commonField) {
                       return commonField.name;
@@ -526,12 +532,12 @@ define([
                                   return layerInfo.name == label;
                               });
                               if (filteredArr.length > 0) {
-                                  symbol = JSON.stringify(filteredArr[0].selectionSymbol)
+                                  if (filteredArr[0].selectionSymbol) {
+                                      this.selectionSymbols[layer.layerObject.id] = filteredArr[0].selectionSymbol;
+                                  }
                                   update = true;
                               }
-                              if (symbol === undefined) {
-                                  symbol = null;
-                              }
+
                               if (this.config.selectByLayer) {
                                   if (this.config.selectByLayer.name === label) {
                                       selectByLayer = true;
@@ -541,10 +547,9 @@ define([
                               var row = this.layersTable.addRow({
                                   label: label,
                                   update: update,
-                                  ID: layer.layerObject.id,
+                                  id: layer.layerObject.id,
                                   selectByLayer: selectByLayer,
-                                  geometryType: layer.layerObject.geometryType,
-                                  selectionSymbol: symbol
+                                  geometryType: layer.layerObject.geometryType
 
                               });
                               tableValid = true;
@@ -595,11 +600,7 @@ define([
                   'class': 'symbolselector',
                   actions: ['edit']
               }, {
-                  name: 'ID',
-                  type: 'text',
-                  hidden: true
-              }, {
-                  name: 'selectionSymbol',
+                  name: 'id',
                   type: 'text',
                   hidden: true
               }, {
@@ -621,14 +622,15 @@ define([
           showSymbolSelector: function (tr) {
               var tds = query('.action-item-parent', tr);
               if (tds && tds.length) {
-
+                  var sym = null;
                   var data = this.layersTable.getRowData(tr);
-                  if (data.selectionSymbol != "") {
-                      var jsonSym = JSON.parse(data.selectionSymbol);
-                      var sym = symbolJsonUtils.fromJson(jsonSym);
-                      this.symbolSelector.showBySymbol(sym);
+
+                  if (this.selectionSymbols[data.id]) {
+                      sym = symbolJsonUtils.fromJson(this.selectionSymbols[data.id]);
+
                   }
-                  else {
+                  if (sym == null) {
+
                       if (data.geometryType == "esriGeometryPolygon") {
 
                           this.symbolSelector.showByType('fill');
@@ -640,27 +642,27 @@ define([
                           this.symbolSelector.showByType('line');
                       }
                   }
+                  else {
+                      this.symbolSelector.showBySymbol(sym);
+                  }
 
-                  this.currentRow = tr;
+                  this.currentLayer = data.id;
                   domStyle.set(this.secondPageDiv, 'display', 'none');
                   domStyle.set(this.symbolPage, 'display', '');
               }
           },
           saveSymbol: function () {
-              var data = {};
-              var sym = this.symbolSelector.getSymbol().toJson();
-              data.selectionSymbol = JSON.stringify(sym);
-              
-              var result = this.layersTable.editRow(this.currentRow, data);
+
+              this.selectionSymbols[this.currentLayer] = this.symbolSelector.getSymbol().toJson();
               domStyle.set(this.secondPageDiv, 'display', '');
               domStyle.set(this.symbolPage, 'display', 'none');
 
-              this.currentRow = null;
+              this.currentLayer = null;
           },
           cancelSymbol: function () {
               domStyle.set(this.secondPageDiv, 'display', '');
               domStyle.set(this.symbolPage, 'display', 'none');
-              this.currentRow = null;
+              this.currentLayer = null;
 
           },
 

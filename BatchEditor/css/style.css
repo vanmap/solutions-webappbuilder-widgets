@@ -34,8 +34,22 @@
     top: 0;
     left: 0;
     overflow: hidden;
-    background:rgba(128, 128, 128, 0.50);
+    background:rgba(128, 128, 128, 0.10);
     background-position: center center;
     background-image: url(../images/preloader.gif);
     background-repeat: no-repeat;
+}
+
+/*Controls*/
+.solutions-widget-batcheditor .widget-controls > tbody > tr > .controls{
+  width:100%;
+}
+.solutions-widget-batcheditor .widget-controls > tbody > tr > td{
+ 
+  vertical-align:middle;
+  font-size: 1em;
+}
+.solutions-widget-batcheditor .widget-results{
+   font-size: 1.1em;
+  color:blue;
 }

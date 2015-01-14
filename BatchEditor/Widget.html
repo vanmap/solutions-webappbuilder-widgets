@@ -1,14 +1,24 @@
-<div style="width:100%;height:100%;min-width:270px;min-height:192px;">
-    <div class="loading-indicator hide" data-dojo-attach-point="loadingImage">
-    </div>
+<div style="width:100%;height:100%;min-width:270px;min-height:120px;">
+    <div class="loading-indicator hide" data-dojo-attach-point="loadingImage"></div>
+
     <div data-dojo-attach-point="selectByShape">
         <div data-dojo-attach-point="drawBox" data-dojo-type="jimu/dijit/DrawBox" data-dojo-props='types:["polygon"],showClear:false' class="widget-draw-control"></div>
 
     </div>
-    <div class="widget-layers-table" data-dojo-attach-point="tableLayerInfos" />
-    <div data-dojo-attach-point="tableLayerInfosError" class="widget-error" style="display:none">${nls.noConfiguredLayers}</div><br />
-
-    <div id="panelLoadingIcon" class="center loading hide" style="margin-bottom:5px;"></div>
+    <div class="widget-layers-table" data-dojo-attach-point="tableLayerInfos" ></div>
+    <div data-dojo-attach-point="tableLayerInfosError" class="widget-error" style="display:none">${nls.noConfiguredLayers}</div>
+    <table class="widget-controls" cellspacing="0">
+        <tbody>
+            <tr class="controls">
+                <td>
+                    <div data-dojo-attach-point="resultsMessage" class="widget-results"></div>
+                    <br/>
+                    <button data-dojo-type="dijit/form/Button" type="button" data-dojo-attach-event="click:clearResults">${nls.clear}</button>
+                 
+                </td>
+            </tr>
+        </tbody>
+    </table>
 
     <!--<div data-dojo-attach-point="other">
         <div id="selectedFeaturesCount" style="margin-bottom:5px;">${nls.featuresSelectedInfo}</div>

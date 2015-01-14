@@ -17,6 +17,7 @@
 define([
     'dojo/_base/declare',
     'dijit/_WidgetsInTemplateMixin',
+    'dijit/form/Button',
     'dojo/_base/lang',
     'dojo/_base/html',
     'dojo/on',
@@ -26,6 +27,7 @@ define([
     'dojo/query',
     'dojo/promise/all',
     'dojo/dom-class',
+    'dojo/string',
     'jimu/BaseWidget',
     'jimu/dijit/DrawBox',
     'jimu/dijit/SimpleTable',
@@ -35,10 +37,12 @@ define([
     'esri/tasks/FeatureSet',
     'esri/dijit/AttributeInspector',
     'esri/tasks/query',
-    'esri/symbols/jsonUtils'
+    'esri/symbols/jsonUtils',
+    'dojox/timing'
 ],
 function (declare,
           _WidgetsInTemplateMixin,
+          Button,
           lang,
           html,
           on,
@@ -48,6 +52,7 @@ function (declare,
           query,
           all,
           domClass,
+          string,
           BaseWidget,
           DrawBox,
           SimpleTable,
@@ -57,8 +62,10 @@ function (declare,
           FeatureSet,
           AttributeInspector,
           EsriQuery,
-          symbolJsonUtils
+          symbolJsonUtils,
+          Timer
           ) {
+
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
         baseClass: 'solutions-widget-batcheditor',
         layersTable: null,
@@ -84,8 +91,11 @@ function (declare,
             this._addHelperLayer();
             this._createAttributeInspector();
             this._createQueryParams();
+            this.timer = new Timer.Timer(10000);
+            dojo.connect(this.timer, "onTick", this, this._timerComplete);
 
         },
+
         _bindEvents: function () {
 
             // DrawBox events
@@ -111,28 +121,29 @@ function (declare,
             var features = [];
 
             array.forEach(this.layersTable.getRows(), function (row) {
-                if (this.config.highlightSymbol) {
-                    var highlightSymbol = symbolJsonUtils.fromJson(this.config.highlightSymbol);
 
-                    array.forEach(features, function (feature) {
-                        feature.setSymbol(highlightSymbol);
-                    });
-                }
                 var rowData = this.layersTable.getRowData(row);
+
                 var layerRes = results[rowData.ID];
                 features = features.concat(layerRes);
 
                 var editData = { numSelected: layerRes.length.toString() };
                 this.layersTable.editRow(row, editData);
-             
+
 
             }, this);
-            this._summarizeFeatureFields(features);
-            this._createAttributeInspector();
-            
-            this.helperLayer.selectFeatures(this.selectQuery, FeatureLayer.SELECTION_NEW,
-                lang.hitch(this, this._helperLayerSelectCallback),
-                lang.hitch(this, this._errorCallback));
+            if (features.length > 0) {
+                this._summarizeFeatureFields(features);
+                this._createAttributeInspector();
+
+                this.helperLayer.selectFeatures(this.selectQuery, FeatureLayer.SELECTION_NEW,
+                    lang.hitch(this, this._helperLayerSelectCallback),
+                    lang.hitch(this, this._errorCallback));
+            }
+            else {
+                this._hideInfoWindow();
+                this._togglePanelLoadingIcon();
+            }
         },
         // Event handler for when a drawing is finished.
         // returns: nothing
@@ -140,7 +151,7 @@ function (declare,
             this._togglePanelLoadingIcon();
             this._clearGraphics();
             this._hideInfoWindow();
-          
+
             this.mouseClickPos = graphic._extent.getCenter();
             this._selectInShape(graphic.geometry);
 
@@ -155,7 +166,7 @@ function (declare,
         _helperLayerSelectCallback: function (features) {
             if (features.length > 0) {
                 this.map.infoWindow.setTitle(this.nls.editorPopupTitle);
-              
+
                 this.map.infoWindow.setContent(this.attrInspector.domNode);
                 this.map.infoWindow.show(this.mouseClickPos, this.map.getInfoWindowAnchor(this.mouseClickPos));
             }
@@ -189,26 +200,39 @@ function (declare,
         },
         loadLayerTable: function () {
             this.updateLayers = [];
-            var selectedLayers = array.map(this.config.updateLayers, function (updateLayer) {
-                return updateLayer.name;
-            });
 
             var label = '';
             var tableValid = false;
+            var symbol = null;
             array.forEach(this.map.itemInfo.itemData.operationalLayers, function (layer) {
                 if (layer.layerObject != null && layer.layerObject != undefined) {
-                    if (layer.layerObject.type === 'Feature Layer' && layer.url) {
-                        if (selectedLayers.indexOf(layer.layerObject.name) > -1 && layer.layerObject.isEditable() === true) {
+                    if (layer.layerObject.type === 'Feature Layer' && layer.url && layer.layerObject.isEditable() === true) {
+
+                        var filteredArr = dojo.filter(this.config.updateLayers, function (layerInfo) {
+                            return layerInfo.name == layer.layerObject.name;
+                        });
+                        if (filteredArr.length > 0) {
+                            symbol = JSON.stringify(filteredArr[0].selectionSymbol)
+                            if (symbol != null) {
+                                if (symbol != "") {
+                                    var highlightSymbol = symbolJsonUtils.fromJson(filteredArr[0].selectionSymbol);
+                                    layer.layerObject.setSelectionSymbol(highlightSymbol);
+
+                                }
+                            }
                             this.updateLayers.push(layer);
                             label = layer.layerObject.name;
                             var row = this.layersTable.addRow({
                                 label: label,
                                 ID: layer.layerObject.id,
-                                numSelected: "0"
+                                numSelected: "0",
+                                selectionSymbol: symbol
                             });
                             tableValid = true;
 
+
                         }
+
                     }
                 }
             }, this);
@@ -234,7 +258,12 @@ function (declare,
                     name: 'ID',
                     type: 'text',
                     hidden: true
-                }];
+                }, {
+                    name: 'selectionSymbol',
+                    type: 'text',
+                    hidden: true
+                }
+            ];
             var args = {
                 fields: layerTableFields,
                 selectable: false
@@ -428,7 +457,7 @@ function (declare,
             } else {
                 html.addClass(saveBtn, 'jimu-state-disabled');
             }
-            array.forEach(this.updateLayers, function(layer){
+            array.forEach(this.updateLayers, function (layer) {
                 array.forEach(layer.layerObject.getSelectedFeatures(),
                   function (feature) {
                       if (evt.fieldValue !== this.nls.editorPopupMultipleValues) {
@@ -444,22 +473,42 @@ function (declare,
                 return;
             }
 
-            this._togglePopupLoadingIcon();
+            this._togglePanelLoadingIcon();
 
             //disable the save button
             html.addClass(evt.target, 'jimu-state-disabled');
             var defs = {};
+
             array.forEach(this.updateLayers, function (layer) {
-                var def = layer.applyEdits(null, layer.layerObject.getSelectedFeatures());
-                defs[layer.id] = def;
+                var selectFeat = layer.layerObject.getSelectedFeatures();
+                if (selectFeat) {
+                    if (selectFeat.length > 0) {
+
+                        var def = layer.layerObject.applyEdits(null, selectFeat, null).then(
+                            function (added, updated, removed) {
+                                return { 'added': added, 'updated': updated, 'removed': removed };
+                            });
+
+                        //var def = layer.layerObject.applyEdits(null, selectFeat, null);
+                        defs[layer.id] = def;
+
+                    }
+                }
             }, this);
             all(defs).then(lang.hitch(this, this._saveComplete));
-             
-         
         },
-        _saveComplete: function (added, updated, removed) {
-           console.log(updated.length);
+        _saveComplete: function (results) {
+            var saveCnt = 0;
+            if (results != null) {
+                for (var result in results) {
+                    saveCnt = saveCnt + (results[result].updated.length);
+                }
+            }
+            this._updateUpdatedFeaturesCount(saveCnt);
+            this.clearResults();
             this._hideInfoWindow();
+            this._togglePanelLoadingIcon();
+
         },
         _hideInfoWindow: function () {
             if (this.map.infoWindow.isShowing) {
@@ -493,10 +542,31 @@ function (declare,
                 }
             }, this);
         },
+        clearResults: function () {
+            array.forEach(this.updateLayers, function (layer) {
+                layer.layerObject.clearSelection();
 
+            }, this);
+            var features = [];
+            array.forEach(this.layersTable.getRows(), function (row) {
 
+                this.layersTable.editRow(row, { numSelected: "0" });
 
+            }, this);
+            this._hideInfoWindow();
 
+        },
+
+        _updateUpdatedFeaturesCount: function (count) {
+            this.resultsMessage.innerHTML = string.substitute(this.nls.featuresUpdated, {
+                0: count
+            });
+            this.timer.start();
+        },
+
+        _timerComplete: function () {
+            this.resultsMessage.innerHTML = "";
+        },
 
 
 

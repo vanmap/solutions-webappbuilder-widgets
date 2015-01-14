@@ -8,6 +8,10 @@ define({
         noConfiguredLayers: "No editable layers configured",
         editorPopupTitle: "Batch Editor",
         editorPopupSaveBtn: "Save",
+        editorPopupMultipleValues: "",
+        clear: "Clear",
+        featuresUpdated: "${0} feature(s) updated",
+
 
         selectWithLayerBtn: "Select with Layer",
         selectWithShapeBtn: "Select with Shape",
@@ -20,7 +24,7 @@ define({
         featuresUpdated: "${0} feature(s) updated",
         errorInUpdatingEdits: "ERROR: updating ${0} features",
 
-        editorPopupMultipleValues: ""
+      
 
     })
 });

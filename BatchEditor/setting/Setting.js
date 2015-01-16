@@ -190,6 +190,16 @@ define([
                               }
                               symbol = this.selectionSymbols[rowData.id];
 
+                              if (this.selectByFeatureQuery.checked === true || this.selectByQuery.checked === true) {
+                                  var selectVal = query('input[name="queryFldSelect"]', row).shift().value;
+                                  if (selectVal != "NOTSET1") {
+                                      rowData.queryField = selectVal;
+                                      this.layersTable.editRow(row, { 'queryField': rowData.queryField });
+                                  }
+                                  else {
+                                      rowData.queryField = null;
+                                  }
+                              }
                               this.config.updateLayers.push({
                                   "id": rowData.id,
                                   "name": rowData.label,
@@ -197,12 +207,25 @@ define([
                                   "selectionSymbol": symbol
                               });
                           }
-                          if (rowData.selectByLayer === true) {
-                              this.config.selectByLayer = {
-                                  "id": rowData.id,
-                                  "name": rowData.label,
-                                  "queryField": rowData.queryField
-                              };
+                          if (this.selectByFeature.checked === true || this.selectByFeatureQuery.checked === true) {
+                              if (this.selectByFeatureQuery.checked === true) {
+                                  var selectVal = query('input[name="queryFldSelect"]', row).shift().value;
+                                  if (selectVal != "NOTSET1") {
+                                      rowData.queryField = selectVal;
+                                      this.layersTable.editRow(row, { 'queryField': rowData.queryField });
+                                  }
+                                  else {
+                                      rowData.queryField = null;
+                                  }
+                              }
+                              if (rowData.selectByLayer === true) {
+                                  this.config.selectByLayer = {
+                                      "id": rowData.id,
+                                      "name": rowData.label,
+                                      "queryField": rowData.queryField,
+                                      "selectionSymbol": symbol
+                                  };
+                              }
                           }
 
                       }, this);
@@ -336,6 +359,59 @@ define([
                   this.showOKError();
                   return false;
               }
+              if (this.selectByFeature.checked === true || this.selectByFeatureQuery.checked === true) {
+                  if (this.config.selectByLayer) {
+
+                      if (this.config.selectByLayer.id === null) {
+                          this.showOKError();
+                          return false;
+                      }
+                      else if (this.config.selectByLayer.id === undefined) {
+                          this.showOKError();
+                          return false;
+                      }
+                      else if (this.config.selectByLayer.id === "") {
+                          this.showOKError();
+                          return false;
+                      }
+                  }
+                  else {
+                      this.showOKError();
+                      return false;
+                  }
+              }
+              if (this.selectByFeatureQuery.checked === true) {
+                  var err = array.some(this.config.updateLayers, function (layer) {
+                      if (layer.queryField === null) {
+                          this.showOKError();
+                          return true;
+                      }
+                      else if (layer.queryField === undefined) {
+                          this.showOKError();
+                          return true;
+                      }
+                      else if (layer.queryField === "") {
+                          this.showOKError();
+                          return true;
+                      }
+                  }, this);
+                  if (err) {
+                      return false;
+                  }
+                  if (this.config.selectByLayer.queryField === null) {
+                      this.showOKError();
+                      return false;
+                  }
+                  else if (this.config.selectByLayer.queryField === undefined) {
+                      this.showOKError();
+                      return false;
+                  }
+                  else if (this.config.selectByLayer.queryField === "") {
+                      this.showOKError();
+                      return false;
+                  }
+              }
+
               this.savePageToConfig("3");
               if (this.config) {
                   if (this.config.commonFields.length === 0) {
@@ -352,7 +428,7 @@ define([
               this.layerSelects = [];
 
               array.forEach(this.layersTable.getRows(), function (row) {
-                  var queryFldCell = query('.queryField.empty-text-td', row).shift();
+                  var queryFldCell = query('.queryFieldDropdown.empty-text-td', row).shift();
 
                   var rowData = this.layersTable.getRowData(row);
                   var layer = this.map.getLayer(rowData.id);
@@ -366,6 +442,20 @@ define([
                   s.placeAt(queryFldCell);
 
                   this.layerSelects.push(s);
+                  if (rowData.queryField) {
+                      if (rowData.queryField != "") {
+                          if (array.some(fields, function (field) {
+                                if (field.value == rowData.queryField) {
+                                    return true;
+                          }
+                          else {
+                                    return false;
+                          }
+                          })) {
+                              s.set('value', rowData.queryField);
+                          }
+                      }
+                  }
 
               }, this);
           },
@@ -376,8 +466,8 @@ define([
 
           },
           getVisibleFields: function (fields) {
-              var result = [{ label: 'Do Not Query', value: 'Do Not Query' }];
-
+              //var result = [{ label: 'Do Not Query', value: 'Do Not Query' }];
+              var result = [{ label: '', value: 'NOTSET1' }];
               array.forEach(fields, function (field) {
                   if (field.visible === true) {
                       var opt = {
@@ -524,7 +614,7 @@ define([
                           if ((showOnlyEditable && layer.layerObject.isEditable() === false)) {
                           } else {
 
-                              label = layer.layerObject.name;
+                              label = layer.title;
                               update = false;
                               selectByLayer = false;
 
@@ -549,7 +639,8 @@ define([
                                   update: update,
                                   id: layer.layerObject.id,
                                   selectByLayer: selectByLayer,
-                                  geometryType: layer.layerObject.geometryType
+                                  geometryType: layer.layerObject.geometryType,
+                                  queryField: filteredArr[0].queryField
 
                               });
                               tableValid = true;
@@ -589,7 +680,7 @@ define([
                   hidden: !selectByLayerVisible
               },
               {
-                  name: 'queryField',
+                  name: 'queryFieldDropdown',
                   title: this.nls.page2.layerTable.colSelectByField,
                   type: 'empty',
                   hidden: !queryFieldVisible
@@ -603,11 +694,16 @@ define([
                   name: 'id',
                   type: 'text',
                   hidden: true
-              }, {
-                  name: 'geometryType',
-                  type: 'text',
-                  hidden: true
-              }];
+              },
+               {
+                   name: 'queryField',
+                   type: 'text',
+                   hidden: true
+               }, {
+                   name: 'geometryType',
+                   type: 'text',
+                   hidden: true
+               }];
               var args = {
                   fields: editFeaturesTableFields,
                   selectable: false

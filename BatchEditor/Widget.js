@@ -38,7 +38,8 @@ define([
     'esri/dijit/AttributeInspector',
     'esri/tasks/query',
     'esri/symbols/jsonUtils',
-    'dojox/timing'
+    'dojox/timing',
+    './customDrawBox'
 ],
 function (declare,
           _WidgetsInTemplateMixin,
@@ -54,7 +55,7 @@ function (declare,
           domClass,
           string,
           BaseWidget,
-          DrawBox,
+          coreDrawBox,
           SimpleTable,
           Graphic,
           InfoTemplate,
@@ -63,7 +64,8 @@ function (declare,
           AttributeInspector,
           EsriQuery,
           symbolJsonUtils,
-          Timer
+          Timer,
+          DrawBox
           ) {
 
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
@@ -73,6 +75,7 @@ function (declare,
         helperLayer: null,
         helperEditFieldInfo: null,
         attrInspector: null,
+        toolType: "Area",
         startup: function () {
             this.inherited(arguments);
 
@@ -80,29 +83,91 @@ function (declare,
         postCreate: function () {
             this.inherited(arguments);
 
-            this.drawBox.setMap(this.map);
-
-            if (this.config.drawSymbol) {
-                this.drawBox.setPolygonSymbol(symbolJsonUtils.fromJson(this.config.drawSymbol));
-            }
-            this._bindEvents();
+            this._configureWidget();
+            this._initSelectLayer();
             this.createLayerTable();
             this.loadLayerTable();
             this._addHelperLayer();
             this._createAttributeInspector();
             this._createQueryParams();
-            this.timer = new Timer.Timer(10000);
+            this.timer = new Timer.Timer(50000);
             dojo.connect(this.timer, "onTick", this, this._timerComplete);
 
         },
+        _initSelectLayer: function () {
+            if (this.toolType === "Feature" || this.toolType === "FeatureQuery") {
 
-        _bindEvents: function () {
+                array.some(this.map.itemInfo.itemData.operationalLayers, function (layer) {
+                    if (layer.layerObject != null && layer.layerObject != undefined) {
+                        if (layer.layerObject.type === 'Feature Layer' && layer.url) {
+                            if (this.config.selectByLayer.id === layer.id) {
+                                this.selectByLayer = layer;
+                                if (this.config.selectByLayer.selectionSymbol) {
+                                    var highlightSymbol = symbolJsonUtils.fromJson(this.config.selectByLayer.selectionSymbol);
+                                    if (highlightSymbol != null) {
 
-            // DrawBox events
+                                        layer.layerObject.setSelectionSymbol(highlightSymbol);
 
-            this.own(on(this.drawBox, 'DrawEnd', lang.hitch(this, this._onDrawEnd)));
+                                    }
+                                }
+                                return true;
+                            }
+                        }
+                    }
+                    return false;
+                }, this);
 
-            this.own(on(this.drawBox, 'OnClear', lang.hitch(this, this._onClear)));
+            }
+        },
+        _configureWidget: function () {
+
+            var types = null;
+            if (this.config.selectByShape === true) {
+                this.toolType = "Area";
+                this.widgetIntro.innerHTML = this.nls.widgetIntroSelectByArea;
+                types = ['polygon'];
+            }
+            else if (this.config.selectByFeature === true) {
+                this.toolType = "Feature";
+
+                this.widgetIntro.innerHTML = string.substitute(this.nls.widgetIntroSelectByFeature, {
+                    0: this.config.selectByLayer.name
+                });
+                types = ['point'];
+            }
+            else if (this.config.selectByFeatureQuery === true) {
+                this.toolType = "FeatureQuery";
+                this.widgetIntro.innerHTML = string.substitute(this.nls.widgetIntroSelectByFeatureQuery, {
+                    0: this.config.selectByLayer.name,
+                    1: this.config.selectByLayer.queryField
+                });
+
+                types = ['point'];
+            }
+            else if (this.config.selectByQuery === true) {
+                this.toolType = "Query";
+                this.widgetIntro.innerHTML = this.nls.widgetIntroSelectByQuery;
+            }
+            else {
+                this.toolType = "Area";
+                this.widgetIntro.innerHTML = this.nls.widgetIntroSelectByArea;
+                types = ['polygon'];
+            }
+
+            if (types) {
+                this.drawBox = new DrawBox({
+                    types: types,
+                    showClear: false
+                });
+                this.drawBox.placeAt(this.selectionTool);
+                this.drawBox.startup();
+                this.drawBox.setMap(this.map);
+
+                this.own(on(this.drawBox, 'DrawEnd', lang.hitch(this, this._onDrawEnd)));
+
+                this.own(on(this.drawBox, 'OnClear', lang.hitch(this, this._onClear)));
+            }
+
         },
         _selectInShape: function (shape) {
             var defs = {};
@@ -117,6 +182,24 @@ function (declare,
             all(defs).then(lang.hitch(this, this._layerQueriesComplete));
 
         },
+        _selectSearchLayer: function (shape) {
+            var q = new EsriQuery();
+            q.geometry = shape;
+            q.spatialRelationship = EsriQuery.SPATIAL_REL_INTERSECTS;
+            this.selectByLayer.layerObject.selectFeatures(q, FeatureLayer.SELECTION_NEW).then(lang.hitch(this, this._searchByLayerComplete));
+
+
+        },
+        _searchByLayerComplete: function (results) {
+            if (results.length > 0) {
+                this._selectInShape(results[0].geometry);
+            }
+
+            else {
+                this._hideInfoWindow();
+                this._togglePanelLoadingIcon();
+            }
+        },
         _layerQueriesComplete: function (results) {
             var features = [];
 
@@ -125,13 +208,35 @@ function (declare,
                 var rowData = this.layersTable.getRowData(row);
 
                 var layerRes = results[rowData.ID];
+                var layer = this.map.getLayer(rowData.ID);
+
                 features = features.concat(layerRes);
 
                 var editData = { numSelected: layerRes.length.toString() };
+
                 this.layersTable.editRow(row, editData);
+                var labelCell = query('.label', row).shift();
+                var countCell = query('.numSelected', row).shift();
+
+                if (layerRes.length > 0) {
+                    if (layerRes.length >= layer.maxRecordCount) {
+
+                        html.addClass(labelCell, 'maxRecordCount');
+                        html.addClass(labelCell, 'maxRecordCount');
+                    }
+                    else {
+                        html.removeClass(labelCell, 'maxRecordCount');
+                        html.removeClass(labelCell, 'maxRecordCount');
+                    }
+                }
+                else {
+                    html.removeClass(labelCell, 'maxRecordCount');
+                    html.removeClass(labelCell, 'maxRecordCount');
+                }
 
 
             }, this);
+            this._updateSelectionCount(features.length);
             if (features.length > 0) {
                 this._summarizeFeatureFields(features);
                 this._createAttributeInspector();
@@ -152,9 +257,20 @@ function (declare,
             this._clearGraphics();
             this._hideInfoWindow();
 
-            this.mouseClickPos = graphic._extent.getCenter();
-            this._selectInShape(graphic.geometry);
+            if (graphic.geometryType === "esriGeomtryTypePoint") {
+                this.mouseClickPos = graphic;
+            }
+            else {
+                this.mouseClickPos = graphic._extent.getCenter();
+            }
 
+            if (this.toolType === "Area") {
+                this._selectInShape(graphic.geometry);
+            }
+            else if (this.toolType === "Feature") {
+
+                this._selectSearchLayer(graphic.geometry);
+            }
 
         },
         _errorCallback: function (evt) {
@@ -209,19 +325,17 @@ function (declare,
                     if (layer.layerObject.type === 'Feature Layer' && layer.url && layer.layerObject.isEditable() === true) {
 
                         var filteredArr = dojo.filter(this.config.updateLayers, function (layerInfo) {
-                            return layerInfo.name == layer.layerObject.name;
+                            return layerInfo.name == layer.title;
                         });
                         if (filteredArr.length > 0) {
-                            symbol = JSON.stringify(filteredArr[0].selectionSymbol)
-                            if (symbol != null) {
-                                if (symbol != "") {
-                                    var highlightSymbol = symbolJsonUtils.fromJson(filteredArr[0].selectionSymbol);
-                                    layer.layerObject.setSelectionSymbol(highlightSymbol);
+                            if (filteredArr[0].selectionSymbol) {
+                                var highlightSymbol = symbolJsonUtils.fromJson(filteredArr[0].selectionSymbol);
+                                layer.layerObject.setSelectionSymbol(highlightSymbol);
 
-                                }
+
                             }
                             this.updateLayers.push(layer);
-                            label = layer.layerObject.name;
+                            label = layer.title;
                             var row = this.layersTable.addRow({
                                 label: label,
                                 ID: layer.layerObject.id,
@@ -256,10 +370,6 @@ function (declare,
                     type: 'text'
                 }, {
                     name: 'ID',
-                    type: 'text',
-                    hidden: true
-                }, {
-                    name: 'selectionSymbol',
                     type: 'text',
                     hidden: true
                 }
@@ -505,8 +615,8 @@ function (declare,
                 }
             }
             this._updateUpdatedFeaturesCount(saveCnt);
-            this.clearResults();
-            this._hideInfoWindow();
+            this._clearResults();
+
             this._togglePanelLoadingIcon();
 
         },
@@ -542,7 +652,7 @@ function (declare,
                 }
             }, this);
         },
-        clearResults: function () {
+        _clearResults: function () {
             array.forEach(this.updateLayers, function (layer) {
                 layer.layerObject.clearSelection();
 
@@ -554,18 +664,26 @@ function (declare,
 
             }, this);
             this._hideInfoWindow();
-
+         
         },
 
         _updateUpdatedFeaturesCount: function (count) {
             this.resultsMessage.innerHTML = string.substitute(this.nls.featuresUpdated, {
                 0: count
             });
+            this.timer.stop();
             this.timer.start();
         },
-
+        _updateSelectionCount: function (count) {
+            this.resultsMessage.innerHTML = string.substitute(this.nls.featuresSelected, {
+                0: count
+            });
+            this.timer.stop();
+            this.timer.start();
+        },
         _timerComplete: function () {
             this.resultsMessage.innerHTML = "";
+            this.timer.stop();
         },
 
 

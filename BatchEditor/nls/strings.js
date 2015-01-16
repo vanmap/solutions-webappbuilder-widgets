@@ -1,6 +1,10 @@
 define({
     root: ({
         _widgetLabel: "Batch Editor",
+        widgetIntroSelectByArea: "Use one of the tools below to create a selected set of features to update.  If the row is <font class='maxRecordInIntro'>highlighted</font>, the maximum number of records has been exceeded.",
+        widgetIntroSelectByFeature: "Use the tool below to select a feature from <font class='layerInIntro'>${0}</font> layer.  This feature will be used select and update all intersecting features.  If the row is <font class='maxRecordInIntro'>highlighted</font>, the maximum number of records has been exceeded.",
+        widgetIntroselectByFeatureQuery: "Use the tool below to select a feature from ${0}.  This features ${1} attribute will be used query the layers below and update the resulting features.  If the row is displayed in color, the maximum number of records has been exceeded.",
+        widgetIntroselectByQuery: "Use one of the tools below to create a selected set of features to update.  If the row is displayed in color, the maximum number of records has been exceeded.",
         layerTable: {
             colLabel: "Layer Name",
             numSelected: "Count"
@@ -11,20 +15,21 @@ define({
         editorPopupMultipleValues: "",
         clear: "Clear",
         featuresUpdated: "${0} feature(s) updated",
-
-
-        selectWithLayerBtn: "Select with Layer",
-        selectWithShapeBtn: "Select with Shape",
-        selectByLayerStep1: "Click [Select with Layer]",
-        selectByLayerStep2: "Select polygon on map",
-        selectByLayerStep3: "Edit features",
-        maxRecordCount: "WARNING: selected features may exceed max record count of ${0} returned by server.",
-        featuresSelectedInfo: "Pick an option to select feature(s)",
         featuresSelected: "${0} feature(s) selected",
-        featuresUpdated: "${0} feature(s) updated",
+
+        maxRecordCount: "Max Record Count Exceeded",
         errorInUpdatingEdits: "ERROR: updating ${0} features",
 
       
-
+        drawBox: {
+            point: "Point",
+            line: "Line",
+            polyline: "Polyline",
+            freehandPolyline: "Freehand Polyline",
+            extent: "Extent",
+            polygon: "Polygon",
+            freehandPolygon: "Freehand Polygon",
+            clear: "Clear"
+        },
     })
 });

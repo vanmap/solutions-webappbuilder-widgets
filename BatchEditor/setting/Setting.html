@@ -41,7 +41,7 @@
             </tbody>
         </table><br />
 
-        <table class="settings-navigation-table" cellspacing="0">
+        <table class="settings-navigation-table" data-dojo-attach-point="pageOneControls" cellspacing="0">
             <tbody>
 
                 <tr class="controls">
@@ -64,7 +64,7 @@
         <div class="setting-layer-table" data-dojo-attach-point="tableLayerInfos"></div><br />
     
         <div data-dojo-attach-point="tableLayerInfosError" class="settings-error" style="display:none">${nls.page2.noEditableLayers}</div><br />
-        <table class="settings-navigation-table" cellspacing="0">
+        <table class="settings-navigation-table" data-dojo-attach-point="pageTwoControls" cellspacing="0">
             <tbody>
 
                 <tr class="controls">
@@ -88,7 +88,7 @@
 
         <div class="setting-common-fields-table" data-dojo-attach-point="tableCommonFields"></div><br />           
         <div data-dojo-attach-point="tableCommonFieldsError" class="settings-error" style="display:none">${nls.page3.noCommonFields}</div><br />
-        <table class="settings-navigation-table" cellspacing="0">
+        <table class="settings-navigation-table" data-dojo-attach-point="pageThreeControls" cellspacing=" 0">
             <tbody>
                 <tr class="controls">
                     <td>
@@ -103,13 +103,13 @@
     <div data-dojo-attach-point="symbolPage" style="display:none">
         <div data-dojo-attach-point="symbolPageHeader"></div>
         <div data-dojo-attach-point="symbolSelector" data-dojo-type="jimu/dijit/SymbolChooser"></div>
-        <table class="settings-navigation-table" cellspacing="0">
+        <table class="settings-navigation-table" data-dojo-attach-point="symgolSelectorControls" cellspacing="0">
             <tbody>
                 <tr class="controls">
                     <td>
-                        <div class="jimu-btn"  data-dojo-attach-event="click:saveSymbol">${nls.ok}</div>
+                        <div class="jimu-btn" data-dojo-attach-event="click:saveSymbol">${nls.save}</div>
                         <div class="jimu-btn" data-dojo-attach-event="click:cancelSymbol">${nls.cancel}</div>
-                    
+
 
                     </td>
                 </tr>

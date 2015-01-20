@@ -83,7 +83,7 @@ function (declare,
         postCreate: function () {
             this.inherited(arguments);
 
-            this._configureWidget();
+             this._configureWidget();
             this._initSelectLayer();
             this.createLayerTable();
             this.loadLayerTable();

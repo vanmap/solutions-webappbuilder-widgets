@@ -36,7 +36,7 @@ define({
         errorOnOk:"Please fill out all parameters before saving config",
         next: "Next",
         back: "Back",
-        ok: "OK",
-        cancel: "Cancel"
+        save: "Save Symbol",
+        cancel: "Cancel Symbol"
     }
 });

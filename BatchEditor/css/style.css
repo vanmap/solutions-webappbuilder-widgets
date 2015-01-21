@@ -21,6 +21,12 @@
     font-size: 1.1em;
     color: orangered;
 }
+td.simple-table-td.normal-text-td.syncProcessing {
+  color:mediumorchid;
+}
+td.simple-table-td.normal-text-td.syncComplete {
+    color: blue;
+}
 
 /*Layers Results*/
 .solutions-widget-batcheditor .widget-layers-table {
@@ -65,6 +71,7 @@ td.simple-table-td.normal-text-td.maxRecordCount {
 /*Controls*/
 .widget-controls {
     width: 100%;
+    margin-top: 15px;
 }
 
 .clearBtn {

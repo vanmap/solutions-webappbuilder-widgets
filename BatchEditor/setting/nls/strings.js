@@ -5,7 +5,7 @@ define({
             selectToolDesc:"This tool supports 4 different methods for generating a selected set of records to update.  Select one of the method and click next.  If you require more than one of these methods, please create another configuration of the widget.",
             selectByShape: "Select by Area",
             selectBySpatQuery: "Select by Feature",
-            selectByAttQuery: "Select by Feature & Related Features-ComingSoon",
+            selectByAttQuery: "Select by Feature & Related Features",
             selectByQuery: "Select by Query-ComingSoon",
             toolNotSelected:"Please select a selection method"
         },

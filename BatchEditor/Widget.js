@@ -18,6 +18,9 @@ define([
     'dojo/_base/declare',
     'dijit/_WidgetsInTemplateMixin',
     'dijit/form/Button',
+    'dijit/form/TextBox',
+    'dojo',
+    'dijit',
     'dojo/_base/lang',
     'dojo/_base/html',
     'dojo/on',
@@ -31,6 +34,7 @@ define([
     'jimu/BaseWidget',
     'jimu/dijit/DrawBox',
     'jimu/dijit/SimpleTable',
+    'jimu/dijit/LoadingIndicator',
     'esri/graphic',
     'esri/InfoTemplate',
     'esri/layers/FeatureLayer',
@@ -39,11 +43,15 @@ define([
     'esri/tasks/query',
     'esri/symbols/jsonUtils',
     'dojox/timing',
-    './customDrawBox'
+    './customDrawBox',
+    './layerSyncDetails'
 ],
 function (declare,
           _WidgetsInTemplateMixin,
           Button,
+          TextBox,
+          dojo,
+          dijit,
           lang,
           html,
           on,
@@ -57,6 +65,7 @@ function (declare,
           BaseWidget,
           coreDrawBox,
           SimpleTable,
+          LoadingIndicator,
           Graphic,
           InfoTemplate,
           FeatureLayer,
@@ -65,7 +74,8 @@ function (declare,
           EsriQuery,
           symbolJsonUtils,
           Timer,
-          DrawBox
+          DrawBox,
+          layerSyncDetails
           ) {
 
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
@@ -76,6 +86,13 @@ function (declare,
         helperEditFieldInfo: null,
         attrInspector: null,
         toolType: "Area",
+        drawBox: null,
+        selectByLayer: null,
+        searchTextBox: null,
+        mouseClickPos: null,
+        selectQuery: null,
+        timer: null,
+        syncLayers: null,
         startup: function () {
             this.inherited(arguments);
 
@@ -83,14 +100,14 @@ function (declare,
         postCreate: function () {
             this.inherited(arguments);
 
-             this._configureWidget();
+            this._configureWidget();
             this._initSelectLayer();
             this.createLayerTable();
             this.loadLayerTable();
             this._addHelperLayer();
             this._createAttributeInspector();
             this._createQueryParams();
-            this.timer = new Timer.Timer(50000);
+            this.timer = new Timer.Timer(20000);
             dojo.connect(this.timer, "onTick", this, this._timerComplete);
 
         },
@@ -98,13 +115,14 @@ function (declare,
             if (this.toolType === "Feature" || this.toolType === "FeatureQuery") {
 
                 array.some(this.map.itemInfo.itemData.operationalLayers, function (layer) {
-                    if (layer.layerObject != null && layer.layerObject != undefined) {
+                    if (layer.layerObject !== null && layer.layerObject !== undefined) {
                         if (layer.layerObject.type === 'Feature Layer' && layer.url) {
                             if (this.config.selectByLayer.id === layer.id) {
                                 this.selectByLayer = layer;
                                 if (this.config.selectByLayer.selectionSymbol) {
-                                    var highlightSymbol = symbolJsonUtils.fromJson(this.config.selectByLayer.selectionSymbol);
-                                    if (highlightSymbol != null) {
+                                    var highlightSymbol = symbolJsonUtils.fromJson(
+                                        this.config.selectByLayer.selectionSymbol);
+                                    if (highlightSymbol !== null) {
 
                                         layer.layerObject.setSelectionSymbol(highlightSymbol);
 
@@ -126,29 +144,26 @@ function (declare,
                 this.toolType = "Area";
                 this.widgetIntro.innerHTML = this.nls.widgetIntroSelectByArea;
                 types = ['polygon'];
-            }
-            else if (this.config.selectByFeature === true) {
+            }else if (this.config.selectByFeature === true) {
                 this.toolType = "Feature";
 
-                this.widgetIntro.innerHTML = string.substitute(this.nls.widgetIntroSelectByFeature, {
-                    0: this.config.selectByLayer.name
+                this.widgetIntro.innerHTML = string.substitute(this.nls.widgetIntroSelectByFeature,
+                    {0: this.config.selectByLayer.name
                 });
                 types = ['point'];
-            }
-            else if (this.config.selectByFeatureQuery === true) {
+            }else if (this.config.selectByFeatureQuery === true) {
                 this.toolType = "FeatureQuery";
-                this.widgetIntro.innerHTML = string.substitute(this.nls.widgetIntroSelectByFeatureQuery, {
-                    0: this.config.selectByLayer.name,
+                this.widgetIntro.innerHTML =
+                    string.substitute(this.nls.widgetIntroSelectByFeatureQuery,
+                    {0: this.config.selectByLayer.name,
                     1: this.config.selectByLayer.queryField
                 });
 
                 types = ['point'];
-            }
-            else if (this.config.selectByQuery === true) {
+            }else if (this.config.selectByQuery === true) {
                 this.toolType = "Query";
                 this.widgetIntro.innerHTML = this.nls.widgetIntroSelectByQuery;
-            }
-            else {
+            }else {
                 this.toolType = "Area";
                 this.widgetIntro.innerHTML = this.nls.widgetIntroSelectByArea;
                 types = ['polygon'];
@@ -165,16 +180,63 @@ function (declare,
 
                 this.own(on(this.drawBox, 'DrawEnd', lang.hitch(this, this._onDrawEnd)));
 
-                this.own(on(this.drawBox, 'OnClear', lang.hitch(this, this._onClear)));
+            }else {
+
+                this.searchTextBox = new dijit.form.TextBox({
+                    name: "queryText",
+                    value: "" /* no or empty value! */,
+                    placeHolder: this.nls.queryInput
+                });
+                this.searchTextBox.startup();
+                this.searchTextBox.placeAt(this.selectionTool);
+
+                var btnSearch = domConstruct.create("div", { innerHTML: this.nls.search });
+                domConstruct.place(btnSearch, this.selectionTool, 'after');
+                html.addClass(btnSearch, 'jimu-btn widget-draw-control');
+                on(btnSearch, "click", lang.hitch(this, this._btnSearchClick));
             }
 
         },
-        _selectInShape: function (shape) {
+        _btnSearchClick: function () {
+            //  this._togglePanelLoadingIcon();
+            this.loading.show();
+            this._clearGraphics();
+            this._hideInfoWindow();
+            this.mouseClickPos = this.map.extent.getCenter();
+            this._selectInShape(null, this.searchTextBox.get("value"));
+        },
+        _findField: function (fields, name) {
+            return array.filter(fields, function (field) {
+                return field.name === name;
+            });
+        },
+        _selectInShape: function (shape, searchValue) {
             var defs = {};
             var q = new EsriQuery();
-            q.geometry = shape;
+            if (shape !== null) {
+                q.geometry = shape;
+            }
+            var fields;
             q.spatialRelationship = EsriQuery.SPATIAL_REL_INTERSECTS;
             array.forEach(this.updateLayers, function (layer) {
+                if (searchValue) {
+                    fields = this._findField(layer.layerObject.fields, layer.queryField);
+                    if (fields) {
+                        if (fields.length > 0) {
+                            if (fields[0].type === "esriFieldTypeString") {
+                                q.where = layer.queryField.toString() + " = '" +
+                                    searchValue.toString() + "'";
+                            }else {
+                                q.where = layer.queryField.toString() + " = " +
+                                    searchValue.toString() + "";
+                            }
+                        }else {
+                            console.log("field not found in layer");
+                        }
+                    }else {
+                        console.log("field not found in layer");
+                    }
+                }
                 var def = layer.layerObject.selectFeatures(q, FeatureLayer.SELECTION_NEW);
                 //var sym = layer.layerObject.getSelectionSymbol();
                 defs[layer.id] = def;
@@ -185,56 +247,78 @@ function (declare,
         _selectSearchLayer: function (shape) {
             var q = new EsriQuery();
             q.geometry = shape;
+            if (this.toolType === "FeatureQuery") {
+                q.outFields = [this.config.selectByLayer.queryField];
+            }
             q.spatialRelationship = EsriQuery.SPATIAL_REL_INTERSECTS;
-            this.selectByLayer.layerObject.selectFeatures(q, FeatureLayer.SELECTION_NEW).then(lang.hitch(this, this._searchByLayerComplete));
-
-
+            this.selectByLayer.layerObject.selectFeatures(q, FeatureLayer.SELECTION_NEW).then(
+                lang.hitch(this, this._searchByLayerComplete));
         },
         _searchByLayerComplete: function (results) {
             if (results.length > 0) {
-                this._selectInShape(results[0].geometry);
-            }
-
-            else {
+                if (this.toolType === "FeatureQuery") {
+                    var searchValue = results[0].attributes[this.config.selectByLayer.queryField];
+                    //var where = this.selectByLayer.queryField;
+                    this._selectInShape(null, searchValue);
+                }else {
+                    this._selectInShape(results[0].geometry);
+                }
+            }else {
                 this._hideInfoWindow();
-                this._togglePanelLoadingIcon();
+                this.loading.hide();
+                // this._togglePanelLoadingIcon();
             }
+        },
+        _clearRowHighlight: function () {
+
+            var labelCell;
+            var countCell;
+            var syncCell;
+            array.forEach(this.layersTable.getRows(), function (row) {
+
+                labelCell = query('.label', row).shift();
+                countCell = query('.numSelected', row).shift();
+                syncCell = query('.syncStatus', row).shift();
+                html.removeClass(labelCell, 'maxRecordCount');
+                html.removeClass(countCell, 'maxRecordCount');
+                html.removeClass(syncCell, 'syncComplete');
+                html.removeClass(syncCell, 'syncProcessing');
+            }, this);
         },
         _layerQueriesComplete: function (results) {
             var features = [];
+            var rowData;
 
+            var layerRes;
+            var layer;
+            var editData;
+            var labelCell;
+            var countCell;
             array.forEach(this.layersTable.getRows(), function (row) {
 
-                var rowData = this.layersTable.getRowData(row);
-
-                var layerRes = results[rowData.ID];
-                var layer = this.map.getLayer(rowData.ID);
-
+                rowData = this.layersTable.getRowData(row);
+                layerRes = results[rowData.ID];
+                layer = this.map.getLayer(rowData.ID);
                 features = features.concat(layerRes);
-
-                var editData = { numSelected: layerRes.length.toString() };
+                editData = { numSelected: layerRes.length.toString() };
 
                 this.layersTable.editRow(row, editData);
-                var labelCell = query('.label', row).shift();
-                var countCell = query('.numSelected', row).shift();
+                labelCell = query('.label', row).shift();
+                countCell = query('.numSelected', row).shift();
 
                 if (layerRes.length > 0) {
                     if (layerRes.length >= layer.maxRecordCount) {
 
                         html.addClass(labelCell, 'maxRecordCount');
-                        html.addClass(labelCell, 'maxRecordCount');
-                    }
-                    else {
+                        html.addClass(countCell, 'maxRecordCount');
+                    }else {
                         html.removeClass(labelCell, 'maxRecordCount');
-                        html.removeClass(labelCell, 'maxRecordCount');
+                        html.removeClass(countCell, 'maxRecordCount');
                     }
-                }
-                else {
+                } else {
                     html.removeClass(labelCell, 'maxRecordCount');
-                    html.removeClass(labelCell, 'maxRecordCount');
+                    html.removeClass(countCell, 'maxRecordCount');
                 }
-
-
             }, this);
             this._updateSelectionCount(features.length);
             if (features.length > 0) {
@@ -244,38 +328,38 @@ function (declare,
                 this.helperLayer.selectFeatures(this.selectQuery, FeatureLayer.SELECTION_NEW,
                     lang.hitch(this, this._helperLayerSelectCallback),
                     lang.hitch(this, this._errorCallback));
-            }
-            else {
+            }else {
                 this._hideInfoWindow();
-                this._togglePanelLoadingIcon();
+                this.loading.hide();
+                //this._togglePanelLoadingIcon();
             }
         },
         // Event handler for when a drawing is finished.
         // returns: nothing
         _onDrawEnd: function (graphic) {
-            this._togglePanelLoadingIcon();
+            this.loading.show();
+            //this._togglePanelLoadingIcon();
             this._clearGraphics();
             this._hideInfoWindow();
 
             if (graphic.geometryType === "esriGeomtryTypePoint") {
                 this.mouseClickPos = graphic;
-            }
-            else {
+            }else {
                 this.mouseClickPos = graphic._extent.getCenter();
             }
 
             if (this.toolType === "Area") {
                 this._selectInShape(graphic.geometry);
-            }
-            else if (this.toolType === "Feature") {
-
+            }else if (this.toolType === "Feature") {
+                this._selectSearchLayer(graphic.geometry);
+            }else if (this.toolType === "FeatureQuery") {
                 this._selectSearchLayer(graphic.geometry);
             }
-
         },
         _errorCallback: function (evt) {
             console.log(evt);
-            this._togglePanelLoadingIcon();
+            this.loading.hide();
+            // this._togglePanelLoadingIcon();
         },
         // Callback function for 'Helper Layer' selection.
         // returns: nothing
@@ -284,21 +368,23 @@ function (declare,
                 this.map.infoWindow.setTitle(this.nls.editorPopupTitle);
 
                 this.map.infoWindow.setContent(this.attrInspector.domNode);
-                this.map.infoWindow.show(this.mouseClickPos, this.map.getInfoWindowAnchor(this.mouseClickPos));
-            }
-            else {
+                this.map.infoWindow.show(this.mouseClickPos,
+                    this.map.getInfoWindowAnchor(this.mouseClickPos));
+            }else {
                 this._hideInfoWindow();
             }
-
-            this._togglePanelLoadingIcon();
+            this.loading.hide();
+            //this._togglePanelLoadingIcon();
         },
-        _onClear: function (graphic) {
-            console.log("Clear");
-        },
+        
         // Clear the drawn graphics.
         // returns: nothing
         _clearGraphics: function () {
-            this.drawBox.drawLayer.clear();
+            if (this.drawBox) {
+                if (this.drawBox.drawLayer) {
+                    this.drawBox.drawLayer.clear();
+                }
+            }
         },
         _togglePanelLoadingIcon: function () {
 
@@ -314,6 +400,7 @@ function (declare,
             this.selectQuery.objectIds = [1];
             //this.selectQuery.outFields = ["*"];
         },
+
         loadLayerTable: function () {
             this.updateLayers = [];
 
@@ -321,32 +408,31 @@ function (declare,
             var tableValid = false;
             var symbol = null;
             array.forEach(this.map.itemInfo.itemData.operationalLayers, function (layer) {
-                if (layer.layerObject != null && layer.layerObject != undefined) {
-                    if (layer.layerObject.type === 'Feature Layer' && layer.url && layer.layerObject.isEditable() === true) {
+                if (layer.layerObject !== null && layer.layerObject !== undefined) {
+                    if (layer.layerObject.type === 'Feature Layer' &&
+                        layer.url && layer.layerObject.isEditable() === true) {
 
-                        var filteredArr = dojo.filter(this.config.updateLayers, function (layerInfo) {
-                            return layerInfo.name == layer.title;
-                        });
+                        var filteredArr = dojo.filter(this.config.updateLayers,
+                            function (layerInfo) {
+                                return layerInfo.name === layer.title;
+                            });
                         if (filteredArr.length > 0) {
                             if (filteredArr[0].selectionSymbol) {
-                                var highlightSymbol = symbolJsonUtils.fromJson(filteredArr[0].selectionSymbol);
+                                var highlightSymbol = symbolJsonUtils.fromJson(
+                                    filteredArr[0].selectionSymbol);
                                 layer.layerObject.setSelectionSymbol(highlightSymbol);
-
-
                             }
+                            layer.queryField = filteredArr[0].queryField;
                             this.updateLayers.push(layer);
                             label = layer.title;
-                            var row = this.layersTable.addRow({
+                            this.layersTable.addRow({
                                 label: label,
                                 ID: layer.layerObject.id,
                                 numSelected: "0",
                                 selectionSymbol: symbol
                             });
                             tableValid = true;
-
-
                         }
-
                     }
                 }
             }, this);
@@ -357,7 +443,7 @@ function (declare,
                 domStyle.set(this.tableLayerInfosError, 'display', 'none');
             }
         },
-        createLayerTable: function (selectByLayerVisible, queryFieldVisible) {
+        createLayerTable: function () {
             var layerTableFields = [
                 {
                     name: 'numSelected',
@@ -368,6 +454,11 @@ function (declare,
                     name: 'label',
                     title: this.nls.layerTable.colLabel,
                     type: 'text'
+
+                }, {
+                    name: 'syncStatus',
+                    type: 'text',
+                    title: this.nls.layerTable.colSyncStatus
                 }, {
                     name: 'ID',
                     type: 'text',
@@ -425,12 +516,10 @@ function (declare,
             };
 
             var fs = new FeatureSet(jsonFS);
-
             var layerDefinition = {
                 'name': "",
                 'fields': this._generateHelperLayerFields(firstUpdateLayer)
             };
-
 
             var featureCollection = {
                 layerDefinition: layerDefinition,
@@ -443,7 +532,8 @@ function (declare,
             });
             fL.setEditable(true);
 
-            this.helperEditFieldInfo = this._generateHelperLayerFieldsInfos(firstUpdateLayer, layerDefinition.fields);
+            this.helperEditFieldInfo = this._generateHelperLayerFieldsInfos(firstUpdateLayer,
+                layerDefinition.fields);
             return fL;
         },
         // Generate the attributes for the helper layer.
@@ -458,8 +548,7 @@ function (declare,
                 var val = null;
                 if (field.type === 'esriFieldTypeOID') {
                     result[field.name] = 1;
-                }
-                else if (fieldNames.indexOf(field.name) > -1) {
+                }else if (fieldNames.indexOf(field.name) > -1) {
                     result[field.name] = val;
                 }
             }, this);
@@ -477,8 +566,7 @@ function (declare,
             array.forEach(layer.layerObject.fields, function (field) {
                 if (field.type === 'esriFieldTypeOID') {
                     fields.push(field);
-                }
-                else if (fieldNames.indexOf(field.name) > -1) {
+                }else if (fieldNames.indexOf(field.name) > -1) {
                     fields.push(field);
 
                 }
@@ -500,19 +588,15 @@ function (declare,
                     if (field.fieldName === 'OBJECTID') {
                         field.isEditable = false;
                         field.visible = false;
-                    }
-                    else {
+                    }else {
                         field.isEditable = true;
                         field.visible = true;
                         fieldInfos.push(field);
                     }
-
                 }
             }, this);
             return fieldInfos;
-
         },
-
         // Create the attribute inspector
         _createAttributeInspector: function () {
             var layerInfos = [{
@@ -576,49 +660,185 @@ function (declare,
                   }, this);
             }, this);
         },
+
+        _xrange: function (b0, b1, quantum) {
+           
+            if (!quantum) { quantum = 1; }
+            if (!b1) { b1 = b0; b0 = 0; }
+            var out = [];
+            for (var i = b0, idx = 0; i < b1; i += quantum, idx++) {
+                out[idx] = i;
+            }
+            return out;
+        },
+        _chunks: function (l, n) {
+            var newn = parseInt(1.0 * l.length / n + 0.5,10);
+            var retArr = [];
+            for (var i in this._xrange(0, n - 1)) {
+                retArr.push(l.slice(i * newn, i * newn + newn));
+
+            }
+            retArr.push(l.slice(n * newn - newn));
+            return retArr;
+        },
         // Event handler for when the Save button is clicked in the attribute inspector.
         // returns: nothing
         _attrInspectorOnSave: function (evt) {
             if (domClass.contains(evt.target, 'jimu-state-disabled')) {
                 return;
             }
-
-            this._togglePanelLoadingIcon();
+            this.loading.show();
+            // this._togglePanelLoadingIcon();
 
             //disable the save button
             html.addClass(evt.target, 'jimu-state-disabled');
-            var defs = {};
+             this.map.infoWindow.hide();
+            this.map.infoWindow.highlight = false;
+            var syncDet;
+            this.syncLayers = [];
 
+            var rowData;
             array.forEach(this.updateLayers, function (layer) {
                 var selectFeat = layer.layerObject.getSelectedFeatures();
                 if (selectFeat) {
+
                     if (selectFeat.length > 0) {
+                        array.some(this.layersTable.getRows(), function (row) {
+                            rowData = this.layersTable.getRowData(row);
 
-                        var def = layer.layerObject.applyEdits(null, selectFeat, null).then(
-                            function (added, updated, removed) {
-                                return { 'added': added, 'updated': updated, 'removed': removed };
-                            });
+                            if (rowData.ID === layer.id) {
+                                this.layersTable.editRow(row, {
+                                    'syncStatus': 0 + " / " +
+                                        selectFeat.length
+                                });
+                                var cell = query('.syncStatus', row).shift();
 
-                        //var def = layer.layerObject.applyEdits(null, selectFeat, null);
-                        defs[layer.id] = def;
+                                html.removeClass(cell, 'syncComplete');
+                                html.addClass(cell, 'syncProcessing');
+                                return true;
+                            }
 
+                        }, this);
+                       
+                        var idx;    
+                        var max_chunk = 300;
+                        var chunks;
+                        var bins;
+                        if (selectFeat.length > max_chunk) {
+
+                            bins = parseInt(selectFeat.length / max_chunk,10);
+                            if (selectFeat.length % max_chunk > 0) {
+                                bins += 1;
+                            }
+                            chunks = this._chunks(selectFeat, bins);
+                            idx = 0;
+                            syncDet = new layerSyncDetails(
+                                {
+                                    "layerID": layer.id,
+                                    "numberOfRequest": bins,
+                                    "totalRecordsToSync": selectFeat.length
+
+                                });
+                            on(syncDet, "complete", lang.hitch(this, this._syncComplete));
+                            on(syncDet, "requestComplete", lang.hitch(this, this._requestComplete));
+                            this.syncLayers.push(syncDet);
+
+                            this.applyCallback(chunks, idx, layer, syncDet);
+                           
+                        } else {
+                            chunks = [selectFeat];
+                            idx = 0;
+                            syncDet = new layerSyncDetails(
+                               {
+                                   "layerID": layer.id,
+                                   "numberOfRequest": 1,
+                                   "totalRecordsToSync": selectFeat.length
+
+                               });
+                            on(syncDet, "complete", lang.hitch(this, this._syncComplete));
+                            on(syncDet, "requestComplete", lang.hitch(this, this._requestComplete));
+
+                            this.syncLayers.push(syncDet);
+                            this.applyCallback(chunks, idx, layer, syncDet);
+                        
+                        }
                     }
                 }
             }, this);
-            all(defs).then(lang.hitch(this, this._saveComplete));
+           
         },
-        _saveComplete: function (results) {
-            var saveCnt = 0;
-            if (results != null) {
-                for (var result in results) {
-                    saveCnt = saveCnt + (results[result].updated.length);
-                }
+        applyCallback: function (chunks, idx, layer, syncDet) {
+            var def;
+            if (idx === 0) {
+                def = layer.layerObject.applyEdits(null, chunks[idx], null,
+                    lang.hitch(this, this.applyCallback(chunks, idx + 1, layer, syncDet)),
+                    lang.hitch(this, this.applyErrorback(chunks, idx + 1, layer)));
+                syncDet.addDeferred(def);              
+            }else {
+                return function (added, updated, removed) {
+                    if (chunks.length > idx) {
+                        def = layer.layerObject.applyEdits(null, chunks[idx], null,
+                            lang.hitch(this, this.applyCallback(chunks, idx + 1, layer, syncDet)),
+                            lang.hitch(this, this.applyErrorback(chunks, idx + 1, layer)));
+                        syncDet.addDeferred(def);
+                    }
+                    return { 'added': added, 'updated': updated, 'removed': removed };
+                };
             }
-            this._updateUpdatedFeaturesCount(saveCnt);
-            this._clearResults();
+        },
+        applyErrorback: function (chunks, idx, layer) {
+            return function (err) {
+              
+                console.log(err);
+                return err;
+            };
+        },
+        _syncComplete: function () {
+            var stillProc = array.some(this.syncLayers, function (syncDet) {
+                if (syncDet.isComplete() === false) {
 
-            this._togglePanelLoadingIcon();
+                    return true;
+                }
+            });
+            if (stillProc === false) {
+                var total = 0;
+                var totalComplete = 0;
+                array.forEach(this.syncLayers, function (syncDet) {
+                    total = total + syncDet.totalRecordsToSync;
+                    totalComplete = totalComplete + syncDet.recordsSynced;
 
+                });
+                this._updateUpdatedFeaturesCount(totalComplete, total);
+                this._clearResults();
+
+                //this._togglePanelLoadingIcon();
+                this.loading.hide();
+            }
+
+        },
+        _requestComplete: function (args) {
+            var rowData;
+            array.some(this.layersTable.getRows(), function (row) {
+                rowData = this.layersTable.getRowData(row);
+
+                if (rowData.ID === args.layerID) {
+                    this.layersTable.editRow(row, {
+                        'syncStatus': args.countSoFar + " / " +
+                            args.totalToSync
+                    });
+                    var cell = query('.syncStatus', row).shift();
+                    if (args.countSoFar === args.totalToSync) {
+                        html.removeClass(cell, 'syncProcessing');
+                        html.addClass(cell, 'syncComplete');
+                    }else {
+                        html.removeClass(cell, 'syncComplete');
+                        html.addClass(cell, 'syncProcessing');
+                    }
+                    return true;
+                }
+            }, this);
+
+            console.log(args.layerID + ": " + args.countSoFar + " / " + args.totalToSync);
         },
         _hideInfoWindow: function () {
             if (this.map.infoWindow.isShowing) {
@@ -628,7 +848,8 @@ function (declare,
             }
         },
         // Summarizes selected features' fields. If a field has more than one
-        // value then helper layer gets a blank string in that field otherwise, // keep the same value.
+        // value then helper layer gets a blank string in that field otherwise,
+        // keep the same valued.
         // returns: nothing
         _summarizeFeatureFields: function (features) {
             var fields = this.helperEditFieldInfo;
@@ -644,7 +865,7 @@ function (declare,
 
                     if (different) {
                         this.helperLayer.graphics[0].attributes[fieldName] =
-                          this.nls.editorPopupMultipleValues;
+                         this.nls.editorPopupMultipleValues;
                     } else {
                         this.helperLayer.graphics[0].attributes[fieldName] =
                           first;
@@ -657,19 +878,24 @@ function (declare,
                 layer.layerObject.clearSelection();
 
             }, this);
-            var features = [];
+           
             array.forEach(this.layersTable.getRows(), function (row) {
 
-                this.layersTable.editRow(row, { numSelected: "0" });
+                this.layersTable.editRow(row, { 'numSelected': "0" });
+
+            }, this);
+            array.forEach(this.layersTable.getRows(), function (row) {
+
+                this.layersTable.editRow(row, { 'syncStatus': "" });
 
             }, this);
             this._hideInfoWindow();
-         
+            this._clearRowHighlight();
         },
-
-        _updateUpdatedFeaturesCount: function (count) {
+        _updateUpdatedFeaturesCount: function (count, total) {
             this.resultsMessage.innerHTML = string.substitute(this.nls.featuresUpdated, {
-                0: count
+                0: count,
+                1: total
             });
             this.timer.stop();
             this.timer.start();
@@ -683,57 +909,38 @@ function (declare,
         },
         _timerComplete: function () {
             this.resultsMessage.innerHTML = "";
+
             this.timer.stop();
         },
+        onOpen: function () {
 
+            this.disableWebMapPopup();
 
+        },
+        onClose: function () {
+            this.enableWebMapPopup();
 
+        },
+        destroy: function () {
+            if (this.drawBox) {
+                this.drawBox.destroy();
+            }
+            if (this.attrInspector) {
+                this.attrInspector.destroy();
+            }
+            this.layersTable = null;
+            this.updateLayers = null;
+            this.helperLayer = null;
+            this.helperEditFieldInfo = null;
+            this.attrInspector = null;
+            this.toolType = null;
+            this.selectByLayer = null;
+            this.searchTextBox = null;
+            this.mouseClickPos = null;
+            this.selectQuery = null;
 
-
-
-
-
-
-
-
-
-
-
-
-        // onOpen: function(){
-        //   console.log('onOpen');
-        // },
-
-        // onClose: function(){
-        //   console.log('onClose');
-        // },
-
-        // onMinimize: function(){
-        //   console.log('onMinimize');
-        // },
-
-        // onMaximize: function(){
-        //   console.log('onMaximize');
-        // },
-
-        // onSignIn: function(credential){
-        //   /* jshint unused:false*/
-        //   console.log('onSignIn');
-        // },
-
-        // onSignOut: function(){
-        //   console.log('onSignOut');
-        // }
-
-        // onPositionChange: function(){
-        //   console.log('onPositionChange');
-        // },
-
-        // resize: function(){
-        //   console.log('resize');
-        // }
-
-        //methods to communication between widgets:
-
+            this.timer = null;
+        }
+  
     });
 });

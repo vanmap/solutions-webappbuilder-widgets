@@ -115,13 +115,13 @@ define([
               if (this.config.SymbolWithin) {
                   sym = symbolJsonUtils.fromJson(this.config.SymbolWithin);
                   if (sym) {
-                      this.symbolWithin.showBySymbol = sym;
+                      this.symbolWithin.showBySymbol(sym);
                   }
               }
               if (this.config.SymbolOutside) {
                   sym = symbolJsonUtils.fromJson(this.config.SymbolOutside);
                   if (sym) {
-                      this.symbolOutside.showBySymbol = sym;
+                      this.symbolOutside.showBySymbol(sym);
                   }
               }
           },
@@ -136,6 +136,7 @@ define([
                   if (row.enrich) {
                       var enrichLayer = {};
                       enrichLayer.id = row.id;
+                      enrichLayer.name = row.name;
                       if (!this.selectedFields[enrichLayer.id]) {
                           return true;
                       }
@@ -164,7 +165,7 @@ define([
                           enrich = false;
 
                           var filteredArr = dojo.filter(this.config.enrichLayers, function (layerInfo) {
-                              return layerInfo.name === label;
+                              return layerInfo.id === layer.layerObject.id;
                           });
                           if (filteredArr.length > 0) {
                               enrich = true;
@@ -249,16 +250,30 @@ define([
               if (tds && tds.length) {
                   var rowData = this.layersTable.getRowData(tr);
                   this.layerFieldsTable.clear();
-                  ;
 
                   var layer = this.map.getLayer(rowData.id);
                   if (layer) {
                       if (layer.infoTemplate) {
+                          var fields = this.selectedFields[rowData.id];
+                          var filtFields;
+                          var isAppended;
+                          if (fields) {
+                              filtFields = array.map(fields, function (field) {
+                                  return field.fieldName;
+                              });
+                          }
                           var fields = layer.infoTemplate.info.fieldInfos;
                           array.forEach(fields, function (field) {
+                              isAppended = false;
+                              if (filtFields) {
+                                  if (filtFields.indexOf(field.fieldName)>=0) {
+                                      isAppended = true;
+                                  }
+                              }
                               this.layerFieldsTable.addRow({
                                   fieldName: field.fieldName,
-                                  label: field.label
+                                  label: field.label,
+                                  isAppended: isAppended
                               });
                           }, this);
                           html.addClass(this.mainPage, 'hide');

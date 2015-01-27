@@ -1,327 +1,391 @@
 ///////////////////////////////////////////////////////////////////////////
 // Copyright © 2014 Esri. All Rights Reserved.
 //
-// Licensed under the Apache License Version 2.0 (the "License");
+// Licensed under the Apache License Version 2.0 (the 'License');
 // you may not use this file except in compliance with the License.
 // You may obtain a copy of the License at
 //
 //    http://www.apache.org/licenses/LICENSE-2.0
 //
 // Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
+// distributed under the License is distributed on an 'AS IS' BASIS,
 // WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 // See the License for the specific language governing permissions and
 // limitations under the License.
 ///////////////////////////////////////////////////////////////////////////
 
+var _self;
+var _select;
+var _store;
+var _currentURL;
+var _currentFields;
+var _checked;
+var _symIn;
+var _symOut;
+
 define([
-    'dojo/_base/declare',
-    'dijit/_WidgetsInTemplateMixin',
-    'dijit/form/Button',
-    'dijit/form/RadioButton',
-    'jimu/BaseWidgetSetting',
-    'jimu/dijit/SimpleTable',
-    'dojo',
-    'dojo/query',
-    'dojo/_base/html',
-    'dojo/dom-style',
-    'dojo/_base/array',
-    'dojo/on',
-    'dojo/_base/lang',
-    'dojo/json',
-    'dijit/form/Select',
-    'dojo/dom-construct',
-    'jimu/dijit/SymbolChooser',
-    'esri/symbols/jsonUtils'
-],
-  function (
-    declare,
-    _WidgetsInTemplateMixin,
-    RadioButton,
-    Button,
-    BaseWidgetSetting,
-    SimpleTable,
-    dojo,
-    query,
-    html,
-    domStyle,
-    array,
-    on,
-    lang,
-    JSON,
-    Select,
-    domConstruct,
-    SymbolChooser,
-    symbolJsonUtils
+        'dojo/_base/declare',
+        'dijit/_WidgetsInTemplateMixin',
+        'jimu/BaseWidgetSetting',
+        'dojo/_base/lang',
+        'dojo/on',
+        'jimu/dijit/Message',
+        'jimu/dijit/SymbolChooser',
+        'dojox/form/CheckedMultiSelect',
+        'dojo/data/ObjectStore',
+        'esri/symbols/SimpleMarkerSymbol',
+        'esri/Color',
+        'dojo/_base/array',
+        'jimu/LayerInfos/LayerInfos',
+        'dojo/dom',
+        'dijit'
+    ],
 
-        ) {
-      return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
-          //these two properties is defined in the BaseWidget
-          baseClass: 'solutions-widget-geolookup-setting',
-          layersTable: null,
-          currentLayer: null,
-          selectedFields: [],
-          startup: function () {
-              this.inherited(arguments);
-              if (this.config === null) {
-                  this.config = {};
+    function(
+        declare, _WidgetsInTemplateMixin, BaseWidgetSetting,
+        lang,on, Message, SymbolChooser, 
+        Select, ObjectStore, SimpleMarkerSymbol, Color, array, 
+        LayerInfos, dom, dijit) {
+        return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
+            baseClass: 'jimu-widget-GeoLookup-setting',
 
-              }
-              if (this.config === undefined) {
-                  this.config = {};
+            _operLayerInfos: null,
 
-              }
-              if (this.config === '') {
-                  this.config = {};
+            startup: function() {
+               _self = this;
 
-              }
-              this.setConfig(this.config);
-              this.createLayerTable();
-              this.loadLayerTable();
-              this.createFieldsTable();
-              try {
-                  var btnBar =
-                      (this.domNode.parentNode.parentNode.parentNode.parentNode.lastChild.lastChild);
+                this.inherited(arguments);
 
-                  this.btnSaveFields = domConstruct.toDom(
-                     "<div class='jimu-popup-btn jimu-float-trailing jimu-leading-margin1 hide'>" +
-                     this.nls.saveFields + "</div>");
-                  dojo.connect(this.btnSaveFields, "onclick", lang.hitch(this, this.saveFields));
+                if (!_currentURL) {
+                    this.config.mainURL = _currentURL;
+                }else{
+                    this.textURL.set('value',_currentURL);
+                }
 
-                  this.btnCancelFields = domConstruct.toDom(
-                      "<div class='jimu-popup-btn jimu-float-trailing jimu-leading-margin1 hide'>" +
-                      this.nls.cancelFields + "</div>");
-                  dojo.connect(this.btnCancelFields, "onclick", lang.hitch(this, this.cancelFields));
+                if (!_checked) {
+                    this.chkCSVOut.set('checked',this.config.outCSV);
+                    _checked = this.config.outCSV;
+                }else{
+                    this.chkCSVOut.set('checked',_checked);
+                }
 
-                  this.btnErrorMsg = domConstruct.toDom("<div class='settings-error hide'></div>");
+                this._setListeners();
+                this._setSelect();
 
-                  domConstruct.place(this.btnSaveFields, btnBar, "after");
-                  domConstruct.place(this.btnCancelFields, this.btnSaveFields, "after");
-                  domConstruct.place(this.btnErrorMsg, this.btnCancelFields, "after");
+                this.setConfig(this.config);
 
-              }
-              catch (err) {
-                  console.log(err.message);
-              }
-          },
+              LayerInfos.getInstance(this.map, this.map.itemInfo)
+              .then(lang.hitch(this, function(operLayerInfos) {
+                this._operLayerInfos = operLayerInfos;
+                this._checkLayers();
+
+              }));
+
+                },
+
+            setConfig: function(config) {
+                this.config = config;
+            },
+
+            getConfig: function() {
+                this.config.mainURL = this.textURL.value;
+                this.config.queryFields = _currentFields;
+                this.config.outCSV = _checked;
+                this.config.SymbolIn = _symIn;
+                this.config.SymbolOut = _symOut;
+                return _self.config;
+            },
+
+            _checkLayers: function(){
+
+            array.forEach(_self._operLayerInfos.finalLayerInfos, function(l) {
+ 
+                var isDynamic = (l.originOperLayer.layerType === 'ArcGISMapServiceLayer') ? 1 : 0;
+                if (isDynamic===1) {
+                    array.forEach(l.newSubLayers, function(sl) {
+                        _self._checkURLWebMap(sl.layerObject.url);
+                    });
+                }else {
+                    _self._checkURLWebMap(l.layerObject.url);
+
+                } 
+            });
+
+            },
+
+            _addLayerButton: function (l){
+
+             require(['dijit/form/Button', 'dojo/dom', 'dojo/domReady!'], function(Button, dom){
+                       var b =  new Button({
+                            label: l.title,
+                            url: l.url,
+                            onClick: function(){
+                                console.log(l.url);
+                                _self.textURL.set('value',l.url);
+                            }
+                        });
+                        dom.byId('webMapSel').appendChild(b.domNode);
+                    });
+            },
+
+            _checkURLWebMap: function(url){
+
+                 require(['esri/request',
+                          'dojo/domReady!'
+                        ],
+                        function(esriRequest) {
+                            try {
+                                var requestHandle = esriRequest({
+                                    'url': url,
+                                    'content': {
+                                        'f': 'json',
+                                        timeout: 30000
+                                    },
+                                    'callbackParamName': 'callback'
+                                });
+
+                               requestHandle.then( function(response, io) { 
+                                            
+                                            if (response.hasOwnProperty('geometryType')) {
+                                                if (response.geometryType === 'esriGeometryPolygon'){
+                                                    var o = {
+                                                        title: response.name,
+                                                        url: url
+                                                    };
+                                                    _self._addLayerButton(o);
+                                                }
+                                            }   
+                                        },  function(error, io) { 
+                                                //to do
+        
+                                    });
+
+                            }catch(e){
+                                 console.error(e);
+                                 return 0;
+                            }   
+                });
+            },
 
 
-          setConfig: function (config) {
-              this.config = config;
-              var error = array.forEach(this.config.enrichLayers, function (row) {
-                  this.selectedFields[row.id] = row.fields;
-              }, this);
-              var sym;
-              if (this.config.SymbolWithin) {
-                  sym = symbolJsonUtils.fromJson(this.config.SymbolWithin);
-                  if (sym) {
-                      this.symbolWithin.showBySymbol(sym);
-                  }
-              }
-              if (this.config.SymbolOutside) {
-                  sym = symbolJsonUtils.fromJson(this.config.SymbolOutside);
-                  if (sym) {
-                      this.symbolOutside.showBySymbol(sym);
-                  }
-              }
-          },
-          getConfig: function () {
+            _setListeners: function(){
+                this.own(on(this.textURL, 'change',
+                    lang.hitch(this, this._onSelectChange)));
+                this.own(on(this.goButton, 'click',
+                    lang.hitch(this, this._onSelectChange)));
+                this.own(on(this.chkCSVOut, 'change',
+                    lang.hitch(this, this._onCSVClick)));
 
-              this.config.SymbolWithin = this.symbolWithin.getSymbol().toJson();
-              this.config.SymbolOutside = this.symbolOutside.getSymbol().toJson();
-              var data = this.layersTable.getData();
-              this.config.enrichLayers = [];
-              var layersValid = false;
-              var error = array.some(data, function (row) {
-                  if (row.enrich) {
-                      var enrichLayer = {};
-                      enrichLayer.id = row.id;
-                      enrichLayer.name = row.name;
-                      if (!this.selectedFields[enrichLayer.id]) {
-                          return true;
-                      }
-                      enrichLayer.fields = this.selectedFields[enrichLayer.id];
-                      this.config.enrichLayers.push(enrichLayer);
-                      layersValid = true;
-                  }
-              }, this);
-              if (error || layersValid === false) {
-                  this.showOKError();
-                  return false;
-              }
+                this.own(on(this.sym1, 'change',
+                lang.hitch(this, this._sym1onChange)));
 
-              return this.config;
-          },
+                this.own(on(this.sym2, 'change',
+                lang.hitch(this, this._sym2onChange)));
 
-          loadLayerTable: function () {
-              var label = '';
-              var tableValid = false;
-              var enrich = false;
+                this.config.SymbolIn = this.sym1.getSymbol();
+                this.config.SymbolOut = this.sym2.getSymbol();
+                _symIn = this.sym1.getSymbol().toJson();
+                _symOut = this.sym2.getSymbol().toJson();
+            },
 
-              array.forEach(this.map.itemInfo.itemData.operationalLayers, function (layer) {
-                  if (layer.layerObject !== null && layer.layerObject !== undefined) {
-                      if (layer.layerObject.type === 'Feature Layer' && layer.url && layer.layerObject.geometryType === "esriGeometryPolygon") {
-                          label = layer.title;
-                          enrich = false;
+            _createMarkerSymbol: function(size, color){
+              var markerSymbol = new SimpleMarkerSymbol();
+              markerSymbol.setSize(size);
+              markerSymbol.setColor(new Color(color));
+              markerSymbol.style = SimpleMarkerSymbol.STYLE_CIRCLE;
+              return markerSymbol;
+            },
 
-                          var filteredArr = dojo.filter(this.config.enrichLayers, function (layerInfo) {
-                              return layerInfo.id === layer.layerObject.id;
-                          });
-                          if (filteredArr.length > 0) {
-                              enrich = true;
-                          }
-                          var row = this.layersTable.addRow({
-                              label: label,
-                              enrich: enrich,
-                              id: layer.layerObject.id
-                          });
-                          tableValid = true;
-                      }
-                  }
-              }, this);
+            _sym1onChange:function(s){
+               
+                _symIn = s.toJson();
 
-              if (!tableValid) {
-                  domStyle.set(this.tableLayerInfosError, 'display', '');
-              } else {
-                  domStyle.set(this.tableLayerInfosError, 'display', 'none');
-              }
-          },
-          createLayerTable: function () {
-              var layerTableFields = [{
-                  name: 'enrich',
-                  title: this.nls.layerTable.colEnrich,
-                  type: 'checkbox',
-                  'class': 'enrich'
-              }, {
-                  name: 'label',
-                  title: this.nls.layerTable.colLabel,
-                  type: 'text'
-              },
-             {
-                 name: 'actions',
-                 title: this.nls.layerTable.colFieldSelector,
-                 type: 'actions',
-                 'class': 'fieldselector',
-                 actions: ['edit']
-             }, {
-                 name: 'id',
-                 type: 'text',
-                 hidden: true
-             }];
-              var args = {
-                  fields: layerTableFields,
-                  selectable: false
-              };
-              domConstruct.empty(this.tableLayerInfos);
-              this.layersTable = new SimpleTable(args);
-              this.layersTable.placeAt(this.tableLayerInfos);
-              this.layersTable.startup();
-              this.own(on(this.layersTable, 'actions-edit',
-                  lang.hitch(this, this.showLayerFields)));
+                _self.SymbolIn = s.toJson();
+            },
 
-          },
-          createFieldsTable: function () {
-              var layerFields = [{
-                  name: 'isAppended',
-                  title: this.nls.fieldTable.colAppend,
-                  type: 'checkbox',
-                  'class': 'appended'
-              }, {
-                  name: 'fieldName',
-                  title: this.nls.fieldTable.colName,
-                  type: 'text'
-              }, {
-                  name: 'label',
-                  title: this.nls.fieldTable.colAlias,
-                  type: 'text',
-                  editable: true
-              }];
-              var layerFieldArgs = {
-                  fields: layerFields,
-                  selectable: false
-              };
-              this.layerFieldsTable = new SimpleTable(layerFieldArgs);
-              this.layerFieldsTable.placeAt(this.tableFieldInfos);
-              this.layerFieldsTable.startup();
-          },
-          showLayerFields: function (tr) {
-              this.currentLayer = null;
-              var tds = query('.action-item-parent', tr);
-              if (tds && tds.length) {
-                  var rowData = this.layersTable.getRowData(tr);
-                  this.layerFieldsTable.clear();
+            _sym2onChange:function(s){
+                _symOut = s.toJson();
+                _self.SymbolOut = s.toJson();
+            },
 
-                  var layer = this.map.getLayer(rowData.id);
-                  if (layer) {
-                      if (layer.infoTemplate) {
-                          var fields = this.selectedFields[rowData.id];
-                          var filtFields;
-                          var isAppended;
-                          if (fields) {
-                              filtFields = array.map(fields, function (field) {
-                                  return field.fieldName;
-                              });
-                          }
-                          var fields = layer.infoTemplate.info.fieldInfos;
-                          array.forEach(fields, function (field) {
-                              isAppended = false;
-                              if (filtFields) {
-                                  if (filtFields.indexOf(field.fieldName)>=0) {
-                                      isAppended = true;
-                                  }
-                              }
-                              this.layerFieldsTable.addRow({
-                                  fieldName: field.fieldName,
-                                  label: field.label,
-                                  isAppended: isAppended
-                              });
-                          }, this);
-                          html.addClass(this.mainPage, 'hide');
-                          html.removeClass(this.fieldsPage, 'hide');
-                          html.removeClass(this.btnSaveFields, 'hide');
-                          html.removeClass(this.btnCancelFields, 'hide')
-                          this.currentLayer = rowData.id;
-                      }
-                  }
-              }
-          },
-          saveFields: function () {
-              var data = this.layerFieldsTable.getData();
-              var fields = [];
-              var field;
-              array.forEach(data, function (row) {
-                  if (row.isAppended === true) {
-                      field = {};
-                      field.fieldName = row.fieldName;
-                      field.label = row.label;
+            _onCSVClick: function(){
+                _checked = _self.chkCSVOut.checked;
+                _self.outCSV  = _checked;
+            },
 
-                      fields.push(field);
-                  }
-              }, this);
+            _setSelect: function(){
 
-              this.selectedFields[this.currentLayer] = fields;
-              html.removeClass(this.mainPage, 'hide');
-              html.addClass(this.fieldsPage, 'hide');
-              html.addClass(this.btnSaveFields, 'hide');
-              html.addClass(this.btnCancelFields, 'hide');
+                 require(['dojo/data/ObjectStore',
+                            'dojo/store/Memory',
+                            'dojo/domReady!'
+                        ],
+                        function(ObjectStore,Memory) {
+                            _store = new Memory({
+                                data: ['Not Set']
+                            });
 
-          },
-          cancelFields: function () {
-              html.removeClass(this.mainPage, 'hide');
-              html.addClass(this.fieldsPage, 'hide');;
-              html.addClass(this.btnSaveFields, 'hide');
-              html.addClass(this.btnCancelFields, 'hide');
+                           var os = new ObjectStore({
+                                objectStore: _store
+                            });
+              
+                            _select = new Select({
+                                id: 'fieldSelect',
+                                store: os,
+                                readOnly: false,
+                                multiple: true,
+                                style: 'visibility:hidden'
+                            }, 'fieldList');
+                            _select.startup();
 
-          },
-          showOKError: function () {
-              this.btnErrorMsg.innerHTML = this.nls.errorOnOk;
-              html.removeClass(this.btnErrorMsg, 'hide');
+                            _select.on('change', function() {
+                                _self.queryFields = this.get('value');
+                                _currentFields = this.get('value');
+                                //console.log('Setting:' + _self.config.queryFields);
+                            });
+                });
+            },
 
-          },
-          hideOkError: function () {
+            _checkURL: function(url){
 
-              html.addClass(this.btnErrorMsg, 'hide');
+                 require(['esri/request',
+                          'dojo/domReady!'
+                        ],
+                        function(esriRequest) {
+                            if (url.length === 0) {
+                                _self._URLError('Enter a Valid Service URL');
+                                return;
+                            }
+                            try {
+                                var requestHandle = esriRequest({
+                                    'url': url,
+                                    'content': {
+                                        'f': 'json',
+                                        timeout: 30000
+                                    },
+                                    'callbackParamName': 'callback'
+                                });
 
-          }
-      });
-  });
+                                requestHandle.then(_self._requestSucceededUrl, _self._requestFailedUrl);
+
+                            }catch(e){
+
+                                 _self._URLError('');
+                            }
+                });
+
+            },
+
+            _requestFailedUrl: function(error, io) { 
+                console.error(error);                       
+                _self._URLError('');
+            },
+
+          _requestSucceededUrl: function(response, io) {
+                
+                _self.mainUrl = this.textURL.value;
+                _currentURL = this.textURL.value;
+
+                if (response.hasOwnProperty('geometryType')) {
+                    if (response.geometryType !== 'esriGeometryPolygon'){
+                        _self._URLError('Must be a Polygon Feature Service');
+                        return;
+                    }
+                }
+
+                require(['dojo/_base/array',
+                         'dojo/domReady!'
+                        ],
+                        function(array) {
+                            if (response.hasOwnProperty('fields')) {
+                                var fieldInfo = array.map(response.fields, function(f) {
+
+                                    if (f.type === 'esriFieldTypeSmallInteger' ||
+                                        f.type === 'esriFieldTypeInteger' ||
+                                        f.type === 'esriFieldTypeSingle' ||
+                                        f.type === 'esriFieldTypeDouble' ||
+                                        f.type === 'esriFieldTypeString' ||
+                                        f.type === 'esriFieldTypeDate') {
+                                        if (f.name || f.alias) {
+                                            return {
+                                                'id': f.name,
+                                                'label': f.name
+                                            };
+                                        }
+                                    }
+                                });
+
+                                _self._generateFieldsHTML(fieldInfo);
+
+                            } else {
+                                 _self._URLError('Cannot Retreive Fields. Requires Polygon Feature Service.');
+                            }
+                });
+            },
+
+            _generateFieldsHTML: function(fieldInfo) {
+               
+                var fInfo = [];
+                var ii = 0;
+                for (var i = 0; i < fieldInfo.length; i++) {
+                    if (fieldInfo[i]) {
+                        fInfo[ii] = fieldInfo[i];
+                        ii++;
+                    }
+                }
+
+                _store.data = fInfo;
+
+                var os = new ObjectStore({
+                    objectStore: _store
+                });
+
+                _select.setStore(os);
+
+                if (_currentFields) {
+                     _select.set ('value',_currentFields);
+                }
+
+                require(['dojo','dojo/dom','dojo/dom-style'],
+                      function(dojo,dom,domStyle) {
+                         domStyle.set(dom.byId('fldLabel'), 'visibility', 'visible');
+                         domStyle.set(dom.byId('parent'), 'visibility', 'visible');
+                         dojo.style(_select.domNode, {visibility:'visible'});
+                });
+            },
+
+             _URLError: function(e) {
+
+                    require(['dojo/dom','dijit','dojo/dom-style','dojo'],
+                      function(dom,dijit,domStyle,dojo) {
+
+                        if (e===''){
+                            e = 'Invalid URL';
+                        }
+                        //replace with Message
+                        var textBox = dijit.byId('textURL');
+                        var oV = textBox.validator;
+                        textBox.validator = function() {return false;};
+                        textBox.validate();  
+                        textBox.validator = oV;
+                        dijit.showTooltip(
+                            e, 
+                            textBox.domNode, 
+                            textBox.get('tooltipPosition'),
+                            !textBox.isLeftToRight()
+                        );
+                         domStyle.set(dom.byId('fldLabel'), 'visibility', 'hidden');
+                         domStyle.set(dom.byId('parent'), 'visibility', 'hidden');
+                         dojo.style(_select.domNode, {visibility:'hidden'});
+
+                    });
+                },
+
+            _onSelectChange: function() {
+
+                if (this.textURL.value) {
+                    _self._checkURL(this.textURL.value);
+                }
+            }
+
+        });
+    });

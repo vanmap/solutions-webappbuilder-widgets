@@ -32,6 +32,9 @@ define(['dojo/_base/declare',
   'esri/geometry/Point',
   'esri/tasks/QueryTask', 
   'esri/tasks/query',
+  'esri/SpatialReference',
+  'esri/renderers/UniqueValueRenderer',
+  'jimu/dijit/Message',
   'dojo/Deferred',
   'dijit/_WidgetBase',
   'dijit/_TemplatedMixin'
@@ -39,8 +42,8 @@ define(['dojo/_base/declare',
 function(declare, lang, html, arrayUtils, 
   CsvStore, base64, FeatureLayer, webMercatorUtils, 
   Multipoint, InfoTemplate, SimpleMarkerSymbol, PictureMarkerSymbol, 
-  Graphic, Color, Point, QueryTask, Query,
-  Deferred, _WidgetBase) {
+  Graphic, Color, Point, QueryTask, Query, SpatialReference, UniqueValueRenderer,
+  Message, Deferred, _WidgetBase) {
 
   var _qT;
   var _q;
@@ -56,7 +59,7 @@ function(declare, lang, html, arrayUtils,
 
   var clazz = declare([_WidgetBase], {
 
-    baseClass: 'jimu-widget-GeoEnrich',
+    baseClass: 'jimu-widget-GeoLookup',
     dependParam: '',
 
     postCreate: function(){
@@ -86,6 +89,7 @@ function(declare, lang, html, arrayUtils,
 
     handleCSV: function(file) {
         console.log('Reading CSV: ', file, ', ', file.name, ', ', file.type, ', ', file.size);
+        document.getElementById('loading').style.visibility = 'visible';
         var reader = new FileReader();
         reader.onload = function() {
           _self._processCSVData(reader.result);
@@ -104,12 +108,14 @@ function(declare, lang, html, arrayUtils,
 
           csvStore.fetch({
               onComplete: function(items) {
+
                   var objectId = 0;
                   var featureCollection = _self._generateFeatureCollectionTemplateCSV(csvStore, items);
                   var popupInfo = _self._generateDefaultPopupInfo(featureCollection);
                   var infoTemplate = new InfoTemplate(_self._buildInfoTemplate(popupInfo));
                   var latField, longField;
                   var fieldNames = csvStore.getAttributes(items[0]);
+                  fieldNames.push(_config.lookupField);
                   fieldNames = fieldNames.concat(_queryFields);
 
                   arrayUtils.forEach(fieldNames, function(fieldName) {
@@ -130,7 +136,7 @@ function(declare, lang, html, arrayUtils,
                   arrayUtils.forEach(items, function(item) {
                       var attrs = fieldNames,
                           attributes = {};
-                      // Read all the attributes for  this record/item
+
                       arrayUtils.forEach(attrs, function(attr) {
                           var value = Number(csvStore.getValue(item, attr));
                           attributes[attr] = isNaN(value) ? csvStore.getValue(item, attr) : value;
@@ -144,6 +150,9 @@ function(declare, lang, html, arrayUtils,
                       var longitude = parseFloat(attributes[longField]);
 
                       if (isNaN(latitude) || isNaN(longitude)) {
+                           new Message({
+                                message: 'Location fields are invalid. Please check the .csv.'
+                             });
                           return;
                       }
 
@@ -159,13 +168,15 @@ function(declare, lang, html, arrayUtils,
                   if (_layerLoaded) {
                       _map.removeLayer(_featureLayer);
                   }
-
+                 // var spatialReference = new SpatialReference({wkid:4326});
                   _featureLayer = new FeatureLayer(featureCollection, {
                       infoTemplate: infoTemplate,
-                      id: 'csvLayer'
+                      id: 'csvLayer',
+                      name: 'CSV Layer'
                   });
+
                   _featureLayer.__popupInfo = popupInfo;
-                  document.getElementById('loading').style.visibility = 'visible';
+                  //document.getElementById('loading').style.visibility = 'visible';
                   _self._queryCoverage(_featureLayer);
 
               },
@@ -215,11 +226,13 @@ function(declare, lang, html, arrayUtils,
       };
 
       var fields = store.getAttributes(items[0]);
+      fields.push(_config.lookupField);
       fields = fields.concat(_queryFields);
       arrayUtils.forEach(fields, function(field) {
+          
           var value = store.getValue(items[0], field);
           var parsedValue = Number(value);
-          if (isNaN(parsedValue)) { 
+          if (isNaN(parsedValue) || field === _config.lookupField) { 
               featureCollection.layerDefinition.fields.push({
                   'name': field,
                   'alias': field,
@@ -280,7 +293,7 @@ function(declare, lang, html, arrayUtils,
                       };
                   } else if (item.type in decimal) {
                       format = {
-                          places: 2,
+                          places: 4,
                           digitSeparator: true
                       };
                   } else if (item.type in dt) {
@@ -326,6 +339,7 @@ function(declare, lang, html, arrayUtils,
   },
 
   _zoomToData: function(featureLayer) {
+    
     var multipoint = new Multipoint(_map.spatialReference);
     arrayUtils.forEach(featureLayer.graphics, function(graphic) {
         var geometry = graphic.geometry;
@@ -336,11 +350,28 @@ function(declare, lang, html, arrayUtils,
             });
         }
     });
-    _map.addLayer(featureLayer);
+    featureLayer.name='CSV Layer';
+    _map.addLayer(_self._buildRenderer(featureLayer));
     _layerLoaded = true;
-
+     if (multipoint.points.length > 0) {
+        _map.setExtent(multipoint.getExtent().expand(1.25), true);
+      }
 },
 
+
+_buildRenderer: function(featureLayer){
+
+  var sym1 = (_config.SymbolIn.type==='esriPMS')  ? new PictureMarkerSymbol(_config.SymbolIn)
+      : new SimpleMarkerSymbol(_config.SymbolIn);
+  var sym2 = (_config.SymbolIn.type==='esriPMS')  ? new PictureMarkerSymbol(_config.SymbolOut)
+      : new SimpleMarkerSymbol(_config.SymbolOut);
+  var renderer = new UniqueValueRenderer(sym1, _config.valIn);
+  renderer.addValue(_config.valIn,sym1);
+  renderer.addValue(_config.valOut,sym2);
+  featureLayer.setRenderer(renderer);
+
+  return featureLayer;
+},
 _queryCoverage: function(featureLayer1) {
     var c = 0;
     var dataList = [];
@@ -352,14 +383,21 @@ _queryCoverage: function(featureLayer1) {
         _qT.execute(_q, function getResults(results) {
             if (results.features.length > 0) {
                 var a = featureLayer1.graphics[c].attributes;
+                //console.log(a);
                 for (var i = 0; i < _queryFields.length; i++) {
+                  //console.log( results.features[0].attributes[_queryFields[i]] );
+
                    a[_queryFields[i]] = _self._validateItem(results.features[0].attributes[_queryFields[i]]);
+                   
                 }
                 //featureLayer1.graphics[c].symbol = _self._createMarkerSymbol(10,'#006600');
+                
+                a[_config.lookupField] = _self._validateItem(_config.inVal);
                 featureLayer1.graphics[c].symbol = sym1;
                 featureLayer1.graphics[c].attributes = a;
                 dataList.push(_self._removeOID(featureLayer1.graphics[c].attributes));  
             } else {
+              a[_config.lookupField] = _self._validateItem(_config.outVal);
                 //featureLayer1.graphics[c].symbol = _self._createMarkerSymbol(5,'#CC3300');
                 featureLayer1.graphics[c].symbol = sym2;
                 dataList.push(_self._removeOID(featureLayer1.graphics[c].attributes));
@@ -379,19 +417,25 @@ _queryCoverage: function(featureLayer1) {
 
 _validateItem: function(i){
 //TO DO - Harden this logic
+   return '"' + i + '"';
+   //;
 
-   if (!i.isNaN) { 
-        return parseFloat(i); 
-   }
-   return i;
+   //   if (isNaN(i)) { 
+   //    //console.log(i);
+   //      return '"' + i + '"';
+   //   }else{
+   //      //return parseFloat(i);
+   //      return '"' + i + '"';
+   // }
 },
 
 _removeOID: function(a){
-  var tmp = a;
-  if (tmp.__OBJECTID){
-    delete tmp.__OBJECTID;
-  }
-  return tmp;
+  return a;
+  // var tmp = a;
+  //  if (tmp.__OBJECTID){
+  //    delete tmp.__OBJECTID;
+  //  }
+  //  return tmp;
 },
 
 
@@ -411,7 +455,7 @@ _pushCSV: function(d) {
     var a = document.createElement('a');
     a.href = 'data:attachment/csv,' + encodedUri;
     a.target = '_blank';
-    a.download = 'GeoEnrich.csv';
+    a.download = _config.outCSVName + '.csv';
     document.body.appendChild(a);
     a.click();
 },

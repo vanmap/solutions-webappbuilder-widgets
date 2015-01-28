@@ -1,25 +1,77 @@
-<div style="width:100%;height:100%;">
-<label >Enter a polygon feature service endpoint:</label>
-<input type="text" name="usrURL" value=""
-    data-dojo-type="dijit.form.ValidationTextBox" data-dojo-attach-point="textURL" 
-    data-dojo-props="trim:true" id="textURL"  style="width:70%" />
-  <div class="jimu-btn" data-dojo-attach-point="goButton" type="goButton">Set URL</div>
-  </br></br>
-  <label> Or click a polygon layer from the loaded WebMap:</label></br></br>
-  <div  id="webMapSel"> 
-  </div>
-</br>
-  <input type="checkbox" id="chkCSVOut" data-dojo-attach-point="chkCSVOut" checked data-dojo-type="dijit.form.CheckBox"><label for="csvOut">Return enriched CSV as Download (Chrome and Firefox only)</label>
-  </br></br><label id="fldLabel" style="visibility:hidden"> Select the fields to use append: </label> </br>
-  <div id="fieldList" class="fieldList-cmbo" > </div></br></br>
-  
-<div id='parent' style="visibility:hidden">
-<div class='child'>
-    <label id="sym1Lab"> Select the symbol for locations within: </label>
-    <div data-dojo-attach-point="sym1" data-dojo-type="jimu/dijit/SymbolChooser" data-dojo-props='type:"marker"'></div>
-</div>
-<div class='child'>
-    <label id="sym2Lab"> Select the symbol for locations outside: </label></br>
-    <div data-dojo-attach-point="sym2" data-dojo-type="jimu/dijit/SymbolChooser" data-dojo-props='type:"marker"'></div>
-</div>
+<div style="width:100%;">
+    <div data-dojo-attach-point="fieldsPage" class="hide">
+        <label data-dojo-attach-point="layername"></label><br />
+        <div data-dojo-attach-point="tableFieldInfos"></div>
+    </div>
+
+    <div data-dojo-attach-point="advSettingsPage" class="hide">
+
+        <table class="setting-adv-table" cellspacing="0">
+            <tbody>
+
+                <tr class="controlsMulti">
+
+                    <td>
+                        <span>${nls.advSettings.latFieldsDesc}</span>
+
+                        <textarea class="textArea" data-dojo-attach-point="advSettingsLatValues" data-dojo-type="dijit/form/SimpleTextarea"></textarea>
+                    </td>
+                </tr>
+                <tr class="controlsMulti">
+
+                    <td>
+                        <span>${nls.advSettings.longFieldsDesc}</span>
+
+                        <textarea class="textArea" data-dojo-attach-point="advSettingsLongValues" data-dojo-type="dijit/form/SimpleTextarea"></textarea>
+                    </td>
+                </tr>
+                <tr class="controls">
+
+                    <td>
+                        <span>${nls.advSettings.intersectFieldDesc}</span>
+
+                        <div class="textBox" data-dojo-attach-point="advSettingsIntersectField" data-dojo-type="dijit/form/TextBox"></div>
+                    </td>
+                </tr>
+                <tr class="controls">
+
+                    <td>
+                        <span>${nls.advSettings.intersectInDesc}</span>
+
+                        <div class="textBox" data-dojo-attach-point="advSettingsIntersectInValue" data-dojo-type="dijit/form/TextBox"></div>
+                    </td>
+                 
+                </tr>
+                <tr class="controls">
+
+                    <td>
+                        <span>${nls.advSettings.intersectOutDesc}</span>
+
+                        <div class="textBox" data-dojo-attach-point="advSettingsIntersectOutValue" data-dojo-type="dijit/form/TextBox"></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table><br />
+    </div>
+    <div data-dojo-attach-point="mainPage" style="width:100%;">
+
+        <div class="settings-heading" data-dojo-attach-point="settingsHeader">${nls.settingsHeader}</div>
+        <div class="settings-description" data-dojo-attach-point="settingsDesc">${nls.settingsDesc}</div>
+        <div class="setting-layer-table" data-dojo-attach-point="tableLayerInfos"></div><br />
+        <div class="settings-error" data-dojo-attach-point="tableLayerInfosError" style="display:none">${nls.noPolygonLayers}</div><br />
+        <table class="settings-symbol-area" data-dojo-attach-point="symbolArea" cellspacing="0">
+            <tbody>
+                <tr >
+                    <td class="symbolItemLeft">
+                        <label data-dojo-attach-point="symbolWithinLabel" for="symbolWithin">${nls.symbolArea.symbolLabelWithin}</label>
+                        <div data-dojo-attach-point="symbolWithin" id="symbolWithin" data-dojo-type="jimu/dijit/SymbolChooser" data-dojo-props='type:"marker"'></div>
+                    </td>
+                    <td class="symbolItemLeft">
+                        <label data-dojo-attach-point="symbolOutsideLabel" for="symbolOutside">${nls.symbolArea.symbolLabelOutside}</label>
+                        <div data-dojo-attach-point="symbolOutside" id="symbolOutside" data-dojo-type="jimu/dijit/SymbolChooser" data-dojo-props='type:"marker"'></div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
 </div>

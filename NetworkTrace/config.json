@@ -1,0 +1,245 @@
+{
+
+   "resultpanel":{
+	"resultpanelSavetoLayer":true,
+	"resultpanelExportToCSV":true
+   },
+
+   "highlighterDetails": {
+        "image": "widgets/IsolationTrace/images/ani/blueglow.gif",
+        "height": 60,
+        "width": 60,
+        "timeout": 6000
+     },
+    "geoprocessing": {
+        "url": "http://54.214.226.84/arcgis/rest/services/IsolationTrace/GPServer/IsolationTrace",
+        "inputs": [
+            {
+                "paramName": "Flags",
+                "type": "Flag",
+                "symbol": {
+                    "type": "esriPMS",
+                    "url": "widgets/IsolationTrace/images/add-flag.png",
+                    "width":42,
+					"height":42,
+					"xoffset": 2,
+                    "yoffset": 15
+                }
+            },
+            {
+                "paramName": "Barriers",
+                "type": "Barrier",
+                "symbol": {
+                    "type": "esriPMS",
+                    "url": "widgets/IsolationTrace/images/add-barrigate.png",
+                    "width":42,
+					"height":42,
+					"xoffset": 2,
+                    "yoffset": 15
+                }
+            },
+            {
+                "paramName": "SkipLocations",
+                "type": "Skip",
+                "symbol": {
+                    "type": "esriSMS",
+                    "style": "path",
+                    "path": "M29.225,23.567l-3.778-6.542c-1.139-1.972-3.002-5.2-4.141-7.172l-3.778-6.542c-1.14-1.973-3.003-1.973-4.142,0L9.609,9.853c-1.139,1.972-3.003,5.201-4.142,7.172L1.69,23.567c-1.139,1.974-0.207,3.587,2.071,3.587h23.391C29.432,27.154,30.363,25.541,29.225,23.567zM16.536,24.58h-2.241v-2.151h2.241V24.58zM16.428,20.844h-2.023l-0.201-9.204h2.407L16.428,20.844z",
+                    "color": [
+                        255,
+                        255,
+                        0,
+                        255
+                    ],
+                    "outline": {
+                        "color": [
+                            0,
+                            0,
+                            0,
+                            255
+                        ],
+                        "style": "esriSLSSolid",
+                        "type": "esriSLS",
+                        "width": 1
+                    },
+                    "size": 30,
+                    "angle": 0,
+                    "xoffset": 0,
+                    "yoffset": 0
+                }
+            }
+        ],
+        "outputs": [
+            {
+                "paramName": "Affected_Area",
+                "type": "Overview",
+                "buttonText": "Summary",
+                "visible": "true",
+                "MinScale": 10000,
+                "MaxScale": 0,
+                "symbol": {
+                    "type": "simplefillsymbol",
+                    "style": "esriSFSNull",
+                    "color": [
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "outline": {
+                        "type": "esriSLS",
+                        "style": "esriSLSSolid",
+                        "color": [
+                            255,
+                            0,
+                            0,
+                            255
+                        ],
+                        "width": 3
+                    }
+                },
+                "saveOptions": {
+                    "type": "layer",
+                    "name": "Outage Area"
+                },
+                "fieldMap": [
+                    {
+                        "fieldName": "NUMHYDS",
+                        "paramName": "Isolated_Hydrants"
+                    },
+                    {
+                        "fieldName": "NUMVALVES",
+                        "paramName": "Isolating_Valves"
+                    },
+                    {
+                        "fieldName": "CUSTOUT",
+                        "paramName": "Isolated_Customers"
+                    }
+                ]
+            },
+            {
+                "paramName": "Isolating_Valves",
+                "type": "Result",
+                "buttonText": "Valves",
+                "summaryText": "{Count} Valves Returned in Trace, {SkipCount} were bypassed.",
+                "displayText": "{DIAMETER} inch Valve: {FACILITYID}",
+                "MinScale": 10000,
+                "MaxScale": 0,
+                "symbol": {
+                    "type": "esriSMS",
+                    "style": "esriSMSCircle",
+                    "color": [
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "size": 22,
+                    "angle": 0,
+                    "xoffset": 0,
+                    "yoffset": -1,
+                    "outline": {
+                        "color": [
+                            255,
+                            0,
+                            0,
+                            255
+                        ],
+                        "width": 4
+                    }
+                },
+                "bypassDetails": {
+                    "skipable": false,
+                    "IDField": "FACILITYID"
+                },
+                "saveOptions": {
+					"CSV":true,
+                    "type": "layer",
+                    "name": "Isolating System Valves"
+                }
+            },
+            {
+                "paramName": "Isolated_Hydrants",
+                "type": "Result",
+                "buttonText": "Hydrants",
+                "summaryText": "{Count} Hydrants would be affected by a shutdown in this area.",
+                "displayText": "{MANUFACTURER} Hydrant {FACILITYID}",
+                "MinScale": 10000,
+                "MaxScale": 0,
+                "symbol": {
+                    "type": "esriSMS",
+                    "style": "esriSMSCircle",
+                    "color": [
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "size": 22,
+                    "angle": 0,
+                    "xoffset": 0,
+                    "yoffset": -2,
+                    "outline": {
+                        "color": [
+                            255,
+                            255,
+                            0,
+                            255
+                        ],
+                        "width": 4
+                    }
+                },
+                "bypassDetails": {
+                    "skipable": false,
+                    "IDField": "FACILITYID"
+                },
+                "saveOptions": {
+					"CSV":true,
+                    "type": "layer",
+                    "name": "Isolated Hydrants"
+                }
+            },
+            {
+                "paramName": "Isolated_Customers",
+                "type": "Result",
+                "buttonText": "Customers",
+                "summaryText": "{Count} Customers would be affected by a shutdown in this area.",
+                "displayText": "Customer {FACILITYID}",
+                "MinScale": 10000,
+                "MaxScale": 0,
+                "symbol": {
+                    "type": "esriSMS",
+                    "style": "esriSMSCircle",
+                    "color": [
+                        0,
+                        0,
+                        0,
+                        0
+                    ],
+                    "size": 22,
+                    "angle": 0,
+                    "xoffset": 1,
+                    "yoffset": -1,
+                    "outline": {
+                        "color": [
+                            122,
+                            122,
+                            255,
+                            255
+                        ],
+                        "width": 4
+                    }
+                },
+                "bypassDetails": {
+                    "skipable": false,
+                    "IDField": "FACILITYID"
+                },
+                "saveOptions": {
+					"CSV":true,
+                    "type": "layer",
+                    "name": "Isolated Customers"
+                }
+            }
+        ]
+    }
+}

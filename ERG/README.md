@@ -1,5 +1,5 @@
 # Bomb Threat
-The Emergency Response Guide (ERG) widget allows users to determine potential hazards based on the type of chemical spill and user-selected location on the map. 
+The Emergency Response Guide (ERG) widget allows users to determine potential hazards based on the type of chemical spill and user-selected location on the map.
 
 ## Sections
 
@@ -16,7 +16,7 @@ The Emergency Response Guide (ERG) widget allows users to determine potential ha
 * Select spill size
 * Select wind direction and speed
 * Select time of day the spill occurred
-* Ability to allow user select a location on the map 
+* Ability to allow user select a location on the map
 * Displays affected location, demography and facilities
 
 ## Requirements
@@ -31,11 +31,8 @@ In order to develop and test widgets you need to deploy the ERG directory to the
 ## Contributing
 Esri welcomes contributions from anyone and everyone. Please see our [guidelines for contributing](https://github.com/esri/contributing).
 
-All web application produced follow Esri's tailcoat style guide
-http://arcgis.github.io/tailcoat/styleguides/css/
-
 If you are using [JS Hint](http://http://www.jshint.com/) there is a .jshintrc file included in the root folder which enforces this style.
-We allow for 120 characters per line instead of the highly restrictive 80. 
+We allow for 120 characters per line instead of the highly restrictive 80.
 
 ## Licensing
 Copyright 2013 Esri

@@ -1,13 +1,7 @@
-<<<<<<< HEAD
 # Emergency Response Guide
 The Emergency Response Guide (ERG) widget allows users to determine potential hazards based on the type of chemical spill and user-selected location on the map. 
-=======
-# Bomb Threat
-The Emergency Response Guide (ERG) widget allows users to determine potential hazards based on the type of chemical spill and user-selected location on the map.
->>>>>>> upstream/master
 
 ## Sections
-
 * [Features](#features)
 * [Requirements](#requirements)
 * [Instructions](#instructions)

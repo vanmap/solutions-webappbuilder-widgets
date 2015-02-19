@@ -1,5 +1,5 @@
-# CI/KR
-
+# Critical Infrastructure and Key Resources
+The Critical Infrastructure and Key Resources (CI/KR) widget allows users to determine affected instrastructure and demography based on user-selected location on the map. 
 
 ## Sections
 
@@ -12,13 +12,16 @@
 * [Licensing](#licensing)
 
 ## Features
-The
+* Ability to allow user select a location on the map 
+* Displays affected location, demography and facilities
+
+## Requirements
+* ArcGIS WebApp Builder v.1.0
 
 ## Instructions
-Deploying Widget
+In order to develop and test widgets you need to deploy the CI/KR directory to the stemapp/widgets directory in your WebApp Builder installation.
 
 ## Issues
-
 * Find a bug or want to request a new feature?  Please let us know by submitting an issue.
 
 ## Contributing
@@ -29,7 +32,6 @@ If you are using [JS Hint](http://http://www.jshint.com/) there is a .jshintrc f
 We allow for 120 characters per line instead of the highly restrictive 80.
 
 ## Licensing
-
 Copyright 2013 Esri
 
 Licensed under the Apache License, Version 2.0 (the "License");

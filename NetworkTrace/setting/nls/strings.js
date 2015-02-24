@@ -1,8 +1,58 @@
 ﻿define({
     root: {
-   taskUrl:"Task URL",
-   setTask:"Set",
-   validate:"Set",
-   inValidGPService:"Please Enter Valid Geoprocessing Service !!"
+        taskUrl: "Task URL",
+        setTask: "Set",
+        validate: "Set",
+        inValidGPService: "Please Enter Valid Geoprocessing Service !!",
+        invalidURL: "Task URL is invalid",
+        // left panel
+        inputTask: "Input",
+        outputTask: "Output",
+        outageTask: "Outage",
+        otherTask: "Others",
+        // input details
+        inputType: "Type",
+        inputTypeFlag: "Flag",
+        inputTypeBarriers: "Barriers",
+        inputTypeSkip: "Skip",
+        inputName: "Name",
+        inputRequired: "Required",
+        inputLabel: "Label",
+        inputTooltip: "Tooltip",
+        symbol: "Symbol",
+        // output details
+        outputExport: "Export to CSV",
+        outputLayer: "Save To Layer",
+        outputLayerType: "Target Layer",
+        outputDisplay: "Display Text",
+        outputSummary: "Summary Text",
+        others: "Other",
+        skip: "Skippable",
+        skippableField: "Skippable Field",
+        panelText: "Panel Text",
+        //For Outage
+        outage: "Outage",
+        outageParameter: "Outage ParamName",
+        isvisible: "Visible",
+        OutageFieldName: "Field Name",
+        OutageParamName: "Parameter Name",
+        inputVisiblity: "Visible",
+        // Others
+        othersHighlightertext: "Highlighter Image",
+        selectImage: "Image Path",
+        height: "Image Height",
+        width: "Image Width",
+        timeout: "Timeout",
+        imgPathHint1: "Hint:Set a relative path.",
+        imgPathHint2: "Example:widgets/IsolationTrace/images/ani/blueglow.gif",
+        imgPathHint3: "Example:widgets/IsolationTrace/images/ani/redglow.gif",
+        example: "Example",
+        example00: "widgets/IsolationTrace/images/ani/blueglow.gif",
+        example01: "Description:Set a relative path.",
+        example02: "",
+        pixel: "(Pixels)",
+        miliseconds: "(miliseconds)",
+        outputminScale: "Min Scale",
+        outputmaxScale: "Max Scale"
     }
 });

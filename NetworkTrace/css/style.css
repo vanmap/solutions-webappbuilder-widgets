@@ -10,6 +10,7 @@
     height: 42px;
     background-repeat: no-repeat;
     background-image: url("../images/add-flags.png");
+    background-color: #858585;
 }
 
 .jimu-widget-IsolationTrace .barrierButton
@@ -20,6 +21,7 @@
     height: 42px;
     background-repeat: no-repeat;
     background-image: url("../images/add-barriers.png");
+    background-color: #858585;
 }
 
 .flagButtonselected
@@ -30,6 +32,7 @@
     height: 42px;
     background-repeat: no-repeat;
     background-image: url("../images/add-flags-select.png");
+    background-color: #858585;
 }
 .barrierButtonselected
 {
@@ -38,7 +41,8 @@
     width: 42px;
     height: 42px;
     background-repeat: no-repeat;
-    background-image: url("../images/add-barriers-select.png");
+    background-image: url("../images/add-barriers-select .png");
+    background-color: #858585;
 }
 
 .tracePanel
@@ -58,7 +62,6 @@
 .btnBarrierStyle
 {
     float: right;
-  
 }
 
 .flagLabel
@@ -106,6 +109,7 @@
     background-image: url("../images/skip.png");
     background-color: #666666;
     margin-bottom: 5px;
+    margin-top: 5px;
 }
 
 .resultItemButtonSkipIconSelected
@@ -113,6 +117,7 @@
     background-image: url("../images/skip.png");
     background-color: #ff0000;
     margin-bottom: 5px;
+    margin-top: 5px;
 }
 
 .resultItemButtonZoomIcon
@@ -120,6 +125,7 @@
     background-image: url("../images/ZoomTo.png");
     background-color: #666666;
     margin-bottom: 5px;
+    margin-top: 5px;
 }
 
 .resultItemButtonZoomIconSelected
@@ -127,6 +133,7 @@
     background-image: url("../images/ZoomTo.png");
     background-color: #ff0000;
     margin-bottom: 5px;
+    margin-top: 5px;
 }
 
 .runIconidle
@@ -145,6 +152,10 @@
     width: 40px;
 }
 
+.traceControlDisabledDiv
+{
+    cursor: default;
+}
 
 
 .dijitButtonNode
@@ -192,7 +203,6 @@
     background: none repeat scroll 0 0 #485566;
     border: medium none;
     border-radius: 2px;
-    color: #ffffff;
     cursor: pointer;
     font-size: 12px;
     min-width: 70px;
@@ -205,20 +215,19 @@
 }
 .jimu-btn:hover
 {
-    color: #efefef;
     background: none repeat scroll 0 0 #485566;
 }
 .jimu-btn.jimu-state-disabled:hover
 {
     background: none repeat scroll 0 0 #ccc;
-    color: #ffffff;
+    cursor: default;
 }
 
 .jimu-btn.jimu-state-disabled
 {
     background: none repeat scroll 0 0 #ccc;
     box-shadow: 0 0 0 0px #d9dde0 inset;
-    color: #ffffff;
+    cursor: default;
 }
 .resultPanelContainer
 {
@@ -308,9 +317,11 @@
     float: left;
 }
 
-#Isolated_CustomersCP {
-  border-bottom: 1px solid #b5bcc7;
+#Isolated_CustomersCP
+{
+    border-bottom: 1px solid #b5bcc7;
 }
-.claro .dijitTitlePaneTitleFocus {
-outline: none;
+.claro .dijitTitlePaneTitleFocus
+{
+    outline: none;
 }

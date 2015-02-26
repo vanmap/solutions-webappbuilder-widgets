@@ -1,0 +1,22 @@
+{
+  "name": "ServiceFeasibility",
+  "platform": "HTML",
+  "version": "1.0",
+  "wabVersion": "1.1",
+  "author": "Local Government Team",
+  "description": "",
+  "copyright": "",
+  "license": "http://www.apache.org/licenses/LICENSE-2.0",
+  "properties": {
+		"inPanel":true,
+		"hasLocale": true,
+		"hasStyle":true,
+		"hasConfig":true,
+		"hasUIFile":true,
+		"hasSettingPage":true,
+		"hasSettingUIFile":true,
+		"hasSettingLocale":true,
+		"hasSettingStyle":true,
+		"IsController":false
+  }
+}

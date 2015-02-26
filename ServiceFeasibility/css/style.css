@@ -1,0 +1,293 @@
+@import url('http://js.arcgis.com/3.12/dijit/themes/claro/claro.css');
+
+.businessInfluenceInput{
+margin-top:-20px;
+}
+
+.jimu-widget-frame.jimu-container
+{
+overflow-x: auto;
+overflow-y: auto;
+position: relative;
+background-color: white;
+padding: 0px 0px 0px 0px;
+}
+
+.jimu-widget-ServiceFeasibility .findNearestContainer
+{
+float: left;
+padding: 15px;
+width: 100%;
+}
+
+.jimu-widget-ServiceFeasibility .divSelectFindNearest
+{
+float: right;
+width: 200px;
+}
+.jimu-widget-ServiceFeasibility .divSelectFindNearest select
+{
+width: 100%;
+border: 1px solid #B5BCC7;
+height: 30px;
+}
+
+.jimu-widget-ServiceFeasibility .lblFindNearest
+{
+margin-top: 5px;
+float: left;
+}
+.jimu-widget-ServiceFeasibility .businessInfluenceContainer
+{
+float: left;
+padding: 0 15px 15px 15px;
+width: 100%;
+}
+.jimu-widget-ServiceFeasibility .imgPoint
+{
+float: left;
+cursor: pointer;
+width: 42px;
+height: 42px;
+background-repeat: no-repeat;
+background-image: url("../images/draw-point.png");
+margin-right: 10px;
+}
+
+.jimu-widget-ServiceFeasibility .imgPolyline
+{
+float: left;
+cursor: pointer;
+width: 42px;
+height: 42px;
+background-repeat: no-repeat;
+background-image: url("../images/draw-line.png");
+margin-right: 10px;
+}
+
+.jimu-widget-ServiceFeasibility .imgPolygon
+{
+float: left;
+cursor: pointer;
+width: 42px;
+height: 42px;
+background-repeat: no-repeat;
+background-image: url("../images/draw-polygon.png");
+margin-right: 10px;
+}
+
+.jimu-widget-ServiceFeasibility .imgPointSelected
+{
+float: left;
+cursor: pointer;
+width: 42px;
+height: 42px;
+background-repeat: no-repeat;
+background-image: url("../images/draw-point-select.png");
+background-color: #858585;
+margin-right: 10px;
+}
+
+.jimu-widget-ServiceFeasibility .imgPolylineSelected
+{
+float: left;
+cursor: pointer;
+width: 42px;
+height: 42px;
+background-repeat: no-repeat;
+background-image: url("../images/draw-line-select.png");
+background-color: #858585;
+margin-right: 10px;
+}
+
+.jimu-widget-ServiceFeasibility .imgPolygonSelected
+{
+float: left;
+cursor: pointer;
+width: 42px;
+height: 42px;
+background-repeat: no-repeat;
+background-image: url("../images/draw-polygon-select.png");
+background-color: #858585;
+margin-right: 10px;
+}
+
+.jimu-widget-ServiceFeasibility .imgSelectLocationSelected
+{
+float: left;
+cursor: pointer;
+width: 42px;
+height: 42px;
+background-repeat: no-repeat;
+background-image: url("../images/Map-location-select.png");
+background-color: #858585;
+margin-right: 10px;
+}
+
+
+
+.jimu-widget-ServiceFeasibility .imgSelectLocation
+{
+float: left;
+cursor: pointer;
+width: 42px;
+height: 42px;
+background-repeat: no-repeat;
+background-image: url("../images/Map-location.png");
+margin-right: 10px;
+}
+.jimu-tab > .control > .tab.jimu-state-selected
+{
+border-top: none;
+}
+
+.jimu-widget-ServiceFeasibility .buisnessInfluenceValue
+{
+float: left;
+padding-top: 5px;
+}
+.jimu-widget-ServiceFeasibility .businessInfluenceInput
+{
+float: right;
+width: 200px;
+}
+.jimu-widget-ServiceFeasibility .businessInfluenceInput div.dijitTextBox
+{
+width: 200px;
+}
+.jimu-widget-ServiceFeasibility .businessInfluenceSlider
+{
+clear: both;
+padding: 10px 0px 10px 0px;
+}
+
+.jimu-widget-ServiceFeasibility .divSelectLocationOnMapContainer, .divFeasibilityButtonsContainer, .divDrawBarriersOnMapContainer
+{
+clear: both;
+float: left;
+padding: 0 15px;
+margin-bottom: 15px;
+}
+.jimu-widget-ServiceFeasibility .drawBarriersOnMapLabel, .selectLocationOnMapLabel
+{
+margin-bottom: 5px;
+}
+.jimu-widget-ServiceFeasibility .divResultContainer
+{
+height:100px;
+padding:10px 25px 0px 25px;
+}
+.jimu-widget-ServiceFeasibility .divRouteLengthContainer
+{
+height: 100%;
+border: 2px solid #485566;
+width: 44%;
+float: left;
+padding:12px 5px 0px 5px;
+box-shadow: 0px 1px 8px 0px rgba(0, 0, 0, 0.1);
+}
+.jimu-widget-ServiceFeasibility .divBusinessPassedContainer
+{
+height: 100%;
+width: 44%;
+border: 2px solid #485566;
+float: right;
+padding:12px 5px 0px 5px;
+box-shadow: 0px 1px 8px 0px rgba(0, 0, 0, 0.1);
+
+}
+.jimu-widget-ServiceFeasibility .routeLengthLabel
+{
+text-align: center;
+font-size: 14px;
+height:50%;
+}
+.jimu-widget-ServiceFeasibility .businessPassedLabel
+{
+text-align: center;
+font-size: 14px;
+height:50%;
+}
+.tab jimu-vcenter-text
+{
+border-bottom:1px solid #485566;
+}
+.jimu-tab>.control>.tab.jimu-state-selected
+{
+border-bottom:none;
+border-right:none;
+}
+.jimu-tab>.control>.tab
+{
+border-bottom:1px solid #485566;
+border-right:1px solid #485566;
+   
+}
+.jimu-tab>.control>.tab.jimu-state-selected+.tab
+{
+    border-left:1px solid #485566;
+}
+.jimu-widget-ServiceFeasibility .divFeasibilityButtonsContainer
+{
+float: left;
+width: 100%;
+margin-top: 20px;
+padding-left: 24%;
+padding-right: 24%;
+}
+.jimu-widget-ServiceFeasibility #btnFindButton
+{
+height: 30px;
+width: 85px;
+cursor:default;
+}
+.jimu-widget-ServiceFeasibility #btnClearButton
+{
+float: right;
+height: 30px;
+width: 85px;
+cursor:default;
+
+}
+.jimu-widget-ServiceFeasibility .buttonEnabledColorChange{
+background-color: #485566;
+border: 1px solid #485566;
+color: white;
+cursor:pointer !important;
+}
+.jimu-widget-ServiceFeasibility .routeLengthCountContainer
+{
+height:50%;
+font-size: 16px;
+text-align: center;
+width: 100%;
+}
+.jimu-widget-ServiceFeasibility .businessPassedCount
+{
+height:50%;
+font-size: 16px;
+text-align: center;
+width: 100%;
+
+}
+.jimu-widget-ServiceFeasibility .runLoadingIndicator
+{
+margin-top:60px !important;
+margin-left:50px !important;
+background-position: center bottom !important;
+position:absolute;
+
+}
+.jimu-widget-ServiceFeasibility .businessDropdownLabel
+{
+    margin-bottom:5px;
+}
+.jimu-widget-ServiceFeasibility .changeForResultContainer
+{
+    border-right:none !important;
+}
+.jimu-widget-ServiceFeasibility .disableColorChange
+{
+    background-color:#d9dde0;
+    color:#86909c;
+}

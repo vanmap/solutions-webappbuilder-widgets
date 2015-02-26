@@ -1,0 +1,133 @@
+.fldSetServiceAreaParameters
+{
+    border: 1px solid #a0acbf;
+    padding-left: 5px;
+    padding-bottom: 5px;
+    padding-top: 15px;
+    margin-top: 15px;
+}
+
+.fldSetClosestFacilityParameters
+{
+    border: 1px solid #a0acbf;
+    padding-left: 5px;
+    padding-bottom: 5px;
+    padding-top: 5px;
+    margin-top: 15px;
+    margin-bottom: 5px;
+}
+
+.fieldSetLegend
+{
+    color:#48494B;
+}
+
+.SFlabel
+{
+    width: 40%;
+padding: 5px;
+word-break: break-all;
+margin-top: 5px;
+margin-bottom: 5px;
+float: left;
+padding-left: 0px;
+}
+
+.row
+{
+    clear:both;
+}
+
+.inputbox input{ width:59%; height: 30px;}
+.inputbox select{ width:59%;}
+.inputbox table{ width:59%; }
+.chkbox {width: 59%; float: left; padding: 5px;}
+
+.inputurlbox input{width:52%; height: 30px;}
+
+.urlButton{margin: -2px 10px 0px 0px; border: 0px;}
+
+.claro .dijitArrowButtonContainer{width:30px!important;}
+
+.input
+{
+    width: 59%;
+}
+
+.divBusinessesLayerContainer
+{
+    margin-bottom: 4px;
+    margin-top: 4px;
+}
+
+.divAccessPointLayersContainer
+{
+    margin-bottom: 4px;
+    margin-top: 4px;
+}
+
+.divRouteLengthUnitsContainer
+{
+    margin-bottom: 4px;
+    margin-top: 4px;
+}
+
+.divBusinessListContainer
+{
+    margin-bottom: 4px;
+    margin-top: 4px;
+}
+
+.divServiceAreaParametersContainer
+{
+    margin-bottom: 4px;
+    margin-top: 4px;
+}
+
+.divBufferDistanceContainer
+{
+    margin-bottom: 4px;
+    margin-top: 4px;
+}
+
+.divBufferUnitsContainer
+{
+    margin-bottom: 4px;
+    margin-top: 4px;
+}
+
+.divBufferWKIDContainer
+{
+    margin-bottom: 4px;
+    margin-top: 4px;
+}
+
+.divClosestFacilityParametersContainer
+{
+    margin-bottom: 4px;
+    margin-top: 4px;
+}
+
+.divClosestFacilityURLContainer
+{
+    margin-bottom: 4px;
+    margin-top: 4px;
+}
+
+.divFacilitySearchDistanceContainer
+{
+    margin-bottom: 4px;
+    margin-top: 4px;
+}
+
+.divImpedanceAttributeContainer
+{
+    margin-bottom: 4px;
+    margin-top: 4px;
+}
+
+.divCutoffDistanceContainer
+{
+    margin-bottom: 4px;
+    margin-top: 4px;
+}

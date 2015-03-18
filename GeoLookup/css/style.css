@@ -24,6 +24,12 @@ input[type="file"] {
     top: -1000px;
 }
 
+.chkPlotOnly {
+    position: fixed;
+    top: -1500px;
+}
+
+
 /*Results Table*/
 .solutions-widget-geolookup .widgets-results-table {
     margin: 1px;
@@ -57,6 +63,10 @@ input[type="file"] {
 
 .complete {
     content: url("./images/complete.png");
+}
+
+.bypass {
+    content: url("");
 }
 
 .result-text {

@@ -25,7 +25,6 @@ define(['dojo/_base/declare',
         'dojo/string',
         'dojo/dom-class',
         'dojo/dom-construct',
-        'dojo/dom-style',
         'dojox/data/CsvStore',
         'dojox/encoding/base64',
         'esri/graphic',
@@ -58,7 +57,6 @@ define(['dojo/_base/declare',
         string,
         domClass,
         domConstruct,
-        domStyle,
         CsvStore,
         base64,
         Graphic,
@@ -90,7 +88,6 @@ define(['dojo/_base/declare',
             renderer: null,
             srWebMerc: null,
             syncLayers: null,
-            enrichFilter: null,
             enrichResultsProg: {},
             enrichResultsText: {},
             postCreate: function () {
@@ -136,14 +133,14 @@ define(['dojo/_base/declare',
                         });
                     }
                 }, this);
-                this.loading.hide();
 
+                this.loading.hide();
             },
             _buildRenderer: function () {
 
                 this.symIn = symbolJsonUtils.fromJson(this.config.SymbolWithin);
                 this.symOut = symbolJsonUtils.fromJson(this.config.SymbolOutside);
-                this.renderer = new UniqueValueRenderer(this.symOut, this.config.valueOut);
+                this.renderer = new UniqueValueRenderer(this.symIn, this.config.valueIn);
                 this.renderer.addValue(this.config.valueIn, this.symIn);
                 this.renderer.addValue(this.config.valueOut, this.symOut);
 
@@ -192,7 +189,7 @@ define(['dojo/_base/declare',
                 this._processFiles(dataTransfer.files);
             },
             _processFiles: function (files) {
-                domClass.add(this.showFileDialogBtn, 'jimu-state-disabled');
+                domClass.add(this.showFileDialogBtn, 'jimu-state-disabled')
                 this._resetResults();
                 if (files.length > 0) {
                     var file = files[0];
@@ -203,13 +200,11 @@ define(['dojo/_base/declare',
                             Message({
                                 message: 'File could not be processed.'
                             });
-                            domClass.remove(this.showFileDialogBtn, 'jimu-state-disabled');
                         }
                     } else {
                         new Message({
                             message: 'Only comma delimited files (.csv) files are supported at this time.'
                         });
-                        domClass.remove(this.showFileDialogBtn, 'jimu-state-disabled');
                     }
                 }
             },
@@ -241,7 +236,7 @@ define(['dojo/_base/declare',
                 this.csvStore.fetch({
                     onComplete: lang.hitch(this, this._csvReadComplete),
                     onError: lang.hitch(this, function (error) {
-                        domClass.remove(this.showFileDialogBtn, 'jimu-state-disabled');
+                        domClass.remove(this.showFileDialogBtn, 'jimu-state-disabled')
                         var msg = string.substitute(this.nls.error.fetchingCSV,
                               { 0: error.message });
                         Message({ message: msg });
@@ -303,7 +298,6 @@ define(['dojo/_base/declare',
                     }, this);
 
                     attributes.__OBJECTID = objectId;
-                    attributes[this.config.intersectField] = this.config.valueOut;
                     objectId++;
 
                     var latitude = parseFloat(attributes[this.latField]);
@@ -343,99 +337,13 @@ define(['dojo/_base/declare',
                 });
                 this.featureLayer.setRenderer(this.renderer);
                 domClass.replace(this.resultsPlottingImage, "complete", "processing");
-                
-                if(!this.chkboxPlotOnly.checked) {
-	                var event = on(this.map, "extent-change", lang.hitch(this,function(featureLayer){ 
-	                	array.forEach(this.config.enrichLayers, lang.hitch(this,function (enrich) {
-	                		this._cacheEnrichLayer(this.featureLayer, enrich);
-	                	}));
-	                	event.remove();
-	                }));
-                	for (var key in this.enrichResultsProg) {
-	                    if (this.enrichResultsProg.hasOwnProperty(key)) {	              
-	                		domStyle.set(this.enrichResultsProg[key],"display","block");
-	                	}
-	                }
-                }
-                else {
-                	for (var key in this.enrichResultsText) {
-	                    if (this.enrichResultsText.hasOwnProperty(key)) {
-	                    	this.enrichResultsText[key].innerHTML = "";	                   	
-	                    }
-                	}
-                	for (var key in this.enrichResultsProg) {
-	                    if (this.enrichResultsProg.hasOwnProperty(key)) {
-	                    	domStyle.set(this.enrichResultsProg[key],"display","none");	                    	
-	                    }
-                	}                	
-                }           
+                this._enrichData(this.featureLayer);
                 this._zoomToData(this.featureLayer);
 
             },
-            
-            _cacheEnrichLayer: function(flayer,enrich) {            	
-            	//array.forEach(this.config.enrichLayers, lang.hitch(this,function (enrich) {
-            		queryTask = new QueryTask(enrich.mapLayer.url);
-            		query = new Query();
-                    query.returnGeometry = true;
-                    query.geometry = this.map.extent;
-                    query.outFields = ["*"];
-					queryTask.executeForCount(query, lang.hitch(this, function(count){
-						if (count > parseInt(this.config.cacheNumber)) {
-							this.enrichFilter = [];
-							this.enrichFilter.push(enrich);
-							lang.hitch(this, this._enrichData(flayer,this.enrichFilter));
-						} else {
-							delayedQueryTask = new QueryTask(enrich.mapLayer.url);					
-							delayedQueryTask.execute(query, lang.hitch(this, function(results){				
-								lang.hitch(this, this._processCacheLayers(results,flayer,enrich));								
-							}));
-						}
-					}));                    					
-            	//}));
-            },
-            _processCacheLayers: function(results,flayer,enLayer) {          	
-            	var counter = 0;
-            	var isComplete = false;
-            	if (results.features.length > 0) {
-            		array.forEach(flayer.graphics, lang.hitch(this, function(layer){
-            			counter++;
-            			array.forEach(results.features, lang.hitch(this, function(result){
-            				if(result.geometry.contains(layer.geometry)) {
-            					var fields = array.map(enLayer.fields, function (field) { return field.fieldName; }); 			                    
-		                        array.forEach(fields, lang.hitch(this,function (field) {
-		                            if (result.attributes[field]) {
-		                                layer.attributes[field] = result.attributes[field];                         
-		                            }
-		                        }));
-		                        layer.attributes[this.config.intersectField] = this.config.valueIn;
-		                        layer.symbol = this.symIn;			                    
-			                             					
-            				}
-            				else {          					
-            					//does not intersect           					           					
-            				}
-            			}));
-	                    this._requestComplete({
-	                        'layerID': enLayer.mapLayer.id,
-	                        'currentNumber': counter,
-	                        'totalRecords': flayer.graphics.length,
-	                        'name': enLayer.mapLayer.name
-	                    });             			
-            			isComplete = true;
-            		}));
-	            	if(isComplete){
-	            		domClass.replace(this.enrichResultsProg[enLayer.mapLayer.id], "complete", "processing");
-	                	this.featureLayer.redraw();
-	                	domClass.remove(this.showFileDialogBtn, 'jimu-state-disabled'); 
-	                }          	
-            	}	
-            },
-            
-            _enrichData: function (flayer,enrichLayers) {
+            _enrichData: function (flayer) {
                 this.syncLayers = [];
-                //array.forEach(this.config.enrichLayers, function (layer) {
-                array.forEach(enrichLayers, function (layer) {
+                array.forEach(this.config.enrichLayers, function (layer) {
                     var idx = 0;
                     var fields = array.map(layer.fields, function (field) { return field.fieldName; });
                     syncDet = new layerQueryDetails(
@@ -482,7 +390,7 @@ define(['dojo/_base/declare',
                                 lang.hitch(this, this.queryCallback(chunks, idx + 1, layer, fields, syncDet)),
                                 lang.hitch(this, this.queryErrorback()));
                             syncDet.addDeferred(def, chunks[idx]);
-							this.featureLayer.redraw();
+
                         }
                         return { 'results': results };
                     };
@@ -505,7 +413,7 @@ define(['dojo/_base/declare',
                     return;
                 }
                 this.featureLayer.redraw();
-                domClass.remove(this.showFileDialogBtn, 'jimu-state-disabled');
+                domClass.remove(this.showFileDialogBtn, 'jimu-state-disabled')
             },
             _requestComplete: function (args) {
                 this.enrichResultsText[args.layerID].innerHTML = string.substitute(this.nls.results.recordsEnriched,
@@ -711,6 +619,7 @@ define(['dojo/_base/declare',
             },
 
             _zoomToData: function (featureLayer) {
+
                 var multipoint = new Multipoint(this.map.spatialReference);
                 array.forEach(featureLayer.graphics, function (graphic) {
                     var geometry = graphic.geometry;
@@ -726,10 +635,7 @@ define(['dojo/_base/declare',
                 this.layerLoaded = true;
                 if (multipoint.points.length > 0) {
                     this.map.setExtent(multipoint.getExtent().expand(1.25), true);
-                    if(this.chkboxPlotOnly.checked) {
-                    	domClass.remove(this.showFileDialogBtn, 'jimu-state-disabled'); 
-                    }
-                } 
+                }
             },
 
         });

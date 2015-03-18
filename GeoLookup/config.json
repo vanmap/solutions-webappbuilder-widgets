@@ -3,6 +3,6 @@
     "longFields": [ "lon", "long", "longitude", "x", "xcenter", "point_x" ],
     "valueOut": "Out",
     "valueIn": "In",
-    "intersectField": "intersected"
-  
+    "intersectField": "intersected",
+  	"cacheNumber": "1000"
 }

@@ -3,6 +3,7 @@ define({
         _widgetLabel: "GeoLookup",
         description: "Browse to or Drag a <a href='./widgets/geolookup/data/sample.csv' tooltip='Download an example sheet'> spreadsheet </a> here to visualize, and append map data to it.",
         selectCSV: "Select a CSV",
+        plotOnly: "Only Plot Points",
         error: {
             fetchingCSV: 'Error fetching items from CSV store: ${0}'
         },

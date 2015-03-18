@@ -376,7 +376,7 @@ define([
               this.config.intersectField = this.advSettingsIntersectField.get("value");
               this.config.valueIn = this.advSettingsIntersectInValue.get("value");
               this.config.valueOut = this.advSettingsIntersectOutValue.get("value");
-
+			  this.config.cacheNumber = this.advSettingsCacheNumber.get("value");
           },
           showAdvSettings: function () {
 
@@ -396,6 +396,7 @@ define([
               this.advSettingsIntersectField.set("value", this.config.intersectField);
               this.advSettingsIntersectInValue.set("value", this.config.valueIn);
               this.advSettingsIntersectOutValue.set("value", this.config.valueOut);
+              this.advSettingsCacheNumber.set("value", this.config.cacheNumber);
 
               html.addClass(this.mainPage, 'hide');
               html.removeClass(this.advSettingsPage, 'hide');

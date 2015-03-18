@@ -22,6 +22,7 @@ define({
             intersectFieldDesc: "The name of the field created to store value if lookup intersected a layer.",
             intersectInDesc: "Value to store when location intersected a polygon.",
             intersectOutDesc: "Value to store when location did not intersected a polygon.",
+            cacheNumberDesc: "Feature count threshold to cache so lookup is quicker."
         },
         noPolygonLayers: "No Polygon Layers",
         errorOnOk: "Please fill out all parameters before saving config",

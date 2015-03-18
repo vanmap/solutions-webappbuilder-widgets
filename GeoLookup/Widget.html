@@ -5,6 +5,7 @@
         <form data-dojo-attach-point="inputForm">
             <input type="file" id="csvFileInput" data-dojo-attach-point="csvFileInput" data-dojo-attach-event="change:fileSelected" accept=".csv">
             <div class="jimu-btn" data-dojo-attach-point="showFileDialogBtn" data-dojo-attach-event="click:showFileDialog">${nls.selectCSV}</div>
+            <input type="checkbox" id="chkboxPlotOnly" data-dojo-attach-point="chkboxPlotOnly"><label>${nls.plotOnly}</label>
         </form>
         <div data-dojo-attach-point="results" class="hide">
             <table class="widgets-results-table" data-dojo-attach-point="widgetsResultsTable" cellspacing="0">

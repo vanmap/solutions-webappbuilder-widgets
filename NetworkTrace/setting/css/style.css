@@ -1,41 +1,38 @@
-.dijitValidationTextBox
+.jimu-widget-IsolationTrace-setting .dijitValidationTextBox
 {
     width: 758px;
 }
-.url-section .label
+
+.jimu-widget-IsolationTrace-setting .url-section .label
 {
     margin-top: 9px;
 }
-.dijitTreeRow
+
+.jimu-widget-IsolationTrace-setting .dijitTreeRow
 {
     width: 758px;
 }
-.taskRow
+
+.jimu-widget-IsolationTrace-setting .taskRow
 {
     float: left;
     width: 100%;
     margin-top: 5px;
 }
-.esriCTTaskInput
+
+.jimu-widget-IsolationTrace-setting .esriCTTaskInput
 {
     float: left;
     width: 50px;
 }
-.esriCTGpTasks
+
+.jimu-widget-IsolationTrace-setting .esriCTInputTitlepaneHolder, .jimu-widget-IsolationTrace-setting .esriCTOutputTitlepaneHolder
 {
-    margin-top: 9px;
-    overflow-y: auto;
-    max-height: 50px;
     width: 100%;
     float: left;
 }
 
-.esriCTInputHolder, .esriCTOutputHolder
-{
-    width: 100%;
-    float: left;
-}
-.esriCTTaskData
+.jimu-widget-IsolationTrace-setting .esriCTTaskData
 {
     float: left;
     width: 27%;
@@ -44,7 +41,8 @@
     max-height: 260px;
     height: auto;
 }
-.esriCTInputField, .esriCTOutputField
+
+.jimu-widget-IsolationTrace-setting .esriCTInputField, .jimu-widget-IsolationTrace-setting .esriCTOutputField
 {
     cursor: pointer;
     padding: 5px 5px 5px 15px;
@@ -52,17 +50,20 @@
     font-size: 14px;
     font-family: 'Open Sans' , Helvetica, Arial;
 }
-.esriCTSelected, .esriCTSelectedOutput
+
+.jimu-widget-IsolationTrace-setting .esriCTSelected, .jimu-widget-IsolationTrace-setting .esriCTSelectedOutput
 {
     background-color: #e3ecf2 !important;
     border-left: 3px solid #15A4FA !important;
     padding-left: 12px;
 }
-.esriCTInputHolder .dijitTitlePaneContentInner, .esriCTOutputHolder .dijitTitlePaneContentInner
+
+.jimu-widget-IsolationTrace-setting .esriCTInputTitlepaneHolder .dijitTitlePaneContentInner, .jimu-widget-IsolationTrace-setting .esriCTOutputTitlepaneHolder .dijitTitlePaneContentInner
 {
     padding: 0;
 }
-.esriCTtaskDataContainer
+
+.jimu-widget-IsolationTrace-setting .esriCTtaskDataContainer
 {
     float: left;
     width: 70%;
@@ -72,27 +73,33 @@
     overflow-y: auto;
     max-height: 260px;
 }
-.esriCTtaskDataContainer .common-property .field
+
+.jimu-widget-IsolationTrace-setting .esriCTtaskDataContainer .common-property .field
 {
-    height: 36px;
     margin-top: 10px;
+    min-height: 36px;
+    height: auto;
 }
-.esriCTtaskDataContainer .field
+
+.jimu-widget-IsolationTrace-setting .esriCTtaskDataContainer .field
 {
     position: relative;
     overflow: hidden;
 }
-.esriCTtaskDataContainer .field label
+
+.jimu-widget-IsolationTrace-setting .esriCTtaskDataContainer .field label
 {
     width: 115px;
     display: inline-block;
     overflow: hidden;
     text-overflow: ellipsis;
+    white-space: nowrap;
     margin-top: 5px;
     vertical-align: middle;
     padding: 3px;
 }
-.esriCTtaskDataContainer .common-property .field .common-input, .othersData .field .common-input
+
+.jimu-widget-IsolationTrace-setting .esriCTtaskDataContainer .common-property .field .common-input, .jimu-widget-IsolationTrace-setting .othersData .field .common-input
 {
     position: absolute;
     left: 115px;
@@ -102,17 +109,18 @@
     width: auto;
 }
 
-.esriCTtaskDataContainer .field .jimu-checkbox
+.jimu-widget-IsolationTrace-setting .esriCTtaskDataContainer .field .jimu-checkbox
 {
-    width: 115px;
+    width: 14px;
     margin-top: 7px;
 }
 
-.esriCTHidden
+.jimu-widget-IsolationTrace-setting .esriCTHidden
 {
     display: none;
 }
-.dijitTreeRow
+
+.jimu-widget-IsolationTrace-setting .dijitTreeRow
 {
     padding: 4px 0 2px 0;
     background-color: none;
@@ -124,7 +132,7 @@
     color: #000000;
 }
 
-div.dijitTreeRow:hover
+.jimu-widget-IsolationTrace-setting div.dijitTreeRow:hover
 {
     background-color: #abd6ff;
     transition-duration: 0.25s;
@@ -135,8 +143,7 @@ div.dijitTreeRow:hover
     background-image: linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
 }
 
-
-.esriCTInputHolder .dijitTitlePaneTitleClosed, .esriCTOutputHolder .dijitTitlePaneTitleClosed
+.jimu-widget-IsolationTrace-setting .esriCTInputTitlepaneHolder .dijitTitlePaneTitleClosed, .esriCTOutputTitlepaneHolder .dijitTitlePaneTitleClosed
 {
     margin-top: 10px;
     height: 35px;
@@ -146,7 +153,7 @@ div.dijitTreeRow:hover
     padding: 7px;
 }
 
-.esriCTInputHolder .dijitTitlePaneTitleOpen, .esriCTOutputHolder .dijitTitlePaneTitleOpen
+.jimu-widget-IsolationTrace-setting .esriCTInputTitlepaneHolder .dijitTitlePaneTitleOpen, .esriCTOutputTitlepaneHolder .dijitTitlePaneTitleOpen
 {
     background-color: #6f7e95;
     color: #fff;
@@ -158,10 +165,8 @@ div.dijitTreeRow:hover
     padding: 7px;
 }
 
-
 /* Other data CSS */
-
-.esriCTOtherHolder
+.jimu-widget-IsolationTrace-setting .esriCTOtherHolder
 {
     background-color: #fafafc;
     border: 1px solid #d2dae2;
@@ -176,44 +181,50 @@ div.dijitTreeRow:hover
     padding-left: 12px;
 }
 
-.esriCTSelectedOthers
+.jimu-widget-IsolationTrace-setting .esriCTSelectedOthers
 {
     background-color: #e3ecf2 !important;
     border-left: 3px solid #15A4FA !important;
 }
-.esriCTLayoutLeft
+
+.jimu-widget-IsolationTrace-setting .esriCTLayoutLeft
 {
     float: left;
 }
-.esriCTLayoutRight
+
+.jimu-widget-IsolationTrace-setting .esriCTLayoutRight
 {
     float: right;
 }
-.esriCTImg
+
+.jimu-widget-IsolationTrace-setting .esriCTImg
 {
     margin-bottom: 20px;
 }
-.esriCTFieldset
+
+.jimu-widget-IsolationTrace-setting .esriCTFieldset
 {
     border: 1px solid #d9dde0 !important;
 }
 
-.esriCTlegend
+.jimu-widget-IsolationTrace-setting .esriCTlegend
 {
     margin-left: 7px;
     margin-bottom: 16px;
     color: #7AD;
 }
-.esriCTOthersData
+
+.jimu-widget-IsolationTrace-setting .esriCTOthersData
 {
     margin-left: 10px;
 }
-.esriCTHeight
+
+.jimu-widget-IsolationTrace-setting .esriCTHeight
 {
     height: 25px;
 }
 /* Outage data CSS */
-.esriCTtaskDataContainer .common-property .field .common-input, .outageData .field .common-input
+.jimu-widget-IsolationTrace-setting .esriCTtaskDataContainer .common-property .field .common-input, .outageData .field .common-input
 {
     position: absolute;
     left: 115px;
@@ -222,7 +233,8 @@ div.dijitTreeRow:hover
     bottom: 0px;
     width: auto;
 }
-.esriCTSelectedOutageHolder
+
+.jimu-widget-IsolationTrace-setting .esriCTSelectedOutageHolder
 {
     background-color: #fafafc;
     border: 1px solid #d2dae2;
@@ -236,12 +248,14 @@ div.dijitTreeRow:hover
     cursor: pointer;
     padding-left: 12px;
 }
-.esriCTselectedOutage
+
+.jimu-widget-IsolationTrace-setting .esriCTselectedOutage
 {
     background-color: #e3ecf2 !important;
     border-left: 3px solid #15A4FA !important;
 }
-.common-inputspin
+
+.jimu-widget-IsolationTrace-setting .common-inputspin
 {
     position: absolute;
     left: 115px;
@@ -251,61 +265,121 @@ div.dijitTreeRow:hover
     width: 102px;
 }
 
-.esriCTunitsForOther
+.jimu-widget-IsolationTrace-setting .esriCTunitsForOther
 {
     margin-left: 105px;
     font-size: 12px;
     font-style: italic;
 }
 
-.esriCTExample
+.jimu-widget-IsolationTrace-setting .esriCTExample
 {
     color: #ccc;
     font-size: 12px;
     font-style: italic;
 }
 
-#visibleCheckBoxID
-{
-    margin-top: 5px;
-}
 
-.esriCTOutageAreaDropDown
+.jimu-widget-IsolationTrace-setting .esriCTOutageAreaDropDown
 {
     width: 81%;
-    height: 30%;
+    height: 30px;
 }
 
-.esriCTOutageAreaFieldName
+.jimu-widget-IsolationTrace-setting .esriCTOutageAreaFieldName
+{
+    width: 51%;
+    height: 30px;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTOutageAreaParamValue
 {
     width: 30%;
-    height: 30%;
+    height: 30px;
 }
 
-.esriCTOutageAreaParamValue
+.jimu-widget-IsolationTrace-setting .esriCTParamValue
 {
-    width: 30%;
-    height: 30%;
-}
-
-.esriCTParamValue
-{
-    margin-left: 15px;
+    margin-top: 0px !important;
     margin-right: 10px;
 }
 /*Outage area css ends*/
 
-.jimu-symbol-chooser
+.jimu-widget-IsolationTrace-setting .jimu-symbol-chooser
 {
     margin-left: 118px;
 }
 
-.esriCTDoubleLinedText
+.jimu-widget-IsolationTrace-setting .esriCTDoubleLinedText
 {
     margin-top: 0px !important;
 }
 
-.esriCTFloatLeftCommon
+.jimu-widget-IsolationTrace-setting .esriCTFloatLeftCommon
 {
     float: left;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTOutputHelpText
+{
+    font-size: 10px;
+    margin-left: 115px;
+    width: 80%;
+    height: auto !important;
+    margin-top: 0px !important;
+    color: #666;
+}
+
+/* Hint text CSS */
+.jimu-widget-IsolationTrace-setting .esriCTExample
+{
+    color: #ccc;
+    font-size: 12px;
+    font-style: italic;
+}
+.jimu-widget-IsolationTrace-setting .fieldMarginHint
+{
+    margin-left: 114px;
+    height: auto;
+    min-height: 10px;
+    margin-top: 5px;
+}
+.jimu-widget-IsolationTrace-setting .esriCTfieldContainer
+{
+    height: auto;
+    margin-top: 0px;
+}
+.jimu-widget-IsolationTrace-setting .esriCTOutageFieldParams
+{
+    width: 50%;
+    float: left;
+}
+
+/* Hint text CSS */
+.jimu-widget-IsolationTrace-setting .thumbnail-img
+{
+    width: 100px;
+    height: 67px;
+}
+
+.jimu-widget-IsolationTrace-setting .img-chooser
+{
+    width: 100px;
+    height: 67px;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTBrwoseImage
+{
+    width: 115px;
+    float: left;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTMargin
+{
+    margin-bottom: 10px;
+}
+.jimu-widget-IsolationTrace-setting .image_chooser_base
+{
+    position: relative;
+    left: 115px;
 }

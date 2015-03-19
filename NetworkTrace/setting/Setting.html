@@ -1,4 +1,4 @@
-﻿<div style="width: 100%; height: 100%;">
+﻿<div style="width: 100%; height: 100%; overflow: hidden;">
     <div class="url-section">
         <div class="label jimu-float-leading" title="${nls.taskUrl}">
             ${nls.taskUrl}</div>
@@ -12,15 +12,16 @@
                             </div>
                         </td>
                         <td style="width: 120px;">
-                            <div data-dojo-attach-event="onclick:_onValidate" id="validateUrl" class="jimu-btn jimu-float-trailing jimu-state-disabled"
+                            <div data-dojo-attach-event="onclick:_onValidate" id="validateUrl" class="jimu-btn jimu-float-trailing esriCTHidden esriSetButton"
+                                style="padding: 7px 12px;" data-dojo-props='required:true,disabled:true'>
+                                ${nls.validate}</div>
+                            <div  id="disableValidateUrl" class="jimu-btn jimu-float-trailing jimu-state-disabled  esriSetButton"
                                 style="padding: 7px 12px;" data-dojo-props='required:true,disabled:true'>
                                 ${nls.validate}</div>
                         </td>
                     </tr>
                 </tbody>
             </table>
-            <div data-dojo-attach-point="GpTasks" class="esriCTGpTasks">
-            </div>
         </div>
     </div>
     <div data-dojo-attach-point="taskData" class="esriCTTaskData">
@@ -29,7 +30,7 @@
         <div data-dojo-attach-point="esriCTInputOutputParameters" class="esriCTInputOutputParameters">
             <div class="section common-property">
                 <div data-dojo-attach-point="inputProperty"></div>
-                <div class="section" data-dojo-attach-point="outputAdditionalProperty"></div>
+                <div class="section esriCTHidden" data-dojo-attach-point="outputAdditionalProperty"></div>
             </div>
         </div>
         <div class="othersData esriCTHidden" data-dojo-attach-point="othersData"></div>

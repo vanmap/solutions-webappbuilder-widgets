@@ -29,10 +29,50 @@ define({
         captionClosestFacilityParameters: "Closest Facility Parameters",
         lblClosestFacilityServiceUrl: "Closest Facility Service URL",
         btnSet: "Set",
+
         lblFacilitySearchDistance: "Facility Search Distance",
         lblImpedanceAttribute: "Impedance Attribute",
         lblDefaultCutOffDistance: "Default Cutoff distance",
+        captiveAttributeLookup: "Attribute Lookup",
+        lblAttributeParamLookup: "Attribute Parameter Value Lookup",
+        captionSaveResults: "Target layers for saving results",
+        lblBusinessesLayer: "Businesses layer",
+        lblRouteLayer: "Route Layer",
+        lblRouteLength: "Field to Save Route Length",
+        lblBusinessCount: "Field to Save Business Count",
+        captionExportCSV:"Export to CSV",
         operationalLayersErrorMessage: "There are no operational layers available in webmap.",
-        ESRIBufferUnits:"UNIT_STATUTE_MILE, UNIT_FOOT,UNIT_KILOMETER,UNIT_METER,UNIT_NAUTICAL_MILE,UNIT_US_NAUTICAL_MILE,UNIT_DEGREE"
+        symbol: {
+            barrier: "Barrier Symbols",
+            location: "Location Symbol",
+            route: "Route Symbol",
+            buffer: "Buffer Symbol",
+            business: "Business Symbol",
+            pointBarrierSymbol: "Point Barrier Symbol",
+            lineBarrierSymbol: "Line Barrier Symbol",
+            polygonBarrierSymbol: "Polygon Barrier Symbol",
+            pointLocationSymbol: "Point Location Symbol",
+            businessSymbol: "Business Symbol",
+            routeSymbol: "Route Symbol",
+            bufferSymbol: "Buffer Symbol"
+        },
+        highlighter: {
+            highlighterSection : "Highlighter Image",
+            imageUplaod : "Image",
+            imageHeight: "Height",
+            imageWidth: "Width",
+            imageHighlightTimeout: "Timeout",
+            pixel: "(Pixels)",
+            thumbnailHint: "(Click image to update)",
+            miliseconds: "(Milliseconds)"
+        },
+        invalidURL: "Please enter valid closest facility service URL",
+        allowToUserInput: "Allow user input",
+        defaultToValue: "Default to value",
+        minText: "Min",
+        maxText: "Max",
+        lblAttributeParameterValues: "Attribute Parameter Values",
+        valueText: "Value",
+        defaultDataDictionaryValue: "Avoid_Medium,Avoid_Low,Avoid_High"
     }
 });

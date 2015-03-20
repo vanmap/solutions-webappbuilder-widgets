@@ -1,68 +1,66 @@
-<div style="height: 100%;width: 100%;">
-    <div class="item" style="width: 100%; height: 100%; background-color: white;">
-        <div class="content" style="height: 100%;">
-            <div class="claro" style="width: 100%; height: 100%;">
-                <div  data-dojo-attach-point="tabContainerServiceFeasibility">
+<div>
+    <div class="item">
+        <div class="content esriCTContainer">
+            <div class="claro">
+                <div data-dojo-attach-point="tabContainerServiceFeasibility">
                     <div data-dojo-attach-point="tabSearch">
-                        <div class="findNearestContainer" data-dojo-attach-point="divFindNearest">
-                            <div class="lblFindNearest">
-                                <label>
-                                    ${nls.findNearest}</label></div>
-                            <div class="divSelectFindNearest">
+                        <div class="esriCTfindNearestContainer" data-dojo-attach-point="divFindNearest">
+                            <div class="esriCTlblFindNearestLabel">
+                                <label class="esriCTFindNearest"></label></div>
+                            <div class="esriCTSelectFindNearest">
                                 <select data-dojo-attach-point="selectFindNearest">
                                 </select></div>
                         </div>
-                        <div class="businessInfluenceContainer" data-dojo-attach-point="divBuisnessInfluence">
+                        <div class="esriCTbusinessInfluenceContainer" data-dojo-attach-point="divBuisnessInfluence">
                         </div>
-                        <div class="divDrawBarriersOnMapContainer" data-dojo-attach-point="divDrawBarriersOnMap">
-                            <div class="drawBarriersOnMapLabel">
-                                ${nls.DrawBarriersOnMap}</div>
-                            <div class="divBarriersContainer" data-dojo-attach-point="divBarriers">
-                                <div class="imgPoint" data-dojo-attach-point="pointImageContainer" data-dojo-attach-event="onclick:_onPointBarrierClicked">
+                        <div class="esriCTBarriersContainer" data-dojo-attach-point="divDrawBarriersOnMap">
+                            <div class="esriCTBarriersLabel"></div>
+                            <div class="esriCTbarriersImageContainer" data-dojo-attach-point="divBarriers">
+                                <div class="esriCTImgPoint" data-dojo-attach-point="pointImageContainer" data-dojo-attach-event="onclick:_onPointBarrierClicked">
                                 </div>
-                                <div class="imgPolyline" data-dojo-attach-point="polylineImageContainer" data-dojo-attach-event="onclick:_onPolylineBarrierClicked">
+                                <div class="esriCTImgPolyline" data-dojo-attach-point="polylineImageContainer" data-dojo-attach-event="onclick:_onPolylineBarrierClicked">
                                 </div>
-                                <div class="imgPolygon" data-dojo-attach-point="polygonImageContainer" data-dojo-attach-event="onclick:_onPolygonBarrierClicked">
+                                <div class="esriCTImgPolygon" data-dojo-attach-point="polygonImageContainer" data-dojo-attach-event="onclick:_onPolygonBarrierClicked">
                                 </div>
                             </div>
                         </div>
-                        <div class="divSelectLocationOnMapContainer" data-dojo-attach-point="divSelectLocationOnMap">
-                            <div class="selectLocationOnMapLabel">
-                                ${nls.SelectLocationOnMap}</div>
-                            <div class="divSelectLocationContainer" data-dojo-attach-point="divSelectLocation">
-                                <div class="imgSelectLocation" data-dojo-attach-point="imgSelectLocationDojo" data-dojo-attach-event="onclick:_onSelectLocationClicked">
+                        <div class="esriCTLocationContainer" data-dojo-attach-point="divSelectLocationOnMap">
+                            <div class="esriCTLocationLabel"></div>
+                            <div class="esriCTLocationImgContainer" data-dojo-attach-point="divSelectLocation">
+                                <div class="esriCTimgSelectLocation" data-dojo-attach-point="imgSelectLocationDojo" data-dojo-attach-event="onclick:_onSelectLocationClicked">
                                 </div>
                             </div>
                         </div>
-                        <div class="divFeasibilityButtonsContainer" data-dojo-attach-point="divFeasibilityButtons">
-                            <button data-dojo-type="dijit/form/Button" id="btnFindButton" disabled>
-                                ${nls.FindButton}</button>
-                            <button data-dojo-type="dijit/form/Button" id="btnClearButton" data-dojo-attach-event="onclick:_onClearButtonClicked"
-                                disabled>
-                                ${nls.ClearButton}</button>
-                        </div>
-                        <div data-dojo-attach-point="tabResults">
-                            <div class="divResultContainer" data-dojo-attach-point="resultContainer">
-                                <div class="divRouteLengthContainer">
-                                    <div class="routeLengthLabel">
-                                        <label>
-                                            ${nls.routeLengthHeading}
-                                        </label>
-                                    </div>
-                                    <div class="routeLengthCountContainer" data-dojo-attach-point= "routeLengthCountValue">
-                                    </div>
+                        <div class="esriCTButtonsContainer" data-dojo-attach-point="divFeasibilityButtons">
+                            <div class="esriCTFindButtonContainer" data-dojo-attach-point="divFindButtonContainer">
+                            </div>
+                            <div class="esriCTClearButtonContainer" data-dojo-attach-point="divClearButtonContainer">
+                            </div>
+                    </div>
+                    <div data-dojo-attach-point="tabResults">
+                        <div class="esriCTResultContainer" data-dojo-attach-point="resultContainer">
+                            <div class="esriCTRouteLengthContainer">
+                                <div class="esriCTRouteLengthLabel">
+                                    <label>
+                                        ${nls.routeLengthHeading}
+                                    </label>
                                 </div>
-                                <div class="divBusinessPassedContainer">
-                                    <div class="businessPassedLabel">
-                                        <label>
-                                            ${nls.businessPassedHeading}</label></div>
-                                    <div class="businessPassedCount" data-dojo-attach-point= "businessPassedCountValue">
-                                    </div>
+                                <div class="esriCTRouteLengthCount" data-dojo-attach-point="routeLengthCountValue">
+                                </div>
+                            </div>
+                            <div class="esriCTBusinessPassedContainer">
+                                <div class="esriCTBusinessPassedLabel">
+                                    <label>
+                                        ${nls.businessPassedHeading}</label></div>
+                                <div class="esriCTBusinessPassedCount" data-dojo-attach-point="businessPassedCountValue">
                                 </div>
                             </div>
                         </div>
+                        <div class = "esriCTListTitle" data-dojo-attach-point= "listTitleContainer"></div>
+                        <div class = "esriCTResultListPanel" data-dojo-attach-point= "resultListContainer"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
+</div>

@@ -19,9 +19,9 @@ define({
     root: ({
         searchContainerHeading:"Search",
         resultsContainerHeading: "Results",
-        findNearest:"1. Find nearest",
-        DrawBarriersOnMap: "3. Draw barriers on map (optional)",
-        SelectLocationOnMap: "4. Select location on map",
+        findNearest:"Find nearest",
+        DrawBarriersOnMap: "Draw barriers on map (optional)",
+        SelectLocationOnMap: "Select location on map",
         FindButton:"Find",
         ClearButton: "Clear",
         routeLengthHeading: "Route Length",
@@ -29,10 +29,11 @@ define({
         // Error Alert Messages
         invalidGeometryService : "Invalid Geometry Service",
         featureNotExist: "No businesses were found within the search area",
-        routeSolveError: "Error while solving the route",
+        routeSolveError: "Error while finding the route",
         businessFeatureError:"Error locating the number of businesses, please try again",
         selectBusinessValues: "Select Business Influence Value",
         invalidTxtBoxValue: "Enter Valid Numbers",
-        textboxValueIsInvalid:"Attribute Parameter value is invalid"
+        textboxValueIsInvalid:"Attribute Parameter value is invalid",
+        noBusinessPassedMsg:"No Businesses Passed"
     })
 });

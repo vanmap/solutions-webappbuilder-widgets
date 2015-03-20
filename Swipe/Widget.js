@@ -25,6 +25,10 @@ define([
     'dojo/store/Memory',
     'dojo/dom-construct',
 
+    'dijit/form/ToggleButton',
+
+    'dojox/widget/Toaster',
+
     'esri/arcgis/utils',
 
     'jimu/BaseWidget',
@@ -35,20 +39,33 @@ define([
 
     './js/LayerSwipe'
 ],
-    function(declare, lang, on, dom, query, domStyle, array, Memory, domConstruct, arcgisUtils, BaseWidget, LayerInfos, Select, _WidgetsInTemplateMixin, LayerSwipe) {
+    function(declare, lang, on, dom, query, domStyle, array, Memory, domConstruct,
+             ToggleButton,
+             Toaster,
+             arcgisUtils, 
+             BaseWidget, LayerInfos, 
+             Select, _WidgetsInTemplateMixin, 
+             LayerSwipe) {
         return declare([BaseWidget, _WidgetsInTemplateMixin], {
             name: 'Swipe',
             baseClass: "jimu-widget-swipe",
             swipeWidget: null,
-
+            swipeButton: null,
             postCreate: function() {
                 this.inherited(arguments);
-
+                //Populate the tool list
                 this.activeTool.addOption(this.getToolStore());
+                //Init listener on tool change
                 this.own(on(this.activeTool, "change", lang.hitch(this, this.onToolChange)));
-
-                this.layerSelect.addOption(this.getMapStore());
-                this.own(on(this.layerSelect, "change", lang.hitch(this, this.onLayerChange)));
+                //Init the toggle button
+                this.swipeButton = new ToggleButton({
+                    showLabel: true,
+                    checked: false,
+                    onChange: lang.hitch(this, this.onInitSwipeChange),
+                    label: "Enable Swipe"
+                }, this.initSwipe);
+                //Set global parameter to false
+                window.isSwipeEnabled = false;
             },
 
             onToolChange: function(value) {
@@ -62,18 +79,39 @@ define([
                 }
             },
 
-            onLayerChange: function(value) {
-                this.destroySwipeWidget();
-                this.initSwipeWidget();
+            onInitSwipeChange: function(value) {
+                window.isSwipeEnabled = value;
+                if (value === true) {
+                    this.initSwipeWidget();  
+                    this.swipeButton.set('label', 'Disable Swipe');
+                } else {
+                    this.destroySwipeWidget();    
+                    this.swipeButton.set('label', 'Enable Swipe');
+                }                  
             },
 
             onOpen: function(evt) {
-                this.destroySwipeWidget();
-                this.initSwipeWidget();
+                //Remove old items from layer list
+                if (this.layerSelect.getOptions().length > 0) {
+                    this.layerSelect.removeOption(this.layerSelect.getOptions());
+                }                
+                //Populate the layer list
+                this.layerSelect.addOption(this.getMapStore());
             },
 
             onClose: function(evt) {
-                this.destroySwipeWidget();
+                //Display message to user if swipe tool is still enabled
+                if (typeof(window.isSwipeEnabled) !== 'undefined' && window.isSwipeEnabled === true) {
+                    var info = new Toaster({
+                        messageTopic: 'swipeMessage',
+                        positionDirection: 'tr-down',
+                        duration: 5000                        
+                    });
+                    window.setTimeout(lang.hitch(this, function() {
+                        dojo.publish('swipeMessage', [{message: "Swipe Widget is still functional. Open widget to disable swipe function", 
+                            type: 'message'}]);
+                    }));
+                }
             },
 
             createLayerSwipeDiv: function() {
@@ -97,11 +135,13 @@ define([
                 var mapStore = [];
                 LayerInfos.getInstance(this.map, this.map.itemInfo).then(lang.hitch(this, function(operLayerInfos) {
                     array.forEach(operLayerInfos.layerInfos, lang.hitch(this, function(layerInfo) {
-                        var obj = {
-                            label: layerInfo.title,
-                            value: layerInfo.id
-                        };
-                        mapStore.push(obj);
+                        if (layerInfo.newSubLayers.length === 0) {
+                            var obj = {
+                                label: layerInfo.title,
+                                value: layerInfo.id
+                            };
+                            mapStore.push(obj);
+                        }
                     }))//foreach
                 }));
                 return mapStore;

@@ -43,6 +43,7 @@ define([
     'esri/tasks/query',
     'esri/symbols/jsonUtils',
     'dojox/timing',
+     'jimu/dijit/Message',
     './customDrawBox',
     './layerSyncDetails'
 ],
@@ -74,6 +75,7 @@ function (declare,
           EsriQuery,
           symbolJsonUtils,
           Timer,
+          Message,
           DrawBox,
           layerSyncDetails
           ) {
@@ -117,7 +119,7 @@ function (declare,
                 array.some(this.map.itemInfo.itemData.operationalLayers, function (layer) {
                     if (layer.layerObject !== null && layer.layerObject !== undefined) {
                         if (layer.layerObject.type === 'Feature Layer' && layer.url) {
-                            if (this.config.selectByLayer.id === layer.id) {
+                            if (this.config.selectByLayer.name === layer.name || this.config.selectByLayer.name === layer.title) {
                                 this.selectByLayer = layer;
                                 if (this.config.selectByLayer.selectionSymbol) {
                                     var highlightSymbol = symbolJsonUtils.fromJson(
@@ -134,7 +136,15 @@ function (declare,
                     }
                     return false;
                 }, this);
-
+                if (this.selectByLayer === null)
+                {
+                    Message({
+                        message: string.substitute(this.nls.errors.layerNotFound, {
+                            0: this.config.selectByLayer.name,
+                            1: this.config.selectByLayer.id
+                        })
+                    });
+                }
             }
         },
         _configureWidget: function () {
@@ -258,8 +268,17 @@ function (declare,
             if (results.length > 0) {
                 if (this.toolType === "FeatureQuery") {
                     var searchValue = results[0].attributes[this.config.selectByLayer.queryField];
-                    //var where = this.selectByLayer.queryField;
-                    this._selectInShape(null, searchValue);
+                    if (searchValue === null) {
+                        Message({
+                            message: string.substitute(this.nls.errors.queryNullID, {
+                                0: this.selectByLayer.title
+                            })
+                        });
+                        this._hideInfoWindow();
+                        this.loading.hide();
+                    } else {
+                        this._selectInShape(null, searchValue);
+                    }
                 }else {
                     this._selectInShape(results[0].geometry);
                 }

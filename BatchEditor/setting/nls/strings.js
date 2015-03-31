@@ -6,7 +6,7 @@ define({
             selectByShape: "Select by Area",
             selectBySpatQuery: "Select by Feature",
             selectByAttQuery: "Select by Feature & Related Features",
-            selectByQuery: "Select by Query-ComingSoon",
+            selectByQuery: "Select by Query",
             toolNotSelected:"Please select a selection method"
         },
         page2:{

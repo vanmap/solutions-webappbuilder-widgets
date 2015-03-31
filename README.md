@@ -44,7 +44,7 @@ Requires Web AppBuilder for ArcGIS 1.0
 ## Instructions
 Deploying Widgets.
 
-To use the widgets with you should copy any of the widgets to the stemapp/widget directory. This is located in %webappbuilder_install%/client directory. 
+To use the widgets with you should copy any of the widgets to the stemapp/widget directory. This is located in %webappbuilder_install%/client directory.
 
 For more resources on developing modifying widgets please visit
 [Web AppBuilder for ArcGIS Documentation](http://doc.arcgis.com/en/web-appbuilder/)
@@ -64,9 +64,6 @@ For more resources on developing modifying widgets please visit
 ## Contributing
 
 Esri welcomes contributions from anyone and everyone. Please see our [guidelines for contributing](https://github.com/esri/contributing).
-
-All web application produced follow Esri's tailcoat style guide
-http://arcgis.github.io/tailcoat/styleguides/css/
 
 If you are using [JS Hint](http://http://www.jshint.com/) there is a .jshintrc file included in the root folder which enforces this style.
 We allow for 120 characters per line instead of the highly restrictive 80.

@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// Copyright © 2014 Esri. All Rights Reserved.
+// Copyright © 2015 Esri. All Rights Reserved.
 //
 // Licensed under the Apache License Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 define([
     'dojo/_base/declare',
     'dijit/_WidgetsInTemplateMixin',
-     'dijit/form/RadioButton',
+    'dijit/form/RadioButton',
     'dijit/form/Button',
     'dijit/form/SimpleTextarea',
     'dijit/form/TextBox',
@@ -281,23 +281,29 @@ define([
                       if (layer.infoTemplate) {
                           var fields = this.selectedFields[rowData.id];
                           var filtFields;
+                          var filtAlias;
                           var isAppended;
                           if (fields) {
                               filtFields = array.map(fields, function (field) {
                                   return field.fieldName;
                               });
+                              filtAlias = array.map(fields, function (field) {
+                                return field.label; 
+                              });
                           }
                           var fields = layer.infoTemplate.info.fieldInfos;
                           array.forEach(fields, function (field) {
+                            aliasLabel = field.label;
                               isAppended = false;
                               if (filtFields) {
                                   if (filtFields.indexOf(field.fieldName) >= 0) {
                                       isAppended = true;
+                                      aliasLabel = filtAlias[filtFields.indexOf(field.fieldName)];
                                   }
                               }
                               this.layerFieldsTable.addRow({
                                   fieldName: field.fieldName,
-                                  label: field.label,
+                                  label: aliasLabel,
                                   isAppended: isAppended
                               });
                           }, this);
@@ -376,7 +382,8 @@ define([
               this.config.intersectField = this.advSettingsIntersectField.get("value");
               this.config.valueIn = this.advSettingsIntersectInValue.get("value");
               this.config.valueOut = this.advSettingsIntersectOutValue.get("value");
-			  this.config.cacheNumber = this.advSettingsCacheNumber.get("value");
+			        this.config.cacheNumber = this.advSettingsCacheNumber.get("value");
+			        this.config.maxRowCount = this.advSettingsMaxRowCount.get("value");
           },
           showAdvSettings: function () {
 
@@ -397,6 +404,7 @@ define([
               this.advSettingsIntersectInValue.set("value", this.config.valueIn);
               this.advSettingsIntersectOutValue.set("value", this.config.valueOut);
               this.advSettingsCacheNumber.set("value", this.config.cacheNumber);
+              this.advSettingsMaxRowCount.set("value", this.config.maxRowCount);
 
               html.addClass(this.mainPage, 'hide');
               html.removeClass(this.advSettingsPage, 'hide');

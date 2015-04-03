@@ -58,11 +58,15 @@ input[type="file"] {
 }
 
 .processing {
-    content: url("./images/processing.png");
+    content: url("./images/processing.gif");
 }
 
 .complete {
     content: url("./images/complete.png");
+}
+
+.error {
+    content: url("./images/x_symbol_red.png");
 }
 
 .bypass {
@@ -74,4 +78,8 @@ input[type="file"] {
     font-family: Century Gothic;
 }
 
+.errorLink {
+	color: #0000FF;
+	cursor:pointer;
+}
 

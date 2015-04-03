@@ -4,5 +4,6 @@
     "valueOut": "Out",
     "valueIn": "In",
     "intersectField": "intersected",
-  	"cacheNumber": "1000"
+    "maxRowCount" : "10000",
+  	"cacheNumber": "500"
 }

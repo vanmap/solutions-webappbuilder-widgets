@@ -20,7 +20,6 @@ Important Note:
 
 ## Features
 
-<<<<<<< HEAD:GeoLookup/README.md
 * Define polygon layers in your map.
 * drag and drop CSV file with lat/lon data
 * Plot only option to not enrich the data
@@ -28,8 +27,6 @@ Important Note:
 * Set thresolds for faster processing
 
 =======
-=======
->>>>>>> origin/master:GeoEnrich/README.md
 
 ## Requirements
 * ArcGIS WebApp Builder 1.1.  (widget is built on top of ArcGIS Javascript API v3.13)

@@ -20,7 +20,6 @@ Important Note:
 
 ## Features
 
-<<<<<<< HEAD:GeoLookup/README.md
 * Define polygon layers in your map.
 * drag and drop CSV file with lat/lon data
 * Plot only option to not enrich the data
@@ -28,8 +27,6 @@ Important Note:
 * Set thresolds for faster processing
 
 =======
-=======
->>>>>>> origin/master:GeoEnrich/README.md
 
 ## Requirements
 * ArcGIS WebApp Builder 1.1.  (widget is built on top of ArcGIS Javascript API v3.13)
@@ -61,10 +58,7 @@ In order to develop and test widgets you need to deploy the GeoLookup folder to 
 
 Esri welcomes contributions from anyone and everyone. Please see our [guidelines for contributing](https://github.com/esri/contributing).
 
-All web application produced follow Esri's tailcoat style guide
-http://arcgis.github.io/tailcoat/styleguides/css/
-
-If you are using [JS Hint](http://http://www.jshint.com/) there is a .jshintrc file included in the root folder which enforces this style.
+If you are using [JS Hint](http://www.jshint.com/) there is a .jshintrc file included in the root folder which enforces this style.
 We allow for 120 characters per line instead of the highly restrictive 80. 
 
 ## Licensing

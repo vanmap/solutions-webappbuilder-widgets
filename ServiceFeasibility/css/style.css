@@ -1,49 +1,47 @@
 @import url('http://js.arcgis.com/3.12/dijit/themes/claro/claro.css');
 
-.businessInfluenceInput{
-margin-top:-20px;
-}
-
 .jimu-widget-frame.jimu-container
 {
-overflow-x: auto;
+height: 100%;
 overflow-y: auto;
 position: relative;
 background-color: white;
 padding: 0px 0px 0px 0px;
 }
 
-.jimu-widget-ServiceFeasibility .findNearestContainer
+.jimu-widget-ServiceFeasibility .esriCTfindNearestContainer
 {
 float: left;
 padding: 15px;
 width: 100%;
 }
 
-.jimu-widget-ServiceFeasibility .divSelectFindNearest
+.jimu-widget-ServiceFeasibility .esriCTSelectFindNearest
 {
 float: right;
-width: 200px;
+width: 50%;
+min-width: 151px;
+max-width: 200px;
 }
-.jimu-widget-ServiceFeasibility .divSelectFindNearest select
+.jimu-widget-ServiceFeasibility .esriCTSelectFindNearest select
 {
 width: 100%;
 border: 1px solid #B5BCC7;
 height: 30px;
 }
 
-.jimu-widget-ServiceFeasibility .lblFindNearest
+.jimu-widget-ServiceFeasibility .esriCTlblFindNearestLabel
 {
 margin-top: 5px;
 float: left;
 }
-.jimu-widget-ServiceFeasibility .businessInfluenceContainer
+.jimu-widget-ServiceFeasibility .esriCTbusinessInfluenceContainer
 {
 float: left;
 padding: 0 15px 15px 15px;
 width: 100%;
 }
-.jimu-widget-ServiceFeasibility .imgPoint
+.jimu-widget-ServiceFeasibility .esriCTImgPoint
 {
 float: left;
 cursor: pointer;
@@ -54,7 +52,7 @@ background-image: url("../images/draw-point.png");
 margin-right: 10px;
 }
 
-.jimu-widget-ServiceFeasibility .imgPolyline
+.jimu-widget-ServiceFeasibility .esriCTImgPolyline
 {
 float: left;
 cursor: pointer;
@@ -65,7 +63,7 @@ background-image: url("../images/draw-line.png");
 margin-right: 10px;
 }
 
-.jimu-widget-ServiceFeasibility .imgPolygon
+.jimu-widget-ServiceFeasibility .esriCTImgPolygon
 {
 float: left;
 cursor: pointer;
@@ -76,7 +74,7 @@ background-image: url("../images/draw-polygon.png");
 margin-right: 10px;
 }
 
-.jimu-widget-ServiceFeasibility .imgPointSelected
+.jimu-widget-ServiceFeasibility .esriCTImgPointSelected
 {
 float: left;
 cursor: pointer;
@@ -88,7 +86,7 @@ background-color: #858585;
 margin-right: 10px;
 }
 
-.jimu-widget-ServiceFeasibility .imgPolylineSelected
+.jimu-widget-ServiceFeasibility .esriCTImgPolylineSelected
 {
 float: left;
 cursor: pointer;
@@ -100,7 +98,7 @@ background-color: #858585;
 margin-right: 10px;
 }
 
-.jimu-widget-ServiceFeasibility .imgPolygonSelected
+.jimu-widget-ServiceFeasibility .esriCTImgPolygonSelected
 {
 float: left;
 cursor: pointer;
@@ -112,7 +110,7 @@ background-color: #858585;
 margin-right: 10px;
 }
 
-.jimu-widget-ServiceFeasibility .imgSelectLocationSelected
+.jimu-widget-ServiceFeasibility .esriCTImgLocationSelected
 {
 float: left;
 cursor: pointer;
@@ -124,9 +122,7 @@ background-color: #858585;
 margin-right: 10px;
 }
 
-
-
-.jimu-widget-ServiceFeasibility .imgSelectLocation
+.jimu-widget-ServiceFeasibility .esriCTimgSelectLocation
 {
 float: left;
 cursor: pointer;
@@ -141,153 +137,259 @@ margin-right: 10px;
 border-top: none;
 }
 
-.jimu-widget-ServiceFeasibility .buisnessInfluenceValue
+.jimu-widget-ServiceFeasibility .esriCTBusinessInfluenceValue
 {
 float: left;
 padding-top: 5px;
 }
-.jimu-widget-ServiceFeasibility .businessInfluenceInput
+.jimu-widget-ServiceFeasibility .esriCTBusinessInfluenceInput
 {
 float: right;
-width: 200px;
+width: 50%;
+min-width: 151px;
+max-width: 200px;
 }
-.jimu-widget-ServiceFeasibility .businessInfluenceInput div.dijitTextBox
+.jimu-widget-ServiceFeasibility .esriCTBusinessInfluenceInput div.dijitTextBox
 {
-width: 200px;
+width: 100%;
 }
-.jimu-widget-ServiceFeasibility .businessInfluenceSlider
+.jimu-widget-ServiceFeasibility .esriCTBusinessInfluenceSlider
 {
 clear: both;
 padding: 10px 0px 10px 0px;
 }
 
-.jimu-widget-ServiceFeasibility .divSelectLocationOnMapContainer, .divFeasibilityButtonsContainer, .divDrawBarriersOnMapContainer
+.jimu-widget-ServiceFeasibility .esriCTLocationContainer, .esriCTButtonsContainer, .esriCTBarriersContainer
 {
 clear: both;
 float: left;
 padding: 0 15px;
 margin-bottom: 15px;
 }
-.jimu-widget-ServiceFeasibility .drawBarriersOnMapLabel, .selectLocationOnMapLabel
+.jimu-widget-ServiceFeasibility .esriCTBarriersLabel, .esriCTLocationLabel
 {
 margin-bottom: 5px;
 }
-.jimu-widget-ServiceFeasibility .divResultContainer
+.jimu-widget-ServiceFeasibility .esriCTResultContainer
 {
-height:100px;
-padding:10px 25px 0px 25px;
+height: 100px;
+padding: 15px 15px 0px 15px;
 }
-.jimu-widget-ServiceFeasibility .divRouteLengthContainer
+.jimu-widget-ServiceFeasibility .esriCTRouteLengthContainer
 {
 height: 100%;
-border: 2px solid #485566;
+border: 1px solid #485566;
 width: 44%;
 float: left;
-padding:12px 5px 0px 5px;
+padding: 12px 5px 0px 5px;
 box-shadow: 0px 1px 8px 0px rgba(0, 0, 0, 0.1);
 }
-.jimu-widget-ServiceFeasibility .divBusinessPassedContainer
+.jimu-widget-ServiceFeasibility .esriCTBusinessPassedContainer
 {
 height: 100%;
 width: 44%;
-border: 2px solid #485566;
+border: 1px solid #485566;
 float: right;
-padding:12px 5px 0px 5px;
+padding: 12px 5px 0px 5px;
 box-shadow: 0px 1px 8px 0px rgba(0, 0, 0, 0.1);
-
 }
-.jimu-widget-ServiceFeasibility .routeLengthLabel
+.jimu-widget-ServiceFeasibility .esriCTRouteLengthLabel
 {
 text-align: center;
 font-size: 14px;
-height:50%;
+height: 50%;
 }
-.jimu-widget-ServiceFeasibility .businessPassedLabel
+.jimu-widget-ServiceFeasibility .esriCTBusinessPassedLabel
 {
 text-align: center;
 font-size: 14px;
-height:50%;
+height: 50%;
 }
-.tab jimu-vcenter-text
+.jimu-tab > .control > .tab.jimu-state-selected
 {
-border-bottom:1px solid #485566;
+border-bottom: none;
+border-right: none;
+cursor: default;
 }
-.jimu-tab>.control>.tab.jimu-state-selected
+ .jimu-tab > .control > .tab
 {
-border-bottom:none;
-border-right:none;
+border-bottom: 1px solid #485566;
+border-right: 1px solid #485566;
+cursor: pointer;
 }
-.jimu-tab>.control>.tab
+.jimu-widget-ServiceFeasibility .jimu-tab > .control > .tab.jimu-state-selected + .tab
 {
-border-bottom:1px solid #485566;
-border-right:1px solid #485566;
-   
+border-left: 1px solid #485566;
+cursor: pointer;
 }
-.jimu-tab>.control>.tab.jimu-state-selected+.tab
-{
-    border-left:1px solid #485566;
-}
-.jimu-widget-ServiceFeasibility .divFeasibilityButtonsContainer
+.jimu-widget-ServiceFeasibility .esriCTButtonsContainer
 {
 float: left;
 width: 100%;
 margin-top: 20px;
-padding-left: 24%;
-padding-right: 24%;
+padding-left: 20%;
+padding-right: 20%;
 }
 .jimu-widget-ServiceFeasibility #btnFindButton
 {
 height: 30px;
 width: 85px;
-cursor:default;
+cursor: default;
+text-align: center;
+padding-top: 7px;
+background-color:#d9dde0;
 }
 .jimu-widget-ServiceFeasibility #btnClearButton
 {
 float: right;
 height: 30px;
 width: 85px;
-cursor:default;
+cursor: default;
+text-align: center;
+padding-top: 7px;
 
 }
-.jimu-widget-ServiceFeasibility .buttonEnabledColorChange{
-background-color: #485566;
+.jimu-widget-ServiceFeasibility .esriCTButtonDisableColor
+{
+background-color:#d9dde0;
+cursor: default;
+border: 1px solid #d9dde0;
+}
+.jimu-widget-ServiceFeasibility .esriCTButtonEnabledColor
+{
+background-color: #485566 !important;
 border: 1px solid #485566;
 color: white;
-cursor:pointer !important;
+cursor: pointer !important;
 }
-.jimu-widget-ServiceFeasibility .routeLengthCountContainer
+.jimu-widget-ServiceFeasibility .esriCTRouteLengthCount
 {
-height:50%;
+height: 50%;
 font-size: 16px;
 text-align: center;
 width: 100%;
 }
-.jimu-widget-ServiceFeasibility .businessPassedCount
+.jimu-widget-ServiceFeasibility .esriCTBusinessPassedCount
 {
-height:50%;
+height: 50%;
 font-size: 16px;
 text-align: center;
 width: 100%;
-
 }
 .jimu-widget-ServiceFeasibility .runLoadingIndicator
 {
-margin-top:60px !important;
-margin-left:50px !important;
+margin-top: 60px !important;
+margin-left: 50px !important;
 background-position: center bottom !important;
-position:absolute;
-
+position: absolute;
 }
-.jimu-widget-ServiceFeasibility .businessDropdownLabel
+.jimu-widget-ServiceFeasibility .esriCTBusinessDropdownLabel
 {
-    margin-bottom:5px;
+margin-bottom: 5px;
 }
 .jimu-widget-ServiceFeasibility .changeForResultContainer
 {
-    border-right:none !important;
+border-right: none !important;
 }
 .jimu-widget-ServiceFeasibility .disableColorChange
 {
-    background-color:#d9dde0;
-    color:#86909c;
+background-color: #d9dde0;
+color: #86909c;
+}
+.jimu-widget-ServiceFeasibility .esriCTClearButtonContainer
+{
+width: 49%;
+float: right;
+}
+.jimu-widget-ServiceFeasibility .esriCTFindButtonContainer
+{
+width: 49%;
+float: left;
+}
+.jimu-container jimu-viewstack
+{
+overflow: auto;
+}
+
+.jimu-widget-ServiceFeasibility .esriCTResultListPanel
+{
+overflow-y:auto;
+position: relative;
+padding-left: 15px;
+padding-right:15px;
+width: 100%;
+max-height:380px;
+top:5px;
+}
+.jimu-widget-ServiceFeasibility .esriCTFeatureFieldContainer
+{
+font-size:14px;
+cursor:pointer;
+border-bottom:1px solid #d9dde0;
+padding: 4px;
+
+}
+.jimu-widget-ServiceFeasibility .esriCTListTitle
+{
+margin-top: 21px;
+font-size: 14px;
+font-weight: bolder;
+color: #485566;
+padding-left: 15px;
+background-color: #d9dde0;
+height: 40px;
+padding-top: 12px;
+}
+.jimu-widget-ServiceFeasibility .esriCTSelectedFeatureFieldList
+{
+background-color:#485566 !important;
+color:White!important;
+}
+.jimu-widget-ServiceFeasibility .esriCTDeselectedFeatureList
+{
+background-color:White!important;
+color:Black!important;
+}
+.jimu-widget-ServiceFeasibility .esriCTFocusoutFeatureList
+{
+background-color:White;
+color:Black;
+}
+.jimu-widget-ServiceFeasibility .esriCTHoverFeatureList
+{
+background-color:#485566!important;
+color:White!important;
+}
+.jimu-container .jimu-widget-ServiceFeasibility
+{
+height:100%;
+}
+.esriCTDefaultCursor
+{
+cursor:default !important;
+font-style:italic;
+border:none;
+font-size:14px;
+}
+.esriCTInvalidValueColor
+{
+border:1px solid red !important;
+}
+.esriCTDisplayElement
+{
+display:block;
+}
+.esriCTHideElement
+{
+display:none;
+}
+
+.jimu-widget-ServiceFeasibility .esriCTlblFindNearestLabel
+{
+    float: left;
+    width: 50%;
+    max-width: 155px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }

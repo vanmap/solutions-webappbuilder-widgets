@@ -31,5 +31,9 @@ define({
             freehandPolygon: "Freehand Polygon",
             clear: "Clear"
         },
+        errors: {
+            layerNotFound: "Layer ${0} with ID ${1} was not found in the map, the map may have changed since the widgets configuration",
+            queryNullID: "The feature from ${0} returned an invalid ID"
+        }
     })
 });

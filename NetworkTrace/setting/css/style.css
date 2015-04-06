@@ -1,0 +1,385 @@
+.jimu-widget-IsolationTrace-setting .dijitValidationTextBox
+{
+    width: 758px;
+}
+
+.jimu-widget-IsolationTrace-setting .url-section .label
+{
+    margin-top: 9px;
+}
+
+.jimu-widget-IsolationTrace-setting .dijitTreeRow
+{
+    width: 758px;
+}
+
+.jimu-widget-IsolationTrace-setting .taskRow
+{
+    float: left;
+    width: 100%;
+    margin-top: 5px;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTTaskInput
+{
+    float: left;
+    width: 50px;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTInputTitlepaneHolder, .jimu-widget-IsolationTrace-setting .esriCTOutputTitlepaneHolder
+{
+    width: 100%;
+    float: left;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTTaskData
+{
+    float: left;
+    width: 27%;
+    overflow-y: auto;
+    margin-top: 15px;
+    max-height: 260px;
+    height: auto;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTInputField, .jimu-widget-IsolationTrace-setting .esriCTOutputField
+{
+    cursor: pointer;
+    padding: 5px 5px 5px 15px;
+    border-top: 1px solid #d2dae2;
+    font-size: 14px;
+    font-family: 'Open Sans' , Helvetica, Arial;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTSelected, .jimu-widget-IsolationTrace-setting .esriCTSelectedOutput
+{
+    background-color: #e3ecf2 !important;
+    border-left: 3px solid #15A4FA !important;
+    padding-left: 12px;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTInputTitlepaneHolder .dijitTitlePaneContentInner, .jimu-widget-IsolationTrace-setting .esriCTOutputTitlepaneHolder .dijitTitlePaneContentInner
+{
+    padding: 0;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTtaskDataContainer
+{
+    float: left;
+    width: 70%;
+    margin-left: 25px;
+    margin-top: 16px;
+    font-size: 15px;
+    overflow-y: auto;
+    max-height: 260px;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTtaskDataContainer .common-property .field
+{
+    margin-top: 10px;
+    min-height: 36px;
+    height: auto;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTtaskDataContainer .field
+{
+    position: relative;
+    overflow: hidden;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTtaskDataContainer .field label
+{
+    width: 115px;
+    display: inline-block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    margin-top: 5px;
+    vertical-align: middle;
+    padding: 3px;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTtaskDataContainer .common-property .field .common-input, .jimu-widget-IsolationTrace-setting .othersData .field .common-input
+{
+    position: absolute;
+    left: 115px;
+    right: 10px;
+    top: 0px;
+    bottom: 0px;
+    width: auto;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTtaskDataContainer .field .jimu-checkbox
+{
+    width: 14px;
+    margin-top: 7px;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTHidden
+{
+    display: none;
+}
+
+.jimu-widget-IsolationTrace-setting .dijitTreeRow
+{
+    padding: 4px 0 2px 0;
+    background-color: none;
+    background-color: transparent;
+    background-color: rgba(171, 214, 255, 0);
+    background-position: 0 0;
+    background-repeat: repeat-x;
+    border: solid 0 transparent;
+    color: #000000;
+}
+
+.jimu-widget-IsolationTrace-setting div.dijitTreeRow:hover
+{
+    background-color: #abd6ff;
+    transition-duration: 0.25s;
+    padding: 4px 0 2px 0;
+    border-color: #759dc0;
+    border-width: 0.5px 0;
+    color: #000000;
+    background-image: linear-gradient(rgba(255, 255, 255, 0.7) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTInputTitlepaneHolder .dijitTitlePaneTitleClosed, .esriCTOutputTitlepaneHolder .dijitTitlePaneTitleClosed
+{
+    margin-top: 10px;
+    height: 35px;
+    background-color: #fafafc;
+    border: 1px solid #d2dae2;
+    border-radius: 4px;
+    padding: 7px;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTInputTitlepaneHolder .dijitTitlePaneTitleOpen, .esriCTOutputTitlepaneHolder .dijitTitlePaneTitleOpen
+{
+    background-color: #6f7e95;
+    color: #fff;
+    border: 1px solid #6f7e95;
+    border-radius: 4px 4px 0 0;
+    background-image: linear-gradient(#6f7e95 0%, #6f7e95 100%);
+    margin-top: 10px;
+    height: 35px;
+    padding: 7px;
+}
+
+/* Other data CSS */
+.jimu-widget-IsolationTrace-setting .esriCTOtherHolder
+{
+    background-color: #fafafc;
+    border: 1px solid #d2dae2;
+    border-radius: 4px;
+    float: left;
+    width: 100%;
+    padding: 7px;
+    vertical-align: middle;
+    margin-top: 10px;
+    height: 35px;
+    cursor: pointer;
+    padding-left: 12px;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTSelectedOthers
+{
+    background-color: #e3ecf2 !important;
+    border-left: 3px solid #15A4FA !important;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTLayoutLeft
+{
+    float: left;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTLayoutRight
+{
+    float: right;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTImg
+{
+    margin-bottom: 20px;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTFieldset
+{
+    border: 1px solid #d9dde0 !important;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTlegend
+{
+    margin-left: 7px;
+    margin-bottom: 16px;
+    color: #7AD;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTOthersData
+{
+    margin-left: 10px;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTHeight
+{
+    height: 25px;
+}
+/* Outage data CSS */
+.jimu-widget-IsolationTrace-setting .esriCTtaskDataContainer .common-property .field .common-input, .outageData .field .common-input
+{
+    position: absolute;
+    left: 115px;
+    right: 10px;
+    top: 0px;
+    bottom: 0px;
+    width: auto;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTSelectedOutageHolder
+{
+    background-color: #fafafc;
+    border: 1px solid #d2dae2;
+    border-radius: 4px;
+    float: left;
+    width: 100%;
+    padding: 7px;
+    vertical-align: middle;
+    margin-top: 10px;
+    height: 35px;
+    cursor: pointer;
+    padding-left: 12px;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTselectedOutage
+{
+    background-color: #e3ecf2 !important;
+    border-left: 3px solid #15A4FA !important;
+}
+
+.jimu-widget-IsolationTrace-setting .common-inputspin
+{
+    position: absolute;
+    left: 115px;
+    right: 10px;
+    top: 0px;
+    bottom: 0px;
+    width: 102px;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTunitsForOther
+{
+    margin-left: 105px;
+    font-size: 12px;
+    font-style: italic;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTExample
+{
+    color: #ccc;
+    font-size: 12px;
+    font-style: italic;
+}
+
+
+.jimu-widget-IsolationTrace-setting .esriCTOutageAreaDropDown
+{
+    width: 81%;
+    height: 30px;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTOutageAreaFieldName
+{
+    width: 51%;
+    height: 30px;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTOutageAreaParamValue
+{
+    width: 30%;
+    height: 30px;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTParamValue
+{
+    margin-top: 0px !important;
+    margin-right: 10px;
+}
+/*Outage area css ends*/
+
+.jimu-widget-IsolationTrace-setting .jimu-symbol-chooser
+{
+    margin-left: 118px;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTDoubleLinedText
+{
+    margin-top: 0px !important;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTFloatLeftCommon
+{
+    float: left;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTOutputHelpText
+{
+    font-size: 10px;
+    margin-left: 115px;
+    width: 80%;
+    height: auto !important;
+    margin-top: 0px !important;
+    color: #666;
+}
+
+/* Hint text CSS */
+.jimu-widget-IsolationTrace-setting .esriCTExample
+{
+    color: #ccc;
+    font-size: 12px;
+    font-style: italic;
+}
+.jimu-widget-IsolationTrace-setting .fieldMarginHint
+{
+    margin-left: 114px;
+    height: auto;
+    min-height: 10px;
+    margin-top: 5px;
+}
+.jimu-widget-IsolationTrace-setting .esriCTfieldContainer
+{
+    height: auto;
+    margin-top: 0px;
+}
+.jimu-widget-IsolationTrace-setting .esriCTOutageFieldParams
+{
+    width: 50%;
+    float: left;
+}
+
+/* Hint text CSS */
+.jimu-widget-IsolationTrace-setting .thumbnail-img
+{
+    width: 100px;
+    height: 67px;
+}
+
+.jimu-widget-IsolationTrace-setting .img-chooser
+{
+    width: 100px;
+    height: 67px;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTBrwoseImage
+{
+    width: 115px;
+    float: left;
+}
+
+.jimu-widget-IsolationTrace-setting .esriCTMargin
+{
+    margin-bottom: 10px;
+}
+.jimu-widget-IsolationTrace-setting .image_chooser_base
+{
+    position: relative;
+    left: 115px;
+}

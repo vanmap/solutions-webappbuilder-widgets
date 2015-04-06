@@ -1,0 +1,544 @@
+
+@import url('http://js.arcgis.com/3.12/dijit/themes/claro/claro.css');
+
+
+.jimu-widget-IsolationTrace .flagbutton {
+    float: left;
+    cursor: pointer;
+    width: 42px;
+    height: 42px;
+    background-repeat: no-repeat;
+    background-image: url("../images/add-flags.png");
+    background-color: #858585;
+}
+
+.jimu-widget-IsolationTrace .esriCTSaveToLayerButton {
+    float: left;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    background-repeat: no-repeat;
+    margin-right: 10px;
+    background-image: url("../images/save-layer.png");
+}
+
+.jimu-widget-IsolationTrace .esriCTBackButton {
+    float: left;
+    margin-top: 5%;
+    margin-left: 6%;
+    cursor: pointer;
+    width: 13px;
+    height: 13px;
+    background-repeat: no-repeat;
+    background-color: black;
+    background-image: url("../images/back-arrow.png");
+}
+
+.jimu-widget-IsolationTrace .esriCTExportToCSVButton {
+    float: right;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    background-repeat: no-repeat;
+    background-image: url("../images/download-csv.png");
+}
+
+.jimu-widget-IsolationTrace .barrierButton {
+    float: left;
+    cursor: pointer;
+    width: 42px;
+    height: 42px;
+    background-repeat: no-repeat;
+    background-image: url("../images/add-barriers.png");
+    background-color: #858585;
+}
+
+.jimu-widget-IsolationTrace .flagButtonselected {
+    float: left;
+    cursor: pointer;
+    width: 42px;
+    height: 42px;
+    background-repeat: no-repeat;
+    background-image: url("../images/add-flags-select.png");
+    background-color: #858585;
+}
+
+.jimu-widget-IsolationTrace .barrierButtonselected {
+    float: left;
+    cursor: pointer;
+    width: 42px;
+    height: 42px;
+    background-repeat: no-repeat;
+    background-image: url("../images/add-barriers-select .png");
+    background-color: #858585;
+}
+
+.jimu-widget-IsolationTrace .esriCTImageDiv {
+    float: right;
+    margin-right: 10px;
+}
+
+.jimu-widget-IsolationTrace .tracePanel {
+    padding: 10px 20px;
+}
+
+.jimu-widget-IsolationTrace .traceControl {
+    float: left;
+    width: 100%;
+}
+
+.jimu-widget-IsolationTrace .btnFlagStyle {
+}
+
+.jimu-widget-IsolationTrace .btnBarrierStyle {
+    float: right;
+}
+
+.jimu-widget-IsolationTrace .flagLabel {
+    float: left;
+    margin: 17px 10px 0 0;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 55px;
+}
+
+.barrierLabel {
+    float: left;
+    margin: 17px 10px 0 0;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 68px;
+}
+
+.traceButtons {
+    float: left;
+    width: 100%;
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.resultItemButton {
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    cursor: pointer;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -o-border-radius: 5px;
+    border-radius: 5px;
+    outline: none;
+    background-position: center center;
+    background-repeat: no-repeat;
+    border: 0;
+    margin-right: 10px;
+    float: left;
+}
+
+.resultItemLabel {
+    margin-top: 18px;
+    float: left;
+    width: 170px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+}
+
+.resultItemSubDiv {
+    clear: both;
+}
+
+.resultItemButtonSkipIcon {
+    background-image: url("../images/skip.png");
+    background-color: #666666;
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
+.resultItemButtonSkipIconSelected {
+    background-color: #ff0000 !important;
+}
+
+.resultItemButtonZoomIcon {
+    background-image: url("../images/ZoomTo.png");
+    background-color: #666666;
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
+.resultItemButtonZoomIconSelected {
+    background-image: url("../images/ZoomTo.png");
+    background-color: #ff0000;
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
+.runIconidle {
+    display: none;
+}
+
+.runIconProcessing {
+    background-image: url("../images/loading.gif");
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    background-size: 100% auto;
+    height: 60px;
+    margin: 0 auto;
+    width: 40px;
+}
+
+.traceControlDisabledDiv {
+    pointer-events: none;
+}
+
+
+.dijitButtonNode {
+    border: 0px solid gray;
+}
+
+.dijitValidationTextBoxError input.dijitValidationInner, .dijitSelect input, .dijitTextBox input.dijitArrowButtonInner {
+    height: 28px !important;
+}
+
+.DynamicCheckbox {
+    margin-right: 5px;
+}
+
+.DateAndTime {
+    width: 12em !important;
+}
+
+.dijitTimeTextBox {
+    width: 12em !important;
+}
+
+.dijitDateTextBox {
+    width: 12em !important;
+}
+
+.resultPanelStyle {
+    width: 100%;
+}
+
+.resultItemClass {
+    padding-bottom: 5px;
+    padding-top: 5px;
+}
+
+/*override Class from JIMU css*/
+.jimu-btn {
+    background: none repeat scroll 0 0 #485566;
+    border: medium none;
+    border-radius: 2px;
+    cursor: pointer;
+    font-size: 12px;
+    min-width: 70px;
+    overflow: hidden;
+    padding: 8px;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+    margin-right: 12px;
+}
+
+.esriCThiddenDIV{
+    height:30px;
+    width:100%;
+}
+
+    .jimu-btn:hover {
+        background: none repeat scroll 0 0 #485566;
+    }
+
+    .jimu-btn.jimu-state-disabled:hover {
+        background: none repeat scroll 0 0 #ccc;
+        cursor: default;
+    }
+
+    .jimu-btn.jimu-state-disabled {
+        background: none repeat scroll 0 0 #ccc;
+        box-shadow: 0 0 0 0px #d9dde0 inset;
+        cursor: default;
+    }
+
+.resultPanelContainer {
+    clear: both;
+    position: relative;
+    width: 100%;
+}
+
+.jimu-widget-frame.jimu-container {
+    background-color: white;
+    overflow: auto;
+    padding: 0px;
+    position: relative;
+}
+
+
+/*override Class from Claro css*/
+
+.dijitArrowNode {
+    float: right;
+}
+
+.claro .dijitTitlePaneTitleOpen, .claro .dijitTitlePaneTitleFixedOpen {
+    background-color: #E9EEF4;
+    color: Black;
+}
+
+.dijitTitlePane {
+    background-color: #fff;
+}
+
+.claro .dijitTitlePaneTitle {
+    background-color: #efefef;
+    background-image: none;
+    background-repeat: repeat-x;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-top: 1px solid #b5bcc7;
+    color: #494949;
+    min-height: 17px;
+    padding: 7px 15px;
+}
+
+.claro .dijitTitlePaneContentOuter {
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-top: 1px solid #b5bcc7;
+    padding: 0 10px;
+}
+
+.dijitheadPaneTitle {
+    background-color: #ccc;
+    background-image: none;
+    background-repeat: repeat-x;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-top: 1px solid #b5bcc7;
+    color: #494949;
+    min-height: 17px;
+}
+
+.esriCTHyperlink {
+    color: #485566;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+.esriCThyperlinkDiv {
+    float: left;
+    margin-top: 18px;
+    margin-left: 10px;
+}
+
+.resultsHeadText {
+    padding: 5px;
+    font-weight: bold;
+    padding-bottom: 30px;
+}
+
+.esriCTResultHead {
+    float: left;
+    margin-top: 8px;
+    margin-left: 10px;
+    width: 69%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.dijitheadPanelIcons {
+    float: right;
+}
+
+.saveToLayer {
+    float: left;
+}
+
+.exportToCsv {
+    float: left;
+}
+
+#Isolated_CustomersCP {
+    border-bottom: 1px solid #b5bcc7;
+}
+
+.claro .dijitTitlePaneTitleFocus {
+    outline: none;
+}
+/* CSS for Save to Layer Panel*/
+.esriCTMainDiv {
+    width: 100%;
+}
+
+.esriCTTopDiv {
+    height: 50px;
+    border-bottom: 1px solid #000;
+}
+
+.esriCTBackButtonLinkLbl {
+    float: left;
+    margin-top: 5%;
+}
+
+.esriCTSaveButton {
+    height: 30px;
+    width: 60px;
+    float: left;
+    vertical-align: middle;
+    margin-left: 112px;
+}
+
+.esriCTTitleSaveToLayer {
+    margin-left: 40%;
+    padding-top: 18px;
+    font-size: small;
+}
+
+.esriCTCommonDiv {
+    padding: 5px 0px 3px 0px;
+    clear: both;
+    float: left;
+    margin-left: 29px;
+}
+
+.esriCTWidth {
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+.esriCTLeft {
+    float: left;
+    margin-right: 15px;
+}
+
+.esriCTRight {
+    float: left;
+}
+
+.esriCTTextbox {
+    width: 144px;
+    height: 30px;
+}
+
+.esriCTDateTextbox {
+    width: 134px;
+    height: 23px;
+}
+
+.esriCTTimeTextbox {
+    width: 131px;
+    height: 23px;
+}
+
+.esriCTChkMargin {
+    margin-bottom: 5px;
+    width: 45%;
+}
+
+.esriCTHidden {
+    display: none;
+}
+
+.esriCTOutageControl {
+    width: 144px!important;
+}
+
+.esriCTOutageAreaVisibilty {
+    width: 99%;
+    height: 100%;
+    float: left;
+}
+
+.esriCTBtnPos {
+    margin-left: 200px;
+}
+
+.esriCTExportToCSVBtnDiv {
+    margin-left: 30px;
+    margin-top: 10px;
+}
+
+.esriCTLabelMargin {
+    margin-left: 20px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    display: block;
+    width: 250px;
+}
+
+.esriCTInfoLink {
+    color: black;
+    margin: 0 auto;
+    cursor: pointer;
+}
+
+.esriCTParamCheckBox {
+    position: relative;
+    margin: 0px 0px 7px 0px;
+}
+
+.esriCTChkLabel {
+    position: absolute;
+    top: 2px;
+    left: 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    width: 250px;
+}
+
+
+.claro .dijitSelect, .claro .dijitTextBox {
+    width: 144px;
+}
+
+.esriCTChkGroup {
+    width: 159px;
+    float: left;
+    margin: 5px 0;
+}
+
+/* Result Infopopup styles */
+.attrResultInfoTable {
+    border-collapse: collapse;
+}
+
+.attrResultInfoTable td.attrName
+{
+    color: #888888;
+    padding-right: 5px;
+}
+
+.attrResultInfoTable td
+{
+    padding: 2px;
+    padding-bottom: 5px;
+}
+
+.attrHeader
+{
+    font-weight: bold;
+}
+
+.attrSeparator
+{
+    border: none;
+    border-top: 1px solid #333333;
+    margin-top: 6px;
+    margin-bottom: 6px;
+}

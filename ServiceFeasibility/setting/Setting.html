@@ -1,0 +1,58 @@
+﻿<div style="width: 100%; height: 100%;">
+    <div class="divBusinessesLayerContainer row">
+        <div class="SFlabel">${nls.lblBusinessesLayer}</div>
+        <div class="inputbox"><select data-dojo-attach-point="selectBusinessLayer" data-dojo-type="dijit/form/Select"></select></div>
+    </div>
+    <div class="divAccessPointLayersContainer row">
+        <div class="SFlabel">${nls.lblAccessPointLayers}</div>
+        <div class="chkbox"><div class="divAceessPointLayersCheckboxes" data-dojo-attach-point="divAccessPointLayer"></div>
+        </div>
+    </div>
+    <div class="divRouteLengthUnitsContainer row">
+        <div class="SFlabel">${nls.lblForRouteLengthUnits}</div>
+        <div class="inputbox"><input type="text" /></div>
+    </div>
+    <div class="divBusinessListContainer row">
+        <div class="SFlabel">${nls.lblFieldTobeDisplayed}</div>
+        <div class="inputbox"><select data-dojo-attach-point="selectbusinessList" data-dojo-type="dijit/form/Select"></select></div>
+    </div>
+    <fieldset class="fldSetServiceAreaParameters row">
+        <legend class="fieldSetLegend">${nls.captionServiceAreaParameters}</legend>
+        <div class="divServiceAreaParametersContainer">
+            <div class="divBufferDistanceContainer row">
+                <div class="SFlabel">${nls.lblBufferDistanceToGenerateServiceArea}</div>
+                <div class="inputbox"><input type="text" /></div>
+            </div>
+            <div class="divBufferUnitsContainer row">
+                <div class="SFlabel">${nls.lblBufferUnits}</div>
+                <div class="inputbox"><select data-dojo-attach-point="selectBufferUnits" data-dojo-type="dijit/form/Select"></select></div>
+            </div>
+            <div class="divBufferWKIDContainer row">
+                <div class="SFlabel">${nls.lblBufferWKID}</div>
+                <div class="inputbox"><input type="text" /></div>
+            </div>
+        </div>
+    </fieldset>
+    <fieldset class="fldSetClosestFacilityParameters row">
+        <legend class="fieldSetLegend">${nls.captionClosestFacilityParameters}</legend>
+        <div class="divClosestFacilityParametersContainer">
+            <div class="divClosestFacilityURLContainer row">
+                <div class="SFlabel">${nls.lblClosestFacilityServiceUrl}</div>
+                <div class="inputurlbox"><input type="text" />
+                <button class="jimu-popup-btn jimu-float-trailing jimu-leading-margin1 urlButton">${nls.btnSet}</button></div>
+            </div>
+            <div class="divFacilitySearchDistanceContainer row">
+                <div class="SFlabel">${nls.lblFacilitySearchDistance}</div>
+                <div class="inputbox"><input type="text" /></div>
+            </div>
+            <div class="divImpedanceAttributeContainer row">
+                <div class="SFlabel">${nls.lblImpedanceAttribute}</div>
+                <div class="inputbox"><input type="text" /></div>
+            </div>
+            <div class="divCutoffDistanceContainer row">
+                <div class="SFlabel">${nls.lblDefaultCutOffDistance}</div>
+                <div class="inputbox"><input type="text" /></div>
+            </div>
+        </div>
+    </fieldset>
+</div>

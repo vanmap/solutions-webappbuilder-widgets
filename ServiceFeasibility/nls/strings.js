@@ -1,4 +1,4 @@
-/*global define,dojo,alert,dijit */
+/*global define,dojo,dijit,dojoConfig,alert,console */
 /*jslint browser:true,sloppy:true,nomen:true,unparam:true,plusplus:true,indent:4 */
 ///////////////////////////////////////////////////////////////////////////
 // Copyright © 2014 Esri. All Rights Reserved.
@@ -17,23 +17,32 @@
 ///////////////////////////////////////////////////////////////////////////
 define({
     root: ({
-        searchContainerHeading:"Search",
+        configError: "Widget is not properly configured",
+        searchContainerHeading: "Search",
         resultsContainerHeading: "Results",
-        findNearest:"Find nearest",
+        findNearest: "Find nearest",
         DrawBarriersOnMap: "Draw barriers on map (optional)",
         SelectLocationOnMap: "Select location on map",
-        FindButton:"Find",
+        FindButton: "Find",
         ClearButton: "Clear",
         routeLengthHeading: "Route Length",
-        businessPassedHeading:"Businesses Passed",
-        // Error Alert Messages
-        invalidGeometryService : "Invalid Geometry Service",
+        businessPassedHeading: "Businesses Passed",
+        invalidGeometryService: "Invalid Geometry Service",
         featureNotExist: "No businesses were found within the search area",
-        routeSolveError: "Error while finding the route",
-        businessFeatureError:"Error locating the number of businesses, please try again",
-        selectBusinessValues: "Select Business Influence Value",
+        routeSolveError: "Error while solving the route",
+        businessFeatureError: "Error locating the number of businesses, please try again",
         invalidTxtBoxValue: "Enter Valid Numbers",
-        textboxValueIsInvalid:"Attribute Parameter value is invalid",
-        noBusinessPassedMsg:"No Businesses Passed"
+        noBusinessPassedMsg: "No Businesses Passed",
+        backButtonLabel: "Back",
+        saveToLayerLabel: "Save To Layer",
+        saveRouteLayerLabel: "Route Layer",
+        businessPassedLabel: "Businesses Passed",
+        exportToCSVTitle: "Export to CSV",
+        saveLayerTitle: "Save to Layer",
+        routeLengthLabel: "Route Length",
+        businessLayerLabel: "Business Layer",
+        saveBtnLabel: "Save",
+        saveClickError: "Select atleast one layer to save",
+        saveToLayerSuccess: "Save To Layer is successfully completed"
     })
 });

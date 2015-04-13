@@ -64,37 +64,14 @@ define([
         },
 
         /**
-        * This function is used to validate closed facility service url
-        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
-        **/
-        validateClosestFacilityServiceURL: function () {
-            this._clickedRows = [];
-            var isURLcorrect, url, requestArgs;
-            url = this.closestFacilityURL;
-            isURLcorrect = this._urlValidator(url);
-            // if the task URL is valid
-            if (isURLcorrect) {
-                requestArgs = { url: url, content: { f: "json" }, handleAs: "json", callbackParamName: "callback", timeout: 20000 };
-                esriRequest(requestArgs).then(lang.hitch(this, function (response) {
-                    this._displayAttributeParamaterValues(response);
-                }), lang.hitch(this, function (err) {
-                    if (this._initialLoad) {
-                        this._initialLoad = false;
-                    }
-                    this._errorMessage(this.nls.invalidURL);
-                }));
-            } else {
-                this._errorMessage(this.nls.invalidURL);
-            }
-        },
-
-        /**
         * This function is used to display attribute parameter values
         * @param {object} response of layer
         * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
         **/
-        _displayAttributeParamaterValues: function (response) {
+        displayAttributeParamaterValues: function (response) {
             var i, j, k, attributeParameterValues, showMinAndMaxRange, minAndMaxValue, minAndMaxValueObj, dropDownObj, isAttributeConfigured, parameterObj, defaultToValueDropDownOption;
+            this._clickedRows.length = 0;
+            domConstruct.empty(query(".esriCTAttrParamContainer")[0]);
             for (i = 0; i < response.attributeParameterValues.length; i++) {
                 for (j = 0; j < response.networkDataset.networkAttributes.length; j++) {
                     if (response.networkDataset.networkAttributes[j].name === response.attributeParameterValues[i].attributeName) {
@@ -128,21 +105,6 @@ define([
                 }
             }
             this._initialLoad = false;
-        },
-
-        /**
-        * This function will validate the URL string.
-        * @param {string} URL that needs to be validated
-        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
-        **/
-        _urlValidator: function (value) {
-            var strReg, reg, b1, p2, b2;
-            strReg = '^' + regexp.url({ allowNamed: true, allLocal: false });
-            reg = new RegExp(strReg, 'g');
-            b1 = reg.test(value);
-            p2 = /\/rest\/services/gi;
-            b2 = p2.test(value);
-            return b1 && b2;
         },
 
         /**
@@ -206,11 +168,11 @@ define([
         _addParameterForAllowToUserOption: function (esriCTAttrParamRow, parameterObj) {
             var attributeParameterMinValueTextInputColumn, attributeParameterValueDropDownColumn, valueDropDown, attributeParameterMaxValueTextInputColumn;
             if (parameterObj.checkBoxState && (parameterObj.dataType === "esriNADTDouble" || parameterObj.dataType === "esriNADTInteger")) {
-                domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMinLabel", "innerHTML": this.nls.minText }, esriCTAttrParamRow);
+                domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMinLabel esriCTAttrParamEllipsis", "innerHTML": this.nls.minText }, esriCTAttrParamRow);
             } else {
-                domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMinLabel esriCTAttrParamHidden", "innerHTML": this.nls.minText }, esriCTAttrParamRow);
+                domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMinLabel esriCTAttrParamHidden esriCTAttrParamEllipsis", "innerHTML": this.nls.minText }, esriCTAttrParamRow);
             }
-            domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamValueLabel esriCTAttrParamHiddenColumn", "innerHTML": this.nls.valueText }, esriCTAttrParamRow);
+            domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamValueLabel esriCTAttrParamHiddenColumn esriCTAttrParamEllipsis", "innerHTML": this.nls.valueText }, esriCTAttrParamRow);
             if (parameterObj.checkBoxState && (parameterObj.dataType === "esriNADTDouble" || parameterObj.dataType === "esriNADTInteger")) {
                 attributeParameterMinValueTextInputColumn = domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMinValue" }, esriCTAttrParamRow);
             } else {
@@ -223,10 +185,10 @@ define([
             domClass.add(valueDropDown.domNode, "esriCTAttrParamHiddenColumn");
             this._toogleMinTextBox(attributeParameterMinValueTextInputColumn, parameterObj);
             if (parameterObj.checkBoxState && (parameterObj.dataType === "esriNADTDouble" || parameterObj.dataType === "esriNADTInteger")) {
-                domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMaxLabel", "innerHTML": this.nls.maxText }, esriCTAttrParamRow);
+                domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMaxLabel esriCTAttrParamEllipsis", "innerHTML": this.nls.maxText }, esriCTAttrParamRow);
                 attributeParameterMaxValueTextInputColumn = domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMaxValue" }, esriCTAttrParamRow);
             } else {
-                domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMaxLabel esriCTAttrParamHidden", "innerHTML": this.nls.maxText }, esriCTAttrParamRow);
+                domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMaxLabel esriCTAttrParamHidden esriCTAttrParamEllipsis", "innerHTML": this.nls.maxText }, esriCTAttrParamRow);
                 attributeParameterMaxValueTextInputColumn = domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMaxValue esriCTAttrParamHidden" }, esriCTAttrParamRow);
             }
             this._toogleMaxTextBox(attributeParameterMaxValueTextInputColumn, parameterObj);
@@ -302,6 +264,10 @@ define([
             }
         },
 
+        /**
+        * This function is used to get updated value in the dropdown.
+        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
+        **/
         _retainValueInDropDown: function (parameterObj, valueDropDown) {
             var defaultDataDictionaryValue, defaultDataDictionaryValueArr, i;
             defaultDataDictionaryValue = query(".esriCTAttributeTextArea")[0].value.split(",");
@@ -324,11 +290,11 @@ define([
         **/
         _addParameterForDefaultToValueOption: function (esriCTAttrParamRow, parameterObj) {
             var attributeParameterMinValueTextInputColumn, attributeParameterValueDropDownColumn, valueDropDown, input, attributeParameterMaxValueTextInputColumn;
-            domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMinLabel esriCTAttrParamHiddenColumn", "innerHTML": this.nls.minText }, esriCTAttrParamRow);
+            domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMinLabel esriCTAttrParamHiddenColumn esriCTAttrParamEllipsis", "innerHTML": this.nls.minText }, esriCTAttrParamRow);
             if (parameterObj.checkBoxState) {
-                domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamValueLabel", "innerHTML": this.nls.valueText }, esriCTAttrParamRow);
+                domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamValueLabel esriCTAttrParamEllipsis", "innerHTML": this.nls.valueText }, esriCTAttrParamRow);
             } else {
-                domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamValueLabel esriCTAttrParamHidden", "innerHTML": this.nls.valueText }, esriCTAttrParamRow);
+                domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamValueLabel esriCTAttrParamHidden esriCTAttrParamEllipsis", "innerHTML": this.nls.valueText }, esriCTAttrParamRow);
             }
             attributeParameterMinValueTextInputColumn = domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMinValue esriCTAttrParamHiddenColumn" }, esriCTAttrParamRow);
             if (parameterObj.checkBoxState) {
@@ -350,7 +316,7 @@ define([
             }
             input = new ValidationTextBox({ "trim": true }, attributeParameterMinValueTextInputColumn);
             domClass.add(input.domNode, "esriCTAttrParamMinTextBox esriCTAttrParamHiddenColumn");
-            domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMaxLabel esriCTAttrParamHidden", "innerHTML": this.nls.maxText }, esriCTAttrParamRow);
+            domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMaxLabel esriCTAttrParamHidden esriCTAttrParamEllipsis ", "innerHTML": this.nls.maxText }, esriCTAttrParamRow);
             attributeParameterMaxValueTextInputColumn = domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMaxValue esriCTAttrParamHidden" }, esriCTAttrParamRow);
             input = new ValidationTextBox({ "trim": true }, attributeParameterMaxValueTextInputColumn);
             domClass.add(input.domNode, "esriCTAttrParamMaxTextBox esriCTAttrParamHidden");
@@ -395,16 +361,6 @@ define([
                     domClass.add(columns[8], "esriCTAttrParamHidden");
                 }
             }));
-        },
-
-        /**
-        * This function create error alert.
-        * @param {string} error message
-        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
-        **/
-        _errorMessage: function (err) {
-            var errorMessage = new Message({ message: err });
-            errorMessage.message = err;
         },
 
         /**
@@ -454,20 +410,24 @@ define([
         * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
         **/
         _showExistingColumns: function (existingColumns, showColumn) {
+            var dataType;
             if (showColumn) {
-                if (existingColumns[2].textContent === this.nls.defaultToValue) {
+                if ((existingColumns[2].textContent === this.nls.defaultToValue) || (existingColumns[2].outerText === this.nls.defaultToValue)) {
                     domClass.remove(existingColumns[2], "esriCTAttrParamHidden");
                     domClass.remove(existingColumns[4], "esriCTAttrParamHidden");
                     domClass.remove(existingColumns[6], "esriCTAttrParamHidden");
                 } else {
+                    dataType = domAttr.get(existingColumns[0], "dataType");
                     domClass.remove(existingColumns[2], "esriCTAttrParamHidden");
-                    domClass.remove(existingColumns[3], "esriCTAttrParamHidden");
-                    domClass.remove(existingColumns[5], "esriCTAttrParamHidden");
-                    domClass.remove(existingColumns[7], "esriCTAttrParamHidden");
-                    domClass.remove(existingColumns[8], "esriCTAttrParamHidden");
+                    if (dataType === "esriNADTDouble" || dataType === "esriNADTInteger") {
+                        domClass.remove(existingColumns[3], "esriCTAttrParamHidden");
+                        domClass.remove(existingColumns[5], "esriCTAttrParamHidden");
+                        domClass.remove(existingColumns[7], "esriCTAttrParamHidden");
+                        domClass.remove(existingColumns[8], "esriCTAttrParamHidden");
+                    }
                 }
             } else {
-                if (existingColumns[2].textContent === this.nls.defaultToValue) {
+                if ((existingColumns[2].textContent === this.nls.defaultToValue) || (existingColumns[2].outerText === this.nls.defaultToValue)) {
                     domClass.add(existingColumns[2], "esriCTAttrParamHidden");
                     domClass.add(existingColumns[4], "esriCTAttrParamHidden");
                     domClass.add(existingColumns[6], "esriCTAttrParamHidden");
@@ -490,10 +450,61 @@ define([
             attributeNameJsonArr = [];
             for (i = 0; i < this._clickedRows.length; i++) {
                 columns = this._clickedRows[i].parentElement.childNodes;
-                attributeName = { "name": columns[1].textContent, "displayLabel": domAttr.get(columns[1], "displayLabel"), "allowUserInput": this._getAllowUserInput(columns[2].textContent).toString(), "value": this._getMinAndMaxValue(columns) };
+                attributeName = { "name": columns[1].textContent || columns[1].outerText, "displayLabel": domAttr.get(columns[1], "displayLabel"), "allowUserInput": this._getAllowUserInput(columns[2].textContent || columns[2].outerText).toString(), "value": this._getMinAndMaxValue(columns) };
                 attributeNameJsonArr.push(attributeName);
             }
             return attributeNameJsonArr;
+        },
+
+        /**
+        *
+        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
+        **/
+        validateMinMax: function () {
+            var i, columns, minValue, maxValue, returnObj, dataType, minMaxValue;
+            returnObj = { returnErr: "", hasError: false };
+            for (i = 0; i < this._clickedRows.length; i++) {
+                columns = this._clickedRows[i].parentElement.childNodes;
+                dataType = domAttr.get(columns[0], "dataType");
+                maxValue = columns[8].childNodes[1].childNodes[0].value;
+                minValue = columns[5].childNodes[1].childNodes[0].value;
+                minMaxValue = columns[1].textContent || columns[1].outerText;
+                if (((columns[2].textContent === this.nls.allowToUserInput) || (columns[2].outerText === this.nls.allowToUserInput)) && (dataType === "esriNADTDouble" || dataType === "esriNADTInteger")) {
+                    if (minValue === "" || minValue === null) {
+                        returnObj.returnErr = minMaxValue + ":" + this.nls.validationErrorMessage.minNullValueErr;
+                        returnObj.hasError = true;
+                    } else if (isNaN(parseInt(minValue, 10))) {
+                        returnObj.returnErr = minMaxValue + ":" + this.nls.validationErrorMessage.minValueNumberOnlyErr;
+                        returnObj.hasError = true;
+                    } else if (!this.ValidateInput(minValue)) {
+                        returnObj.returnErr = minMaxValue + ":" + this.nls.validationErrorMessage.minValueCharErr;
+                        returnObj.hasError = true;
+                    } else if (maxValue === "" || maxValue === null) {
+                        returnObj.returnErr = minMaxValue + ":" + this.nls.validationErrorMessage.MaxNullValueErr;
+                        returnObj.hasError = true;
+                    } else if (isNaN(parseInt(maxValue, 10))) {
+                        returnObj.returnErr = minMaxValue + ":" + this.nls.validationErrorMessage.MaxValueNumberOnlyErr;
+                        returnObj.hasError = true;
+                    } else if (!this.ValidateInput(maxValue)) {
+                        returnObj.returnErr = minMaxValue + ":" + this.nls.validationErrorMessage.MaxValueCharErr;
+                        returnObj.hasError = true;
+                    } else if (parseInt(minValue, 10) >= parseInt(maxValue, 10)) {
+                        returnObj.returnErr = minMaxValue + ":" + this.nls.validationErrorMessage.minValueErr;
+                        returnObj.hasError = true;
+                    }
+                }
+            }
+            return returnObj;
+        },
+
+        /**
+        * This function is used to allow digits only
+        * @memberOf widgets/isolation-trace/settings/settings
+        **/
+        ValidateInput: function (input) {
+            var regex;
+            regex = /^[+\-]?\d*(?:\.\d{1,2})?$/; // allow only numbers [0-9]
+            return regex.test(input);
         },
 
         /**
@@ -513,12 +524,22 @@ define([
         **/
         _getMinAndMaxValue: function (columns) {
             var value;
-            if (columns[2].textContent === this.nls.defaultToValue) {
-                value = columns[6].textContent;
+            if (columns[2].textContent === this.nls.defaultToValue || columns[2].outerText === this.nls.defaultToValue) {
+                value = columns[6].textContent || columns[6].outerText;
             } else {
                 value = columns[5].childNodes[1].childNodes[0].value + "," + columns[8].childNodes[1].childNodes[0].value;
             }
             return value;
+        },
+
+        /**
+        * This function create error alert.
+        * @param {string} err
+        * @memberOf widgets/isolation-trace/settings/settings
+        **/
+        _errorMessage: function (err) {
+            var errorMessage = new Message({ message: err });
+            errorMessage.message = err;
         },
 
         /**
@@ -528,7 +549,6 @@ define([
         addConfigParameters: function () {
             if (this.config && this.config.attributeName && this.closestFacilityURL) {
                 this._initialLoad = true;
-                this.validateClosestFacilityServiceURL();
             }
         }
     });

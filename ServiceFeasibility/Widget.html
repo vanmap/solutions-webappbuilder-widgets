@@ -6,28 +6,36 @@
                     <div data-dojo-attach-point="tabSearch">
                         <div class="esriCTfindNearestContainer" data-dojo-attach-point="divFindNearest">
                             <div class="esriCTlblFindNearestLabel">
-                                <label class="esriCTFindNearest"></label></div>
-                            <div class="esriCTSelectFindNearest">
+                                <label class="esriCTFindNearest">
+                                </label>
+                            </div>
+                            <div class="esriCTSelectFindNearest esriCTHidePanel" data-dojo-attach-point="selectFindNearestDropdownDiv">
                                 <select data-dojo-attach-point="selectFindNearest">
                                 </select></div>
                         </div>
                         <div class="esriCTbusinessInfluenceContainer" data-dojo-attach-point="divBuisnessInfluence">
                         </div>
                         <div class="esriCTBarriersContainer" data-dojo-attach-point="divDrawBarriersOnMap">
-                            <div class="esriCTBarriersLabel"></div>
+                            <div class="esriCTBarriersLabel">
+                            </div>
                             <div class="esriCTbarriersImageContainer" data-dojo-attach-point="divBarriers">
-                                <div class="esriCTImgPoint" data-dojo-attach-point="pointImageContainer" data-dojo-attach-event="onclick:_onPointBarrierClicked">
+                                <div class="esriCTImgPoint esriCTBarrierImg" data-dojo-attach-point="pointImageContainer"
+                                    data-dojo-attach-event="onclick:_onPointBarrierClicked">
                                 </div>
-                                <div class="esriCTImgPolyline" data-dojo-attach-point="polylineImageContainer" data-dojo-attach-event="onclick:_onPolylineBarrierClicked">
+                                <div class="esriCTImgPolyline esriCTBarrierImg" data-dojo-attach-point="polylineImageContainer"
+                                    data-dojo-attach-event="onclick:_onPolylineBarrierClicked">
                                 </div>
-                                <div class="esriCTImgPolygon" data-dojo-attach-point="polygonImageContainer" data-dojo-attach-event="onclick:_onPolygonBarrierClicked">
+                                <div class="esriCTImgPolygon esriCTBarrierImg" data-dojo-attach-point="polygonImageContainer"
+                                    data-dojo-attach-event="onclick:_onPolygonBarrierClicked">
                                 </div>
                             </div>
                         </div>
                         <div class="esriCTLocationContainer" data-dojo-attach-point="divSelectLocationOnMap">
-                            <div class="esriCTLocationLabel"></div>
+                            <div class="esriCTLocationLabel">
+                            </div>
                             <div class="esriCTLocationImgContainer" data-dojo-attach-point="divSelectLocation">
-                                <div class="esriCTimgSelectLocation" data-dojo-attach-point="imgSelectLocationDojo" data-dojo-attach-event="onclick:_onSelectLocationClicked">
+                                <div class="esriCTimgSelectLocation esriCTBarrierImg" data-dojo-attach-point="imgSelectLocationDojo"
+                                    data-dojo-attach-event="onclick:_onSelectLocationClicked">
                                 </div>
                             </div>
                         </div>
@@ -36,31 +44,67 @@
                             </div>
                             <div class="esriCTClearButtonContainer" data-dojo-attach-point="divClearButtonContainer">
                             </div>
-                    </div>
-                    <div data-dojo-attach-point="tabResults">
-                        <div class="esriCTResultContainer" data-dojo-attach-point="resultContainer">
-                            <div class="esriCTRouteLengthContainer">
-                                <div class="esriCTRouteLengthLabel">
-                                    <label>
-                                        ${nls.routeLengthHeading}
-                                    </label>
+                        </div>
+                        <div data-dojo-attach-point="tabResults">
+                            <div class="esriCTResultContainer" data-dojo-attach-point="resultContainer">
+                                <div class="esriCTRouteLengthContainer">
+                                    <div class="esriCTRouteLengthLabel">
+                                        <label>
+                                            ${nls.routeLengthHeading}
+                                        </label>
+                                    </div>
+                                    <div class="esriCTRouteLengthCount" data-dojo-attach-point="routeLengthCountValue">
+                                    </div>
                                 </div>
-                                <div class="esriCTRouteLengthCount" data-dojo-attach-point="routeLengthCountValue">
+                                <div class="esriCTBusinessPassedContainer">
+                                    <div class="esriCTBusinessPassedLabel">
+                                        <label>
+                                            ${nls.businessPassedHeading}</label></div>
+                                    <div class="esriCTBusinessPassedCount" data-dojo-attach-point="businessPassedCountValue">
+                                    </div>
                                 </div>
                             </div>
-                            <div class="esriCTBusinessPassedContainer">
-                                <div class="esriCTBusinessPassedLabel">
-                                    <label>
-                                        ${nls.businessPassedHeading}</label></div>
-                                <div class="esriCTBusinessPassedCount" data-dojo-attach-point="businessPassedCountValue">
+                            <div class="esriCTBusinessTitleContainer" data-dojo-attach-point="businessTitleContainer">
+                                <div class="esriCTListTitle" data-dojo-attach-point="listTitleContainer">
+                                </div>
+                            </div>
+                            <div class="esriCTResultListPanel" data-dojo-attach-point="resultListContainer">
+                            </div>
+                            <div class="esriCTSaveLayerPanel esriCTHidePanel" data-dojo-attach-point="saveToLayerContainer">
+                                <div class="esriCTSaveLayerTitleContainer" data-dojo-attach-point="saveLayerTitleContainer">
+                                    <div class="esriCTBackBtnImg" data-dojo-attach-point="backBtnImgContainer">
+                                    </div>
+                                </div>
+                                <div class="esriCTSaveLayerContentContainer" data-dojo-attach-point="saveLayercontentContainer">
+                                    <div class="esriCTRouteLayerContainer" data-dojo-attach-point="routeLayerContaineDiv">
+                                        <div data-dojo-attach-point="routeLayerChkbox">
+                                        </div>
+                                    </div>
+                                    <div class="esriCTHidePanel" data-dojo-attach-point="esriCTSaveBusinessRouteLength">
+                                        <div class="esriCTSaveBusinessPassed esriCTHidePanel" data-dojo-attach-point="saveBusinessPassedContainer">
+                                            <div class="esriCTSaveBusinessPassedLabel" data-dojo-attach-point="saveBusinessPassedlabel">
+                                            </div>
+                                            <div class="esriCTSaveBusinessPassedtxtbox" data-dojo-attach-point="saveBusinessPassedTxtbox">
+                                            </div>
+                                        </div>
+                                        <div class="esriCTSaveRouteLength esriCTHidePanel" data-dojo-attach-point="saveRouteLengthContainer">
+                                            <div class="esriCTSaveRouteLengthLabel" data-dojo-attach-point="saveRouteLengthLabel">
+                                            </div>
+                                            <div class="esriCTSaveRouteLengthTxtbox" data-dojo-attach-point="saveRouteLengthTxtbox">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="esriCTBusinessLayerContainer" data-dojo-attach-point="businessLayerContainerDiv">
+                                        <div data-dojo-attach-point="businessLayerChkbox">
+                                        </div>
+                                    </div>
+                                    <div class="esriCTSaveToLayerBtn" data-dojo-attach-point="saveToLayerBtnContainer">
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class = "esriCTListTitle" data-dojo-attach-point= "listTitleContainer"></div>
-                        <div class = "esriCTResultListPanel" data-dojo-attach-point= "resultListContainer"></div>
                     </div>
                 </div>
             </div>
         </div>
     </div>
-</div>

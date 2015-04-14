@@ -24,24 +24,26 @@ This widget will allow:
 
 ## Instructions
 In order to develop and test widgets you need to deploy the Elevation Profile widget directory to the stemapp/widgets directory in your WebApp Builder installation. This widget is modeled after the Attribute Table widget. In order to add the Elevation Profile Table widget to your developer edition of Web App Builder, please follow these steps:
+
 1. Copy the Elevation Profile Table widget directory to <Web App Builder location>/client/stemapp/widgets
 2. Open <Web App Builder location>/client/stemapp/config.json and add an entry for the Elevation Profile Table widget:
 	{
-      "uri": "widgets/ElevationProfileTable/Widget",
-      "positionRelativeTo": "browser"
-    }
+		"uri": "widgets/ElevationProfileTable/Widget",
+		"positionRelativeTo": "browser"
+	}
 3. Open <Web App Builder location>/stemapp/predefined-apps/default/config.json and add an entry for the Elevation Profile Table widget:
 	{
-      "uri": "widgets/ElevationProfileTable/Widget",
-      "positionRelativeTo": "browser",
-      "version": "1.2"
+		"uri": "widgets/ElevationProfileTable/Widget",
+		"positionRelativeTo": "browser",
+		"version": "1.2"
     }
 4. Open <Web App Builder location>/stemapp/themes/FoldableTheme/layouts/default/config.json and add an entry for the Elevation Profile Table widget:
 	{
-      "uri": "widgets/ElevationProfileTable/Widget",
-      "positionRelativeTo": "browser",
-      "version": "1.2"
+		"uri": "widgets/ElevationProfileTable/Widget",
+		"positionRelativeTo": "browser",
+		"version": "1.2"
     }
+
 Please note that this widget requires the developer edition of WebApp Builder version 1.1.
 
 

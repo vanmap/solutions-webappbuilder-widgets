@@ -23,6 +23,8 @@ This widget will allow:
 
 
 ## Instructions
+**Note:** This widget requires the developer edition of WebApp Builder version 1.1.
+
 In order to develop and test widgets you need to deploy the Elevation Profile widget directory to the stemapp/widgets directory in your WebApp Builder installation. This widget is modeled after the Attribute Table widget. In order to add the Elevation Profile Table widget to your developer edition of Web App Builder, please follow these steps:
 
 * Copy the Elevation Profile Table widget directory to <Web App Builder location>/client/stemapp/widgets
@@ -50,7 +52,9 @@ In order to develop and test widgets you need to deploy the Elevation Profile wi
     }
 ```
 
-Please note that this widget requires the developer edition of WebApp Builder version 1.1.
+The [LOS toolbox](https://github.com/kgonzago/solutions-webappbuilder-widgets/blob/master/ElevationProfileTable/scripts/LOS.tbx) and [los.py](https://github.com/kgonzago/solutions-webappbuilder-widgets/blob/master/ElevationProfileTable/scripts/los.py) script should be used as a general guide during the creation of line of sight Geoprocessing service. Please make the necessary changes to the script in order to consume your own DEM (please look at line 8 of the [los.py](https://github.com/kgonzago/solutions-webappbuilder-widgets/blob/master/ElevationProfileTable/scripts/los.py) script). 
+
+Lastly, since this widget creates elevation profiles from selected features from a web map, you will need to add a web map to WebApp Builder that has popup enabled. This will allow for features to be selected.
 
 
 ## Resources

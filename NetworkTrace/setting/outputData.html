@@ -4,7 +4,7 @@
             ${nls.inputLabel}</label>
         <input data-dojo-attach-point="outputLabelData" data-dojo-type="dijit/form/ValidationTextBox"
             class="common-input esriCTLabelClass" data-dojo-props="required: true,  invalidMessage:'Enter alphabets only.'">
-        <div class="esriCTExample fieldMarginHint">${nls.hintText.labelTextHint}</div>
+        <div class="esriCTHintField">${nls.hintText.labelTextHint}</div>
     </div>
     
     <div class="field esriCTHidden" title="${nls.outputPanel.skip}" data-dojo-attach-point="skippableCheckboxBlock">
@@ -12,17 +12,8 @@
             ${nls.outputPanel.skip}</label>
         <div data-dojo-type="jimu/dijit/CheckBox" data-dojo-attach-point="skippable" class="jimu-checkbox">
         </div>
-        <div class="esriCTExample fieldMarginHint">${nls.hintText.skippableHint}</div>
+        <div class="esriCTHintField">${nls.hintText.skippableHint}</div>
     </div>
-    <div class="field skippableDropdownDiv esriCTHidden" title="${nls.outputPanel.uniqueIDField}" data-dojo-attach-point="skippableDropdownDiv">
-        <label title="${nls.outputPanel.uniqueIDField}">
-            ${nls.outputPanel.uniqueIDField}</label>
-        <select data-dojo-attach-point="inputTypeData" id="${ObjId}" data-dojo-type="dijit/form/Select"
-            class="common-input" style="width: 80%; height: 30px;">
-        </select>
-        <div class="esriCTExample fieldMarginHint">${nls.hintText.skippableFieldHint}</div>
-    </div>
-    
     <div class="field" title="${nls.inputTooltip}">
         <label title="${nls.inputTooltip}">
             ${nls.inputTooltip}</label>
@@ -35,7 +26,7 @@
             ${nls.outputPanel.outputSummary}</label>
         <input data-dojo-attach-point="outputSummaryText" data-dojo-type="dijit/form/ValidationTextBox"
              class="common-input esriCToutputSummaryDataClass" data-dojo-props="required: true,  invalidMessage:'Enter alphabets only.'">
-        <div class="esriCTExample fieldMarginHint">${nls.hintText.summaryTextHint}</div>
+        <div class="esriCTHintField">${nls.hintText.summaryTextHint}</div>
         <div class="esriCTOutputHelpText esriCTOutputOutageField" data-dojo-attach-point="outputSummaryHelpText"></div>
     </div>
     
@@ -45,7 +36,7 @@
             ${nls.outputPanel.outputDisplay}</label>
         <input data-dojo-attach-point="outputDisplayText" data-dojo-type="dijit/form/ValidationTextBox"
              class="common-input esriCToutputDisplayDataClass" data-dojo-props="required: true,  invalidMessage:'Enter alphabets only.'">
-        <div class="esriCTExample fieldMarginHint">${nls.hintText.displayTextHint}</div>
+        <div class="esriCTHintField">${nls.hintText.displayTextHint}</div>
         <div class="field esriCTOutputHelpText esriCTOutputOutageField" data-dojo-attach-point="outputDisplayHelpText"></div>
     </div>
     
@@ -64,19 +55,19 @@
              class="common-input esriCTOutputMaxScaleDataClass" data-dojo-props="required: true,  invalidMessage:'Enter numeric value only.'" value="0">
     </div>
 
-    <div class="field" title="${nls.outputPanel.outputExport}">
+    <div class="field esriCTCheckboxField" title="${nls.outputPanel.outputExport}">
         <label title="${nls.outputPanel.outputExport}">
             ${nls.outputPanel.outputExport}</label>
         <div data-dojo-type="jimu/dijit/CheckBox" data-dojo-attach-point="outputExport" class="jimu-checkbox">
         </div>
-        <div class="esriCTExample fieldMarginHint">${nls.hintText.exportToCSVHint}</div>
+        <div class="esriCTHintField">${nls.hintText.exportToCSVHint}</div>
     </div>
 
-    <div class="field" title="${nls.outputPanel.outputLayer}">
+    <div class="field esriCTCheckboxField" title="${nls.outputPanel.outputLayer}">
         <label title="${nls.outputPanel.outputLayer}">${nls.outputPanel.outputLayer}</label>
         <div data-dojo-type="jimu/dijit/CheckBox" data-dojo-attach-point="outputLayer" class="jimu-checkbox">
         </div>
-        <div class="esriCTExample fieldMarginHint">${nls.hintText.saveToLayerHint}</div>
+        <div class="esriCTHintField">${nls.hintText.saveToLayerHint}</div>
     </div>
 
     <div class="field outputTargetLayer esriCTHidden" title="${nls.outputPanel.outputLayerType}" data-dojo-attach-point="selectOutputLayerType">
@@ -85,7 +76,7 @@
         <select data-dojo-attach-point="outputLayerType"  data-dojo-type="dijit/form/Select"
             class="common-input" style="width: 80%; height: 30px;">
         </select>
-        <div class="esriCTExample fieldMarginHint">${nls.hintText.outputLayerType}r</div>
+        <div class="esriCTHintField">${nls.hintText.outputLayerType}</div>
     </div>
     
     <div class="field" title="${nls.symbol}">

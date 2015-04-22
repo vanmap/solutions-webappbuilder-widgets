@@ -4,15 +4,13 @@
             <div class="tracePanel" data-dojo-attach-point="tracePanel">
                 <div class="traceControls">
                     <div class="btnFlagStyle">
-                        <label class="flagLabel" for="btnFlag">
-                            ${nls.flagHeading}
+                        <label class="flagLabel" data-dojo-attach-point ="flagLabel" for="btnFlag">
                         </label>
                         <div class="flagbutton" data-dojo-attach-point="btnFlag" data-dojo-attach-event="onclick:_onFlagButtonClick">
                         </div>
                     </div>
                     <div class="btnBarrierStyle esriCTHidden">
-                        <label class="barrierLabel" for="btnBarrier">
-                            ${nls.barrierHeading}
+                        <label class="barrierLabel" data-dojo-attach-point ="barrierLabel" for="btnBarrier">
                         </label>
                         <div class="barrierButton" data-dojo-attach-point="btnBarrier" data-dojo-attach-event="onclick:_onBarrierButtonClick">
                         </div>
@@ -21,7 +19,6 @@
                 <div class="traceButtons">
                     <button class="jimu-btn jimu-state-disabled" data-dojo-type="dijit/form/Button" data-dojo-attach-point="btnTrace"
                         type="submit" disabled data-dojo-attach-event="onclick:_onTraceButtonClick">
-                        ${nls.traceButtonValue}
                     </button>
                     <button class="jimu-btn jimu-state-disabled" data-dojo-type="dijit/form/Button" data-dojo-attach-point="btnClear"
                         type="submit" disabled data-dojo-attach-event="onclick:_onClearButtonClick">
@@ -80,9 +77,6 @@
                                 <div data-dojo-attach-point="outageStartDateTimeDiv" class="esriCTCommonDiv">
                                     <div data-dojo-attach-point="outageStartDateDiv" class="esriCTLeft">
                                         <div class="esriCTWidth">
-                                            <label>
-                                                ${nls.lblOutageAreaStartDate}
-                                            </label>
                                         </div>
                                         <div data-dojo-attach-point="StartDateDiv">
                                         </div>
@@ -90,7 +84,6 @@
                                     <div data-dojo-attach-point="outageStartTimeDiv" class="esriCTRight">
                                         <div class="esriCTWidth">
                                             <label>
-                                                ${nls.lblOutageAreaStartTime}
                                             </label>
                                         </div>
                                         <div data-dojo-attach-point="startTimeDiv">
@@ -101,7 +94,6 @@
                                     <div data-dojo-attach-point="outageEndDateDiv" class="esriCTLeft">
                                         <div class="esriCTWidth">
                                             <label>
-                                                ${nls.lblOutageAreaEndDate}
                                             </label>
                                         </div>
                                         <div data-dojo-attach-point="endDateDiv">
@@ -110,24 +102,14 @@
                                     <div data-dojo-attach-point="outageEndTimeDiv" class="esriCTRight">
                                         <div class="esriCTWidth">
                                             <label>
-                                                ${nls.lblOutageAreaEndTime}
                                             </label>
                                         </div>
                                         <div data-dojo-attach-point="endTimeDiv">
                                         </div>
                                     </div>
                                 </div>
-                                <div data-dojo-attach-point="outageAreaTypeDiv" class="esriCTCommonDiv">
-                                    <div data-dojo-attach-point="outageAreaType" class="EsriCTOutageTypeDiv">
-                                        <div class="esriCTWidth">
-                                            <label>
-                                                ${nls.lblOutageAreaType}
-                                            </label>
-                                        </div>
-                                        <div data-dojo-attach-point="outageAreaSelectDiv">
-                                        </div>
-                                    </div>
-                                </div>
+                                 <div data-dojo-attach-point="outageAreaSelectDiv">
+                                       </div>
                                 <div data-dojo-attach-point="textBoxDiv" class="esriCTCommonDiv">
                                     <div data-dojo-attach-point="resultParametersCount">
                                     </div>

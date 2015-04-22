@@ -10,7 +10,6 @@
         invalidInputParameters : "Number of input parameters is either less than or more than 3. Please Enter Valid Geoprocessing Service !!",
         // common
         inputName: "Name",
-        inputRequired: "Required",
         inputLabel: "Label",
         inputTooltip: "Tooltip",
         symbol: "Symbol",
@@ -32,39 +31,37 @@
             outputDisplay: "Display Text",
             outputSummary: "Summary Text",
             skip: "Skippable",
-            uniqueIDField: "Unique ID Field",
             outputminScale: "Min Scale",
-            outputmaxScale: "Max Scale",
-            panelText: "Panel Text"
+            outputmaxScale: "Max Scale"
         },
         //For Outage
         outagePanel: {
-            outageTask: "Outage",
-            outage: "Outage",
-            outageParameter: "Outage ParamName",
+            bufferDistance:"Buffer Distance",
+            esriUnits:"Unit",
+			outageFieldTagName:"Save Summary Options",
+            outage: "Overview",
             isvisible: "Visible",
             OutageFieldName: "Field Name",
             OutageParamName: "Parameter Name",
-            inputVisiblity: "Visible"
+            fieldMappingHint_1: "Select a field to store a summary of the output parameters and select the output parameter.",
+            fieldMappingHint_2: "Currently only the count of items is supported.",
+            esriMeters:"Meters",
+            esriMiles:"Miles",
+            esriFeets:"Feet",
+            esriKilometers:"Kilometers"
         },
         // Others
         OthersHighlighter: {
-            otherTask: "Others",
             pixel: "(Pixels)",
             miliseconds: "(miliseconds)",
+            displayTextForButtonLegend: "Display Text for Run button",
+            displayTextforButtonDefaultValue:"Run",
+            displayTextForButton: "Display Text",
             othersHighlightertext: "Highlighter Image Parameters",
             selectImage: "Image",
             height: "Image Height",
             width: "Image Width",
-            timeout: "Timeout",
-            imgPathHint1: "Hint:Set a relative path.",
-            imgPathHint2: "Example:widgets/IsolationTrace/images/ani/blueglow.gif",
-            imgPathHint3: "Example:widgets/IsolationTrace/images/ani/redglow.gif",
-            example: "Example",
-            example00: "widgets/IsolationTrace/images/ani/blueglow.gif",
-            example01: "Description:Set a relative path.",
-            example02: "",
-            thumbnailHint: "(Click image to update)"
+            timeout: "Timeout"
         },
         // validation messages
         validationErrorMessage: {
@@ -73,37 +70,36 @@
             inputTypeFlagLessThanError: "At least one input type flag required",
 		    inputTypeBarrierErr: "Input type barrier cannot be more than one",
 		    inputTypeSkipErr: "Input type skip cannot be more than one",
-		    emptyOutputLabel: "Output Label value blank",
             outputLabelDataErr: "Output Label text cannot be blank",
-		    outputPanelDataErr: "Output panel text cannot be blank",
 		    outputSummaryDataErr: "Output Summary text cannot be blank",
 		    outputDisplayDataErr: "Output Display text cannot be blank",
 		    outputMinScaleDataErr: "Output MinScale text cannot be blank or negative value",
 		    outputMaxScaleDataErr: "Output MaxScale text cannot be blank or negative value",
-            outageFieldMappingErr: "Outage field mapping should have always unique pairs required",
+            outageFieldMappingErr: "Field mapping in Overview should have always unique pairs required",
             outputSummaryDataText: "Invalid summary text",
             outputDisplayDataText:  "Invalid display text format",
-            otherHighlighterImage : "Please select Highlighter image"
+            otherHighlighterImage: "Please select Highlighter image",
+            otherHighlighterImageHeight:"Image height should not be less than 0 or blank",
+            otherHighlighterImageWidth:"Image width should not be less than 0 or blank",
+            otherHighlighterImageTimeout:"Image timeout should not be less than 0 or blank",
+            saveToLayerTargetLayers: "Target layer should be unique or cannot be blank",
+            displayTextForButtonError: "Display Text for Run button can not be blank.",
+            BufferDisatanceOverview :"Buffer distance should not be blank or 0 or less than 0",
         },
         // Hint Text
         hintText: {
            inputTypeHint: "Hint: Select the type/purpose of this input parameter",
            labelTextHint:"Hint: Provide display label for result panel of output parameter",
            skippableHint: "Hint: Enable/Disable Skip functionality for this output parameter",
-           skippableFieldHint: "Hint: Select Unique ID Field for skip functionality",
            summaryTextHint: "Hint: This will be displayed in the summary panel for this output parameter. Optionally you can include following fields: {Count} {Skipcount}.",
            displayTextHint: "Hint: This will be displayed in the details panel for this output parameter. Optionally you can include following fields:",
            exportToCSVHint: "Hint: Enable/Disable Export to CSV functionality for this output parameter",
            saveToLayerHint: "Hint: Enable/Disable Save to Layer functionality for this output parameter",
            outputLayerType: "Hint: Select feature layer in which results for this output parameter would be saved",
-           outageParamHint: "Hint: Select the output parameter which would act as Outage Area",
            visibilityHint: "Hint: Enable/Disable Visibility of Outage Area",
            fieldNameHint: "Hint: Select Field Name",
            paramNameHint: "Hint: Select Parameter Name",
-           imgHeightHintText: "",
-           imgWidthHintHintText: "",
-           imgTimeoutHintText: "Hint: Specify timeout for highlighter image",
-           TargetLayerHint: "Hint: For Target Layer"
+           imgTimeoutHintText: "Hint: Specify timeout for highlighter image"
         }
     }
 });

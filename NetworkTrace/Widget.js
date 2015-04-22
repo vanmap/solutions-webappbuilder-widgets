@@ -1,4 +1,4 @@
-/*global define,dojo,alert,dijit */
+/*global define,dojo,alert,dijit,console */
 /*jslint browser:true,sloppy:true,nomen:true,unparam:true,plusplus:true,indent:4 */
 ///////////////////////////////////////////////////////////////////////////
 // Copyright © 2014 Esri. All Rights Reserved.
@@ -63,13 +63,18 @@ define(['dojo/_base/declare',
     "jimu/dijit/Message",
     "dijit/form/Select",
     "jimu/dijit/CheckBox",
-    "dijit/form/NumberTextBox"
+    "dijit/form/NumberTextBox",
+    "esri/dijit/AttributeInspector",
+    "esri/tasks/GeometryService",
+    "esri/geometry/geometryEngine",
+    "esri/layers/FeatureLayer",
+     "esri/request"
     ], function (declare, BaseWidget, map, on, lang, xhr, dojoWindowClass, PictureMarkerSymbol, Graphic, Point, SimpleMarkerSymbol, SimpleFillSymbol, SimpleLineSymbol,
     Geoprocessor, array, GraphicsLayer, SimpleRenderer, Draw, domClass, FeatureSet, TitlePane, Button, domConstruct, dom, Timing, query,
     TooltipDialog, popup, CheckBox, TextBox, all, Deferred, InfoTemplate, registry, dateLocale, DateTextBox, TimeTextBox, domAttr, has, string, WidgetManager,
-    html, PanelManager, style, symbolJsonUtils, JimuMessage, Select, Checkbox, NumberTextBox) {
+    html, PanelManager, style, symbolJsonUtils, JimuMessage, Select, Checkbox, NumberTextBox, AttributeInspector, GeometryService, geometryEngine, FeatureLayer, esriRequest) {
         return declare([BaseWidget], {
-            baseClass: 'jimu-widget-IsolationTrace',
+            baseClass: 'jimu-widget-NetworkTrace',
             viewPortSize: null,
             panelManager: null,
             wManager: null,
@@ -87,31 +92,50 @@ define(['dojo/_base/declare',
             exportToLayerCheckBox: null,
             tooltipDialog: null,
             IsIE: null,
-            IsChrome: null,
             IsSafari: null,
             IsOpera: null,
             errorLayerArray: [],
+            attInspector: null,
+            overviewGraphicsLayer: null,
+            _inputGeomConvexHull: [],
             /**
-            *This is a startup function of a isolation trace widget.
+            *This is a startup function of a network trace widget.
             **/
             startup: function () {
                 this.inherited(arguments);
                 if (this._validateConfigParams()) {
+                    this._getFieldAliasFromGPService();
                     this.IsOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
                     this.IsSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
-                    this.IsChrome = !!window.chrome && !this.IsOpera;
                     this.IsIE = !!document.documentMode || false;
                     on(this.map, "click", lang.hitch(this, this._onMapClick));
                     this.gp = new Geoprocessor(this.config.geoprocessing.url);
                     on(this.gp, "error", lang.hitch(this, this._onSubmitJobError));
                     on(this.gp, "job-complete", lang.hitch(this, this._onSubmitJobComplete));
-                    on(this.gp, "get-result-data-complete", lang.hitch(this, this._onGetResultDataComplete));
                     this.gp.setOutSpatialReference(this.map.spatialReference);
+                    this._setDisplayTextForRunButton();
                     this._createResultPanels();
                     this._createGraphic();
                     this._createTimer();
                     this.viewPortSize = dojoWindowClass.getBox();
                     this.panelManager = PanelManager.getInstance();
+                }
+            },
+
+            destroy: function () {
+                this._onClearButtonClick();
+                this._removeAllGraphicLayers();
+                this.inherited(arguments);
+            },
+
+            /**
+            * This function will set the display text for run button
+            **/
+            _setDisplayTextForRunButton: function () {
+                if (this.config.displayTextForRunButton) {
+                    this.btnTrace.innerHTML = this.config.displayTextForRunButton;
+                } else {
+                    this.btnTrace.innerHTML = "Run";
                 }
             },
 
@@ -149,7 +173,6 @@ define(['dojo/_base/declare',
                     this.flagBtnClicked = true;
                     domClass.remove(this.btnFlag, "flagbutton");
                     domClass.add(this.btnFlag, "flagButtonselected");
-
                     //Checking the toolbar whether it is initialized or not
                     if (this.toolbar === null) {
                         this.toolbar = new Draw(this.map);
@@ -157,7 +180,12 @@ define(['dojo/_base/declare',
                     }
                     //Checking the width of the device.
                     if (this.viewPortSize.w < 768) {
-                        this.panelManager.getPanelById(this.id + '_panel').onTitleClick();
+                        if (this.panelManager && this.panelManager.getPanelById(this.id + '_panel') && this.panelManager.getPanelById(this.id + '_panel').onTitleClick) {
+                            this.panelManager.getPanelById(this.id + '_panel').onTitleClick();
+                        }
+                        if (this.widgetManager && this.widgetManager.minimizeWidget) {
+                            this.widgetManager.minimizeWidget();
+                        }
                     }
                     //Checking whether barrier button was clicked or not.
                     if (this.barrierBtnClicked) {
@@ -165,7 +193,9 @@ define(['dojo/_base/declare',
                         domClass.remove(this.btnBarrier, "barrierButtonselected");
                         domClass.add(this.btnBarrier, "barrierButton");
                     }
+                    this.disableWebMapPopup();
                 } else {
+                    this.enableWebMapPopup();
                     this.flagBtnClicked = false;
                     domClass.remove(this.btnFlag, "flagButtonselected");
                     domClass.add(this.btnFlag, "flagbutton");
@@ -192,7 +222,12 @@ define(['dojo/_base/declare',
                     }
                     //Checking the width of the device.
                     if (this.viewPortSize.w < 768) {
-                        this.panelManager.getPanelById(this.id + '_panel').onTitleClick();
+                        if (this.panelManager && this.panelManager.getPanelById(this.id + '_panel')) {
+                            this.panelManager.getPanelById(this.id + '_panel').onTitleClick();
+                        }
+                        if (this.widgetManager && this.widgetManager.minimizeWidget) {
+                            this.widgetManager.minimizeWidget();
+                        }
                     }
                     //Checking whether flag button was clicked or not.
                     if (this.flagBtnClicked) {
@@ -200,7 +235,9 @@ define(['dojo/_base/declare',
                         domClass.remove(this.btnFlag, "flagButtonselected");
                         domClass.add(this.btnFlag, "flagbutton");
                     }
+                    this.disableWebMapPopup();
                 } else {
+                    this.enableWebMapPopup();
                     this.barrierBtnClicked = false;
                     domClass.remove(this.btnBarrier, "barrierButtonselected");
                     domClass.add(this.btnBarrier, "barrierButton");
@@ -276,7 +313,12 @@ define(['dojo/_base/declare',
             *This function will execute when user clicked on the 'Run Trace' button.
             **/
             _onTraceButtonClick: function () {
-                this.map.infoWindow.hide();
+                this.savedLayers.length = 0;
+                this.savedLayers = [];
+                this.overviewFeature = null;
+                this.savedFeatureObjectId = null;
+                domConstruct.empty(this.outageAreaSelectDiv);
+                this.enableWebMapPopup();
                 this._GPExecute();
                 this._showTracePanel(true);
                 this._showLoadingIcon(true);
@@ -290,9 +332,40 @@ define(['dojo/_base/declare',
                 this._showTracePanel(false);
                 this.SaveToLayerPanel.style.display = "block";
                 this.exportToCSVPanel.style.display = "none";
-                this._displayOutageAreaDetail();
                 this._displaySaveLayerPanel();
+                this._overviewLayerSave();
+                this._displayOutageAreaDetail();
             },
+
+            /**
+            * This function will save the overview layer.
+            **/
+            _overviewLayerSave: function () {
+                var j, layerObject, arraynumberTextboxValue = [], overviewGraphic, featureLayerQuery;
+                if (this.config.overview.saveToLayer !== "") {
+                    layerObject = this.map.getLayer(this.config.overview.saveToLayer);
+                    if (layerObject && this.overviewGraphicsLayer.graphics.length === 1 && !this.overviewFeature) {
+                        featureLayerQuery = new query();
+                        featureLayerQuery.objectIds = [this.overviewGraphicsLayer.graphics[0].attributes[this.overviewGraphicsLayer.objectIdField]];
+                        this.overviewGraphicsLayer.selectFeatures(featureLayerQuery, layerObject.SELECTION_NEW, lang.hitch(this, function (features) {
+                            overviewGraphic = features[0];
+                        }));
+                        array.forEach(this.config.geoprocessing.outputs, lang.hitch(this, function (output) {
+                            arraynumberTextboxValue.push(output.results.features.length);
+                        }));
+                        for (j = 0; j < this.config.overview.fieldMap.length; j++) {
+                            overviewGraphic.attributes[this.config.overview.fieldMap[j].fieldName] = arraynumberTextboxValue[j];
+                        }
+                        this.attInspector.refresh();
+                    }
+                }
+            },
+
+            _overviewEditErrorCallback: function (evt) {
+                console.log(evt);
+            },
+
+
             /**
             *This Function will display Runtrace panel when click on back button .
             **/
@@ -310,7 +383,7 @@ define(['dojo/_base/declare',
             },
 
             /**
-            *This Function will display Runtrace panel when click on back button .
+            *This Function will display Runtrace panel when click on back button.
             **/
             _onExportToLayerButtonClick: function () {
                 this._showResultPanel(false);
@@ -321,12 +394,16 @@ define(['dojo/_base/declare',
                 this._displayExportToCSVPanel();
             },
 
+            savedLayers: [],
+            savedFeatureObjectId: null,
+
             /**
-            *This Function is used to save data of save to layer panel.
+            *This Function is used to save layer which type is result.
             **/
             _onSaveClick: function () {
+                var i, overviewGraphic, checkBox, selectedLayersArray = [], layerObj, layerObject, deferredArray = [], displayName;
                 this._showLoadingIcon(true);
-                var checkBox = query(".saveToLayerData", this.bottomDiv), selectedLayersArray = [], layerObj, arraynumberTextboxValue = [], numberTextbox, deferredArray = [], i, j, displayName;
+                checkBox = query(".saveToLayerData", this.bottomDiv);
                 for (i = 0; i < checkBox.length; i++) {
                     if (domClass.contains(checkBox[i].firstChild, "checked")) {
                         displayName = domAttr.get(checkBox[i], "OBJID");
@@ -335,49 +412,55 @@ define(['dojo/_base/declare',
                         }
                     }
                 }
-                array.forEach(this.config.geoprocessing.outputs, lang.hitch(this, function (output) {
-                    if (output.type !== "Overview") {
-                        numberTextbox = query(".esriCTTextbox_" + output.paramName);
-                        if (numberTextbox.length > 0) {
-                            arraynumberTextboxValue.push(numberTextbox[0].childNodes['1'].firstChild.value);
-                        }
+                if (!this.overviewFeature) {
+                    layerObject = this.map.getLayer(this.config.overview.saveToLayer);
+                    if (layerObject && this.overviewGraphicsLayer.graphics.length === 1 && array.indexOf(selectedLayersArray, "Overview") > -1) {
+                        overviewGraphic = new Graphic(this.overviewGraphicsLayer.graphics[0].geometry, null, this.overviewGraphicsLayer.graphics[0].attributes);
+                        overviewGraphic.attributes[this.overviewGraphicsLayer.objectIdField] = null;
+                        this.overviewFeature = overviewGraphic;
+                        deferredArray.push(this.map.getLayer(this.config.overview.saveToLayer).applyEdits([overviewGraphic], null, null, lang.hitch(this, function (evt) {
+                            this.savedFeatureObjectId = evt[0].objectId;
+                        }), null));
                     }
-                }));
+                } else {
+                    layerObject = this.map.getLayer(this.config.overview.saveToLayer);
+                    if (layerObject && this.overviewGraphicsLayer.graphics.length === 1) {
+                        overviewGraphic = new Graphic(this.overviewGraphicsLayer.graphics[0].geometry, null, this.overviewGraphicsLayer.graphics[0].attributes);
+                        overviewGraphic.attributes[this.overviewGraphicsLayer.objectIdField] = this.savedFeatureObjectId;
+                        deferredArray.push(this.map.getLayer(this.config.overview.saveToLayer).applyEdits(null, [overviewGraphic], null, lang.hitch(this, function (evt) {
+                            console.log(evt);
+                        }), lang.hitch(this, function (evt) {
+                            console.log(evt);
+                        })));
+                    }
+                }
                 array.forEach(this.config.geoprocessing.outputs, lang.hitch(this, function (output) {
-                    if (array.indexOf(selectedLayersArray, output.paramName) > -1 && (output.type === "Overview" || output.type !== "Overview") && output.saveToLayer !== "" && output.results !== null && output.results.features !== null && output.results.features.length > 0) {
+                    if (array.indexOf(this.savedLayers, output.paramName) < 0 && array.indexOf(selectedLayersArray, output.paramName) > -1 && output.saveToLayer !== "" && output.results !== null && output.results.features !== null && output.results.features.length > 0) {
                         layerObj = this.map.getLayer(output.saveToLayer);
-                        if (output.type === "Overview") {
-                            for (j = 0; j < output.fieldMap.length; j++) {
-                                output.results.features[0].attributes[output.fieldMap[j].fieldName] = arraynumberTextboxValue[j];
-                            }
-                        }
                         if (layerObj !== null) {
+                            this.savedLayers.push(output.paramName);
                             deferredArray.push(layerObj.applyEdits(output.results.features, null, null, null, this._applyEditsErrorCallback));
                         }
                     }
                 }));
                 all(deferredArray).then(lang.hitch(this, function (result) {
-                    if (result.length === 0) {
-
-                        this._errorMessage(this.nls.NoLayerForSaveToLayer);
+                    if (this.errorLayerArray.length === 0 && selectedLayersArray.length > 0) {
+                        this._errorMessage(this.nls.saveToLayerSuccess);
+                        this._onBackButtonClick();
                         this._showLoadingIcon(false);
-
                     } else {
-                        if (this.errorLayerArray.length === 0) {
-                            this._errorMessage(this.nls.saveToLayerSuccess);
-                            this._onBackButtonClick();
-                            this._showLoadingIcon(false);
-                        } else {
-                            this._errorMessage(this.nls.unableToSaveLayer);
-                            this._onBackButtonClick();
-                            this._showLoadingIcon(false);
-                        }
-
+                        this._errorMessage(this.nls.unableToSaveLayer);
+                        this._onBackButtonClick();
+                        this._showLoadingIcon(false);
                     }
+
                 }));
 
             },
 
+            /**
+            * This is error call back function of apply edit method.
+            **/
             _applyEditsErrorCallback: function (evt) {
                 this.errorLayerArray.push(evt);
             },
@@ -420,28 +503,32 @@ define(['dojo/_base/declare',
                     checkBox = query(".esriCTChkExportToLayer", this.exportToCSVBottomDiv);
                     arrayValues = [];
                     for (i = 0; i < checkBox.length; i++) {
-                        if (domClass.contains(checkBox[i].firstChild, "checked")) { //query(".checked", checkBox[i]).length > 0;
+                        if (domClass.contains(checkBox[i].firstChild, "checked")) {
                             displayName = domAttr.get(checkBox[i], "ObJID");
                             if (displayName !== null) {
                                 arrayValues.push(displayName);
                             }
                         }
                     }
-
                     if (arrayValues.length === 0) {
                         this._errorMessage(this.nls.noLayerSelectedForExportToCSV);
                     } else {
-
                         for (j = 0; j < arrayValues.length; j++) {
                             this._initializingExportToCSV(arrayValues[j]);
+                            if (j === arrayValues.length - 1) {
+                                this._errorMessage(this.nls.exportToCSVSuccess);
+                                this._onBackButtonClick();
+                            }
                         }
                     }
-
                 })));
-
                 domConstruct.place(btnExportToLayerDiv, this.exportToCSVBottomDiv);
             },
 
+            /**
+            * This function will initialize the export to csv process.
+            * @param{string}csvFileName: Name of the csv file.
+            **/
             _initializingExportToCSV: function (csvFileName) {
                 var defs;
                 defs = [];
@@ -457,11 +544,6 @@ define(['dojo/_base/declare',
                             TempString = (result.csvdata).split(",");
                             lang.hitch(this, this._exportToCSVComplete(result, TempString[0]));
                         }, this);
-                        this._errorMessage(this.nls.exportToCSVSuccess);
-                        this._onBackButtonClick();
-                    } else {
-                        this._errorMessage(this.nls.exportToCSVFailure);
-                        this._onBackButtonClick();
                     }
 
                 }), lang.hitch(this, function (error) {
@@ -471,7 +553,11 @@ define(['dojo/_base/declare',
 
             },
 
-
+            /**
+            * This function will download the csv file on client side.
+            * @param{object}csvdata: object containing information regarding csv data.
+            * @param{string}fileName: name of the csv file.
+            **/
             _exportToCSVComplete: function (csvdata, fileName) {
                 var link, oWin, click_ev;
                 if (this.IsIE) {
@@ -515,7 +601,6 @@ define(['dojo/_base/declare',
                                             dateFlds.push(idx);
                                         }
                                         idx += 1;
-
                                         atts.push(field.alias);
                                         return true;
                                     }
@@ -561,155 +646,120 @@ define(['dojo/_base/declare',
             },
 
             _formatDate: function (value) {
-                var inputDate = new Date(value);
-                return dateLocale.format(inputDate, {
-                    selector: "date",
-                    datePattern: "MM-d-y"
-                });
+                var temp, inputDate;
+                if (value !== "") {
+                    temp = parseInt(value, 10);
+                    inputDate = new Date(temp);
+                    return dateLocale.format(inputDate, {
+                        selector: "date",
+                        datePattern: "MM-d-y"
+                    });
+                } else {
+                    value = null;
+                    return value;
+                }
             },
 
             /**
             *This function is used to display 'Save to Layer' panel.
             **/
             _displaySaveLayerPanel: function () {
-                //var startDate, endDate, startTime, endTime, selectOutageType;
-                var otherLayercheckBox, checkboxDiv, txtBoxLabelDiv, parameterTextBox, textBoxParamDiv, textBoxParamMainDiv, fieldMapItem;
+                var otherLayercheckBox, checkboxDiv, overviewLayerFields, overviewLayerInfos;
                 domConstruct.empty(this.outageCheckBoxDiv);
                 domConstruct.empty(this.chkLayerDiv);
                 domConstruct.empty(this.resultParametersCount);
                 query(".clearInstance").forEach(domConstruct.destroy);
-                array.forEach(this.config.geoprocessing.outputs, lang.hitch(this, function (output) {
-                    if (output.saveToLayer !== "") {
-                        if (output.type === "Overview") {
-                            this.outageDetailDiv = domConstruct.create("div", {
-                                "class": "clearInstance"
-                            }, this.outageCheckBoxDiv);
-                            this.outageAreaDiv = domConstruct.create("div", {
-                                "class": "clearInstance"
-                            }, this.outageDetailDiv);
-                            this.CheckBoxOutageArea = new Checkbox({
-                                "name": output.panelText,
-                                "class": "clearInstance saveToLayerData"
-                            }, this.outageAreaDiv);
-                            this.CheckBoxOutageArea.title = this.nls.outageAreaValue;
-
-                            domConstruct.create("label", {
-                                "innerHTML": this.nls.outageAreaLabel,
-                                "class": "esriCTLabelMargin"
-                            }, this.outageAreaDiv);
-                            this.own(on(this.CheckBoxOutageArea, "click", lang.hitch(this, this._displayOutageAreaDetail)));
-                            domAttr.set(this.CheckBoxOutageArea.domNode, "OBJID", output.paramName);
-                            //Start Date
-                            this.startDateMainDiv = domConstruct.create("div", {
-                                "class": "clearInstance"
-                            }, this.StartDateDiv);
-                            this.startDate = new dijit.form.DateTextBox({
-                                "class": "esriCTOutageControl clearInstance",
-                                "name": this.nls.lblOutageAreaStartDate
-                            }, this.startDateMainDiv);
-                            // 'End Start Date'
-                            this.endDateMainDiv = domConstruct.create("div", {
-                                "class": "clearInstance"
-                            }, this.endDateDiv);
-                            this.endDate = new dijit.form.DateTextBox({
-                                "class": "esriCTOutageControl clearInstance",
-                                "name": this.nls.lblOutageAreaEndDate
-                            }, this.endDateMainDiv);
-                            // 'Outage Start Time'
-                            this.starTimeMainDiv = domConstruct.create("div", {
-                                "class": "clearInstance"
-                            }, this.startTimeDiv);
-                            this.startTime = new TimeTextBox({
-                                "class": "esriCTOutageControl clearInstance",
-                                "name": this.nls.lblOutageAreaStartTime,
-                                value: "T15:00:00",
-                                constraints: {
-                                    clickableIncrement: 'T00:15:00',
-                                    visibleIncrement: 'T00:15:00',
-                                    visibleRange: 'T01:00:00'
-                                }
-                            }, this.starTimeMainDiv);
-                            //'Outage End Time'
-                            this.endTimeMainDiv = domConstruct.create("div", {
-                                "class": "clearInstance"
-                            }, this.endTimeDiv);
-                            this.endTime = new TimeTextBox({
-                                "class": "esriCTOutageControl clearInstance",
-                                "name": this.nls.lblOutageAreaEndTime,
-                                value: "T15:00:00",
-                                constraints: {
-                                    clickableIncrement: 'T00:15:00',
-                                    visibleIncrement: 'T00:15:00',
-                                    visibleRange: 'T01:00:00'
-                                }
-                            }, this.endTimeMainDiv);
-                            this.outageTypMainDiv = domConstruct.create("div", {
-                                "class": "clearInstance",
-                                style: "width: 47%"
-                            }, this.outageAreaSelectDiv);
-                            this.selectOutageType = new Select({
-                                "name": this.nls.lblOutageAreaType,
-                                "class": "clearInstance",
-                                style: "width: 43%",
-                                options: [{
-                                    label: this.nls.outageTypePlanned,
-                                    value: this.nls.outageTypePlanned,
-                                    selected: true
-                                }, {
-                                    label: this.nls.outageTypeUnPlanned,
-                                    value: this.nls.outageTypePlanned
-                                }]
-                            }, this.outageTypMainDiv);
-
-                        } else {
-                            array.forEach(this.config.geoprocessing.outputs[0].fieldMap, lang.hitch(this, function (item) {
-                                if (item.paramName === output.paramName) {
-                                    fieldMapItem = item;
-                                }
-                            }));
-                            if (output.results.features.length > 0) {
-                                if (fieldMapItem) {
-                                    textBoxParamMainDiv = domConstruct.create("div", {
-                                        "class": "esriCTChkGroup"
-                                    }, this.resultParametersCount);
-                                    txtBoxLabelDiv = domConstruct.create("div", {
-                                        "class": "esriCTWidth"
-                                    }, textBoxParamMainDiv);
-                                    domConstruct.create("label", {
-                                        "class": "resultParameter",
-                                        innerHTML: this.nls.NoOf + output.paramName
-                                    }, txtBoxLabelDiv);
-                                    textBoxParamDiv = domConstruct.create("div", {}, textBoxParamMainDiv);
-                                    parameterTextBox = new NumberTextBox({
-                                        "class": "esriCTTextbox_" + output.paramName,
-                                        "value": output.results.features.length
-                                    }, textBoxParamDiv);
-                                }
-                                checkboxDiv = domConstruct.create("div", {
-                                    "class": "esriCTParamCheckBox"
-                                });
-
-                                otherLayercheckBox = new Checkbox({
-                                    "name": output.paramName,
-                                    "class": "saveToLayerData"
-                                }, domConstruct.create("div", {}, checkboxDiv));
-
-                                domConstruct.create("label", {
-                                    "class": "esriCTChkLabel",
-                                    "innerHTML": output.panelText
-                                }, checkboxDiv);
-                                domConstruct.place(checkboxDiv, this.chkLayerDiv);
-                                domAttr.set(otherLayercheckBox.domNode, "OBJID", output.paramName);
-                            }
+                if (this.config.overview.saveToLayer !== "") {
+                    this.outageDetailDiv = domConstruct.create("div", {
+                        "class": "clearInstance"
+                    }, this.outageCheckBoxDiv);
+                    this.outageAreaDiv = domConstruct.create("div", {
+                        "class": "clearInstance"
+                    }, this.outageDetailDiv);
+                    this.CheckBoxOutageArea = new Checkbox({
+                        "name": this.config.overview.type,
+                        "class": "clearInstance saveToLayerData"
+                    }, this.outageAreaDiv);
+                    this.CheckBoxOutageArea.title = this.nls.outageAreaValue;
+                    domConstruct.create("label", {
+                        "innerHTML": this.nls.outageAreaLabel,
+                        "class": "esriCTLabelMargin"
+                    }, this.outageAreaDiv);
+                    this.own(on(this.CheckBoxOutageArea, "click", lang.hitch(this, this._displayOutageAreaDetail)));
+                    domAttr.set(this.CheckBoxOutageArea.domNode, "OBJID", this.config.overview.type);
+                    if (this.outageAreaSelectDiv.children.length === 0) {
+                        if (this.attInspector) {
+                            this.attInspector.destroy();
                         }
+                        this.attInspector = null;
+                        overviewLayerFields = this._getPopupinfoOverviewLayer(this.config.overview.saveToLayer);
+                        overviewLayerInfos = [{
+                            'featureLayer': this.overviewGraphicsLayer,
+                            'showAttachments': false,
+                            'isEditable': true,
+                            'fieldInfos': this._filterOverviewLayerFieldInfo(overviewLayerFields)
+                        }];
+                        this.attInspector = new AttributeInspector({
+                            layerInfos: overviewLayerInfos
+                        }, domConstruct.create("div", {}, this.outageAreaSelectDiv));
+                        this.attInspector.startup();
+                        this.attInspector.on("attribute-change", lang.hitch(this, function (evt) {
+                            if (this.overviewGraphicsLayer.graphics.length > 0) {
+                                this.overviewGraphicsLayer.graphics[0].attributes[evt.fieldName] = evt.fieldValue;
+                            }
+                        }));
                     }
+                }
 
+                array.forEach(this.config.geoprocessing.outputs, lang.hitch(this, function (output) {
+                    if (output.results.features.length > 0) {
+                        checkboxDiv = domConstruct.create("div", {
+                            "class": "esriCTParamCheckBox"
+                        });
+
+                        otherLayercheckBox = new Checkbox({
+                            "name": output.paramName,
+                            "class": "saveToLayerData"
+                        }, domConstruct.create("div", {}, checkboxDiv));
+
+                        domConstruct.create("label", {
+                            "class": "esriCTChkLabel",
+                            "innerHTML": output.panelText
+                        }, checkboxDiv);
+                        domConstruct.place(checkboxDiv, this.chkLayerDiv);
+                        domAttr.set(otherLayercheckBox.domNode, "OBJID", output.paramName);
+                    }
                 }));
             },
+
+            _getPopupinfoOverviewLayer: function (layerName) {
+                var overviewFieldInfo = [];
+                array.some(this.map.webMapResponse.itemInfo.itemData.operationalLayers, lang.hitch(this, function (layer) {
+                    if (layer.id === layerName) {
+                        overviewFieldInfo = layer.popupInfo.fieldInfos;
+                        return true;
+                    }
+                }));
+                return overviewFieldInfo;
+            },
+
+            /**
+            * This function will create field info for Overview Layer
+            * @param{array} fields
+            **/
+            _filterOverviewLayerFieldInfo: function (fields) {
+                var i, overviewFieldInfo = [];
+                for (i = 0; i < fields.length; i++) {
+                    if (fields[i].isEditable) {
+                        overviewFieldInfo.push(fields[i]);
+                    }
+                }
+                return overviewFieldInfo;
+            },
+
             /**
             * This function destroy widget if created
             * @param{object} div
-            * @memberOf widgets/isolation-trace/settings/settings.js
             */
             _destroyWidget: function (div) {
                 var widgets = registry.findWidgets(div);
@@ -719,7 +769,10 @@ define(['dojo/_base/declare',
                     w.destroyRecursive(true);
                 });
             },
-            //This function is used to display (Outage Date,time,Type) panel.
+
+            /**
+            *This function is used to display (Outage Date,time,Type) panel.
+            **/
             _displayOutageAreaDetail: function () {
                 if (this.CheckBoxOutageArea && this.CheckBoxOutageArea.checked) {
                     domClass.remove(this.outageAreaVisibiltyDiv, "esriCTHidden");
@@ -727,15 +780,33 @@ define(['dojo/_base/declare',
                     domClass.add(this.outageAreaVisibiltyDiv, "esriCTHidden");
                 }
             },
+
+            /**
+            * This function will enable the web map popup.
+            **/
+            enableWebMapPopup: function () {
+                if (this.map) {
+                    this.map.setInfoWindowOnClick(true);
+                }
+            },
+
+            /**
+            * This function will disable the web map popup.
+            **/
+            disableWebMapPopup: function () {
+                if (this.map) {
+                    this.map.setInfoWindowOnClick(false);
+                }
+            },
+
             /**
             *This function will execute when user clicked on the map and it will add the graphic to the input graphic layer.
             *@param{object} evt: object containing information regarding the map point.
             **/
             _onMapClick: function (evt) {
-                var i, skipTemplate, addType;
+                var addType;
                 //This is will check whether Flag or Barrier has been selected or not, to place the pushpin on the map.
                 if (this.flagBtnClicked || this.barrierBtnClicked) {
-                    this.map.infoWindow.hide();
                     //Checking whether flag button is clicked or not.
                     if (this.flagBtnClicked) {
                         addType = "Flag";
@@ -758,24 +829,6 @@ define(['dojo/_base/declare',
                             return true;
                         }
                     });
-                }
-                if (evt.hasOwnProperty("graphic")) {
-                    if (evt.graphic && evt.graphic.hasOwnProperty("GPParam")) {
-                        if (evt.graphic.GPParam !== null) {
-                            array.some(this.config.geoprocessing.outputs, function (output) {
-                                if (evt.graphic.GPParam === output.paramName) {
-                                    for (i = 0; i < output.layer.graphics.length; i++) {
-                                        if (output.layer.graphics[i].geometry === evt.graphic.geometry) {
-                                            skipTemplate = new InfoTemplate();
-                                            skipTemplate.setTitle(this.nls.skipThisAsset);
-                                            skipTemplate.setContent(this._createSkipButtonForPopup(output.layer.graphics[i]));
-                                            evt.graphic.setInfoTemplate(skipTemplate);
-                                        }
-                                    }
-                                }
-                            }, this);
-                        }
-                    }
                 }
             },
 
@@ -817,11 +870,13 @@ define(['dojo/_base/declare',
                         if (input.toolTip !== "" || input.toolTip !== null) {
                             this.btnBarrier.title = input.toolTip;
                         }
+                        this.barrierLabel.innerHTML = this.nls.barrierHeading + " " + input.type;
                     }
                     if (input.type === "Flag") {
                         if (input.toolTip !== "" || input.toolTip !== null) {
                             this.btnFlag.title = input.toolTip;
                         }
+                        this.flagLabel.innerHTML = this.nls.flagHeading + " " + input.type;
                     }
                 }, this);
                 this.map.addLayers(this.gpInputDetails);
@@ -831,9 +886,49 @@ define(['dojo/_base/declare',
             *This Function will add the output layers to the map also initialize TitlePane into the Widget.
             **/
             _createResultPanels: function () {
+                var rendererObj, symbolObj, featureCollection = {}, outFields, overviewLayer, sym, ren, layer, tp, parentTp, otherTp = [], i;
+                symbolObj = this._createGraphicFromJSON(this.config.overview.symbol);
+                rendererObj = new SimpleRenderer(symbolObj);
+                if (this.config.overview.saveToLayer !== "") {
+                    overviewLayer = this.map.getLayer(this.config.overview.saveToLayer);
+                    outFields = array.map(overviewLayer.fields, function (field) {
+                        return field.name;
+                    });
+                    featureCollection.layerDefinition = {
+                        "id": 0,
+                        "name": "OverviewGraphicLayer",
+                        "type": "Feature Layer",
+                        "displayField": overviewLayer.displayField,
+                        "description": "",
+                        "copyrightText": "",
+                        "relationships": [],
+                        "geometryType": overviewLayer.geometryType,
+                        "minScale": 0,
+                        "maxScale": 0,
+                        "extent": overviewLayer.fullExtent,
+                        "drawingInfo": {
+                            "renderer": rendererObj,
+                            "transparency": 0,
+                            "labelingInfo": null
+                        },
+                        "hasAttachments": true,
+                        "htmlPopupType": "esriServerHTMLPopupTypeAsHTMLText",
+                        "objectIdField": overviewLayer.objectIdField,
+                        "globalIdField": overviewLayer.globalIdField,
+                        "typeIdField": overviewLayer.typeIdField,
+                        "fields": overviewLayer.fields,
+                        "types": overviewLayer.types,
+                        "templates": overviewLayer.templates,
+                        "capabilities": "Query,Editing"
+                    };
+                    this.overviewGraphicsLayer = new FeatureLayer(featureCollection, {
+                        outFields: outFields
+                    });
+                    this.overviewGraphicsLayer.visible = true;
+                    this.overviewGraphicsLayer.renderer = rendererObj;
+                    this.map.addLayer(this.overviewGraphicsLayer);
+                }
                 this.resultLayers = [];
-                var sym, ren, layer, tp, parentTp, otherTp = [],
-                i;
                 array.forEach(this.config.geoprocessing.outputs, function (output) {
                     sym = null;
                     ren = null;
@@ -867,13 +962,21 @@ define(['dojo/_base/declare',
                     }
                     this.map.addLayer(layer);
                     output.layer = layer;
-                    if (output.type.toUpperCase() === "OVERVIEW") {
+                    if (parentTp === undefined) {
                         parentTp = new TitlePane({
                             title: this.nls.summaryPanel,
-                            id: output.paramName + "CP",
+                            //id: output.paramName + "CP",
+                            id: "overview" + "CP",
                             open: true
                         });
-                    } else {
+                    }
+                    if (parentTp !== undefined) {
+                        this.titlePaneHolder.appendChild(parentTp.domNode);
+                        this.summaryTp = parentTp;
+                        domAttr.set(parentTp.titleBarNode, "title", this.nls.summaryPanel);
+                        parentTp.startup();
+                    }
+                    if (output.type === "Result") {
                         tp = new TitlePane({
                             id: output.paramName + "CP",
                             open: false
@@ -883,25 +986,18 @@ define(['dojo/_base/declare',
                         }
                         otherTp.push(tp);
                     }
-                    if (parentTp !== undefined) {
-                        this.titlePaneHolder.appendChild(parentTp.domNode);
-                        output.resultsPaneParent = parentTp;
-                        if (output.toolTip !== "" && output.toolTip !== null) {
-                            domAttr.set(parentTp.titleBarNode, "title", this.nls.summaryPanel);
-                        }
-                        parentTp.startup();
-                    }
+
                     if (tp !== undefined) {
                         output.resultsPane = tp;
                         tp.startup();
                     }
-                    if (otherTp.length === this.config.geoprocessing.outputs.length - 1) {
+                    if (otherTp.length === this.config.geoprocessing.outputs.length) {
                         for (i = 0; i < otherTp.length; i++) {
                             this.titlePaneHolder.appendChild(otherTp[i].domNode);
                         }
                     }
                     //To check whether output type is overview.
-                    if (output.type.toUpperCase() !== "OVERVIEW") {
+                    if (output.type === "Result") {
                         this.resultLayers.push(layer);
                     } else {
                         this.overviewInfo = output;
@@ -913,7 +1009,10 @@ define(['dojo/_base/declare',
             *This function will execute when User clicked on 'Clear' button.
             **/
             _onClearButtonClick: function () {
-                //this.animatedLayer.clear();
+                if (this.overviewGraphicsLayer) {
+                    this.overviewGraphicsLayer.clear();
+                }
+                this.enableWebMapPopup();
                 this._showResultPanel(false);
                 this._resetInputs();
                 this._resetResults();
@@ -939,6 +1038,16 @@ define(['dojo/_base/declare',
                 if (this.btnBarrier.className.indexOf("traceControlDisabledDiv") > -1) {
                     domClass.remove(this.btnBarrier, "traceControlDisabledDiv");
                 }
+                this.savedLayers.length = 0;
+                this.savedLayers = [];
+                domConstruct.empty(this.outageAreaSelectDiv);
+                this.overviewFeature = null;
+                if (this.attInspector) {
+                    this.attInspector.destroy();
+                }
+                this.attInspector = null;
+                this.btnFlag.disabled = false;
+                this.btnBarrier.disabled = false;
                 domClass.add(this.btnTrace, "jimu-state-disabled");
                 domClass.add(this.btnClear, "jimu-state-disabled");
                 this.btnTrace.disabled = true;
@@ -948,9 +1057,42 @@ define(['dojo/_base/declare',
             },
 
             /**
+            *This function removes all graphic layers from map.
+            **/
+            _removeAllGraphicLayers: function () {
+                this._removeInputGraphics();
+                this._removeResultGraphics();
+            },
+
+            /**
+            *This function removes all results graphic layers from map.
+            **/
+            _removeResultGraphics: function () {
+                array.forEach(this.resultLayers, lang.hitch(this, function (item) {
+                    this.map.removeLayer(item);
+                }));
+                if (this.overviewInfo && this.overviewInfo.layer) {
+                    this.map.removeLayer(this.overviewInfo.layer);
+                }
+            },
+
+            /**
+            *This function removes all input graphic layers from map.
+            **/
+            _removeInputGraphics: function () {
+                array.forEach(this.gpInputDetails, lang.hitch(this, function (item) {
+                    this.map.removeLayer(item);
+                }));
+            },
+
+            /**
             *This function will start the asynchronous call as well as check and create the Parameter for the GP call.
             **/
             _GPExecute: function () {
+                var outputSummaryCP, params = {}, featureset, noFlags;
+                outputSummaryCP = dijit.byId("overview" + "CP");
+                outputSummaryCP.set("content", "");
+
                 if (this.toolbar !== null) {
                     this.toolbar.deactivate();
                     this.toolbar = null;
@@ -975,8 +1117,6 @@ define(['dojo/_base/declare',
                     domClass.remove(this.btnBarrier, "barrierButtonselected");
                     domClass.add(this.btnBarrier, "barrierButton");
                 }
-                var params = {},
-                featureset,
                 noFlags = false;
                 array.forEach(this.gpInputDetails, function (layer) {
                     featureset = new FeatureSet();
@@ -1004,8 +1144,10 @@ define(['dojo/_base/declare',
             *@param{object} message: This is a object parameter which is coming from GP execution.
             **/
             _onSubmitJobComplete: function (message) {
+                var convexDeferredArray = [];
                 if (message.jobInfo.jobStatus === "esriJobFailed") {
                     this._showLoadingIcon(false);
+                    console.log(message.jobInfo);
                     this._errorMessage(this.nls.GPExecutionFailed);
                     this._onClearButtonClick();
                     return;
@@ -1014,15 +1156,16 @@ define(['dojo/_base/declare',
                     this._resetResults();
                     this.overExtent = null;
                     this.resultsCnt = 0;
+                    this._inputGeomConvexHull = [];
                     array.forEach(this.config.geoprocessing.outputs, function (output) {
                         if (this._verifyParams(message, output.paramName)) {
-                            this.resultsCnt = this.resultsCnt + 1;
-                            this._processGPResults(message, output.paramName);
+                            this._processGPResults(message, output.paramName, convexDeferredArray);
                         }
                     }, this);
                 } catch (ex) {
                     this._showLoadingIcon(false);
                     this._errorMessage(ex.message);
+                    console.log(ex.message);
                     this._onClearButtonClick();
                 }
             },
@@ -1031,21 +1174,15 @@ define(['dojo/_base/declare',
             *This function will display the result panel with the results. This will execute when get result data is complete from GP.
             *@param{object} message: This is a object which is coming from GP execution.
             **/
-            _onGetResultDataComplete: function (message) {
+            _onGetResultDataComplete: function (result) {
                 this._showLoadingIcon(false);
                 this._showResultPanel(true);
-                array.some(this.config.geoprocessing.outputs, function (output) {
-                    if (message.result.paramName === output.paramName) {
-                        if (output.type.toUpperCase() === "OVERVIEW") {
-                            output.results = message.result.value;
-                            this._populateOverview(output);
-                        } else {
-                            output.results = message.result.value;
-                            this._populateResultsToggle(output);
-                        }
-                        return true;
+                array.forEach(this.config.geoprocessing.outputs, lang.hitch(this, function (output) {
+                    if (result.paramName === output.paramName) {
+                        output.results = result.value;
+                        this._populateResultsToggle(output);
                     }
-                }, this);
+                }));
                 this.btnFlag.disabled = false;
                 this.btnBarrier.disabled = false;
                 this.btnTrace.disabled = false;
@@ -1083,17 +1220,60 @@ define(['dojo/_base/declare',
             *@param{object} message: object which is coming from the GP Submit Job.
             *@param{string} paramName: parameter name.
             */
-            _processGPResults: function (message, paramName) {
-                this.gp.getResultData(message.jobInfo.jobId, paramName).then(lang.hitch(this, function () {
-                    this.resultsCnt = this.resultsCnt - 1;
-                    if (this.resultsCnt === 0) {
-                        var ext = this.overExtent;
-                        if (ext) {
-                            this.map.setExtent(ext.expand(1.5));
+            _processGPResults: function (message, paramName, convexDeferredArray) {
+                var i, bufferGeometry, convexHullGeometry, bufferGeometryGraphic;
+                this.gp.getResultData(message.jobInfo.jobId, paramName).then(lang.hitch(this, function (result) {
+                    this._onGetResultDataComplete(result);
+                    this.resultsCnt++;
+                    if (result.value.features.length > 0) {
+                        for (i = 0; i < result.value.features.length; i++) {
+                            if (result.value.geometryType === "esriGeometryPoint") {
+                                this._inputGeomConvexHull.push(result.value.features[i].geometry);
+                            } else if (result.value.geometryType === "esriGeometryPolygon") {
+                                this._inputGeomConvexHull = this._inputGeomConvexHull.concat(this._getVerticesFromPolygon(result.value.features[i].geometry));
+                            } else if (result.value.geometryType === "esriGeometryPolyline") {
+                                this._inputGeomConvexHull = this._inputGeomConvexHull.concat(this._getVerticesFromPolyline(result.value.features[i].geometry));
+                            }
                         }
+                    }
+                    if (this.resultsCnt === this.config.geoprocessing.outputs.length) {
+                        convexHullGeometry = geometryEngine.convexHull(this._inputGeomConvexHull, true);
+                        if (convexHullGeometry.length > 0) {
+                            bufferGeometry = geometryEngine.buffer(convexHullGeometry[0], this.config.overview.BufferDistance, this.config.overview.Unit, true);
+                            if (bufferGeometry) {
+                                domClass.remove(this.outageCheckBoxDiv, "esriCTHidden");
+                                bufferGeometryGraphic = new Graphic(bufferGeometry, null, {});
+                                this.map.setExtent((bufferGeometry.getExtent()).expand(1.8));
+                                this.overviewGraphicsLayer.clear();
+                                if (this.config.overview.visibility) {
+                                    bufferGeometryGraphic.attributes = {};
+                                    bufferGeometryGraphic.attributes[this.overviewGraphicsLayer.objectIdField] = "1";
+                                    this.overviewGraphicsLayer.add(bufferGeometryGraphic);
+                                }
+                            } else {
+                                domClass.add(this.outageCheckBoxDiv, "esriCTHidden");
+                            }
+                        }
+
                         this._showAllResultLayers();
                     }
                 }));
+            },
+
+            _getVerticesFromPolygon: function (inputPolygon) {
+                var i, outputPolygonVertices = [];
+                for (i = 0; i < inputPolygon.Rings.Count; i++) {
+                    outputPolygonVertices = outputPolygonVertices.concat(inputPolygon.Rings[i]);
+                }
+                return outputPolygonVertices;
+            },
+
+            _getVerticesFromPolyline: function (inputPolyline) {
+                var i, outputPolylineVertices = [];
+                for (i = 0; i < inputPolyline.Paths.count; i++) {
+                    outputPolylineVertices = outputPolylineVertices.concat(inputPolyline.Paths[i]);
+                }
+                return outputPolylineVertices;
             },
 
             /**
@@ -1110,7 +1290,8 @@ define(['dojo/_base/declare',
             *@param object err: 'err' contains information regarding the error.
             **/
             _onSubmitJobError: function (err) {
-                this._errorMessage(err.error);
+                this._errorMessage(err.error.message);
+                console.log(err.error);
                 if (this._showLoadingIcon) {
                     this._showLoadingIcon(false);
                 }
@@ -1136,11 +1317,11 @@ define(['dojo/_base/declare',
             *@param{object} selectedGPParam: object containing information regarding the output features.
             **/
             _populateResultsToggle: function (selectedGPParam) {
-                var resultCount = {
+                var cp, skipBtnTitle = "", objectIDValue, bypassBtnClass, objectIDKey, resultCount, process, skipedLocation, selectedGraphic, div, btnControlDiv, btnBypassDiv, zoomToHyperLink;
+                resultCount = {
                     "Count": 0,
                     "SkipCount": 0
-                },
-                cp, skipBtnTitle = "", objectIDValue, bypassBtnClass, fieldKey;
+                };
                 cp = dijit.byId(selectedGPParam.paramName + "CP");
                 cp.set("content", "");
                 if (this.config && this.config.geoprocessing && this.config.geoprocessing.inputs && this.config.geoprocessing.inputs.length > 0) {
@@ -1152,17 +1333,16 @@ define(['dojo/_base/declare',
                         }
                     });
                 }
-                fieldKey = selectedGPParam.bypassDetails.IDField || this._getResultItemObjectID(selectedGPParam);
+                objectIDKey = this._getResultItemObjectID(selectedGPParam);
                 array.forEach(selectedGPParam.results.features, lang.hitch(this, function (resultItem) {
-                    objectIDValue = fieldKey ? resultItem.attributes[fieldKey] : "";
-                    var process, skipedLocation, selectedGraphic, div, btnControlDiv, btnZoomDiv, btnBypassDiv;
+                    objectIDValue = resultItem.attributes[objectIDKey] || "";
                     process = true;
                     skipedLocation = null;
                     if (selectedGPParam.bypassDetails.skipable && this.skipLayer !== null) {
                         if (this.skipLayer.graphics.length > 0) {
                             array.forEach(this.skipLayer.graphics, lang.hitch(this, function (item) {
                                 if (item.GPParam === selectedGPParam.paramName) {
-                                    if (objectIDValue === item.attributes[fieldKey]) {
+                                    if (objectIDValue === item.attributes[objectIDKey]) {
                                         process = false;
                                         skipedLocation = item;
                                         skipedLocation.GPParam = selectedGPParam.paramName;
@@ -1192,11 +1372,6 @@ define(['dojo/_base/declare',
                         "id": selectedGPParam.paramName + ":" + objectIDValue + "controls",
                         "class": "resultItemSubDiv"
                     }, div);
-                    btnZoomDiv = domConstruct.create("div", {
-                        "class": "resultItemButtonZoomIcon resultItemButton",
-                        "title": this.nls.highlightOnMapTooltip
-                    }, btnControlDiv);
-                    on(btnZoomDiv, "click", lang.hitch(this, this._zoomToBtn(resultItem)));
                     if (selectedGPParam.bypassDetails.skipable) {
                         btnBypassDiv = null;
                         bypassBtnClass = selectedGPParam.paramName + objectIDValue + "BtnByPass";
@@ -1219,16 +1394,15 @@ define(['dojo/_base/declare',
                         resultItem.controlDetails.selectionGraphic.bypassed = false;
                         resultCount.Count = resultCount.Count + 1;
                     }
-                    domConstruct.create("label", {
+                    zoomToHyperLink = domConstruct.create("a", {
                         "class": "resultItemLabel",
-                        "for": selectedGPParam.paramName + ":" + objectIDValue + "BtnZoomDiv",
                         "innerHTML": lang.replace(selectedGPParam.displayText, resultItem.attributes)
                     }, btnControlDiv);
+                    zoomToHyperLink.onclick = lang.hitch(this, this._zoomToBtn(resultItem));
                     resultItem.controlDetails.selectionGraphic.resultItem = resultItem;
                     this._setResultInfoTemplate(selectedGraphic, selectedGPParam, process, skipBtnTitle, resultItem);
                 }));
-                domConstruct.place("<div class='resultItemClass'>" + lang.replace(selectedGPParam.summaryText, resultCount) + "</div>", this.overviewInfo.resultsPaneParent.containerNode);
-                //checking whether the Title Pane is summary or not.
+                domConstruct.place("<div class='resultItemClass'>" + lang.replace(selectedGPParam.summaryText, resultCount) + "</div>", this.summaryTp.containerNode);
                 if (selectedGPParam.type === "Result") {
                     domAttr.set(cp, "title", selectedGPParam.panelText + " (" + resultCount.Count + ")");
                 }
@@ -1240,7 +1414,7 @@ define(['dojo/_base/declare',
                     for (i = 0; i < selectedGPParam.results.fields.length; i++) {
                         if (selectedGPParam.results.fields[i].type === "esriFieldTypeDate") {
                             try {
-                                resultItem.attributes[selectedGPParam.results.fields[i].name] = resultItem.attributes[selectedGPParam.results.fields[i].name] && resultItem.attributes[selectedGPParam.results.fields[i].name] > 0 ? this._formatResultDateAttribute(resultItem.attributes[selectedGPParam.results.fields[i].name]) : "";
+                                resultItem.attributes[selectedGPParam.results.fields[i].name] = resultItem.attributes[selectedGPParam.results.fields[i].name] && resultItem.attributes[selectedGPParam.results.fields[i].name] > 0 ? this._formatDate(resultItem.attributes[selectedGPParam.results.fields[i].name]) : "";
                             } catch (ex) {
                                 console.log(ex.message);
                             }
@@ -1250,15 +1424,13 @@ define(['dojo/_base/declare',
                 }
             },
 
-            _formatResultDateAttribute: function (value) {
-                var inputDate = new Date(value);
-                return dateLocale.format(inputDate, {
-                    selector: "date"
-                });
-            },
 
+            /**
+            *This function will return the object id key from the param item attributes.
+            **/
             _getResultItemObjectID: function (item) {
-                for (var key in item.results.fields) {
+                var key;
+                for (key in item.results.fields) {
                     if (item.results.fields.hasOwnProperty(key)) {
                         if (item.results.fields[key].type === "esriFieldTypeOID") {
                             return item.results.fields[key].name;
@@ -1266,8 +1438,37 @@ define(['dojo/_base/declare',
                     }
                 }
             },
+
+            GpServiceoutputParameter: null,
+
+            _getFieldAliasFromGPService: function () {
+                var url, GpServiceParameters = [], i, gpServiceOutputParameters = [], requestArgs;
+                url = this.config.geoprocessing.url;
+                requestArgs = {
+                    url: url,
+                    content: {
+                        f: "json"
+                    },
+                    handleAs: "json",
+                    callbackParamName: "callback",
+                    timeout: 20000
+                };
+                esriRequest(requestArgs).then(lang.hitch(this, function (response) {
+                    GpServiceParameters = response.parameters;
+                    for (i = 0; i < GpServiceParameters.length; i++) {
+                        if (GpServiceParameters[i].direction === "esriGPParameterDirectionOutput") {
+                            gpServiceOutputParameters.push(GpServiceParameters[i]);
+                        }
+                    }
+                    this.GpServiceoutputParameter = gpServiceOutputParameters;
+                    console.log(gpServiceOutputParameters);
+                }), lang.hitch(this, function (err) {
+                    this._errorMessage(err);
+                }));
+            },
+
             _setResultInfoTemplate: function (item, param, process, skipBtnTitle, resultItem) {
-                var infoTemplateObj, headerText, infoContent, tableDiv, btnBypassDiv, attrRow, attrKey, attrValue, attrTable, attrTableBody, attrNameCol;
+                var infoTemplateObj, headerText, infoContent, tableDiv, btnBypassDiv, attrRow, attrKey, attrValue, attrTable, attrTableBody, attrNameCol, i, outputParameterFields = [], j;
                 infoTemplateObj = new InfoTemplate();
                 infoTemplateObj.setTitle(param.panelText);
                 headerText = resultItem.attributes[param.bypassDetails.IDField] ? param.panelText + " : " + resultItem.attributes[param.bypassDetails.IDField] : param.panelText;
@@ -1283,6 +1484,12 @@ define(['dojo/_base/declare',
                 attrTable = domConstruct.create("table", {
                     "class": "attrResultInfoTable"
                 }, tableDiv);
+
+                for (i = 0; i < this.GpServiceoutputParameter.length; i++) {
+                    if (this.GpServiceoutputParameter[i].name === param.paramName) {
+                        outputParameterFields = this.GpServiceoutputParameter[i].defaultValue.fields;
+                    }
+                }
                 attrTableBody = domConstruct.create("tbody", {}, attrTable);
                 for (attrKey in item.attributes) {
                     if (item.attributes.hasOwnProperty(attrKey)) {
@@ -1290,19 +1497,21 @@ define(['dojo/_base/declare',
                         //Create attribute info table row
                         attrRow = domConstruct.create("tr", {}, attrTableBody);
 
-                        //Create attribute field name column
-                        attrNameCol = domConstruct.create("td", {
-                            "innerHTML": attrKey,
-                            "class": "attrName"
-                        }, attrRow);
-
-                        //Create attribute value
+                        for (j = 0; j < outputParameterFields.length; j++) {
+                            if (attrKey === outputParameterFields[j].name) {
+                                attrNameCol = domConstruct.create("td", {
+                                    "innerHTML": (outputParameterFields[j].alias && outputParameterFields[j].alias !== "") ? outputParameterFields[j].alias : outputParameterFields[j].name,
+                                    "class": "attrName"
+                                }, attrRow);
+                            }
+                        }
                         domConstruct.create("td", {
-                            "innerHTML": attrValue,
+                            "innerHTML": (attrValue !== undefined && attrValue !== null) ? attrValue : "",
                             "class": "attrValue"
                         }, attrRow);
                     }
                 }
+
                 if (param.bypassDetails.skipable) {
                     attrRow = domConstruct.create("tr", {}, attrTableBody);
                     attrNameCol = domConstruct.create("td", {
@@ -1310,7 +1519,7 @@ define(['dojo/_base/declare',
                         "colSpan": 2
                     }, attrRow);
                     btnBypassDiv = domConstruct.create("div", {
-                        "class": "resultItemButtonSkipIcon resultItemButton",
+                        "class": "resultItemButtonSkipIcon resultItemButton infoPopupSKipIcon",
                         "title": skipBtnTitle
                     }, attrNameCol);
                     if (resultItem.controlDetails.selectionGraphic.bypassed) {
@@ -1324,6 +1533,41 @@ define(['dojo/_base/declare',
             },
 
             /**
+            *This function will execute when user cliked on skiped button.
+            *param{object}resultItem: Object containing information regarding the feature which going to be skipped.
+            **/
+            _onSkipedButton: function (resultItem) {
+                return function (e) {
+                    var btnList = query("." + resultItem.controlDetails.bypassBtnClass);
+                    if (this.skipLayer !== null) {
+                        array.forEach(btnList, lang.hitch(this, function (btnNode) {
+                            domClass.toggle(btnNode, "resultItemButtonSkipIconSelected");
+                        }));
+                        if (resultItem.controlDetails.selectionGraphic.bypassed) {
+                            this.skipLayer.remove(resultItem.controlDetails.skipGraphic);
+                            resultItem.controlDetails.selectionGraphic.bypassed = false;
+                        } else {
+                            this.skipLayer.add(resultItem.controlDetails.skipGraphic);
+                            resultItem.controlDetails.selectionGraphic.bypassed = true;
+                        }
+                    }
+                    this._resetResultInfoTemplate(resultItem);
+                };
+            },
+
+            _resetResultInfoTemplate: function (resultItem) {
+                var nodes, templateContent = resultItem.controlDetails.selectionGraphic.infoTemplate.content;
+                nodes = query(".infoPopupSKipIcon", templateContent);
+                if (nodes.length > 0) {
+                    if (resultItem.controlDetails.selectionGraphic.bypassed) {
+                        domClass.add(nodes[0], "resultItemButtonSkipIconSelected");
+                    } else {
+                        domClass.remove(nodes[0], "resultItemButtonSkipIconSelected");
+                    }
+                }
+            },
+
+            /**
             *This function will zoom into the particular feature.
             *@param{object} resultItem:object containing information regarding feature which to be zoom.
             **/
@@ -1332,15 +1576,14 @@ define(['dojo/_base/declare',
                     //This will check the viewport size of the device.
                     if (this.viewPortSize.w < 768) {
                         this.panelManager.getPanelById(this.id + '_panel').onTitleClick();
-                        this.map.infoWindow.hide();
+                        //this.panelManager.minimizePanel(this.id + '_panel');
                     }
                     var geometry;
-
-                    if (resultItem.controlDetails.selectionGraphic.geometry.type == "polyline") {
+                    if (resultItem.controlDetails.selectionGraphic.geometry.type === "polyline") {
                         geometry = this._getLineCenter(resultItem.controlDetails.selectionGraphic.geometry);
-                    } else if (resultItem.controlDetails.selectionGraphic.geometry.type == "polygon") {
+                    } else if (resultItem.controlDetails.selectionGraphic.geometry.type === "polygon") {
                         geometry = this._getPolygonCentroid(resultItem.controlDetails.selectionGraphic.geometry);
-                    } else if (resultItem.controlDetails.selectionGraphic.geometry.type == "point") {
+                    } else if (resultItem.controlDetails.selectionGraphic.geometry.type === "point") {
                         geometry = resultItem.controlDetails.selectionGraphic.geometry;
                     }
                     if (geometry) {
@@ -1350,22 +1593,33 @@ define(['dojo/_base/declare',
                 };
             },
 
+            /**
+            * This function will provide the centroid of the polyline.
+            * @param{object} polyline: object containing information regarding the polyline geometry.
+            **/
             _getLineCenter: function (polyline) {
-                var path = polyline.paths[Math.round(polyline.paths.length / 2) - 1];
-                var pointIndex = Math.round((path.length - 1) / 2) - 1;
-                var startPoint = path[pointIndex];
-                var endPoint = path[pointIndex + 1];
+                var path, pointIndex, startPoint, endPoint;
+                path = polyline.paths[Math.round(polyline.paths.length / 2) - 1];
+                pointIndex = Math.round((path.length - 1) / 2) - 1;
+                startPoint = path[pointIndex];
+                endPoint = path[pointIndex + 1];
                 return new Point((startPoint[0] + endPoint[0]) / 2.0, (startPoint[1] + endPoint[1]) / 2.0, polyline.spatialReference);
             },
 
+            /**
+            * This function will provide the centroid of the polygon.
+            * @param{object} polygon: object containing information regarding the polygon geometry.
+            **/
+
             _getPolygonCentroid: function (polygon) {
-                var ring = polygon.rings[Math.round(polygon.rings.length / 2) - 1];
-                var centroid = {
+                var ring, centroid, i, point;
+                ring = polygon.rings[Math.round(polygon.rings.length / 2) - 1];
+                centroid = {
                     x: 0,
                     y: 0
                 }; // Array object
-                for (var i = 0; i < ring.length; i++) {
-                    var point = ring[i];
+                for (i = 0; i < ring.length; i++) {
+                    point = ring[i];
                     centroid.x += point[0];
                     centroid.y += point[1];
                 }
@@ -1390,13 +1644,19 @@ define(['dojo/_base/declare',
             *This function will create High Lighting Graphic Layer and decide the highlighting time for the Graphic.
             **/
             _createTimer: function () {
-                var animatedSymbol, animatedRenderer, jsonObj, baseURL;
+                var animatedSymbol, animatedRenderer, jsonObj, baseURL, imgURL;
                 this.timer = new Timing.Timer(this.config.highlighterDetails.timeout);
                 this.animatedLayer = new GraphicsLayer();
+                if (this.config.highlighterDetails.imageData.indexOf("default") > -1) {
+                    imgURL = this.config.highlighterDetails.imageData.slice(this.config.highlighterDetails.imageData.indexOf("widgets"));
+                    imgURL = imgURL.replace(/\/\//g, "/");
+                } else {
+                    imgURL = this.config.highlighterDetails.imageData;
+                }
                 baseURL = location.href.slice(0, location.href.lastIndexOf('/'));
                 jsonObj = {
                     "type": "esriPMS",
-                    "url": string.substitute(this.config.highlighterDetails.imageData, {
+                    "url": string.substitute(imgURL, {
                         appPath: baseURL
                     }),
                     "imageData": "",
@@ -1419,8 +1679,6 @@ define(['dojo/_base/declare',
                 });
             },
 
-
-
             /**
             *This function will clear the result layers.
             **/
@@ -1429,13 +1687,8 @@ define(['dojo/_base/declare',
                 //Looping through the output layers and then clearing the layer.
                 array.forEach(this.config.geoprocessing.outputs, function (output) {
                     //checking whether layer is null or not.
-                    if (output.layer !== null) {
+                    if (output.layer) {
                         output.layer.clear();
-                    }
-                    //checking whether result pane is null or not.
-                    if (output.type.toUpperCase() === "OVERVIEW") {
-                        var tp = dijit.byId(output.paramName + "CP");
-                        tp.set("content", "");
                     }
                 }, this);
             },
@@ -1458,29 +1711,6 @@ define(['dojo/_base/declare',
             _changeDomNodeColor: function (color, domNode) {
                 style.set(domNode, "backgroundColor", color);
             },
-
-            /**
-            *This function will execute when user cliked on skiped button.
-            *param{object}resultItem: Object containing information regarding the feature which going to be skiped.
-            **/
-            _onSkipedButton: function (resultItem) {
-                return function (e) {
-                    var btnList = query("." + resultItem.controlDetails.bypassBtnClass);
-                    if (this.skipLayer !== null) {
-                        array.forEach(btnList, lang.hitch(this, function (btnNode) {
-                            domClass.toggle(btnNode, "resultItemButtonSkipIconSelected");
-                        }));
-                        if (resultItem.controlDetails.selectionGraphic.bypassed) {
-                            this.skipLayer.remove(resultItem.controlDetails.skipGraphic);
-                            resultItem.controlDetails.selectionGraphic.bypassed = false;
-                        } else {
-                            this.skipLayer.add(resultItem.controlDetails.skipGraphic);
-                            resultItem.controlDetails.selectionGraphic.bypassed = true;
-                        }
-                    }
-                };
-            },
-
             /**
             *This function will popup jimu popup with error message
             *param {string}err: string containing error message

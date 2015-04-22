@@ -10,7 +10,6 @@ Important Note: All the Widgets in this repo should be considered Beta. There ha
 * [Resources](#resources)
 * [Issues](#issues)
 * [Contributing](#contributing)
-* [Branches and Releases](#branching)
 * [Licensing](#licensing)
 
 ## Features
@@ -30,14 +29,6 @@ Emergency Management & Domestic Operations Widgets
 * [Critical Infrastructure Chart](./CI_KR_Chart/README.md)
 * [MissionEditor](./MissionEditor/README.md)
 * [Swipe](./Swipe/README.md)
-
-Imagery Analysis Widgets
-
-* [Image Info](./ImageInfo/README.md)
-* [Image Mensuration](./ImageMensuration/README.md)
-* [Image Properties](./ImageProperties/README.md)
-* [Image Select](./ImageSelect/README.md)
-* [WAMI Time Slider](./WAMITimeSlider/README.md)
 
 ## Requirements
 Requires Web AppBuilder for ArcGIS 1.0
@@ -69,7 +60,7 @@ Esri welcomes contributions from anyone and everyone. Please see our [guidelines
 If you are using [JS Hint](http://http://www.jshint.com/) there is a .jshintrc file included in the root folder which enforces this style.
 We allow for 120 characters per line instead of the highly restrictive 80.
 
-## Branching and Releases
+### Branching and Releases
 #### Branches ####
 New widgets should always be created in a separate branch from master. One or more widgets can be contained in a branch. A widget should only be merged with the Master branch if it has been tested is ready to be used with the current released version of Web App Builder - Developer Edition. 
 #### Releases ####

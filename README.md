@@ -10,6 +10,7 @@ Important Note: All the Widgets in this repo should be considered Beta. There ha
 * [Resources](#resources)
 * [Issues](#issues)
 * [Contributing](#contributing)
+* [Branches and Releases](#branching)
 * [Licensing](#licensing)
 
 ## Features
@@ -67,6 +68,15 @@ Esri welcomes contributions from anyone and everyone. Please see our [guidelines
 
 If you are using [JS Hint](http://http://www.jshint.com/) there is a .jshintrc file included in the root folder which enforces this style.
 We allow for 120 characters per line instead of the highly restrictive 80.
+
+## Branching and Releases
+#### Branches ####
+New widgets should always be created in a separate branch from master. One or more widgets can be contained in a branch. A widget should only be merged with the Master branch if it has been tested is ready to be used with the current released version of Web App Builder - Developer Edition. 
+#### Releases ####
+Releases are created for the following reasons:
+- A new version of Web App Builder has been released. The release is used to tag widgets compatible with that release
+- A widget (or set of widgets) has been released on the solutions website
+
 
 ## Licensing
 

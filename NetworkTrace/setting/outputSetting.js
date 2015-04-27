@@ -93,17 +93,10 @@ define([
         */
         getOutputForm: function () {
             var isOverViewMap, selectedInputValue, bypassDetails, outputParam;
-
-            // Creating bypas details object
-            bypassDetails = { "skipable": this.skippable.checked ? true : false, "IDField": this.skippable.checked ? this.inputTypeData.value : "" };
-
-            isOverViewMap = false;
-            selectedInputValue = "Result";
-
-            // Creating ouput final object with all the values
+            bypassDetails = { "skipable": this.skippable.checked ? true : false };
             outputParam = {
                 "paramName": this.data.name,
-                "type": selectedInputValue,
+                "type": "Result",
                 "panelText": this.outputLabelData.value,
                 "toolTip": this.outputTooltipData.value,
                 "summaryText": this.outputSummaryText.value,
@@ -114,15 +107,10 @@ define([
                 "saveToLayer": this.outputLayer.checked ? this.outputLayerType.value : "",
                 "symbol": this.symbolChooser.getSymbol().toJson()
             };
-            // if bypassDetails created for the outage area
             if (bypassDetails) {
                 outputParam.bypassDetails = bypassDetails;
             }
-            // Checking if the output value is of polygon type gemetory then set the output type to "Overview"
-            if (isOverViewMap) {
-                outputParam.type = "Overview";
-                outputParam.visible = this.visibleCheckBox.checked ? true : false;
-            }
+
             return outputParam;
         },
 
@@ -131,17 +119,14 @@ define([
         * @memberOf widgets/isolation-trace/settings/outputSetting
         */
         _createOutputDataPanel: function () {
-            var i, j, n, objSymbol, skippableFieldSelectArr, operationalLayer = [], helpTextData;
+            var j, skippableFieldSelectArr, helpTextData;
             this.outageArea = {};
-            /*if (this.data && this.data.defaultValue && this.data.defaultValue.geometryType && this.data.defaultValue.geometryType === "esriGeometryPoint") {
-            domClass.remove(this.skippableCheckboxBlock, "esriCTHidden");
-            }*/
+
             this.outputLabelData.id = "outputLabelData_" + this.ObjId;
-            
+
             skippableFieldSelectArr = this.data.defaultValue.fields;
-            this.inputTypeData.startup();
             // if skippable dropdown is created then populates the web map list in dropdown options
-            if (this.inputTypeData && skippableFieldSelectArr && skippableFieldSelectArr.length > 0) {
+            if (skippableFieldSelectArr && skippableFieldSelectArr.length > 0) {
 
                 helpTextData = "";
                 //this.outputSummaryHelpText.innerHTML = "";
@@ -149,11 +134,6 @@ define([
                 helpTextData += "(";
                 // Loop for populating the options in dropdown list
                 for (j = 0; j < skippableFieldSelectArr.length; j++) {
-                    this.inputTypeData.addOption({
-                        value: skippableFieldSelectArr[j].name,
-                        label: skippableFieldSelectArr[j].name,
-                        selected: false
-                    });
                     this.helpTextDataArray[j] = skippableFieldSelectArr[j].name;
                     helpTextData += "{" + skippableFieldSelectArr[j].name;
                     // if loop index is second last then 
@@ -175,27 +155,89 @@ define([
             this.outputExport.id = "exportCSV_" + this.ObjId;
             this.outputLayer.id = "saveToLayer_" + this.ObjId;
 
+            this._addSaveToLayerOptions();
+            this._setConfigParameters();
+            this._createSymbolInput();
+
+            this.outageArea.isChecked = this.outputLayer.checked;
+            this.own(on(this.outputLayer, "click", lang.hitch(this, this._onLayerChange)));
+            on(this.outputLayer, "click", lang.hitch(this, function (evt) {
+                this.layerChangeHandler(this);
+            }));
+            on(this.outputLayerType, "change", lang.hitch(this, function (evt) {
+                this.layerChangeHandler(this);
+            }));
+            this.outputLayerType.on('change', lang.hitch(this, function (evt) {
+                this.outageArea.saveToLayer = evt;
+                domAttr.set(this.outputLayer, "value", evt);
+                this.outageArea.isChecked = this.outputLayer.checked;
+            }));
+        },
+
+        _addSaveToLayerOptions: function () {
+            var n, operationalLayers;
             // save to Layer type Dropdown
             if (this.map && this.map.itemInfo && this.map.itemInfo.itemData && this.map.itemInfo.itemData.operationalLayers) {
                 this.outputLayerType.startup();
-                operationalLayer = this.map.itemInfo.itemData.operationalLayers;
+                operationalLayers = this.map.itemInfo.itemData.operationalLayers;
                 // loop's populates Dropdown values
-                for (n = 0; n < operationalLayer.length; n++) {
+                for (n = 0; n < operationalLayers.length; n++) {
                     // if layer type is feature Layer then
-                    if (operationalLayer[n].layerType && operationalLayer[n].layerType === "ArcGISFeatureLayer") {
+                    if (operationalLayers[n].layerType && operationalLayers[n].layerType === "ArcGISFeatureLayer" && operationalLayers[n].resourceInfo && operationalLayers[n].resourceInfo.capabilities && this._validateLayerCapabilities(operationalLayers[n].resourceInfo.capabilities) && this.data.defaultValue.geometryType === operationalLayers[n].layerObject.geometryType) {
                         // for first index of loop set default value
                         if (n === 0) {
-                            this.outageArea.saveToLayer = operationalLayer[n].id;
-                            domAttr.set(this.outputLayer, "value", operationalLayer[n].id);
+                            this.outageArea.saveToLayer = operationalLayers[n].id;
+                            domAttr.set(this.outputLayer, "value", operationalLayers[n].id);
                         }
                         this.outputLayerType.addOption({
-                            value: operationalLayer[n].id,
-                            label: operationalLayer[n].title,
+                            value: operationalLayers[n].id,
+                            label: operationalLayers[n].title,
                             selected: false
                         });
                     }
                 }
             }
+        },
+
+        _validateLayerCapabilities: function (layerCapabilities) {
+            // if layer has capability of create & update than return true
+            if (layerCapabilities && layerCapabilities.indexOf("Create") > -1 && layerCapabilities.indexOf("Update") > -1) {
+                return true;
+            }
+            // if layer has capability of create & editing than return true
+            if (layerCapabilities && layerCapabilities.indexOf("Create") > -1 && layerCapabilities.indexOf("Editing") > -1) {
+                return true;
+            }
+            return false;
+        },
+
+        _createSymbolInput: function () {
+            var objSymbol;
+            //if symbol geometry exist
+            if (this.data.defaultValue.geometryType) {
+                this.data.featureSetMode = 'draw';
+
+                objSymbol = {};
+                // if symbols parameter available in input parameters then takes symbol details
+                // otherwise using geometry type for fetching the symbol details
+                if (this.outputConfig && this.outputConfig.symbol) {
+                    objSymbol.symbol = jsonUtils.fromJson(this.outputConfig.symbol);
+                } else {
+                    // if symbols parameter is available in input parameters then set the symbol details
+                    // otherwise using geometry type for fetching the symbol details
+                    if (this.data.symbol) {
+                        objSymbol.symbol = jsonUtils.fromJson(this.data.symbol);
+                    } else {
+                        objSymbol.type = utils.getSymbolTypeByGeometryType(this.data.defaultValue.geometryType);
+                    }
+                }
+                this.symbolChooser = new SymbolChooser(objSymbol, domConstruct.create("div", {}, this.symbolData));
+                this.symbolChooser.startup();
+            }
+        },
+
+        _setConfigParameters: function () {
+            var i;
             // if output config object is not null
             if (this.outputConfig) {
                 this.outputLabelData.set("value", this.outputConfig.panelText);
@@ -203,13 +245,13 @@ define([
                 if (this.outputConfig && this.outputConfig.bypassDetails && this.outputConfig.bypassDetails.skipable) {
                     this.skippable.checked = this.outputConfig.bypassDetails.skipable;
                     domClass.add(this.skippable.checkNode, "checked");
-                    domClass.remove(this.skippableDropdownDiv, "esriCTHidden");
+                    //domClass.remove(this.skippableDropdownDiv, "esriCTHidden");
                     // loop for setting the dropdown value as in available in config
-                    for (i = 0; i < this.inputTypeData.options.length; i++) {
-                        if (this.inputTypeData.options[i].value === this.outputConfig.bypassDetails.IDField) {
-                            this.inputTypeData.set("value", this.inputTypeData.options[i].value);
-                        }
-                    }
+//                    for (i = 0; i < this.inputTypeData.options.length; i++) {
+//                        if (this.inputTypeData.options[i].value === this.outputConfig.bypassDetails.IDField) {
+//                            this.inputTypeData.set("value", this.inputTypeData.options[i].value);
+//                        }
+//                    }
                 }
 
                 this.outputTooltipData.set("value", this.outputConfig.toolTip);
@@ -224,58 +266,20 @@ define([
                 }
                 // loop for setting selected target Layer
                 for (i = 0; i < this.outputLayerType.options.length; i++) {
-                    // if layers in dropdown is same as already exist in config file
+                    // if layers in dropdown is same as already the parameter that exist in the configuration
                     if (this.outputLayerType.options[i].value === this.outputConfig.saveToLayer) {
                         this.outputLayerType.set("value", this.outputLayerType.options[i].value);
                     }
                 }
-                // condition  to check whether save to layer set or not in configuration
+                // validate whether save to layer parameter is available in configuration
                 if (this.outputConfig.saveToLayer) {
                     this.outputLayer.checked = this.outputConfig.saveToLayer;
                     domClass.add(this.outputLayer.checkNode, "checked");
                     domClass.remove(this.selectOutputLayerType, "esriCTHidden");
                 }
             }
-
-            //if symbol geometry exist
-            if (this.data.defaultValue.geometryType) {
-                this.data.featureSetMode = 'draw';
-
-                objSymbol = {};
-                // if symbols parameter available in input parameters then takes symbol details
-                // otherwise using geometry type for fetching the symbol details
-                if (this.outputConfig && this.outputConfig.symbol) {
-                    objSymbol.symbol = jsonUtils.fromJson(this.outputConfig.symbol);
-                } else {
-                    // if symbols parameter available in input parameters then takes symbol details
-                    // otherwise using geometry type for fetching the symbol details
-                    if (this.data.symbol) {
-                        objSymbol.symbol = jsonUtils.fromJson(this.data.symbol);
-                    } else {
-                        objSymbol.type = utils.getSymbolTypeByGeometryType(this.data.defaultValue.geometryType);
-                    }
-                }
-                this.symbolChooser = new SymbolChooser(objSymbol, domConstruct.create("div", {}, this.symbolData));
-                this.symbolChooser.startup();
-            }
-            // skippable dropdown end
-
-
-            this.outageArea.isChecked = this.outputLayer.checked;
-            this.own(on(this.skippable, "click", lang.hitch(this, this._onSkipChange)));
-            this.own(on(this.outputLayer, "click", lang.hitch(this, this._onLayerChange)));
-            on(this.outputLayer, "click", lang.hitch(this, function (evt) {
-                this.layerChangeHandler(this);
-            }));
-            on(this.outputLayerType, "change", lang.hitch(this, function (evt) {
-                this.layerChangeHandler(this);
-            }));
-            this.outputLayerType.on('change', lang.hitch(this, function (evt) {
-                this.outageArea.saveToLayer = evt;
-                domAttr.set(this.outputLayer, "value", evt);
-                this.outageArea.isChecked = this.outputLayer.checked;
-            }));
         },
+
 
         /**
         * This function handles the on change and click events on skippable checkbox and dropdown.

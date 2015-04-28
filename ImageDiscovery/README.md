@@ -34,7 +34,7 @@ In edit mode of WebApp Builder click "configure this widget" near the bottom of 
 
 Use the list below to load the image services you want to add to the Image Discovery Widget. The steps are repeated for each image service you would like to add.
 
-* Inside of the configuration window, paste a URL to an image service and click "Load"
+* Inside of the configuration window paste a URL to an image service and click "Load"
 * The image service will now be loaded into the configuration window with fields and labelling options displayed
  * *Display Name* - Label used to identify which service the search results come from
  * *Sort Configuration* - allow the user to sort the service's search results by these fields. If the service does not contain these fields please leave them unchecked.

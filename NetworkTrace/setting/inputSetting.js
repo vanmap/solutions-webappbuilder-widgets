@@ -116,7 +116,7 @@ define([
         * @memberOf widgets/isolation-trace/settings/inputsetting
         */
         _createInputDataPanel: function () {
-            var i, objSymbol;
+            var i;
             this.inputTooltipData.id = "tooltipText_" + this.ObjId;
             // if input config object is not null
             if (this.inputConfig) {
@@ -138,6 +138,15 @@ define([
             on(this.inputTypeData, "Change", lang.hitch(this, function (evt) {
                 this.inputTypeChange(this);
             }));
+            this._createSymbolInput();
+        },
+
+        /**
+        * This method creates symbol input settings.
+        * @memberOf widgets/isolation-trace/settings/inputsetting
+        */
+        _createSymbolInput: function () {
+            var objSymbol;
             //if symbol geometry exist
             if (this.data.defaultValue.geometryType) {
                 this.data.featureSetMode = 'draw';

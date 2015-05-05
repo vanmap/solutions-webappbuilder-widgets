@@ -95,8 +95,8 @@ define([
                     domAttr.set(this.showImageChooser, 'src', this.othersConfig.imageData)
                 }
             } else {
-                thumbnailUrl = this.folderUrl + "/images/default.jpg";
-                domAttr.set(this.showImageChooser, 'src', thumbnailUrl);
+                this.thumbnailUrl = this.folderUrl + "/images/ani/default.gif";
+                domAttr.set(this.showImageChooser, 'src', this.thumbnailUrl);
             }
             this._createOthersDataPanel();
         },
@@ -112,13 +112,16 @@ define([
                 this.imageDataObj = this.imageChooser.imageData
             } else if (this.othersConfig && this.othersConfig.imageData) {
                 this.imageDataObj = this.othersConfig.imageData
+            } else if (this.thumbnailUrl) {
+                this.imageDataObj = this.thumbnailUrl;
             }
-            othersParam = {
+            othersParam = { "highlighterDetails":{
                 "imageData": this.imageDataObj,
-                //"image": ((this.txtImageUrl && this.txtImageUrl.value) ? this.txtImageUrl.value : ""),
                 "height": ((this.spinnerImgHeight && this.spinnerImgHeight.value) ? this.spinnerImgHeight.value : ""),
                 "width": ((this.spinnerImgWidth && this.spinnerImgWidth.value) ? this.spinnerImgWidth.value : ""),
                 "timeout": ((this.spinnerImgTimeout && this.spinnerImgTimeout.value) ? this.spinnerImgTimeout.value : "")
+            },
+                "displayTextForRunButton": ((this.displayTextforRun && this.displayTextforRun.value) ? this.displayTextforRun.value : "")
             };
             return othersParam;
         },
@@ -129,11 +132,10 @@ define([
         */
         _createOthersDataPanel: function () {
             if (this.othersConfig) {
-                //this.txtImageUrl.set("value", this.othersConfig.image);
-                //this.showImageChooser.set("value", this.othersConfig.image);
                 this.spinnerImgHeight.set("value", this.othersConfig.height);
                 this.spinnerImgWidth.set("value", this.othersConfig.width);
                 this.spinnerImgTimeout.set("value", this.othersConfig.timeout);
+                this.displayTextforRun.set("value", this.displayTextForRunButton);
             }
         }
     });

@@ -86,7 +86,7 @@ define([
 
               }
               this.setConfig(this.config);
-              this.createFieldsTable();
+             
               try {
                   var btnBar =
                       (this.domNode.parentNode.parentNode.parentNode.parentNode.lastChild.lastChild);
@@ -182,7 +182,7 @@ define([
               this.showPage1();
           },
           page2ToPage3: function () {
-             
+              this.createFieldsTable();
               var result = array.some(this.layersTable.getRows(), function (row) {
                   var rowData = this.layersTable.getRowData(row);
                   return rowData.update;
@@ -232,11 +232,11 @@ define([
                       this.config.selectByQuery = false;
                   }
               }else if (page === "2") {
-                  this.config.updateLayers = [];
-                  this.config.selectByLayer = {};
+                  
                   var selectVal;
                   if (this.layersTable !== null) {
-
+                      this.config.updateLayers = [];
+                      this.config.selectByLayer = {};
                       array.forEach(this.layersTable.getRows(), function (row) {
 
                           var rowData = this.layersTable.getRowData(row);
@@ -299,17 +299,19 @@ define([
 
                       }, this);
                   }
-              }else if (page === "3") {
-                  this.config.commonFields = [];
-                  array.forEach(this.commonFieldsTable.getRows(), function (row) {
-                      var rowData = this.commonFieldsTable.getRowData(row);
-                      if (rowData.isEditable === true) {
-                          this.config.commonFields.push({
-                              "alias": rowData.label,
-                              "name": rowData.fieldName
-                          });
-                      }
-                  }, this);
+              } else if (page === "3") {
+                  if (this.commonFieldsTable !== null) {
+                      this.config.commonFields = [];
+                      array.forEach(this.commonFieldsTable.getRows(), function (row) {
+                          var rowData = this.commonFieldsTable.getRowData(row);
+                          if (rowData.isEditable === true) {
+                              this.config.commonFields.push({
+                                  "alias": rowData.label,
+                                  "name": rowData.fieldName
+                              });
+                          }
+                      }, this);
+                  }
               }
           },
           showPage1: function () {
@@ -442,10 +444,7 @@ define([
                   this.showOKError();
                   return false;
               }
-              if (this.commonFieldsTable === null || this.commonFieldsTable === undefined) {
-                  this.showOKError();
-                  return false;
-              }
+           
               if (this.selectByFeature.checked === true ||
                   this.selectByFeatureQuery.checked === true) {
                   if (this.config.selectByLayer) {

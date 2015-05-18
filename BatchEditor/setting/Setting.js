@@ -842,6 +842,6 @@ define([
               html.removeClass(this.btnBack, 'hide');
 
           }
-
+         
       });
   });

@@ -150,7 +150,7 @@ function (declare,
             if (this.config.selectByShape === true) {
                 this.toolType = "Area";
                 this.widgetIntro.innerHTML = this.nls.widgetIntroSelectByArea;
-                types = ['polygon'];
+                types = ['polygon', 'point'];
             } else if (this.config.selectByFeature === true) {
                 this.toolType = "Feature";
 
@@ -175,7 +175,7 @@ function (declare,
             } else {
                 this.toolType = "Area";
                 this.widgetIntro.innerHTML = this.nls.widgetIntroSelectByArea;
-                types = ['polygon'];
+                types = ['polygon', 'point'];
             }
 
             if (types) {
@@ -209,7 +209,7 @@ function (declare,
         _btnSearchClick: function () {
             //  this._togglePanelLoadingIcon();
             this.loading.show();
-           
+
             this._hideInfoWindow();
             this.mouseClickPos = this.map.extent.getCenter();
             this._selectInShape(null, this.searchTextBox.get("value"));
@@ -357,7 +357,7 @@ function (declare,
         _onDrawEnd: function (graphic) {
             this.loading.show();
             //this._togglePanelLoadingIcon();
-         
+
             this._hideInfoWindow();
 
             if (graphic.geometryType === "esriGeomtryTypePoint") {
@@ -394,7 +394,8 @@ function (declare,
         // returns: nothing
         _helperLayerSelectCallback: function (features) {
             if (features.length > 0) {
-                this.map.infoWindow.setTitle(this.nls.editorPopupTitle);
+
+                this.map.infoWindow.setTitle(this.label);
 
                 this.map.infoWindow.setContent(this.attrInspector.domNode);
                 this.map.infoWindow.show(this.mouseClickPos,
@@ -490,7 +491,7 @@ function (declare,
                     name: 'label',
                     title: this.nls.layerTable.colLabel,
                     type: 'text',
-                    
+
 
                 }, {
                     name: 'syncStatus',
@@ -501,7 +502,7 @@ function (declare,
                     name: 'ID',
                     type: 'text',
                     hidden: true,
-                    width:0
+                    width: 0
                 }
             ];
             var args = {
@@ -969,7 +970,7 @@ function (declare,
         },
         destroy: function () {
             this._clearGraphics();
-         
+
 
             if (this.drawBox) {
                 this.drawBox.destroy();
@@ -989,7 +990,7 @@ function (declare,
             this.selectQuery = null;
 
             this.timer = null;
-        
+
             this.inherited(arguments);
         }
 

@@ -484,20 +484,24 @@ function (declare,
                     name: 'numSelected',
                     title: this.nls.layerTable.numSelected,
                     type: 'text',
-                    'class': 'selectioncount'
+                    'class': 'selectioncount',
+                    width: 40
                 }, {
                     name: 'label',
                     title: this.nls.layerTable.colLabel,
-                    type: 'text'
+                    type: 'text',
+                    
 
                 }, {
                     name: 'syncStatus',
                     type: 'text',
-                    title: this.nls.layerTable.colSyncStatus
+                    title: this.nls.layerTable.colSyncStatus,
+                    width: 80
                 }, {
                     name: 'ID',
                     type: 'text',
-                    hidden: true
+                    hidden: true,
+                    width:0
                 }
             ];
             var args = {

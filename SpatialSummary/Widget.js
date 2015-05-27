@@ -87,6 +87,7 @@ function(declare,
     },
     export: {
       'recordCount':null,
+      'recordCurrentCount':null,
       'records':[]
     },
     summaryLayers: [],
@@ -148,7 +149,7 @@ function(declare,
     //After the class has returned layers, push only Featurelayers and Layers into the layer list.
     _completeMapLayers: function(args) {
       if (args) {
-        array.forEach(args.data.items, lang.hitch(this, function(layer) {  
+        array.forEach(args.data.items, lang.hitch(this, function(layer) {           
           var vOperators = lang.clone(this.operations);
           var vExport = lang.clone(this.export);       
           if (layer.type === 'Feature Layer') {
@@ -454,9 +455,13 @@ function(declare,
                   query.geometry = pGeom;
                   query.outFields = ["*"];
               queryTask.executeForCount(query, lang.hitch(this, function(count){
-                if(pAction === 'countOnly') {
+                if(pAction === 'countOnly' || pAction === 'export') {
                   pLayer.export.recordCount = count; 
-                  var recurse = this.verifyInputFeatureGeom(pGraphic,pLayer,pGeom,pStat,null);
+                  if(pAction === 'export') {
+                    var recurse = this.verifyInputFeatureGeom(pGraphic,pLayer,pGeom,'export','null'); 
+                  } else {
+                    var recurse = this.verifyInputFeatureGeom(pGraphic,pLayer,pGeom,pStat,null); 
+                  }
                 } 
                 else {
                   if (count > 500) {
@@ -489,6 +494,7 @@ function(declare,
       /* for each chunk for each summary layer, add to deferred class object
        * call the query callback
        */
+      //TODO: add distinct filter for export (mayeb area and length) so we get current count
               var queryTask = new QueryTask(pLayer.url);
               var query = new Query();
                   query.returnGeometry = true;
@@ -534,18 +540,18 @@ function(declare,
        * until all deferred objects are sent.
        */  
        
-          if(pStatType !== 'length' && pStatType !== 'area') {
+          if(pStatType !== 'length' && pStatType !== 'area' && pStatType !== 'export') {
             this.sumByStat(pLayer,pResults.features,pStatType,pField);
           } else {
               if(pStatType === 'area') {
                 this.sumByArea(pLayer,pResults.features,pStatType,pField,pGeom);  
-              } else {
+              } else if (pStatType === 'length') {
                 this.sumByLength(pLayer,pResults.features,pStatType,pField,pGeom);  
-              }           
+              } else {
+                this.exportPrep(pLayer,pResults.features,pStatType,pField,pGeom);  
+              }         
           }      
- 
- 
-               
+                
          var sfs = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID,
                 new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT,
                 new Color([255,255,0]), 2),new Color([0,0,0,0.25])
@@ -553,8 +559,7 @@ function(declare,
             
          var gra = new Graphic(pGeom,sfs);
          this.graphicLayer.add(gra);        
-       
-       
+              
     },
 
     sumByStat: function(pLayer,pResults,pStatType,pField) {
@@ -567,45 +572,37 @@ function(declare,
               var rowID = pLayer.name + '_results_' + pStatType + '_' + pField;
               dom.byId(rowID + '_0').innerHTML = "<img src='" + this.folderUrl + "/images/complete.png' width='14'>";
               dom.byId(rowID + '_3').innerHTML = parseFloat(result.attributes[f]);
-              //dom.byId(pLayer.name).innerHTML = dom.byId(pLayer.name).innerHTML + '<br>' + pLayer.name + ' ' + pStatType + " (" + pField + ") :" + parseFloat(result.attributes[f]);
             }
           }          
         }));     
       
     },
 
-    sumByType: function(pLayer,pResults) {
-      /* Loop through the result set and filter by the different Type specify in config
-       * append to the global count variable for each Type for each summary layer 
-       */
-      array.forEach(pResults, lang.hitch(this,function(result){
-        for (var f in result.attributes) {
-          if( result.attributes.hasOwnProperty(f)) {
-            if (f === pLayer.stats.count.expression) {
-              var currCount = parseFloat(pLayer.stats.count.value);
-              pLayer.stats.count.value =  currCount + parseFloat(result.attributes[f]); 
-              dom.byId(pLayer.name).innerHTML = pLayer.name + ' count (' + pLayer.stats.count.expression + '):' + pLayer.stats.count.value; 
-            }  
-          }  
-        } 
-      }));      
-    },
-
     sumByLength: function(pLayer,pResults,pStatType,pField,pGeom) {
       /* Loop through the result use client geomEngine to calculate length
        * append to the global length variable for each summary layer 
        */
+      pLayer.export.recordCurrentCount = pLayer.export.recordCurrentCount + pResults.length;
+      
       array.forEach(pResults, lang.hitch(this,function(result){
-        var currLength = parseFloat(pLayer.stats.length.value);
-        pLayer.stats.length.value =  currLength + 0; 
-        dom.byId(pLayer.name).innerHTML = dom.byId(pLayer.name).innerHTML + "<br>" + pLayer.name + ' Length:' + pLayer.stats.length.value;  
-      }));
+        var intersectGeom = geometryEngine.intersect(result.geometry,pGeom);
+        var currLen = geometryEngine.planarLength(intersectGeom);
+        
+        pLayer.stats.length[0].value =  currLen + parseFloat(pLayer.stats.length[0].value); 
+        var rowID = pLayer.name + '_results_' + pStatType + '_' + pField;
+        if (pLayer.export.recordCurrentCount >= pLayer.export.recordCount) {
+          dom.byId(rowID + '_0').innerHTML = "<img src='" + this.folderUrl + "/images/complete.png' width='14'>";
+        }
+        dom.byId(rowID + '_3').innerHTML = (pLayer.stats.length[0].value).toFixed(2); 
+      })); 
+      
     },
 
     sumByArea: function(pLayer,pResults,pStatType,pField,pGeom) {
       /* Loop through the result use client geomEngine to calculate Area
        * append to the global length variable for each summary layer 
        */
+      pLayer.export.recordCurrentCount = pLayer.export.recordCurrentCount + pResults.length;
       
       array.forEach(pResults, lang.hitch(this,function(result){
         var intersectGeom = geometryEngine.intersect(result.geometry,pGeom);
@@ -613,8 +610,10 @@ function(declare,
         
         pLayer.stats.area[0].value =  currArea + parseFloat(pLayer.stats.area[0].value); 
         var rowID = pLayer.name + '_results_' + pStatType + '_' + pField;
-        dom.byId(rowID + '_0').innerHTML = "<img src='" + this.folderUrl + "/images/complete.png' width='14'>";
-        dom.byId(rowID + '_3').innerHTML = parseFloat(pLayer.stats.area[0].value); 
+        if (pLayer.export.recordCurrentCount >= pLayer.export.recordCount) {
+          dom.byId(rowID + '_0').innerHTML = "<img src='" + this.folderUrl + "/images/complete.png' width='14'>";
+        }
+        dom.byId(rowID + '_3').innerHTML = (pLayer.stats.area[0].value).toFixed(2); 
       }));      
       
     },
@@ -630,6 +629,7 @@ function(declare,
       /* clean up functions to clear graphic and data.
        * 
        */
+      //TODO: clean up all existing records and record counts
       this.graphicLayer.clear();
       this.drawBox.clear();
       array.forEach(this.summaryLayers, lang.hitch(this, function(layer) { 
@@ -654,7 +654,38 @@ function(declare,
       domStyle.set(this.tableArea,'display','block');
       domStyle.set(this.inputArea,'display','block'); 
       
+    },
+
+    exportPrep: function(pLayer,pResults,pStatType,pField,pGeom) {
+      array.forEach(pResults, function(result,i){
+        if (pLayer.export.recordCurrentCount <= pLayer.export.recordCount) {
+          pLayer.export.recordCurrentCount++;
+          (pLayer.export.records).push(result); 
+        } else {
+          this.exportToCSV(pLayer);
+        }         
+      });
+       
+    },
+    
+    exportToCSV: function(pLayer) {
+      
+      var csvContent = "data:text/csv;charset=utf-8,";
+      array.forEach(pLayer.export.records, function(infoArray, index){     
+         dataString = infoArray.join(",");
+         csvContent += index < data.length ? dataString+ "\n" : dataString;      
+      }); 
+      
+      var encodedUri = encodeURI(csvContent);
+      var link = document.createElement("a");
+      link.setAttribute("href", encodedUri);
+      link.setAttribute("download", "test.csv");
+      
+      link.click();     
+           
     }
+
+
 
 
   });

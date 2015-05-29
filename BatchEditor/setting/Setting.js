@@ -234,7 +234,10 @@ define([
               }else if (page === "2") {
                   
                   var selectVal;
+                
                   if (this.layersTable !== null) {
+                      this.config.toggleLayersOnOpen = this.toggleLayers.checked;
+
                       this.config.updateLayers = [];
                       this.config.selectByLayer = {};
                       array.forEach(this.layersTable.getRows(), function (row) {
@@ -333,6 +336,10 @@ define([
               }
           },
           showPage2: function () {
+              if (this.config.toggleLayersOnOpen != null) {
+                  this.toggleLayers.setChecked(this.config.toggleLayersOnOpen);
+              }
+             
               var selectedTool = this.getSelectedTool();
               var selectByLayerVisible, queryFieldVisible;
               var showOnlyEditable;

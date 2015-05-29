@@ -962,11 +962,19 @@ function (declare,
         onOpen: function () {
 
             this.disableWebMapPopup();
-
+            if (this.config.toggleLayersOnOpen == true) {
+                array.forEach(this.updateLayers, function (layer) {
+                    layer.layerObject.setVisibility(true);
+                });
+            }
         },
         onClose: function () {
             this.enableWebMapPopup();
-
+            if (this.config.toggleLayersOnOpen == true) {
+                array.forEach(this.updateLayers, function (layer) {
+                    layer.layerObject.setVisibility(false);
+                });
+            }
         },
         destroy: function () {
             this._clearGraphics();

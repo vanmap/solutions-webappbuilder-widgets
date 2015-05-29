@@ -207,7 +207,7 @@ function(declare,
           var tableName = lay.name + '_name';
           var tableIcon = lay.name + '_icon';
           var rowName = domConstruct.toDom("<div id='" + tableName + "' class='result-text' >"+lay.name+"</div>");
-          var rowIcon = domConstruct.toDom("<img id='" + tableIcon + "' src='" + this.folderUrl + "/images/add.png' width='14'>");
+          var rowIcon = domConstruct.toDom("<img id='" + tableIcon + "' src='" + this.folderUrl + "/images/add_enable.png'>");
           var rowTable = domConstruct.toDom("<div id='" + tableID + "' class='table-holder' ></div>");
           domConstruct.place(rowName, this.tableArea);
           domConstruct.place(rowIcon, rowName, 'first');
@@ -413,6 +413,10 @@ function(declare,
                   //dom.byId(layer.name + '_data').innerHTML = layer.name;
                   domStyle.set(dom.byId(layer.name + '_data'),'display','block');
                   //TODO: only make picked layers visible.
+  
+                  var rowDowload = domConstruct.toDom("<img src='"+this.folderUrl+"/images/download-csv.png' id='"+ layer.name +"_download'>"); 
+                  domConstruct.place(rowDowload, dom.byId(layer.name + '_data'));                 
+                  this.own(on(dom.byId(layer.name + '_download'), 'click', lang.hitch(this, "verifyInputFeatureGeom", evt,layer,evt.geometry,{operation:key,expression:stat.expression,label:stat.label},'export'))); 
                   
                   var resultID = layer.name + '_results';
                   var rowID = layer.name + '_results_' + key + '_' + stat.expression;
@@ -458,7 +462,8 @@ function(declare,
                 if(pAction === 'countOnly' || pAction === 'export') {
                   pLayer.export.recordCount = count; 
                   if(pAction === 'export') {
-                    var recurse = this.verifyInputFeatureGeom(pGraphic,pLayer,pGeom,'export','null'); 
+                    pStat.operation = 'export';
+                    var recurse = this.verifyInputFeatureGeom(pGraphic,pLayer,pGeom,pStat,null); 
                   } else {
                     var recurse = this.verifyInputFeatureGeom(pGraphic,pLayer,pGeom,pStat,null); 
                   }
@@ -502,7 +507,7 @@ function(declare,
                   query.outFields = ["*"];
                   
                   if(pStat != null) {
-                    if(pStat.operation != 'area' && pStat.operation != 'length') {
+                    if(pStat.operation != 'area' && pStat.operation != 'length' && pStat.operation != 'export') {
                       var statisticDefinition = new StatisticDefinition();
                       if(pStat.operation === 'groupby') {
                         statisticDefinition.statisticType = 'count';
@@ -516,7 +521,7 @@ function(declare,
                         query.groupByFieldsForStatistics = [pStat.expression];   
                       }
                     } 
-                  }             
+                  }            
               queryTask.execute(query, 
                 lang.hitch(this, function(results){
                   this._callbackQueryService(pLayer,results,pStat.operation,pStat.expression,pGeom);
@@ -638,16 +643,10 @@ function(declare,
           domStyle.set(dom.byId(layer.name + '_data'),'display','none');
           //domConstruct.destroy(layer.name + '_data');           
         }
-        //clean up this part. see whether need to result values
-        if(layer.stats.count.value){
-          layer.stats.count.value = 0;  
-        }        
-        if(layer.stats.length.value){
-          layer.stats.length.value = 0;  
-        }
-        if(layer.stats.area.value){
-          layer.stats.area.value = 0;  
-        }        
+        
+        layer.export.recordCount = null;
+        layer.export.recordCurrentCount = null;
+        layer.export.records= [];       
       }));
       
       domStyle.set(this.resultsArea,'display','none');
@@ -657,32 +656,51 @@ function(declare,
     },
 
     exportPrep: function(pLayer,pResults,pStatType,pField,pGeom) {
-      array.forEach(pResults, function(result,i){
+      array.forEach(pResults, lang.hitch(this, function(result,i){
+        pLayer.export.recordCurrentCount++;
         if (pLayer.export.recordCurrentCount <= pLayer.export.recordCount) {
-          pLayer.export.recordCurrentCount++;
           (pLayer.export.records).push(result); 
+          if (pLayer.export.recordCurrentCount === pLayer.export.recordCount) {
+            this.exportToCSV(pLayer);            
+          }
         } else {
           this.exportToCSV(pLayer);
         }         
-      });
+      }));
        
     },
     
     exportToCSV: function(pLayer) {
-      
+      //TODO: reset records after CSV export, or clear before next export so results don't double.'
       var csvContent = "data:text/csv;charset=utf-8,";
-      array.forEach(pLayer.export.records, function(infoArray, index){     
-         dataString = infoArray.join(",");
-         csvContent += index < data.length ? dataString+ "\n" : dataString;      
-      }); 
+      var firstRec = pLayer.export.records[0];
+      var arrayHeader = [];
+      for(key in firstRec.attributes) {
+        if (firstRec.attributes.hasOwnProperty(key)) {
+          arrayHeader.push(key); 
+        }
+      }      
+      csvContent += arrayHeader.join(",") + "\n"; 
       
+      array.forEach(pLayer.export.records, function(rec, index){     
+         var tempArray = [];
+          for(key in rec.attributes) {
+            if (rec.attributes.hasOwnProperty(key)) {
+             tempArray.push(rec.attributes[key]); 
+            }
+          }
+          csvContent += tempArray.join(",") + "\n";   
+      }); 
+     
       var encodedUri = encodeURI(csvContent);
       var link = document.createElement("a");
       link.setAttribute("href", encodedUri);
-      link.setAttribute("download", "test.csv");
-      
-      link.click();     
-           
+      link.setAttribute("download", pLayer.name + ".csv");     
+      link.click(); 
+          
+      pLayer.export.recordCount = null;
+      pLayer.export.recordCurrentCount = null;
+      pLayer.export.records= [];          
     }
 
 

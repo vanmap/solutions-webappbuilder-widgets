@@ -36,6 +36,7 @@ define(['dojo/_base/declare',
         'esri/symbols/SimpleFillSymbol',
         'esri/symbols/SimpleLineSymbol',
         'esri/layers/GraphicsLayer',
+        'esri/InfoTemplate',
         'esri/toolbars/draw',
         'esri/tasks/QueryTask',
         'esri/tasks/query',
@@ -64,6 +65,7 @@ function(declare,
           SimpleFillSymbol,
           SimpleLineSymbol,
           GraphicsLayer,
+          InfoTemplate,
           Draw,
           QueryTask,
           Query,
@@ -414,10 +416,11 @@ function(declare,
                   domStyle.set(dom.byId(layer.name + '_data'),'display','block');
                   //TODO: only make picked layers visible.
   
-                  var rowDowload = domConstruct.toDom("<img src='"+this.folderUrl+"/images/download-csv.png' id='"+ layer.name +"_download'>"); 
-                  domConstruct.place(rowDowload, dom.byId(layer.name + '_data'));                 
-                  this.own(on(dom.byId(layer.name + '_download'), 'click', lang.hitch(this, "verifyInputFeatureGeom", evt,layer,evt.geometry,{operation:key,expression:stat.expression,label:stat.label},'export'))); 
-                  
+                  if(!dom.byId(layer.name +'_download')){
+                    var rowDowload = domConstruct.toDom("<img src='"+this.folderUrl+"/images/download-csv.png' id='"+ layer.name +"_download'>"); 
+                    domConstruct.place(rowDowload, dom.byId(layer.name + '_data'));                 
+                    this.own(on(dom.byId(layer.name + '_download'), 'click', lang.hitch(this, "verifyInputFeatureGeom", evt,layer,evt.geometry,{operation:key,expression:stat.expression,label:stat.label},'export'))); 
+                  }
                   var resultID = layer.name + '_results';
                   var rowID = layer.name + '_results_' + key + '_' + stat.expression;
                   var resultsTableDOM = domConstruct.toDom("<table id='" + resultID + "' class='results-table' ></table");
@@ -546,7 +549,7 @@ function(declare,
        */  
        
           if(pStatType !== 'length' && pStatType !== 'area' && pStatType !== 'export') {
-            this.sumByStat(pLayer,pResults.features,pStatType,pField);
+            this.sumByStat(pLayer,pResults.features,pStatType,pField,pGeom);
           } else {
               if(pStatType === 'area') {
                 this.sumByArea(pLayer,pResults.features,pStatType,pField,pGeom);  
@@ -562,12 +565,12 @@ function(declare,
                 new Color([255,255,0]), 2),new Color([0,0,0,0.25])
          );
             
-         var gra = new Graphic(pGeom,sfs);
-         this.graphicLayer.add(gra);        
+         //var gra = new Graphic(pGeom,sfs);
+         //this.graphicLayer.add(gra);        
               
     },
 
-    sumByStat: function(pLayer,pResults,pStatType,pField) {
+    sumByStat: function(pLayer,pResults,pStatType,pField,pGeom) {
       /* take the result and get the record count.
        * append to the global count variable for each summary layer 
        */
@@ -577,6 +580,7 @@ function(declare,
               var rowID = pLayer.name + '_results_' + pStatType + '_' + pField;
               dom.byId(rowID + '_0').innerHTML = "<img src='" + this.folderUrl + "/images/complete.png' width='14'>";
               dom.byId(rowID + '_3').innerHTML = parseFloat(result.attributes[f]);
+              this.unionDataToGraphic(pLayer,result.attributes[f],pStatType,pField,pGeom);
             }
           }          
         }));     
@@ -624,10 +628,34 @@ function(declare,
     },
 
 
-    unionDataToGraphic: function() {
+    unionDataToGraphic: function(pLayer,pResult,pStatType,pField,pGeom) {
       /* All the returned summary data, append the data back to the graphic
        * Turn graphic different color to signify completion.
        */
+      //gra.setAttributes( {"XCoord":evt.mapPoint.x,"YCoord":evt.mapPoint.y,"Plant":"Mesa Mint"});
+         var sfs = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID,
+                new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT,
+                new Color([0,0,0]), 2),new Color([255,0,0,0.50])
+         );
+         var statSum = {};
+         var string = "";  
+         array.forEach(this.summaryLayers, lang.hitch(this, function(layer){  
+           for (var key in layer.stats) {
+              if( layer.stats.hasOwnProperty(key)) {
+                //statSum[pLayer.stats[key]] = {'value':validRow, 'expression':validExp, 'label':validLabel}; 
+                array.forEach(layer.stats[key], lang.hitch(this, function(stat){
+                  string += layer.name + '<br>';
+                  string += '<li>' + stat.label + ' ' + key + ': ' + stat.value + '</li>';  
+                }));
+              }
+            }
+          }));     
+      
+      var drawnGra = this.drawBox.drawLayer.graphics[0];
+      drawnGra.setSymbol(sfs);
+      var infoTemplate = new InfoTemplate("Summary", string); 
+            drawnGra.setInfoTemplate(infoTemplate);     
+           
     },
     
     clearInputFeature: function() {

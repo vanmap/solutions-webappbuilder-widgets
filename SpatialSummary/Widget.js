@@ -196,32 +196,51 @@ function(declare,
           
         }));
         if (this.summaryLayers.length >= 1) {
+          //TODO: wrap below array code into this area
           //this.loadLayerTable();
-          console.log("done");
         } else {
           //this._noLayersDisplay();
         }
       
+      
+      var tableHeader = domConstruct.toDom("<table id='tblLayerList'><tr><td>Add</td><td><div class='result-text'>Layer</div></td></tr></table>");
+      domConstruct.place(tableHeader, this.tableArea);
+      var summaryTitle = domConstruct.toDom("<h6>Summary Results</h6>");
+      domConstruct.place(summaryTitle, this.resultsArea);      
       
       array.forEach(this.summaryLayers, lang.hitch(this,function(lay,i) {
         
           var tableID = lay.name + '_table';
           var tableName = lay.name + '_name';
           var tableIcon = lay.name + '_icon';
-          var rowName = domConstruct.toDom("<div id='" + tableName + "' class='result-text' >"+lay.name+"</div>");
-          var rowIcon = domConstruct.toDom("<img id='" + tableIcon + "' src='" + this.folderUrl + "/images/add_enable.png'>");
-          var rowTable = domConstruct.toDom("<div id='" + tableID + "' class='table-holder' ></div>");
-          domConstruct.place(rowName, this.tableArea);
-          domConstruct.place(rowIcon, rowName, 'first');
-          domConstruct.place(rowTable, this.tableArea);
+          var rowID =   domConstruct.toDom("<tr id='rowList"+i+"'></tr>");
+          var rowName = domConstruct.toDom("<td><div id='" + tableName + "' class='result-text' >"+lay.name+"</div></td>");
+          var rowIcon = domConstruct.toDom("<td><img id='" + tableIcon + "' src='" + this.folderUrl + "/images/add_enable.png'></td>");
+          domConstruct.place(rowID, tableHeader);
+          domConstruct.place(rowIcon, rowID);
+          domConstruct.place(rowName, rowID);
+          
+          var rowID2 =   domConstruct.toDom("<tr id='rowStats"+i+"'></tr>");
+          var rowTable = domConstruct.toDom("<td colspan=2><div id='" + tableID + "' class='table-holder' ></div></td>");
+          var rowSpacer = domConstruct.toDom("<tr><td colspan=2 style='height:5pt;'></td><tr>");
+          domConstruct.place(rowID2, tableHeader);
+          //domConstruct.place(rowName, this.tableArea);
+          //domConstruct.place(rowIcon, rowName, 'first');
+          domConstruct.place(rowTable, rowID2);
+          domConstruct.place(rowSpacer, tableHeader);
           
           this.createLayerTable(tableID);
           this.own(on(dom.byId(tableIcon), 'click', lang.hitch(this, "addTableRow", lay,i,tableID)));
 
           //TODO: make these results div hidden during start up
           var resultDataArea = lay.name + '_data';
-          var rowName = domConstruct.toDom("<div id='" + resultDataArea + "' class='result-container' >"+ lay.name +"</div>");
-          domConstruct.place(rowName, this.resultsArea);
+          var resultLayerHeader = domConstruct.toDom("<table width='95%' id='"+resultDataArea+"_dataTable' class='result-container'><tr><td width='100%'>"+lay.name+"</td><td id='"+resultDataArea+"_download' class='result-download'></td></tr></table>");
+          domConstruct.place(resultLayerHeader, this.resultsArea);
+          
+          var rowName = domConstruct.toDom("<tr><td width='100%' colspan=2><div id='" + resultDataArea + "' width='100%'></div></td></tr>");
+          var rowSpacer = domConstruct.toDom("<tr><td colspan=2 style='height:5pt;'></td><tr>");
+          domConstruct.place(rowName, resultLayerHeader);
+          domConstruct.place(rowSpacer, resultLayerHeader);
 
           //wrap in TRY in case layers were not loaded.
               this.own(on(this.layerTables[i], 'row-add', lang.hitch(this, function(tr){
@@ -412,13 +431,13 @@ function(declare,
               array.forEach(layer.stats[key], lang.hitch(this, function(stat){
                 if (stat.value != null) {
                   
-                  //dom.byId(layer.name + '_data').innerHTML = layer.name;
                   domStyle.set(dom.byId(layer.name + '_data'),'display','block');
+                  domStyle.set(dom.byId(layer.name + '_data_dataTable'),'display','block');
                   //TODO: only make picked layers visible.
   
                   if(!dom.byId(layer.name +'_download')){
                     var rowDowload = domConstruct.toDom("<img src='"+this.folderUrl+"/images/download-csv.png' id='"+ layer.name +"_download'>"); 
-                    domConstruct.place(rowDowload, dom.byId(layer.name + '_data'));                 
+                    domConstruct.place(rowDowload, dom.byId(layer.name + '_data_download'));                 
                     this.own(on(dom.byId(layer.name + '_download'), 'click', lang.hitch(this, "verifyInputFeatureGeom", evt,layer,evt.geometry,{operation:key,expression:stat.expression,label:stat.label},'export'))); 
                   }
                   var resultID = layer.name + '_results';
@@ -577,6 +596,18 @@ function(declare,
         array.forEach(pResults, lang.hitch(this, function(result) {
          for (var f in result.attributes) {
             if( result.attributes.hasOwnProperty(f)) {
+
+            for(key in pLayer.stats) {
+              if (pLayer.stats.hasOwnProperty(key)) {
+                array.forEach(pLayer.stats[key], lang.hitch(this, function(stat){
+                  if(stat.expression === pField && pStatType === key) {
+                    stat.value = parseFloat(result.attributes[f]);
+                  }
+                }));
+              }
+            }
+
+
               var rowID = pLayer.name + '_results_' + pStatType + '_' + pField;
               dom.byId(rowID + '_0').innerHTML = "<img src='" + this.folderUrl + "/images/complete.png' width='14'>";
               dom.byId(rowID + '_3').innerHTML = parseFloat(result.attributes[f]);
@@ -667,9 +698,15 @@ function(declare,
       this.drawBox.clear();
       array.forEach(this.summaryLayers, lang.hitch(this, function(layer) { 
         if(dom.byId(layer.name + '_data')) {
-          dom.byId(layer.name + '_data').innerHTML = layer.name;
-          domStyle.set(dom.byId(layer.name + '_data'),'display','none');
-          //domConstruct.destroy(layer.name + '_data');           
+          dom.byId(layer.name + '_data').innerHTML = '';
+          domStyle.set(dom.byId(layer.name + '_data'),'display','none'); 
+          domStyle.set(dom.byId(layer.name + '_data_dataTable'),'display','none');          
+        }
+ 
+        for(key in layer.stats) {
+          if (layer.stats.hasOwnProperty(key)) {
+            layer.stats[key] = [];
+          }
         }
         
         layer.export.recordCount = null;

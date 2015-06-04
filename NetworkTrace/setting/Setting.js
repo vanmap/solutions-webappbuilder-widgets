@@ -121,7 +121,6 @@ define([
         },
 
         postCreate: function () {
-            var popupButton, j;
             // validating the fetching the request data
             setTimeout(lang.hitch(this, function () {
                 if (this.config && this.config.geoprocessing && this.config.geoprocessing.url) {
@@ -157,9 +156,7 @@ define([
         _onChooseTaskClicked: function () {
             var args = {
                 portalUrl: this.appConfig.portalUrl
-            };
-            var gpSource = new GpSource(args);
-            var popup = new Popup({
+            }, gpSource = new GpSource(args), popup = new Popup({
                 titleLabel: "Set Task",
                 width: 830,
                 height: 560,
@@ -171,6 +168,7 @@ define([
                     popup.close();
                     return;
                 }
+                this.config = {};
                 this.txtURL.set('value', tasks[0].url);
                 this._resetConfigParams();
                 this._validateGPServiceURL();
@@ -187,7 +185,7 @@ define([
         */
         _validateGPServiceURL: function () {
             this.gpServiceTasks = [];
-            var requestArgs, gpTaskParameters = [], isURLcorrect;
+            var requestArgs, gpTaskParameters = [];
             this.loading.show();
             this._destroyWidget(this.inputProperty);
             this._destroyWidget(this.outputAdditionalProperty);
@@ -218,12 +216,11 @@ define([
                     } else {
                         this._refreshConfigContainer();
                         this.loading.hide();
-                        this._errorMessage(this.nls.invalidURL);
                     }
                 }), lang.hitch(this, function (err) {
+                    this._errorMessage(this.nls.validationErrorMessage.UnableToLoadGeoprocessError);
                     this._refreshConfigContainer();
                     this.loading.hide();
-                    this._errorMessage(this.nls.invalidURL);
                 }));
             } else {
                 this.loading.hide();
@@ -237,7 +234,7 @@ define([
         * @memberOf widgets/isolation-trace/settings/settings.js
         */
         _validateGpTaskResponseParameters: function (gpTaskParameters) {
-            var i, j, recordSetValCheckFlag = true, inputParametersArr = [], inputGPParamFlag = true, errMsg, popupButton;
+            var i, recordSetValCheckFlag = true, inputParametersArr = [], inputGPParamFlag = true, errMsg;
             // loop for checking gptask type is GPFeatureRecordSetLayer or not
             for (i = 0; i < gpTaskParameters.length; i++) {
                 // if gp task is not GPFeatureRecordSetLayer then flag to false
@@ -268,7 +265,6 @@ define([
                 // if the gp task does not having type "GPFeatureRecordSetLayer"
                 if (!recordSetValCheckFlag) {
                     errMsg = this.nls.GPFeatureRecordSetLayerERR;
-                    this.txtURL.set('value', "");
                 } else if (!inputGPParamFlag) {
                     // if number of input parameters is less than 1 or greater than 3 then show error message
                     errMsg = this.nls.invalidInputParameters;
@@ -276,6 +272,8 @@ define([
                     // if the gp task does not having type "GPFeatureRecordSetLayer" neither input parameters is less than 0 and greater than 3 then
                     errMsg = this.nls.inValidGPService;
                 }
+                this.txtURL.set('value', "");
+                this.url = "";
                 this._errorMessage(errMsg);
             }
         },
@@ -309,10 +307,8 @@ define([
         * @memberOf widgets/isolation-trace/settings/settings.js
         */
         _focusTop: function () {
-            dojox.fx.smoothScroll({
-                node: query('#taskDataContainerId :first-child')[0],
-                win: dom.byId('taskDataContainerId')
-            }).play();
+            var node = dom.byId('taskDataContainerId');
+            node.scrollTop = 0;
         },
 
         /**
@@ -399,14 +395,13 @@ define([
         * @memberOf widgets/isolation-trace/settings/settings.js
         */
         _setOutageByPass: function () {
-            var isChecked, outputParam, outageLayerName;
+            var outputParam;
             // loop for outage setting bypass value from output parameters
             array.forEach(this.outputSettingArray, lang.hitch(this, function (widgetNode) {
                 if (widgetNode) {
                     outputParam = widgetNode.getOutputForm();
                     // if save to layer is not null
                     if (outputParam.saveToLayer !== "") {
-                        outageLayerName = widgetNode.outputLayerType.value;
                         this.outageSettingObj.outageLayerName = outputParam.saveToLayer;
                     }
                 }
@@ -511,13 +506,11 @@ define([
         },
 
         _onInputTypeChange: function (inputSettingInstance) {
-            var skipFlag = false;
             inputSettingInstance.inputTypeChange = lang.hitch(this, function (inputNode) {
-                var k, key;
+                var k, key, skipFlag = false;
                 // loop of all the input array, which checks if input type of parameter containing Skip or not
                 for (k in this.inputSettingArray) {
                     if (this.inputSettingArray.hasOwnProperty(k)) {
-                        skipFlag = false;
                         // if input type is "Skip" then only
                         if (this.inputSettingArray[k].inputTypeData && this.inputSettingArray[k].inputTypeData.value === "Skip") {
                             skipFlag = true;
@@ -529,12 +522,13 @@ define([
                                     // if the output parameters type is esriGeometryPoint then only
                                     if (this.outputSettingArray[key].data && this.outputSettingArray[key].data.defaultValue && this.outputSettingArray[key].data.defaultValue.geometryType === "esriGeometryPoint" && skipFlag) {
                                         domClass.remove(this.outputSettingArray[key].skippableCheckboxBlock, "esriCTHidden");
+                                        domClass.remove(this.outputSettingArray[key].skippable.checkNode, "checked");
+                                        this.outputSettingArray[key].skippable.checked = false;
+                                        this.outputSettingArray[key].inputTypeData.set("value", this.outputSettingArray[key].inputTypeData.options[0].value);
                                     } else {
                                         domClass.add(this.outputSettingArray[key].skippableCheckboxBlock, "esriCTHidden");
-                                        if (this.outputSettingArray[key].skippable) {
-                                            this.outputSettingArray[key].skippable.checked = false;
-                                            domClass.remove(this.outputSettingArray[key].skippable.checkNode, "checked");
-                                        }
+                                        domClass.add(this.outputSettingArray[key].skippableDropdownDiv, "esriCTHidden");
+                                        this.outputSettingArray[key].skippable.checked = false;
                                     }
                                 }
                             }
@@ -552,7 +546,7 @@ define([
         * @memberOf widgets/isolation-trace/settings/settings
         **/
         _createOutputTaskParameters: function () {
-            var k, outputTitlepaneDiv, outputContainer, outputTP, param, outputConfig, selectedItems, m;
+            var outputTitlepaneDiv, outputContainer, outputTP, param, outputConfig, selectedItems, m;
             outputTitlepaneDiv = domConstruct.create("div", {
                 "id": "esriCTOutputHolder",
                 "class": "esriCTOutputTitlepaneHolder"
@@ -569,12 +563,12 @@ define([
                 });
                 this.outputSettingArray = [];
                 // loop for populating output data in output fields and also creating additional output fields dynamically
-                for (k = 0; k < this.outputParametersArray.length; k++) {
+                array.forEach(this.outputParametersArray, lang.hitch(this, function (outputParameters, k) {
                     // if input parameterType is required field then reflect Required as a true otherwise false
-                    if (this.outputParametersArray[k].parameterType === "esriGPParameterTypeRequired") {
-                        this.outputParametersArray[k].isOutputRequired = "True";
+                    if (outputParameters.parameterType === "esriGPParameterTypeRequired") {
+                        outputParameters.isOutputRequired = "True";
                     } else {
-                        this.outputParametersArray[k].isOutputRequired = "False";
+                        outputParameters.isOutputRequired = "False";
                     }
 
                     outputConfig = null;
@@ -584,18 +578,18 @@ define([
                     }
                     param = {
                         "nls": this.nls,
-                        "data": this.outputParametersArray[k],
+                        "data": outputParameters,
                         "ObjId": "selectOutput_" + k,
                         "map": this.map,
                         "outputConfig": outputConfig,
                         "parentContainer": outputContainer,
-                        "id": "ParameterDiv_" + k + "_" + this.outputParametersArray[k].name
+                        "id": "ParameterDiv_" + k + "_" + outputParameters.name
                     };
                     if (dijit.byId("selectOutput_" + k)) {
                         dijit.byId("selectOutput_" + k).destroy();
                     }
                     this.outputSettingInstance = new OutputSetting(param, domConstruct.create("div", {}, this.outputAdditionalProperty));
-                    domAttr.set(this.outputSettingInstance.domNode, "displayName", this.outputParametersArray[k].name);
+                    domAttr.set(this.outputSettingInstance.domNode, "displayName", outputParameters.name);
                     this.outputSettingArray.push(this.outputSettingInstance);
 
                     this.outputSettingInstance.outputFieldClicked = lang.hitch(this, function (widgetNode) {
@@ -608,12 +602,7 @@ define([
                             domClass.add(node.domNode, "esriCTHidden");
                             domClass.remove(node.outputDataNode, "esriCTSelected");
                         });
-                        // loop of all the input array, which checks if input type of parameter containing Skip or not
-                        array.forEach(this.inputSettingArray, function (inputNode) {
-                            if (inputNode && inputNode.inputConfig && inputNode.inputConfig.type && inputNode.inputConfig.type === "Skip" && widgetNode && widgetNode.data && widgetNode.data.defaultValue && widgetNode.data.defaultValue.geometryType === "esriGeometryPoint") {
-                                domClass.remove(widgetNode.skippableCheckboxBlock, "esriCTHidden");
-                            }
-                        });
+
                         domClass.remove(widgetNode.domNode, "esriCTHidden");
                         domClass.add(widgetNode.outputDataNode, "esriCTSelected");
                         domClass.remove(this.esriCTInputOutputParameters, "esriCTHidden");
@@ -635,7 +624,7 @@ define([
                     if (outputTP) {
                         outputTitlepaneDiv.appendChild(outputTP.domNode);
                     }
-                }
+                }));
             }
         },
 
@@ -660,7 +649,6 @@ define([
                         } else {
                             if (widgetNode.domNode) {
                                 hideOutputDiv = query(".esriCTOutputOutageField", widgetNode.domNode);
-                                //showOutputDiv = query(".esriCTHidden", hideOutputDiv);
                                 if (hideOutputDiv && hideOutputDiv.length > 0) {
                                     // loop for traversing all the div block with class name esriCTOutputOutageField
                                     for (i = 0; i < hideOutputDiv.length; i++) {
@@ -675,7 +663,7 @@ define([
         },
 
         _createOutageTaskParameter: function () {
-            var OutageHolderDiv;
+            var OutageHolderDiv, selectedItems, m, overviewConfig, param, outageSettingInstance;
             OutageHolderDiv = domConstruct.create("div", {
                 "id": "esriCTOutageHolder",
                 "class": "esriCTSelectedOutageHolder",
@@ -717,11 +705,11 @@ define([
         * @memberOf widgets/isolation-trace/settings/settings
         **/
         _createOthersTaskParameters: function () {
-            var m, othersConfig, othersSettingInstance, OthersHolderDiv, selectedItems, param;
+            var m, othersConfig, othersSettingInstance, OthersHolderDiv, selectedItems, param, displayTextForRunButton;
             OthersHolderDiv = domConstruct.create("div", {
                 "id": "esriCTOtherHolder",
                 "class": "esriCTOtherHolder",
-                "innerHTML": this.nls.others
+                "innerHTML": this.nls.OthersHighlighter.others
             }, this.taskData);
             on(OthersHolderDiv, "click", lang.hitch(this, function (evt) {
                 selectedItems = query(".esriCTSelected", this.taskData);
@@ -821,7 +809,7 @@ define([
         * @memberOf widgets/isolation-trace/settings/settings
         **/
         _getOutputConfigParameters: function () {
-            var outageLayerName, outputParam = {}, domDisplayName, cloneFieldMapArray, isOverViewMap, saveToLayerCheckBox, saveToLayerCheckBoxStatus, fieldMapArray = [], i, j, k, l, m;
+            var outputParam = {}, i, j, k, l;
             this.polygonOutputParameters = [];
             this.polylineOutputParameters = [];
             this.pointOutputParameters = [];
@@ -831,9 +819,6 @@ define([
                 // if input param object created
                 if (this.outputSettingArray) {
                     array.forEach(this.outputSettingArray, lang.hitch(this, function (widgetNode) {
-                        domDisplayName = "";
-                        saveToLayerCheckBox = false;
-                        isOverViewMap = false;
                         if (widgetNode) {
                             outputParam = widgetNode.getOutputForm();
                             // Pushing value in geoprocessing output parameter
@@ -925,9 +910,8 @@ define([
                 validateSaveToLayer = this._validateSaveToLayerParameters();
                 // validating the configuration inputs
                 if (!this.url || this.url === "") {
-                    this._errorMessage(validateInputTask.returnErr);
-                }
-                else if (validateInputTask.returnFlag) {
+                    this._errorMessage(this.nls.inValidGPService);
+                } else if (validateInputTask.returnFlag) {
                     this._errorMessage(validateInputTask.returnErr);
                     validateInputTask = false;
                 } else if (validateOutputTask.returnFlag) {
@@ -960,7 +944,7 @@ define([
                     return false;
                 }
             } else {
-                this._errorMessage(this.nls.configDataNull);
+                this._errorMessage(this.nls.inValidGPService);
                 return false;
             }
             console.log(this.config);
@@ -968,24 +952,39 @@ define([
         },
 
         /**
-        * This function will validate 'Save To Layer' target layer.
+        * This function will validate 'Save To Layer' target layer. 
         * @memberOf widgets/isolation-trace/settings/settings
         **/
         _validateSaveToLayerParameters: function () {
-            var returnObj = { returnErr: "", returnFlag: false }, saveToLayerCount = [], i, uniqueSaveToLayerCount = [], tempFlag = true;
+            var returnObj = { returnErr: "", returnFlag: false }, saveToLayerCount = [], l, m, uniqueSaveToLayerCount = [], tempFlag = true, key, tempValue;
             //Pushing those output parameter in which Save to layer is checked.
             if (this.outputSettingArray) {
-                var key;
+                // Loop through the output setting array to get elements
                 for (key in this.outputSettingArray) {
+                    // Checking if array has property
                     if (this.outputSettingArray.hasOwnProperty(key)) {
-                        if (this.outputSettingArray[key].outputLayer.checked) {
+                        // Checking if output setting array is checked
+                        if (this.outputSettingArray[key].outputLayer && this.outputSettingArray[key].outputLayer.checked) {
+                            // Pushing the save to layer value in an array
                             saveToLayerCount.push(this.outputSettingArray[key].outputLayerType.value);
                         }
                     }
                 }
             }
-            if (saveToLayerCount.length === 1) {
-                if (saveToLayerCount[0] === "") {
+            // Checking if the overview div is available
+            if (this.outageSettingObj) {
+                // Looping to overview div
+                for (l = 0; l < this.outageSettingObj.length; l++) {
+                    // Checking for the save to layer checkbox is checked
+                    if (this.outageSettingObj[l].outputLayer && this.outageSettingObj[l].outputLayer.checked) {
+                        saveToLayerCount.push(this.outageSettingObj[l].outputLayerType.value);
+                    }
+                }
+            }
+            // Looping to save to layer value for validation
+            for (m = 0; m < saveToLayerCount.length; m++) {
+                // If any of the save to layer drop down value is empty then show error message
+                if (saveToLayerCount[m] === "") {
                     returnObj.returnErr = this.nls.validationErrorMessage.saveToLayerTargetLayers;
                     returnObj.returnFlag = true;
                     return returnObj;
@@ -996,19 +995,18 @@ define([
             tempFlag = saveToLayerCount.slice(0).every(function (item, index, array) {
                 if (uniqueSaveToLayerCount.indexOf(item) > -1) {
                     array.length = 0;
-                    return false;
+                    tempValue = false;
                 } else {
                     uniqueSaveToLayerCount.push(item);
-                    return true;
+                    tempValue = true;
                 }
+                return tempValue;
             });
-            if (tempFlag) {
-                return returnObj;
-            } else {
+            if (!tempFlag) {
                 returnObj.returnErr = this.nls.validationErrorMessage.saveToLayerTargetLayers;
                 returnObj.returnFlag = true;
-                return returnObj;
             }
+            return returnObj;
         },
 
         /**
@@ -1017,7 +1015,7 @@ define([
         * @memberOf widgets/isolation-trace/settings/settings
         **/
         _validateOthersTaskParameters: function () {
-            var returnObj = { returnErr: "", returnFlag: false };
+            var returnObj = { returnErr: "", returnFlag: false }, othersParam, imageDataOBJ;
             // if Others setting Obj is created
             if (this.othersSettingObj) {
                 array.forEach(this.othersSettingObj, lang.hitch(this, function (otherData) {
@@ -1026,31 +1024,32 @@ define([
                         othersParam = otherData.getOthersForm();
                         imageDataOBJ = otherData.imageDataObj;
                         //otherData.imageChooser.imageData;
-                        if (imageDataOBJ === "" || imageDataOBJ === null) {
-                            returnObj.returnErr = this.nls.validationErrorMessage.otherHighlighterImage;
-                            returnObj.returnFlag = true;
-                        }
-                        if (othersParam.displayTextForRunButton === "" || othersParam.displayTextForRunButton === null || othersParam.displayTextForRunButton.trim() === "") {
-                            returnObj.returnErr = this.nls.validationErrorMessage.displayTextForButtonError;
-                            returnObj.returnFlag = true;
-                        }
+                        if (othersParam.highlighterDetails && othersParam.displayTextForRunButton && imageDataOBJ) {
+                            if (imageDataOBJ === "" || imageDataOBJ === null) {
+                                returnObj.returnErr = this.nls.validationErrorMessage.otherHighlighterImage;
+                                returnObj.returnFlag = true;
+                            }
+                            if (othersParam.displayTextForRunButton === "" || othersParam.displayTextForRunButton === null || othersParam.displayTextForRunButton.trim() === "") {
+                                returnObj.returnErr = this.nls.validationErrorMessage.displayTextForButtonError;
+                                returnObj.returnFlag = true;
+                            }
 
-                        if (othersParam.highlighterDetails.height === "" || parseInt(othersParam.highlighterDetails.height, 10) < 0 || isNaN(parseInt(othersParam.highlighterDetails.height, 10))) {
-                            returnObj.returnErr = this.nls.validationErrorMessage.otherHighlighterImageHeight;
-                            returnObj.returnFlag = true;
+                            if (othersParam.highlighterDetails.height === "" || parseInt(othersParam.highlighterDetails.height, 10) < 0 || isNaN(parseInt(othersParam.highlighterDetails.height, 10))) {
+                                returnObj.returnErr = this.nls.validationErrorMessage.otherHighlighterImageHeight;
+                                returnObj.returnFlag = true;
+                            }
+
+                            if (othersParam.highlighterDetails.width === "" || parseInt(othersParam.highlighterDetails.width, 10) < 0 || isNaN(parseInt(othersParam.highlighterDetails.width, 10))) {
+                                returnObj.returnErr = this.nls.validationErrorMessage.otherHighlighterImageWidth;
+                                returnObj.returnFlag = true;
+                            }
+
+                            if (othersParam.highlighterDetails.timeout === "" || parseInt(othersParam.highlighterDetails.timeout, 10) < 0 || isNaN(parseInt(othersParam.highlighterDetails.timeout, 10))) {
+                                returnObj.returnErr = this.nls.validationErrorMessage.otherHighlighterImageTimeout;
+                                returnObj.returnFlag = true;
+                            }
+
                         }
-
-                        if (othersParam.highlighterDetails.width === "" || parseInt(othersParam.highlighterDetails.width, 10) < 0 || isNaN(parseInt(othersParam.highlighterDetails.width, 10))) {
-                            returnObj.returnErr = this.nls.validationErrorMessage.otherHighlighterImageWidth;
-                            returnObj.returnFlag = true;
-                        }
-
-                        if (othersParam.highlighterDetails.timeout === "" || parseInt(othersParam.highlighterDetails.timeout, 10) < 0 || isNaN(parseInt(othersParam.highlighterDetails.timeout, 10))) {
-                            returnObj.returnErr = this.nls.validationErrorMessage.otherHighlighterImageTimeout;
-                            returnObj.returnFlag = true;
-                        }
-
-
                     }
                 }));
             }
@@ -1071,7 +1070,7 @@ define([
                 // loop for parsing all the input parameters for valid set of data
                 array.forEach(this.inputSettingArray, lang.hitch(this, function (widgetNode) {
                     // if widgetNode found
-                    if (widgetNode) {
+                    if (widgetNode && widgetNode.inputTypeData) {
                         inputTypeData = widgetNode.inputTypeData.value;
                         // if input type is flag then count the number of flag type input
                         if (inputTypeData === "Flag") {
@@ -1112,74 +1111,74 @@ define([
         * @memberOf widgets/isolation-trace/settings/settings
         **/
         _validateOutputTaskParameters: function () {
-            var returnObj = { returnErr: "", returnFlag: false }, key, displayName, skippableChecked, summaryTextVal, validSummary = false, validDisplayTextArr, displayTextVal, validDisplay;
+            var returnObj = { returnErr: "", returnFlag: false }, key, skippableChecked, summaryTextVal, validSummary = false, validDisplayTextArr, displayTextVal, validDisplay;
             // if output parameters is created in Dom
             if (this.outputSettingArray) {
                 // loop for parsing all the output parameters for valid set of data
                 for (key in this.outputSettingArray) {
-                    validDisplayTextArr = [];
+
                     if (this.outputSettingArray.hasOwnProperty(key)) {
-                        displayName = domAttr.get(this.outputSettingArray[key].domNode, "displayName");
+                        validDisplayTextArr = [];
                         // if outage area drop down is not null and the this particular container belongs to the outage area
-                        if ((this.outputSettingArray[key].outputLabelData.value === "" || this.outputSettingArray[key].outputLabelData.value === null) ||
-                                (this.outputSettingArray[key].outputSummaryText.value === "" || this.outputSettingArray[key].outputSummaryText.value === null) ||
-                                (this.outputSettingArray[key].outputDisplayText.value === "" || this.outputSettingArray[key].outputDisplayText.value === null) ||
-                                (this.outputSettingArray[key].outputMinScaleData.value === "" || this.outputSettingArray[key].outputMinScaleData.value === null ||
-                                isNaN(parseInt(this.outputSettingArray[key].outputMinScaleData.value, 10)) || (parseInt(this.outputSettingArray[key].outputMinScaleData.value, 10) < 0)) || (this.outputSettingArray[key].outputMaxScaleData.value === "" ||
-                                this.outputSettingArray[key].outputMaxScaleData.value === null || isNaN(parseInt(this.outputSettingArray[key].outputMaxScaleData.value, 10)) || (parseInt(this.outputSettingArray[key].outputMaxScaleData.value, 10) < 0))) {
-                            // label value is null
-                            if ((this.outputSettingArray[key]) && (this.outputSettingArray[key].outputLabelData) && (this.outputSettingArray[key].outputLabelData.value === "" || this.outputSettingArray[key].outputLabelData.value === null)) {
-                                returnObj.returnErr = this.nls.validationErrorMessage.outputLabelDataErr + " in " + this.outputSettingArray[key].data.displayName;
-                                returnObj.returnFlag = true;
-                                //                            break;
-                            } else if ((this.outputSettingArray[key]) && (this.outputSettingArray[key].outputSummaryText) && (this.outputSettingArray[key].outputSummaryText.value === "" || this.outputSettingArray[key].outputSummaryText.value === null)) {
-                                // Summary Text value is null
-                                returnObj.returnErr = this.nls.validationErrorMessage.outputSummaryDataErr + " in " + this.outputSettingArray[key].data.displayName;
-                                returnObj.returnFlag = true;
-                                //                            break;
-                            } else if ((this.outputSettingArray[key]) && (this.outputSettingArray[key].outputDisplayText) && (this.outputSettingArray[key].outputDisplayText.value === "" || this.outputSettingArray[key].outputDisplayText.value === null)) {
-                                // if Display text value is null
-                                returnObj.returnErr = this.nls.validationErrorMessage.outputDisplayDataErr + " in " + this.outputSettingArray[key].data.displayName;
-                                returnObj.returnFlag = true;
-                                //                            break;
-                            } else if ((this.outputSettingArray[key]) && (this.outputSettingArray[key].outputMinScaleData) && (this.outputSettingArray[key].outputMinScaleData.value === "" || this.outputSettingArray[key].outputMinScaleData.value === null || isNaN(parseInt(this.outputSettingArray[key].outputMinScaleData.value, 10)) || parseInt(this.outputSettingArray[key].outputMinScaleData.value, 10) < 0)) {
-                                // if min scale is value is null or not an number
-                                returnObj.returnErr = this.nls.validationErrorMessage.outputMinScaleDataErr + " in " + this.outputSettingArray[key].data.displayName;
-                                returnObj.returnFlag = true;
-                                //                            break;
-                            } else if ((this.outputSettingArray[key]) && (this.outputSettingArray[key].outputMaxScaleData) && (this.outputSettingArray[key].outputMaxScaleData.value === "" || this.outputSettingArray[key].outputMaxScaleData.value === null || isNaN(parseInt(this.outputSettingArray[key].outputMaxScaleData.value, 10)) || parseInt(this.outputSettingArray[key].outputMaxScaleData.value, 10) < 0)) {
-                                // if max scale is value is null or not an number
-                                returnObj.returnErr = this.nls.validationErrorMessage.outputMaxScaleDataErr + " in " + this.outputSettingArray[key].data.displayName;
-                                returnObj.returnFlag = true;
-                                //                            break;
-                            }
+                        if (this.outputSettingArray[key].outputLabelData && this.outputSettingArray[key].outputSummaryText && this.outputSettingArray[key].outputSummaryText && this.outputSettingArray[key].outputMinScaleData && this.outputSettingArray[key].outputMaxScaleData) {
+                            if ((this.outputSettingArray[key].outputLabelData.value === "" || this.outputSettingArray[key].outputLabelData.value === null) ||
+                                    (this.outputSettingArray[key].outputSummaryText.value === "" || this.outputSettingArray[key].outputSummaryText.value === null) ||
+                                    (this.outputSettingArray[key].outputDisplayText.value === "" || this.outputSettingArray[key].outputDisplayText.value === null) ||
+                                    (this.outputSettingArray[key].outputMinScaleData.value === "" || this.outputSettingArray[key].outputMinScaleData.value === null ||
+                                    isNaN(parseInt(this.outputSettingArray[key].outputMinScaleData.value, 10)) || (parseInt(this.outputSettingArray[key].outputMinScaleData.value, 10) < 0)) || (this.outputSettingArray[key].outputMaxScaleData.value === "" ||
+                                    this.outputSettingArray[key].outputMaxScaleData.value === null || isNaN(parseInt(this.outputSettingArray[key].outputMaxScaleData.value, 10)) || (parseInt(this.outputSettingArray[key].outputMaxScaleData.value, 10) < 0))) {
+                                // label value is null
+                                if ((this.outputSettingArray[key]) && (this.outputSettingArray[key].outputLabelData) && (this.outputSettingArray[key].outputLabelData.value === "" || this.outputSettingArray[key].outputLabelData.value === null)) {
+                                    returnObj.returnErr = this.nls.validationErrorMessage.outputLabelDataErr + " in " + this.outputSettingArray[key].data.displayName;
+                                    returnObj.returnFlag = true;
+                                } else if ((this.outputSettingArray[key]) && (this.outputSettingArray[key].outputSummaryText) && (this.outputSettingArray[key].outputSummaryText.value === "" || this.outputSettingArray[key].outputSummaryText.value === null)) {
+                                    // Summary Text value is null
+                                    returnObj.returnErr = this.nls.validationErrorMessage.outputSummaryDataErr + " in " + this.outputSettingArray[key].data.displayName;
+                                    returnObj.returnFlag = true;
+                                } else if ((this.outputSettingArray[key]) && (this.outputSettingArray[key].outputDisplayText) && (this.outputSettingArray[key].outputDisplayText.value === "" || this.outputSettingArray[key].outputDisplayText.value === null)) {
+                                    // if Display text value is null
+                                    returnObj.returnErr = this.nls.validationErrorMessage.outputDisplayDataErr + " in " + this.outputSettingArray[key].data.displayName;
+                                    returnObj.returnFlag = true;
+                                } else if ((this.outputSettingArray[key]) && (this.outputSettingArray[key].outputMinScaleData) && (this.outputSettingArray[key].outputMinScaleData.value === "" || this.outputSettingArray[key].outputMinScaleData.value === null || isNaN(parseInt(this.outputSettingArray[key].outputMinScaleData.value, 10)) || parseInt(this.outputSettingArray[key].outputMinScaleData.value, 10) < 0)) {
+                                    // if min scale is value is null or not an number
+                                    returnObj.returnErr = this.nls.validationErrorMessage.outputMinScaleDataErr + " in " + this.outputSettingArray[key].data.displayName;
+                                    returnObj.returnFlag = true;
+                                } else if ((this.outputSettingArray[key]) && (this.outputSettingArray[key].outputMaxScaleData) && (this.outputSettingArray[key].outputMaxScaleData.value === "" || this.outputSettingArray[key].outputMaxScaleData.value === null || isNaN(parseInt(this.outputSettingArray[key].outputMaxScaleData.value, 10)) || parseInt(this.outputSettingArray[key].outputMaxScaleData.value, 10) < 0)) {
+                                    // if max scale is value is null or not an number
+                                    returnObj.returnErr = this.nls.validationErrorMessage.outputMaxScaleDataErr + " in " + this.outputSettingArray[key].data.displayName;
+                                    returnObj.returnFlag = true;
+                                }
 
-                        } else {
-                            // if the summary text value is not null and not and outage area type output
-                            if ((this.outputSettingArray[key].outputSummaryText) && (this.outputSettingArray[key].outputSummaryText.value !== "")) {
-                                skippableChecked = this.outputSettingArray[key].skippable.checked;
-                                summaryTextVal = this.outputSettingArray[key].outputSummaryText.value;
-                                validSummary = this._validateSummaryText(summaryTextVal, skippableChecked);
+                            } else {
+                                // if the summary text value is not null and not and outage area type output
+                                if ((this.outputSettingArray[key].outputSummaryText) && (this.outputSettingArray[key].outputSummaryText.value !== "")) {
+                                    skippableChecked = this.outputSettingArray[key].skippable.checked;
+                                    summaryTextVal = this.outputSettingArray[key].outputSummaryText.value;
+                                    validSummary = this._validateSummaryText(summaryTextVal, skippableChecked);
 
-                            }
-                            // if the display text value is not null and not and outage area type output
-                            if (!validSummary && (this.outputSettingArray[key].outputDisplayText) && this.outputSettingArray[key].outputDisplayText.value !== "") {
-                                // if valid set of display text is not null
-                                if (this.outputSettingArray[key] && this.outputSettingArray[key].helpTextDataArray && this.outputSettingArray[key].helpTextDataArray.length > 0) {
-                                    validDisplayTextArr = this.outputSettingArray[key].helpTextDataArray;
-                                    displayTextVal = this.outputSettingArray[key].outputDisplayText.value;
-                                    validDisplay = this._validateDisplayText(displayTextVal, validDisplayTextArr);
+                                }
+                                // if the display text value is not null and not and outage area type output
+                                if (!validSummary && (this.outputSettingArray[key].outputDisplayText) && this.outputSettingArray[key].outputDisplayText.value !== "") {
+                                    // if valid set of display text is not null
+                                    if (this.outputSettingArray[key] && this.outputSettingArray[key].helpTextDataArray && this.outputSettingArray[key].helpTextDataArray.length > 0) {
+                                        validDisplayTextArr = this.outputSettingArray[key].helpTextDataArray;
+                                        displayTextVal = this.outputSettingArray[key].outputDisplayText.value;
+                                        validDisplay = this._validateDisplayText(displayTextVal, validDisplayTextArr);
+                                    }
+                                }
+                                // if the summary text format is not valid
+                                if (validSummary) {
+                                    returnObj.returnErr = this.nls.validationErrorMessage.outputSummaryDataText + " in " + this.outputSettingArray[key].data.displayName;
+                                    returnObj.returnFlag = validSummary;
+                                } else if (validDisplay) {
+                                    // if the display text format is not valid
+                                    returnObj.returnErr = this.nls.validationErrorMessage.outputDisplayDataText + " in " + this.outputSettingArray[key].data.displayName;
+                                    returnObj.returnFlag = validDisplay;
                                 }
                             }
-                            // if the summary text format is not valid
-                            if (validSummary) {
-                                returnObj.returnErr = this.nls.validationErrorMessage.outputSummaryDataText + " in " + this.outputSettingArray[key].data.displayName;
-                                returnObj.returnFlag = validSummary;
-                            } else if (validDisplay) {
-                                // if the display text format is not valid
-                                returnObj.returnErr = this.nls.validationErrorMessage.outputDisplayDataText + " in " + this.outputSettingArray[key].data.displayName;
-                                returnObj.returnFlag = validDisplay;
-                            }
+                        } else {
+                            returnObj.returnErr = "";
+                            returnObj.returnFlag = true;
                         }
                         if (returnObj.returnFlag) {
                             break;
@@ -1277,14 +1276,13 @@ define([
                 for (k = 0; k < validDisplayTextArr.length; k++) {
                     tempValidDisplayTextArr[k] = validDisplayTextArr[k].toUpperCase();
                 }
+                validFlag = false;
                 // loop for traversing array and checking if display text contains valid data or not
                 for (j = 0; j < validArray.length; j++) {
                     // if array index having valid string
                     if (tempValidDisplayTextArr.indexOf(validArray[j]) === -1) {
                         validFlag = true;
                         break;
-                    } else {
-                        validFlag = false;
                     }
                 }
             } else {
@@ -1298,7 +1296,7 @@ define([
         * @memberOf widgets/isolation-trace/settings/settings
         **/
         _validateOutageTaskParameters: function () {
-            var returnObj = { returnErr: "", returnFlag: false }, domDisplayName, outputParam, outageLayerName, i, fieldMapArr, fieldNameArr = [], paramNameArr = [], saveToLayerCheckBox, saveToLayerCheckBoxStatus;
+            var returnObj = { returnErr: "", returnFlag: false }, i, overviewParam, fieldNameArr = [], paramNameArr = [];
             // if outage type parameters is created in the config outage object
             if (this.outageSettingObj) {
                 array.forEach(this.outageSettingObj, lang.hitch(this, function (widgetNode) {

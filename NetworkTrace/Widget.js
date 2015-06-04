@@ -740,15 +740,13 @@ define([
                     for (key in results.features[0].attributes) {
                         if (results.features[0].attributes.hasOwnProperty(key)) {
                             for (i = 0; i < results.fields.length; i++) {
-                                if (results.field[i].name === key) {
-                                    if (results.field[i].type === "esriFieldTypeDate") {
+                                if (results.fields[i].name === key) {
+                                    if (results.fields[i].type === "esriFieldTypeDate") {
                                         dateFlds.push(idx);
                                     }
                                     idx += 1;
-                                    atts.push(results.field[i].alias);
-                                    return true;
+                                    atts.push(results.fields[i].alias);
                                 }
-
                             }
                         }
                     }

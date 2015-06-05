@@ -502,23 +502,28 @@ define(["dojo/Evented", "dijit/_WidgetBase", "dijit/_OnDijitClickMixin", "dijit/
             this.map.setMapCursor("wait");
             this._getProfile(geometry).then(lang.hitch(this, function (elevationInfo) {
                 this.elevationInfo = elevationInfo;
-                this._updateProfileChart();
+                this._updateProfileChart().then(lang.hitch(this, function () {
+                    if (this.applyLOS) {
+                        this.map.setMapCursor("wait");
+                        this._executeLOS(geometry).then(lang.hitch(this, function (losInfo) {
+                            this._updateProfileChartWithLosData(losInfo);
+                            this.map.setMapCursor("default");
+                        }), lang.hitch(this, function (error) {
+                            this.map.setMapCursor("default");
+                            alert(lang.replace("{message}\n\n{details.0}", error));
+                            this.emit("error", error);
+                        }));
+                    }
+                }), lang.hitch(this, function (error) {
+                    this.map.setMapCursor("default");
+                    this.emit("error", error);
+                }));
                 this.emit("display-profile", elevationInfo);
             }), lang.hitch(this, function (error) {
                 this.map.setMapCursor("default");
                 alert(lang.replace("{message}\n\n{details.0}", error));
                 this.emit("error", error);
             }));
-
-            if (this.applyLOS) {
-                this.map.setMapCursor("wait");
-                this._executeLOS(geometry).then(lang.hitch(this, function (losInfo) {
-                    this._updateProfileChartWithLosData(losInfo);
-                }), lang.hitch(this, function (error) {
-                    alert(lang.replace("{message}\n\n{details.0}", error));
-                    this.emit("error", error);
-                }));
-            }
         },
 
         /**
@@ -540,13 +545,17 @@ define(["dojo/Evented", "dijit/_WidgetBase", "dijit/_OnDijitClickMixin", "dijit/
          * @private
          */
         _updateProfileChart: function () {
+            var deferred = new Deferred();
             this.map.setMapCursor("wait");
             this._createProfileChart(this.elevationInfo).then(lang.hitch(this, function () {
                 this.map.setMapCursor("default");
+                return deferred.resolve();
             }), lang.hitch(this, function (error) {
                 this.map.setMapCursor("default");
                 this.emit("error", error);
+                return deferred.reject();
             }));
+            return deferred.promise;
         },
 
         _getClosestValueInArray: function (num, arr) {
@@ -602,7 +611,6 @@ define(["dojo/Evented", "dijit/_WidgetBase", "dijit/_OnDijitClickMixin", "dijit/
                     this.profileChart.render();
                 }
             }
-            this.map.setMapCursor("default");
         },
 
         _unitsChanged: function(){

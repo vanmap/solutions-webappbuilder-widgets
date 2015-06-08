@@ -17,7 +17,7 @@ The Widget Reposistory currently includes:
 Utilities Widgets
 
 * [Batch Editor](./BatchEditor/README.md)
-* [Cost Analysis](./CostAnalysis/README.md)
+* [Cost Analysis](https://github.com/Esri/solutions-webappbuilder-widgets/blob/CostAnalysis/CostAnalysis/README.md)
 * [GeoEnrich](./GeoEnrich/README.md)
 
 Emergency Management & Domestic Operations Widgets

@@ -566,6 +566,15 @@ function(declare,
        * successful execution will recurse this function
        * until all deferred objects are sent.
        */  
+ 
+ 
+          var sfs = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID,
+                new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT,
+                new Color([0,0,0,0.50]), 2),new Color([0,0,0,0.25])
+         );
+            
+         var gra = new Graphic(pGeom,sfs);
+         //this.graphicLayer.add(gra); 
        
           if(pStatType !== 'length' && pStatType !== 'area' && pStatType !== 'export') {
             this.sumByStat(pLayer,pResults.features,pStatType,pField,pGeom);
@@ -575,17 +584,11 @@ function(declare,
               } else if (pStatType === 'length') {
                 this.sumByLength(pLayer,pResults.features,pStatType,pField,pGeom);  
               } else {
+                this.graphicLayer.add(gra);                 
                 this.exportPrep(pLayer,pResults.features,pStatType,pField,pGeom);  
               }         
           }      
-                
-         var sfs = new SimpleFillSymbol(SimpleFillSymbol.STYLE_SOLID,
-                new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASHDOT,
-                new Color([255,255,0]), 2),new Color([0,0,0,0.25])
-         );
-            
-         //var gra = new Graphic(pGeom,sfs);
-         //this.graphicLayer.add(gra);        
+                       
               
     },
 
@@ -632,6 +635,7 @@ function(declare,
         var rowID = pLayer.name + '_results_' + pStatType + '_' + pField;
         if (pLayer.export.recordCurrentCount >= pLayer.export.recordCount) {
           dom.byId(rowID + '_0').innerHTML = "<img src='" + this.folderUrl + "/images/complete.png' width='14'>";
+          this.unionDataToGraphic(pLayer,pLayer.export.recordCount,pStatType,pField,pGeom);
         }
         dom.byId(rowID + '_3').innerHTML = (pLayer.stats.length[0].value).toFixed(2); 
       })); 
@@ -652,6 +656,7 @@ function(declare,
         var rowID = pLayer.name + '_results_' + pStatType + '_' + pField;
         if (pLayer.export.recordCurrentCount >= pLayer.export.recordCount) {
           dom.byId(rowID + '_0').innerHTML = "<img src='" + this.folderUrl + "/images/complete.png' width='14'>";
+          this.unionDataToGraphic(pLayer,pLayer.export.recordCount,pStatType,pField,pGeom);
         }
         dom.byId(rowID + '_3').innerHTML = (pLayer.stats.area[0].value).toFixed(2); 
       }));      
@@ -701,6 +706,9 @@ function(declare,
           dom.byId(layer.name + '_data').innerHTML = '';
           domStyle.set(dom.byId(layer.name + '_data'),'display','none'); 
           domStyle.set(dom.byId(layer.name + '_data_dataTable'),'display','none');          
+        }
+        if(dom.byId(layer.name +'_download')){
+          domConstruct.destroy(layer.name +'_download');    
         }
  
         for(key in layer.stats) {

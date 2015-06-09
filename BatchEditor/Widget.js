@@ -32,7 +32,6 @@ define([
     'dojo/dom-class',
     'dojo/string',
     'jimu/BaseWidget',
-    'jimu/dijit/DrawBox',
     'jimu/dijit/SimpleTable',
     'jimu/dijit/LoadingIndicator',
     'esri/graphic',
@@ -64,7 +63,6 @@ function (declare,
           domClass,
           string,
           BaseWidget,
-          coreDrawBox,
           SimpleTable,
           LoadingIndicator,
           Graphic,
@@ -136,8 +134,7 @@ function (declare,
                     }
                     return false;
                 }, this);
-                if (this.selectByLayer === null)
-                {
+                if (this.selectByLayer === null) {
                     Message({
                         message: string.substitute(this.nls.errors.layerNotFound, {
                             0: this.config.selectByLayer.name,
@@ -153,30 +150,32 @@ function (declare,
             if (this.config.selectByShape === true) {
                 this.toolType = "Area";
                 this.widgetIntro.innerHTML = this.nls.widgetIntroSelectByArea;
-                types = ['polygon'];
-            }else if (this.config.selectByFeature === true) {
+                types = ['polygon', 'point'];
+            } else if (this.config.selectByFeature === true) {
                 this.toolType = "Feature";
 
                 this.widgetIntro.innerHTML = string.substitute(this.nls.widgetIntroSelectByFeature,
-                    {0: this.config.selectByLayer.name
-                });
+                    {
+                        0: this.config.selectByLayer.name
+                    });
                 types = ['point'];
-            }else if (this.config.selectByFeatureQuery === true) {
+            } else if (this.config.selectByFeatureQuery === true) {
                 this.toolType = "FeatureQuery";
                 this.widgetIntro.innerHTML =
                     string.substitute(this.nls.widgetIntroSelectByFeatureQuery,
-                    {0: this.config.selectByLayer.name,
-                    1: this.config.selectByLayer.queryField
-                });
+                    {
+                        0: this.config.selectByLayer.name,
+                        1: this.config.selectByLayer.queryField
+                    });
 
                 types = ['point'];
-            }else if (this.config.selectByQuery === true) {
+            } else if (this.config.selectByQuery === true) {
                 this.toolType = "Query";
                 this.widgetIntro.innerHTML = this.nls.widgetIntroSelectByQuery;
-            }else {
+            } else {
                 this.toolType = "Area";
                 this.widgetIntro.innerHTML = this.nls.widgetIntroSelectByArea;
-                types = ['polygon'];
+                types = ['polygon', 'point'];
             }
 
             if (types) {
@@ -190,7 +189,7 @@ function (declare,
 
                 this.own(on(this.drawBox, 'DrawEnd', lang.hitch(this, this._onDrawEnd)));
 
-            }else {
+            } else {
 
                 this.searchTextBox = new dijit.form.TextBox({
                     name: "queryText",
@@ -210,7 +209,7 @@ function (declare,
         _btnSearchClick: function () {
             //  this._togglePanelLoadingIcon();
             this.loading.show();
-            this._clearGraphics();
+
             this._hideInfoWindow();
             this.mouseClickPos = this.map.extent.getCenter();
             this._selectInShape(null, this.searchTextBox.get("value"));
@@ -221,38 +220,64 @@ function (declare,
             });
         },
         _selectInShape: function (shape, searchValue) {
+            this._clearResults(true);
             var defs = {};
             var q = new EsriQuery();
             if (shape !== null) {
                 q.geometry = shape;
             }
             var fields;
+            var selectedLayers = []
+            array.forEach(this.layersTable.getRows(), function (row) {
+
+                rowData = this.layersTable.getRowData(row);
+                if (rowData.isSelectable == true) {
+                    selectedLayers.push(rowData.label);
+                }
+            }, this);
             q.spatialRelationship = EsriQuery.SPATIAL_REL_INTERSECTS;
             array.forEach(this.updateLayers, function (layer) {
-                if (searchValue) {
-                    fields = this._findField(layer.layerObject.fields, layer.queryField);
-                    if (fields) {
-                        if (fields.length > 0) {
-                            if (fields[0].type === "esriFieldTypeString") {
-                                q.where = layer.queryField.toString() + " = '" +
-                                    searchValue.toString() + "'";
-                            }else {
-                                q.where = layer.queryField.toString() + " = " +
-                                    searchValue.toString() + "";
+                if (selectedLayers.indexOf(layer.title) >= 0 || selectedLayers.indexOf(layer.layerObject.name) >= 0) {
+                    if (searchValue) {
+                        fields = this._findField(layer.layerObject.fields, layer.queryField);
+                        if (fields) {
+                            if (fields.length > 0) {
+                                if (fields[0].type === "esriFieldTypeString") {
+                                    q.where = layer.queryField.toString() + " = '" +
+                                        searchValue.toString() + "'";
+                                } else {
+                                    q.where = layer.queryField.toString() + " = " +
+                                        searchValue.toString() + "";
+                                }
+                            } else {
+                                console.log("field not found in layer");
                             }
-                        }else {
+                        } else {
                             console.log("field not found in layer");
                         }
-                    }else {
-                        console.log("field not found in layer");
                     }
+                    var def = layer.layerObject.selectFeatures(q, FeatureLayer.SELECTION_NEW);
+                    //var sym = layer.layerObject.getSelectionSymbol();
+                    defs[layer.id] = def;
                 }
-                var def = layer.layerObject.selectFeatures(q, FeatureLayer.SELECTION_NEW);
-                //var sym = layer.layerObject.getSelectionSymbol();
-                defs[layer.id] = def;
             }, this);
-            all(defs).then(lang.hitch(this, this._layerQueriesComplete));
+            if (this.isEmptyObject(defs)) {
+                this.loading.hide();
+            }
+            else {
+                all(defs).then(lang.hitch(this, this._layerQueriesComplete));
 
+
+            }
+
+        },
+        isEmptyObject: function (obj) {
+            for (var prop in obj) {
+                if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+                    return false;
+                }
+            }
+            return true;
         },
         _selectSearchLayer: function (shape) {
             var q = new EsriQuery();
@@ -279,16 +304,16 @@ function (declare,
                     } else {
                         this._selectInShape(null, searchValue);
                     }
-                }else {
+                } else {
                     this._selectInShape(results[0].geometry);
                 }
-            }else {
+            } else {
                 this._hideInfoWindow();
                 this.loading.hide();
                 // this._togglePanelLoadingIcon();
             }
         },
-        _clearRowHighlight: function () {
+        _clearRowHighlight: function (clearResultMessage) {
 
             var labelCell;
             var countCell;
@@ -302,7 +327,11 @@ function (declare,
                 html.removeClass(countCell, 'maxRecordCount');
                 html.removeClass(syncCell, 'syncComplete');
                 html.removeClass(syncCell, 'syncProcessing');
+                html.removeClass(syncCell, 'syncSkipped');
             }, this);
+            if (clearResultMessage === true) {
+                this.resultsMessage.innerHTML = "";
+            }
         },
         _layerQueriesComplete: function (results) {
             var features = [];
@@ -316,27 +345,29 @@ function (declare,
             array.forEach(this.layersTable.getRows(), function (row) {
 
                 rowData = this.layersTable.getRowData(row);
-                layerRes = results[rowData.ID];
-                layer = this.map.getLayer(rowData.ID);
-                features = features.concat(layerRes);
-                editData = { numSelected: layerRes.length.toString() };
+                if (results.hasOwnProperty(rowData.ID)) {
+                    layerRes = results[rowData.ID];
+                    layer = this.map.getLayer(rowData.ID);
+                    features = features.concat(layerRes);
+                    editData = { numSelected: layerRes.length.toString() };
 
-                this.layersTable.editRow(row, editData);
-                labelCell = query('.label', row).shift();
-                countCell = query('.numSelected', row).shift();
+                    this.layersTable.editRow(row, editData);
+                    labelCell = query('.label', row).shift();
+                    countCell = query('.numSelected', row).shift();
 
-                if (layerRes.length > 0) {
-                    if (layerRes.length >= layer.maxRecordCount) {
+                    if (layerRes.length > 0) {
+                        if (layerRes.length >= layer.maxRecordCount) {
 
-                        html.addClass(labelCell, 'maxRecordCount');
-                        html.addClass(countCell, 'maxRecordCount');
-                    }else {
+                            html.addClass(labelCell, 'maxRecordCount');
+                            html.addClass(countCell, 'maxRecordCount');
+                        } else {
+                            html.removeClass(labelCell, 'maxRecordCount');
+                            html.removeClass(countCell, 'maxRecordCount');
+                        }
+                    } else {
                         html.removeClass(labelCell, 'maxRecordCount');
                         html.removeClass(countCell, 'maxRecordCount');
                     }
-                } else {
-                    html.removeClass(labelCell, 'maxRecordCount');
-                    html.removeClass(countCell, 'maxRecordCount');
                 }
             }, this);
             this._updateSelectionCount(features.length);
@@ -347,7 +378,7 @@ function (declare,
                 this.helperLayer.selectFeatures(this.selectQuery, FeatureLayer.SELECTION_NEW,
                     lang.hitch(this, this._helperLayerSelectCallback),
                     lang.hitch(this, this._errorCallback));
-            }else {
+            } else {
                 this._hideInfoWindow();
                 this.loading.hide();
                 //this._togglePanelLoadingIcon();
@@ -358,20 +389,31 @@ function (declare,
         _onDrawEnd: function (graphic) {
             this.loading.show();
             //this._togglePanelLoadingIcon();
-            this._clearGraphics();
+
             this._hideInfoWindow();
 
             if (graphic.geometryType === "esriGeomtryTypePoint") {
                 this.mouseClickPos = graphic;
-            }else {
-                this.mouseClickPos = graphic._extent.getCenter();
+            } else {
+                if (graphic.geometry.type == "extent") {
+                    this.mouseClickPos = graphic.geometry.getCenter();
+                }
+                else if (graphic.geometry.type == "polygon") {
+                    this.mouseClickPos = graphic.geometry.getCentroid();
+                }
+                else if (graphic.geometry.type == "polyline") {
+                    this.mouseClickPos = graphic.geometry.getExtent().getCenter();
+                }
+                else {
+                    this.mouseClickPos = graphic.geometry;
+                }
             }
 
             if (this.toolType === "Area") {
                 this._selectInShape(graphic.geometry);
-            }else if (this.toolType === "Feature") {
+            } else if (this.toolType === "Feature") {
                 this._selectSearchLayer(graphic.geometry);
-            }else if (this.toolType === "FeatureQuery") {
+            } else if (this.toolType === "FeatureQuery") {
                 this._selectSearchLayer(graphic.geometry);
             }
         },
@@ -384,19 +426,20 @@ function (declare,
         // returns: nothing
         _helperLayerSelectCallback: function (features) {
             if (features.length > 0) {
-                this.map.infoWindow.setTitle(this.nls.editorPopupTitle);
+
+                this.map.infoWindow.setTitle(this.label);
 
                 this.map.infoWindow.setContent(this.attrInspector.domNode);
                 this.map.infoWindow.show(this.mouseClickPos,
                     this.map.getInfoWindowAnchor(this.mouseClickPos));
-            }else {
+            } else {
                 this._hideInfoWindow();
             }
             this.loading.hide();
             //this._togglePanelLoadingIcon();
         },
-        
-        // Clear the drawn graphics.
+
+        // Clear the graphics from the widget.
         // returns: nothing
         _clearGraphics: function () {
             if (this.drawBox) {
@@ -404,6 +447,12 @@ function (declare,
                     this.drawBox.drawLayer.clear();
                 }
             }
+            array.forEach(this.updateLayers, function (layer) {
+                if (layer.layerObject !== null) {
+                    layer.layerObject.clearSelection();
+                }
+            });
+            this._hideInfoWindow();
         },
         _togglePanelLoadingIcon: function () {
 
@@ -445,6 +494,7 @@ function (declare,
                             this.updateLayers.push(layer);
                             label = layer.title;
                             this.layersTable.addRow({
+                                isSelectable: true,
                                 label: label,
                                 ID: layer.layerObject.id,
                                 numSelected: "0",
@@ -464,25 +514,36 @@ function (declare,
         },
         createLayerTable: function () {
             var layerTableFields = [
-                {
-                    name: 'numSelected',
-                    title: this.nls.layerTable.numSelected,
-                    type: 'text',
-                    'class': 'selectioncount'
-                }, {
-                    name: 'label',
-                    title: this.nls.layerTable.colLabel,
-                    type: 'text'
+               {
+                   name: 'isSelectable',
+                   title: "",
+                   type: 'checkbox',
+                   'class': 'editable',
+                   width: 25
+               }, {
 
-                }, {
-                    name: 'syncStatus',
-                    type: 'text',
-                    title: this.nls.layerTable.colSyncStatus
-                }, {
-                    name: 'ID',
-                    type: 'text',
-                    hidden: true
-                }
+                   name: 'numSelected',
+                   title: this.nls.layerTable.numSelected,
+                   type: 'text',
+                   'class': 'selectioncount',
+                   width: 40
+               }, {
+                   name: 'label',
+                   title: this.nls.layerTable.colLabel,
+                   type: 'text',
+
+
+               }, {
+                   name: 'syncStatus',
+                   type: 'text',
+                   title: this.nls.layerTable.colSyncStatus,
+                   width: 80
+               }, {
+                   name: 'ID',
+                   type: 'text',
+                   hidden: true,
+                   width: 0
+               }
             ];
             var args = {
                 fields: layerTableFields,
@@ -494,30 +555,36 @@ function (declare,
             this.layersTable.startup();
         },
         disableWebMapPopup: function () {
-            if (this.map && this.map.webMapResponse) {
-                var handler = this.map.webMapResponse.clickEventHandle;
-                if (handler) {
-                    handler.remove();
-                    this.map.webMapResponse.clickEventHandle = null;
-                }
+            if (this.map) {
+                this.map.setInfoWindowOnClick(false);
             }
+            //if (this.map && this.map.webMapResponse) {
+            //    var handler = this.map.webMapResponse.clickEventHandle;
+            //    if (handler) {
+            //        handler.remove();
+            //        this.map.webMapResponse.clickEventHandle = null;
+            //    }
+            //}
         },
         enableWebMapPopup: function () {
-            if (this.map && this.map.webMapResponse) {
-                var handler = this.map.webMapResponse.clickEventHandle;
-                var listener = this.map.webMapResponse.clickEventListener;
-                if (listener && !handler) {
-                    this.map.webMapResponse.clickEventHandle = on(this.map,
-                                                                'click',
-                                                                lang.hitch(this.map, listener));
-                }
+            if (this.map) {
+                this.map.setInfoWindowOnClick(true);
             }
+            //if (this.map && this.map.webMapResponse) {
+            //    var handler = this.map.webMapResponse.clickEventHandle;
+            //    var listener = this.map.webMapResponse.clickEventListener;
+            //    if (listener && !handler) {
+            //        this.map.webMapResponse.clickEventHandle = on(this.map,
+            //                                                    'click',
+            //                                                    lang.hitch(this.map, listener));
+            //    }
+            //}
         },
         // Add the helper layer for use in Attribute Inspector.
         // returns: nothing
         _addHelperLayer: function () {
             this.helperLayer = this._createHelperLayer();
-            this.map.addLayer(this.helperLayer);
+            //this.map.addLayer(this.helperLayer);
         },
         // Create helper layer for Attribute Inspector.
         // returns: helper layer (FeatureLayer)
@@ -567,7 +634,7 @@ function (declare,
                 var val = null;
                 if (field.type === 'esriFieldTypeOID') {
                     result[field.name] = 1;
-                }else if (fieldNames.indexOf(field.name) > -1) {
+                } else if (fieldNames.indexOf(field.name) > -1) {
                     result[field.name] = val;
                 }
             }, this);
@@ -585,7 +652,7 @@ function (declare,
             array.forEach(layer.layerObject.fields, function (field) {
                 if (field.type === 'esriFieldTypeOID') {
                     fields.push(field);
-                }else if (fieldNames.indexOf(field.name) > -1) {
+                } else if (fieldNames.indexOf(field.name) > -1) {
                     fields.push(field);
 
                 }
@@ -604,10 +671,10 @@ function (declare,
             array.forEach(layer.layerObject.infoTemplate.info.fieldInfos, function (field) {
 
                 if (fieldNames.indexOf(field.fieldName) > -1) {
-                    if (field.fieldName === 'OBJECTID') {
+                    if (field.fieldName.toUpperCase() === 'OBJECTID') {
                         field.isEditable = false;
                         field.visible = false;
-                    }else {
+                    } else {
                         field.isEditable = true;
                         field.visible = true;
                         fieldInfos.push(field);
@@ -624,12 +691,15 @@ function (declare,
                 'showDeleteButton': false,
                 'fieldInfos': this.helperEditFieldInfo
             }];
-
-            var attrInspector = new AttributeInspector({
-                layerInfos: layerInfos,
-                _hideNavButtons: true
-            }, domConstruct.create('div'));
-
+            try {
+                var attrInspector = new AttributeInspector({
+                    layerInfos: layerInfos,
+                    _hideNavButtons: true
+                }, domConstruct.create('div'));
+            }
+            catch (err) {
+                alert(err.message);
+            }
             var saveButton = domConstruct.create('div', {
                 'id': 'attrInspectorSaveBtn',
                 'class': 'jimu-btn',
@@ -681,7 +751,7 @@ function (declare,
         },
 
         _xrange: function (b0, b1, quantum) {
-           
+
             if (!quantum) { quantum = 1; }
             if (!b1) { b1 = b0; b0 = 0; }
             var out = [];
@@ -691,7 +761,7 @@ function (declare,
             return out;
         },
         _chunks: function (l, n) {
-            var newn = parseInt(1.0 * l.length / n + 0.5,10);
+            var newn = parseInt(1.0 * l.length / n + 0.5, 10);
             var retArr = [];
             for (var i in this._xrange(0, n - 1)) {
                 retArr.push(l.slice(i * newn, i * newn + newn));
@@ -711,80 +781,105 @@ function (declare,
 
             //disable the save button
             html.addClass(evt.target, 'jimu-state-disabled');
-             this.map.infoWindow.hide();
+            this.map.infoWindow.hide();
             this.map.infoWindow.highlight = false;
             var syncDet;
             this.syncLayers = [];
 
             var rowData;
+
+            var selectedLayers = []
+            array.forEach(this.layersTable.getRows(), function (row) {
+
+                rowData = this.layersTable.getRowData(row);
+                if (rowData.isSelectable == true) {
+                    selectedLayers.push(rowData.label);
+                }
+                else {
+                    this.layersTable.editRow(row, {
+                        'syncStatus': this.nls.featuresSkipped
+                    });
+                    var cell = query('.syncStatus', row).shift();
+                   
+                    html.removeClass(cell, 'syncProcessing');
+                    html.removeClass(cell, 'syncComplete');
+                    html.addClass(cell, 'syncSkipped');
+                }
+            }, this);
+
+
             array.forEach(this.updateLayers, function (layer) {
-                var selectFeat = layer.layerObject.getSelectedFeatures();
-                if (selectFeat) {
+                if (selectedLayers.indexOf(layer.title) >= 0 || selectedLayers.indexOf(layer.layerObject.name) >= 0) {
 
-                    if (selectFeat.length > 0) {
-                        array.some(this.layersTable.getRows(), function (row) {
-                            rowData = this.layersTable.getRowData(row);
+                    var selectFeat = layer.layerObject.getSelectedFeatures();
+                    if (selectFeat) {
 
-                            if (rowData.ID === layer.id) {
-                                this.layersTable.editRow(row, {
-                                    'syncStatus': 0 + " / " +
-                                        selectFeat.length
-                                });
-                                var cell = query('.syncStatus', row).shift();
+                        if (selectFeat.length > 0) {
+                            array.some(this.layersTable.getRows(), function (row) {
+                                rowData = this.layersTable.getRowData(row);
 
-                                html.removeClass(cell, 'syncComplete');
-                                html.addClass(cell, 'syncProcessing');
-                                return true;
+                                if (rowData.ID === layer.id) {
+                                    this.layersTable.editRow(row, {
+                                        'syncStatus': 0 + " / " +
+                                            selectFeat.length
+                                    });
+                                    var cell = query('.syncStatus', row).shift();
+
+                                    html.removeClass(cell, 'syncComplete');
+                                    html.removeClass(cell, 'syncSkipped');
+                                    html.addClass(cell, 'syncProcessing');
+                                    return true;
+                                }
+
+                            }, this);
+
+                            var idx;
+                            var max_chunk = 300;
+                            var chunks;
+                            var bins;
+                            if (selectFeat.length > max_chunk) {
+
+                                bins = parseInt(selectFeat.length / max_chunk, 10);
+                                if (selectFeat.length % max_chunk > 0) {
+                                    bins += 1;
+                                }
+                                chunks = this._chunks(selectFeat, bins);
+                                idx = 0;
+                                syncDet = new layerSyncDetails(
+                                    {
+                                        "layerID": layer.id,
+                                        "numberOfRequest": bins,
+                                        "totalRecordsToSync": selectFeat.length
+
+                                    });
+                                on(syncDet, "complete", lang.hitch(this, this._syncComplete));
+                                on(syncDet, "requestComplete", lang.hitch(this, this._requestComplete));
+                                this.syncLayers.push(syncDet);
+
+                                this.applyCallback(chunks, idx, layer, syncDet);
+
+                            } else {
+                                chunks = [selectFeat];
+                                idx = 0;
+                                syncDet = new layerSyncDetails(
+                                   {
+                                       "layerID": layer.id,
+                                       "numberOfRequest": 1,
+                                       "totalRecordsToSync": selectFeat.length
+
+                                   });
+                                on(syncDet, "complete", lang.hitch(this, this._syncComplete));
+                                on(syncDet, "requestComplete", lang.hitch(this, this._requestComplete));
+
+                                this.syncLayers.push(syncDet);
+                                this.applyCallback(chunks, idx, layer, syncDet);
+
                             }
-
-                        }, this);
-                       
-                        var idx;    
-                        var max_chunk = 300;
-                        var chunks;
-                        var bins;
-                        if (selectFeat.length > max_chunk) {
-
-                            bins = parseInt(selectFeat.length / max_chunk,10);
-                            if (selectFeat.length % max_chunk > 0) {
-                                bins += 1;
-                            }
-                            chunks = this._chunks(selectFeat, bins);
-                            idx = 0;
-                            syncDet = new layerSyncDetails(
-                                {
-                                    "layerID": layer.id,
-                                    "numberOfRequest": bins,
-                                    "totalRecordsToSync": selectFeat.length
-
-                                });
-                            on(syncDet, "complete", lang.hitch(this, this._syncComplete));
-                            on(syncDet, "requestComplete", lang.hitch(this, this._requestComplete));
-                            this.syncLayers.push(syncDet);
-
-                            this.applyCallback(chunks, idx, layer, syncDet);
-                           
-                        } else {
-                            chunks = [selectFeat];
-                            idx = 0;
-                            syncDet = new layerSyncDetails(
-                               {
-                                   "layerID": layer.id,
-                                   "numberOfRequest": 1,
-                                   "totalRecordsToSync": selectFeat.length
-
-                               });
-                            on(syncDet, "complete", lang.hitch(this, this._syncComplete));
-                            on(syncDet, "requestComplete", lang.hitch(this, this._requestComplete));
-
-                            this.syncLayers.push(syncDet);
-                            this.applyCallback(chunks, idx, layer, syncDet);
-                        
                         }
                     }
                 }
             }, this);
-           
+
         },
         applyCallback: function (chunks, idx, layer, syncDet) {
             var def;
@@ -792,8 +887,8 @@ function (declare,
                 def = layer.layerObject.applyEdits(null, chunks[idx], null,
                     lang.hitch(this, this.applyCallback(chunks, idx + 1, layer, syncDet)),
                     lang.hitch(this, this.applyErrorback(chunks, idx + 1, layer)));
-                syncDet.addDeferred(def);              
-            }else {
+                syncDet.addDeferred(def);
+            } else {
                 return function (added, updated, removed) {
                     if (chunks.length > idx) {
                         def = layer.layerObject.applyEdits(null, chunks[idx], null,
@@ -807,7 +902,7 @@ function (declare,
         },
         applyErrorback: function (chunks, idx, layer) {
             return function (err) {
-              
+
                 console.log(err);
                 return err;
             };
@@ -828,7 +923,7 @@ function (declare,
 
                 });
                 this._updateUpdatedFeaturesCount(totalComplete, total);
-                this._clearResults();
+                this._clearResults(false);
 
                 //this._togglePanelLoadingIcon();
                 this.loading.hide();
@@ -849,9 +944,11 @@ function (declare,
                     if (args.countSoFar === args.totalToSync) {
                         html.removeClass(cell, 'syncProcessing');
                         html.addClass(cell, 'syncComplete');
-                    }else {
+                        html.removeClass(cell, 'syncSkipped');
+                    } else {
                         html.removeClass(cell, 'syncComplete');
                         html.addClass(cell, 'syncProcessing');
+                        html.removeClass(cell, 'syncSkipped');
                     }
                     return true;
                 }
@@ -892,12 +989,16 @@ function (declare,
                 }
             }, this);
         },
-        _clearResults: function () {
+        _clearResults: function (clearResultMessage) {
+            if (clearResultMessage === null)
+            {
+                clearResultMessage = true;
+            }
             array.forEach(this.updateLayers, function (layer) {
                 layer.layerObject.clearSelection();
 
             }, this);
-           
+
             array.forEach(this.layersTable.getRows(), function (row) {
 
                 this.layersTable.editRow(row, { 'numSelected': "0" });
@@ -909,7 +1010,7 @@ function (declare,
 
             }, this);
             this._hideInfoWindow();
-            this._clearRowHighlight();
+            this._clearRowHighlight(clearResultMessage);
         },
         _updateUpdatedFeaturesCount: function (count, total) {
             this.resultsMessage.innerHTML = string.substitute(this.nls.featuresUpdated, {
@@ -927,20 +1028,32 @@ function (declare,
             this.timer.start();
         },
         _timerComplete: function () {
-            this.resultsMessage.innerHTML = "";
-
+            if (this.resultsMessage !== null && this.resultsMessage !== undefined) {
+                this.resultsMessage.innerHTML = "";
+            }
             this.timer.stop();
         },
         onOpen: function () {
 
             this.disableWebMapPopup();
-
+            if (this.config.toggleLayersOnOpen == true) {
+                array.forEach(this.updateLayers, function (layer) {
+                    layer.layerObject.setVisibility(true);
+                });
+            }
         },
         onClose: function () {
             this.enableWebMapPopup();
-
+            if (this.config.toggleLayersOnOpen == true) {
+                array.forEach(this.updateLayers, function (layer) {
+                    layer.layerObject.setVisibility(false);
+                });
+            }
         },
         destroy: function () {
+            this._clearGraphics();
+
+
             if (this.drawBox) {
                 this.drawBox.destroy();
             }
@@ -959,7 +1072,9 @@ function (declare,
             this.selectQuery = null;
 
             this.timer = null;
+
+            this.inherited(arguments);
         }
-  
+
     });
 });

@@ -27,6 +27,9 @@ td.simple-table-td.normal-text-td.syncProcessing {
 td.simple-table-td.normal-text-td.syncComplete {
     color: blue;
 }
+td.simple-table-td.normal-text-td.syncSkipped {
+    color: orange;
+}
 
 /*Layers Results*/
 .solutions-widget-batcheditor .widget-layers-table {

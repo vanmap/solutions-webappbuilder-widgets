@@ -36,6 +36,7 @@ define(['dojo/_base/declare',
         'esri/geometry/Point',
         'esri/InfoTemplate',
         'esri/tasks/query',
+        'esri/tasks/QueryTask',
         'esri/SpatialReference',
         'esri/symbols/jsonUtils',
         'esri/renderers/UniqueValueRenderer',
@@ -65,6 +66,7 @@ function(declare,
         Point,
         InfoTemplate,
         Query,
+        QueryTask,
         SpatialReference,
         symbolJsonUtils,
         UniqueValueRenderer,
@@ -114,8 +116,8 @@ function(declare,
         wkid : 102100
       });
       array.forEach(this.config.enrichLayers, function(lay) {
-        var mapLay = this.map.getLayer(lay.id);
-        if (mapLay) {
+        //var mapLay = this.map.getLayer(lay.id);
+        //if (mapLay) {
           var textID = lay.id;
           var progID = lay.id + '_prog';
           var row = domConstruct.toDom("<tr class='controls'>" + "<td><div id='" + progID + "' class='status processing' /></td>" + "<td><div id='" + textID + "' class='result-text' ></div>" + "</td></tr>");
@@ -127,9 +129,9 @@ function(declare,
             0 : 0,
             1 : 0,
             2 : 0,
-            3 : mapLay.name
+            3 : lay.label
           });
-        }
+        //}
       }, this);
       domClass.add(this.clearResultsBtn, 'jimu-state-disabled');
       this.loading.hide();
@@ -151,25 +153,33 @@ function(declare,
       var fieldNames;
       array.forEach(this.config.enrichLayers, function(configLayer) {
 
-        configLayer.mapLayer = this.map.getLayer(configLayer.id);
-        if (configLayer.mapLayer) {
+        //configLayer.mapLayer = this.map.getLayer(configLayer.id);
+        //if (configLayer.mapLayer) {
           fieldNames = array.map(configLayer.fields, function(field) {
             return field.fieldName;
           });
           fieldAlias = array.map(configLayer.fields, function(field) {
             return field.label;
           });
-          array.forEach(configLayer.mapLayer.fields, function(field, i) {
-            if (fieldNames.indexOf(field.name) >= 0) {
-              if (this.lookupLayersFieldNames.indexOf(field.name) < 0) {
-                var aliasPosition = fieldNames.indexOf(field.name);
-                field.alias = fieldAlias[aliasPosition];
-                this.lookupLayersFieldNames.push(field.name);
-                this.lookupLayersFields.push(field);
+          array.forEach(fieldNames, function(field, i) {
+            //if (fieldNames.indexOf(field.name) >= 0) {
+              var fieldStruct = {
+            'name' : null,
+            'alias' : null,
+            'type' : 'esriFieldTypeString',
+            'editable' : true,
+            'domain' : null
+          };
+              if (this.lookupLayersFieldNames.indexOf(field) < 0) {
+                var aliasPosition = fieldNames.indexOf(field);
+                fieldStruct.name = field;
+                fieldStruct.alias = fieldAlias[aliasPosition];
+                this.lookupLayersFieldNames.push(fieldStruct.name);
+                this.lookupLayersFields.push(fieldStruct);
               }
-            }
+            //}
           }, this);
-        }
+        //}
       }, this);
     },
     fileSelected : function(evt) {
@@ -412,7 +422,7 @@ function(declare,
           return field.fieldName;
         });
         var syncDet = new layerQueryDetails({
-          'layer' : layer.mapLayer,
+          'layer' : layer,
           'numberOfRequest' : flayer.graphics.length,
           'totalRecords' : flayer.graphics.length,
           'numberOfHits' : 0,
@@ -428,7 +438,7 @@ function(declare,
         on(syncDet, 'error', lang.hitch(this, this._deferredErrorCallback));
         this.syncLayers.push(syncDet);
 
-        this.queryCallback(arrGraphics, idx, layer, fields, syncDet);
+        this.queryCallback(arrGraphics, idx, layer, fields, syncDet); 
 
       }, this);
     },
@@ -447,13 +457,15 @@ function(declare,
           });
         }
       });
-
+      var queryTask = new QueryTask(layer.url);
       if (idx === 0) {
         var query = new Query();
         query.returnGeometry = true;
+        query.outFields = ["*"];
         query.geometry = multipoint;
-        layer.mapLayer.setAutoGeneralize(false);
-        def = layer.mapLayer.selectFeatures(query, FeatureLayer.MODE_ONDEMAND, lang.hitch(this, this.queryCallback(chunks, idx + 1, layer, fields, syncDet)), lang.hitch(this, this.queryErrorback(layer)));
+        def = queryTask.execute(query, lang.hitch(this, this.queryCallback(chunks, idx + 1, layer, fields, syncDet)), lang.hitch(this, this.queryErrorback(layer)));
+        //layer.mapLayer.setAutoGeneralize(false);
+        //def = layer.mapLayer.selectFeatures(query, FeatureLayer.MODE_ONDEMAND, lang.hitch(this, this.queryCallback(chunks, idx + 1, layer, fields, syncDet)), lang.hitch(this, this.queryErrorback(layer)));        
         syncDet.addDeferred(def, chunks[idx]);
         this.featureLayer.redraw();
       } else {
@@ -461,9 +473,11 @@ function(declare,
           if (chunks.length > idx) {
             var query = new Query();
             query.returnGeometry = true;
+            query.outFields = ["*"];
             query.geometry = multipoint;
-            layer.mapLayer.setAutoGeneralize(false);
-            def = layer.mapLayer.selectFeatures(query, FeatureLayer.MODE_ONDEMAND, lang.hitch(this, this.queryCallback(chunks, idx + 1, layer, fields, syncDet)), lang.hitch(this, this.queryErrorback(layer)));
+            def = queryTask.execute(query, lang.hitch(this, this.queryCallback(chunks, idx + 1, layer, fields, syncDet)), lang.hitch(this, this.queryErrorback(layer)));
+            //layer.mapLayer.setAutoGeneralize(false);
+            //def = layer.mapLayer.selectFeatures(query, FeatureLayer.MODE_ONDEMAND, lang.hitch(this, this.queryCallback(chunks, idx + 1, layer, fields, syncDet)), lang.hitch(this, this.queryErrorback(layer)));            
             syncDet.addDeferred(def, chunks[idx]);
             this.featureLayer.redraw();
           }
@@ -472,12 +486,12 @@ function(declare,
           };
         };
       }
-    },
+    },    
     queryErrorback : function(layer) {
       return lang.hitch(this, function(err, layer) {
-        if (this.enrichResultsProg.hasOwnProperty(layer)) {
-          domClass.replace(this.enrichResultsProg[layer], 'error', 'complete');
-          domClass.replace(this.enrichResultsProg[layer], 'error', 'processing');
+        if (this.enrichResultsProg.hasOwnProperty(layer.id)) {
+          domClass.replace(this.enrichResultsProg[layer.id], 'error', 'complete');
+          domClass.replace(this.enrichResultsProg[layer.id], 'error', 'processing');
         }
         console.log(err);
         return err;
@@ -522,13 +536,19 @@ function(declare,
       }
       for (var key in this.enrichResultsProg) {
         if (this.enrichResultsText.hasOwnProperty(key)) {
-          var mapLay = this.map.getLayer(key);
+          //var mapLay = this.map.getLayer(key);
+          var mapLay;
+          array.forEach(this.config.enrichLayers, lang.hitch(this, function(layer) {
+            if(layer.id === key) {
+              mapLay = layer;
+            } 
+          }));
 
           this.enrichResultsText[key].innerHTML = string.substitute(this.nls.results.recordsEnriched, {
             0 : 0,
             1 : 0,
             2 : 0,
-            3 : mapLay.name
+            3 : mapLay.label
           });
 
         }

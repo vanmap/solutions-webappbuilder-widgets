@@ -19,6 +19,7 @@ define({
                 colSelectByField: "Query field",
                 colhighlightSymbol:"Highlight Symbol"
             },
+            toggleLayers: "Toggle layers visibility on open and close",
             noEditableLayers: "No Editable Layers",
             noLayersSelected:"Select one of more layers before proceeding"
         },

@@ -7,7 +7,7 @@ define({
         widgetIntroSelectByQuery: "Enter a value to create a selection set.  If the row is <font class='maxRecordInIntro'>highlighted</font>, the maximum number of records has been exceeded.",
         layerTable: {
             colLabel: "Layer Name",
-            numSelected: "Count",
+            numSelected: "#",
             colSyncStatus:""
         },
         noConfiguredLayers: "No editable layers configured",
@@ -17,7 +17,7 @@ define({
         clear: "Clear",
         featuresUpdated: "${0} / ${1} feature(s) updated",
         featuresSelected: "${0} feature(s) selected",
-
+        featuresSkipped: "Bypassed",
         
         search: "Search",
         queryInput:"Enter value to query",

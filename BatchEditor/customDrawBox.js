@@ -43,16 +43,12 @@ function (declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin,
         polygonSymbol: null,
         textSymbol: null,
         map: null,
-        drawLayer: null,
-        drawLayerId: null,
         drawToolBar: null,
         showClear: false,
-        keepOneGraphic: false,
 
         //options:
         //types
         //showClear
-        //keepOneGraphic
         //map
         //pointSymbol
         //polylineSymbol
@@ -70,10 +66,8 @@ function (declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin,
         postCreate: function () {
             this.inherited(arguments);
             var layerArgs = {};
-            if (this.drawLayerId) {
-                layerArgs.id = this.drawLayerId;
-            }
-            this.drawLayer = new GraphicsLayer(layerArgs);
+
+
             this._initDefaultSymbols();
             this._initTypes();
             var items = query('.draw-item', this.domNode);
@@ -113,22 +107,14 @@ function (declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin,
                 this.drawToolBar.deactivate();
             }
 
-            if (this.drawLayer) {
-                if (this.map) {
-                    this.map.removeLayer(this.drawLayer);
-                }
-            }
-
             this.drawToolBar = null;
             this.map = null;
-            this.drawLayer = null;
             this.inherited(arguments);
         },
 
         setMap: function (map) {
             if (map) {
                 this.map = map;
-                this.map.addLayer(this.drawLayer);
                 this.drawToolBar = new Draw(this.map);
                 this.drawToolBar.setMarkerSymbol(this.pointSymbol);
                 this.drawToolBar.setLineSymbol(this.polylineSymbol);
@@ -157,7 +143,6 @@ function (declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin,
         },
 
         clear: function () {
-            this.drawLayer.clear();
             this.onClear();
         },
 
@@ -174,17 +159,6 @@ function (declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin,
         onDrawEnd: function (graphic, geotype, commontype) {/*jshint unused: false*/ },
 
         onClear: function () { },
-
-        addGraphic: function (g) {
-            if (this.keepOneGraphic) {
-                this.drawLayer.clear();
-            }
-            this.drawLayer.add(g);
-        },
-
-        removeGraphic: function (g) {
-            this.drawLayer.remove(g);
-        },
 
         _initDefaultSymbols: function () {
             var pointSys = {
@@ -270,10 +244,7 @@ function (declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin,
                 symbol = this.polygonSymbol;
             }
             var g = new Graphic(geometry, symbol, null, null);
-            if (this.keepOneGraphic) {
-                this.drawLayer.clear();
-            }
-            this.drawLayer.add(g);
+
             this.deactivate();
             this.onDrawEnd(g, geotype, commontype);
         }

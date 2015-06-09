@@ -74,9 +74,14 @@
   padding-right:15px;
  
 }
+.solutions-widget-batcheditor-setting .setting-layer-toggle-checkbox {
+     margin-right: 10px;
+  margin-left: 22px;
+}
 
 /*Page 3*/
 .solutions-widget-batcheditor-setting .setting-common-fields-table{
   margin:15px; 
   padding-right:15px;
 }
+

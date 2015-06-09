@@ -220,7 +220,7 @@ function (declare,
             });
         },
         _selectInShape: function (shape, searchValue) {
-            this._clearResults();
+            this._clearResults(true);
             var defs = {};
             var q = new EsriQuery();
             if (shape !== null) {
@@ -313,7 +313,7 @@ function (declare,
                 // this._togglePanelLoadingIcon();
             }
         },
-        _clearRowHighlight: function () {
+        _clearRowHighlight: function (clearResultMessage) {
 
             var labelCell;
             var countCell;
@@ -327,8 +327,11 @@ function (declare,
                 html.removeClass(countCell, 'maxRecordCount');
                 html.removeClass(syncCell, 'syncComplete');
                 html.removeClass(syncCell, 'syncProcessing');
+                html.removeClass(syncCell, 'syncSkipped');
             }, this);
-            this.resultsMessage.innerHTML = "";
+            if (clearResultMessage === true) {
+                this.resultsMessage.innerHTML = "";
+            }
         },
         _layerQueriesComplete: function (results) {
             var features = [];
@@ -465,11 +468,7 @@ function (declare,
             this.selectQuery.objectIds = [1];
             //this.selectQuery.outFields = ["*"];
         },
-        //layerSelection: function (event) {
-        //    alert(event);
-        //}, layerQuery: function (event) {
-        //    alert(event);
-        //},
+
         loadLayerTable: function () {
             this.updateLayers = [];
 
@@ -485,9 +484,6 @@ function (declare,
                             function (layerInfo) {
                                 return layerInfo.name === layer.title;
                             });
-                        //layer.layerObject.on("selection-complete", this.layerSelection);
-                        //layer.layerObject.on("query-features-complete", this.layerQuery);
-                        //layer.layerObject.on("query-ids-complete", this.layerQuery);
                         if (filteredArr.length > 0) {
                             if (filteredArr[0].selectionSymbol) {
                                 var highlightSymbol = symbolJsonUtils.fromJson(
@@ -791,69 +787,94 @@ function (declare,
             this.syncLayers = [];
 
             var rowData;
+
+            var selectedLayers = []
+            array.forEach(this.layersTable.getRows(), function (row) {
+
+                rowData = this.layersTable.getRowData(row);
+                if (rowData.isSelectable == true) {
+                    selectedLayers.push(rowData.label);
+                }
+                else {
+                    this.layersTable.editRow(row, {
+                        'syncStatus': this.nls.featuresSkipped
+                    });
+                    var cell = query('.syncStatus', row).shift();
+                   
+                    html.removeClass(cell, 'syncProcessing');
+                    html.removeClass(cell, 'syncComplete');
+                    html.addClass(cell, 'syncSkipped');
+                }
+            }, this);
+
+
             array.forEach(this.updateLayers, function (layer) {
-                var selectFeat = layer.layerObject.getSelectedFeatures();
-                if (selectFeat) {
+                if (selectedLayers.indexOf(layer.title) >= 0 || selectedLayers.indexOf(layer.layerObject.name) >= 0) {
 
-                    if (selectFeat.length > 0) {
-                        array.some(this.layersTable.getRows(), function (row) {
-                            rowData = this.layersTable.getRowData(row);
+                    var selectFeat = layer.layerObject.getSelectedFeatures();
+                    if (selectFeat) {
 
-                            if (rowData.ID === layer.id) {
-                                this.layersTable.editRow(row, {
-                                    'syncStatus': 0 + " / " +
-                                        selectFeat.length
-                                });
-                                var cell = query('.syncStatus', row).shift();
+                        if (selectFeat.length > 0) {
+                            array.some(this.layersTable.getRows(), function (row) {
+                                rowData = this.layersTable.getRowData(row);
 
-                                html.removeClass(cell, 'syncComplete');
-                                html.addClass(cell, 'syncProcessing');
-                                return true;
+                                if (rowData.ID === layer.id) {
+                                    this.layersTable.editRow(row, {
+                                        'syncStatus': 0 + " / " +
+                                            selectFeat.length
+                                    });
+                                    var cell = query('.syncStatus', row).shift();
+
+                                    html.removeClass(cell, 'syncComplete');
+                                    html.removeClass(cell, 'syncSkipped');
+                                    html.addClass(cell, 'syncProcessing');
+                                    return true;
+                                }
+
+                            }, this);
+
+                            var idx;
+                            var max_chunk = 300;
+                            var chunks;
+                            var bins;
+                            if (selectFeat.length > max_chunk) {
+
+                                bins = parseInt(selectFeat.length / max_chunk, 10);
+                                if (selectFeat.length % max_chunk > 0) {
+                                    bins += 1;
+                                }
+                                chunks = this._chunks(selectFeat, bins);
+                                idx = 0;
+                                syncDet = new layerSyncDetails(
+                                    {
+                                        "layerID": layer.id,
+                                        "numberOfRequest": bins,
+                                        "totalRecordsToSync": selectFeat.length
+
+                                    });
+                                on(syncDet, "complete", lang.hitch(this, this._syncComplete));
+                                on(syncDet, "requestComplete", lang.hitch(this, this._requestComplete));
+                                this.syncLayers.push(syncDet);
+
+                                this.applyCallback(chunks, idx, layer, syncDet);
+
+                            } else {
+                                chunks = [selectFeat];
+                                idx = 0;
+                                syncDet = new layerSyncDetails(
+                                   {
+                                       "layerID": layer.id,
+                                       "numberOfRequest": 1,
+                                       "totalRecordsToSync": selectFeat.length
+
+                                   });
+                                on(syncDet, "complete", lang.hitch(this, this._syncComplete));
+                                on(syncDet, "requestComplete", lang.hitch(this, this._requestComplete));
+
+                                this.syncLayers.push(syncDet);
+                                this.applyCallback(chunks, idx, layer, syncDet);
+
                             }
-
-                        }, this);
-
-                        var idx;
-                        var max_chunk = 300;
-                        var chunks;
-                        var bins;
-                        if (selectFeat.length > max_chunk) {
-
-                            bins = parseInt(selectFeat.length / max_chunk, 10);
-                            if (selectFeat.length % max_chunk > 0) {
-                                bins += 1;
-                            }
-                            chunks = this._chunks(selectFeat, bins);
-                            idx = 0;
-                            syncDet = new layerSyncDetails(
-                                {
-                                    "layerID": layer.id,
-                                    "numberOfRequest": bins,
-                                    "totalRecordsToSync": selectFeat.length
-
-                                });
-                            on(syncDet, "complete", lang.hitch(this, this._syncComplete));
-                            on(syncDet, "requestComplete", lang.hitch(this, this._requestComplete));
-                            this.syncLayers.push(syncDet);
-
-                            this.applyCallback(chunks, idx, layer, syncDet);
-
-                        } else {
-                            chunks = [selectFeat];
-                            idx = 0;
-                            syncDet = new layerSyncDetails(
-                               {
-                                   "layerID": layer.id,
-                                   "numberOfRequest": 1,
-                                   "totalRecordsToSync": selectFeat.length
-
-                               });
-                            on(syncDet, "complete", lang.hitch(this, this._syncComplete));
-                            on(syncDet, "requestComplete", lang.hitch(this, this._requestComplete));
-
-                            this.syncLayers.push(syncDet);
-                            this.applyCallback(chunks, idx, layer, syncDet);
-
                         }
                     }
                 }
@@ -902,7 +923,7 @@ function (declare,
 
                 });
                 this._updateUpdatedFeaturesCount(totalComplete, total);
-                this._clearResults();
+                this._clearResults(false);
 
                 //this._togglePanelLoadingIcon();
                 this.loading.hide();
@@ -923,9 +944,11 @@ function (declare,
                     if (args.countSoFar === args.totalToSync) {
                         html.removeClass(cell, 'syncProcessing');
                         html.addClass(cell, 'syncComplete');
+                        html.removeClass(cell, 'syncSkipped');
                     } else {
                         html.removeClass(cell, 'syncComplete');
                         html.addClass(cell, 'syncProcessing');
+                        html.removeClass(cell, 'syncSkipped');
                     }
                     return true;
                 }
@@ -966,7 +989,11 @@ function (declare,
                 }
             }, this);
         },
-        _clearResults: function () {
+        _clearResults: function (clearResultMessage) {
+            if (clearResultMessage === null)
+            {
+                clearResultMessage = true;
+            }
             array.forEach(this.updateLayers, function (layer) {
                 layer.layerObject.clearSelection();
 
@@ -983,7 +1010,7 @@ function (declare,
 
             }, this);
             this._hideInfoWindow();
-            this._clearRowHighlight();
+            this._clearRowHighlight(clearResultMessage);
         },
         _updateUpdatedFeaturesCount: function (count, total) {
             this.resultsMessage.innerHTML = string.substitute(this.nls.featuresUpdated, {

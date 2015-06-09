@@ -17,7 +17,7 @@ define({
         clear: "Clear",
         featuresUpdated: "${0} / ${1} feature(s) updated",
         featuresSelected: "${0} feature(s) selected",
-
+        featuresSkipped: "Bypassed",
         
         search: "Search",
         queryInput:"Enter value to query",

@@ -220,38 +220,64 @@ function (declare,
             });
         },
         _selectInShape: function (shape, searchValue) {
+            this._clearResults();
             var defs = {};
             var q = new EsriQuery();
             if (shape !== null) {
                 q.geometry = shape;
             }
             var fields;
+            var selectedLayers = []
+            array.forEach(this.layersTable.getRows(), function (row) {
+
+                rowData = this.layersTable.getRowData(row);
+                if (rowData.isSelectable == true) {
+                    selectedLayers.push(rowData.label);
+                }
+            }, this);
             q.spatialRelationship = EsriQuery.SPATIAL_REL_INTERSECTS;
             array.forEach(this.updateLayers, function (layer) {
-                if (searchValue) {
-                    fields = this._findField(layer.layerObject.fields, layer.queryField);
-                    if (fields) {
-                        if (fields.length > 0) {
-                            if (fields[0].type === "esriFieldTypeString") {
-                                q.where = layer.queryField.toString() + " = '" +
-                                    searchValue.toString() + "'";
+                if (selectedLayers.indexOf(layer.title) >= 0 || selectedLayers.indexOf(layer.layerObject.name) >= 0) {
+                    if (searchValue) {
+                        fields = this._findField(layer.layerObject.fields, layer.queryField);
+                        if (fields) {
+                            if (fields.length > 0) {
+                                if (fields[0].type === "esriFieldTypeString") {
+                                    q.where = layer.queryField.toString() + " = '" +
+                                        searchValue.toString() + "'";
+                                } else {
+                                    q.where = layer.queryField.toString() + " = " +
+                                        searchValue.toString() + "";
+                                }
                             } else {
-                                q.where = layer.queryField.toString() + " = " +
-                                    searchValue.toString() + "";
+                                console.log("field not found in layer");
                             }
                         } else {
                             console.log("field not found in layer");
                         }
-                    } else {
-                        console.log("field not found in layer");
                     }
+                    var def = layer.layerObject.selectFeatures(q, FeatureLayer.SELECTION_NEW);
+                    //var sym = layer.layerObject.getSelectionSymbol();
+                    defs[layer.id] = def;
                 }
-                var def = layer.layerObject.selectFeatures(q, FeatureLayer.SELECTION_NEW);
-                //var sym = layer.layerObject.getSelectionSymbol();
-                defs[layer.id] = def;
             }, this);
-            all(defs).then(lang.hitch(this, this._layerQueriesComplete));
+            if (this.isEmptyObject(defs)) {
+                this.loading.hide();
+            }
+            else {
+                all(defs).then(lang.hitch(this, this._layerQueriesComplete));
 
+
+            }
+
+        },
+        isEmptyObject: function (obj) {
+            for (var prop in obj) {
+                if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+                    return false;
+                }
+            }
+            return true;
         },
         _selectSearchLayer: function (shape) {
             var q = new EsriQuery();
@@ -302,6 +328,7 @@ function (declare,
                 html.removeClass(syncCell, 'syncComplete');
                 html.removeClass(syncCell, 'syncProcessing');
             }, this);
+            this.resultsMessage.innerHTML = "";
         },
         _layerQueriesComplete: function (results) {
             var features = [];
@@ -315,27 +342,29 @@ function (declare,
             array.forEach(this.layersTable.getRows(), function (row) {
 
                 rowData = this.layersTable.getRowData(row);
-                layerRes = results[rowData.ID];
-                layer = this.map.getLayer(rowData.ID);
-                features = features.concat(layerRes);
-                editData = { numSelected: layerRes.length.toString() };
+                if (results.hasOwnProperty(rowData.ID)) {
+                    layerRes = results[rowData.ID];
+                    layer = this.map.getLayer(rowData.ID);
+                    features = features.concat(layerRes);
+                    editData = { numSelected: layerRes.length.toString() };
 
-                this.layersTable.editRow(row, editData);
-                labelCell = query('.label', row).shift();
-                countCell = query('.numSelected', row).shift();
+                    this.layersTable.editRow(row, editData);
+                    labelCell = query('.label', row).shift();
+                    countCell = query('.numSelected', row).shift();
 
-                if (layerRes.length > 0) {
-                    if (layerRes.length >= layer.maxRecordCount) {
+                    if (layerRes.length > 0) {
+                        if (layerRes.length >= layer.maxRecordCount) {
 
-                        html.addClass(labelCell, 'maxRecordCount');
-                        html.addClass(countCell, 'maxRecordCount');
+                            html.addClass(labelCell, 'maxRecordCount');
+                            html.addClass(countCell, 'maxRecordCount');
+                        } else {
+                            html.removeClass(labelCell, 'maxRecordCount');
+                            html.removeClass(countCell, 'maxRecordCount');
+                        }
                     } else {
                         html.removeClass(labelCell, 'maxRecordCount');
                         html.removeClass(countCell, 'maxRecordCount');
                     }
-                } else {
-                    html.removeClass(labelCell, 'maxRecordCount');
-                    html.removeClass(countCell, 'maxRecordCount');
                 }
             }, this);
             this._updateSelectionCount(features.length);
@@ -462,6 +491,7 @@ function (declare,
                             this.updateLayers.push(layer);
                             label = layer.title;
                             this.layersTable.addRow({
+                                isSelectable: true,
                                 label: label,
                                 ID: layer.layerObject.id,
                                 numSelected: "0",
@@ -481,29 +511,36 @@ function (declare,
         },
         createLayerTable: function () {
             var layerTableFields = [
-                {
-                    name: 'numSelected',
-                    title: this.nls.layerTable.numSelected,
-                    type: 'text',
-                    'class': 'selectioncount',
-                    width: 40
-                }, {
-                    name: 'label',
-                    title: this.nls.layerTable.colLabel,
-                    type: 'text',
+               {
+                   name: 'isSelectable',
+                   title: "",
+                   type: 'checkbox',
+                   'class': 'editable',
+                   width: 25
+               }, {
+
+                   name: 'numSelected',
+                   title: this.nls.layerTable.numSelected,
+                   type: 'text',
+                   'class': 'selectioncount',
+                   width: 40
+               }, {
+                   name: 'label',
+                   title: this.nls.layerTable.colLabel,
+                   type: 'text',
 
 
-                }, {
-                    name: 'syncStatus',
-                    type: 'text',
-                    title: this.nls.layerTable.colSyncStatus,
-                    width: 80
-                }, {
-                    name: 'ID',
-                    type: 'text',
-                    hidden: true,
-                    width: 0
-                }
+               }, {
+                   name: 'syncStatus',
+                   type: 'text',
+                   title: this.nls.layerTable.colSyncStatus,
+                   width: 80
+               }, {
+                   name: 'ID',
+                   type: 'text',
+                   hidden: true,
+                   width: 0
+               }
             ];
             var args = {
                 fields: layerTableFields,
@@ -651,12 +688,15 @@ function (declare,
                 'showDeleteButton': false,
                 'fieldInfos': this.helperEditFieldInfo
             }];
-
-            var attrInspector = new AttributeInspector({
-                layerInfos: layerInfos,
-                _hideNavButtons: true
-            }, domConstruct.create('div'));
-
+            try {
+                var attrInspector = new AttributeInspector({
+                    layerInfos: layerInfos,
+                    _hideNavButtons: true
+                }, domConstruct.create('div'));
+            }
+            catch (err) {
+                alert(err.message);
+            }
             var saveButton = domConstruct.create('div', {
                 'id': 'attrInspectorSaveBtn',
                 'class': 'jimu-btn',

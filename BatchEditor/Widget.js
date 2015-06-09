@@ -465,7 +465,11 @@ function (declare,
             this.selectQuery.objectIds = [1];
             //this.selectQuery.outFields = ["*"];
         },
-
+        //layerSelection: function (event) {
+        //    alert(event);
+        //}, layerQuery: function (event) {
+        //    alert(event);
+        //},
         loadLayerTable: function () {
             this.updateLayers = [];
 
@@ -481,6 +485,9 @@ function (declare,
                             function (layerInfo) {
                                 return layerInfo.name === layer.title;
                             });
+                        //layer.layerObject.on("selection-complete", this.layerSelection);
+                        //layer.layerObject.on("query-features-complete", this.layerQuery);
+                        //layer.layerObject.on("query-ids-complete", this.layerQuery);
                         if (filteredArr.length > 0) {
                             if (filteredArr[0].selectionSymbol) {
                                 var highlightSymbol = symbolJsonUtils.fromJson(
@@ -668,7 +675,7 @@ function (declare,
             array.forEach(layer.layerObject.infoTemplate.info.fieldInfos, function (field) {
 
                 if (fieldNames.indexOf(field.fieldName) > -1) {
-                    if (field.fieldName === 'OBJECTID') {
+                    if (field.fieldName.toUpperCase() === 'OBJECTID') {
                         field.isEditable = false;
                         field.visible = false;
                     } else {

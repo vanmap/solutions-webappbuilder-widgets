@@ -86,7 +86,7 @@ define([
 
               }
               this.setConfig(this.config);
-
+             
               try {
                   var btnBar =
                       (this.domNode.parentNode.parentNode.parentNode.parentNode.lastChild.lastChild);
@@ -167,7 +167,7 @@ define([
                       this.btnErrorMsg.innerHTML = this.config.nls.page1.toolNotSelected;
                       html.removeClass(this.btnErrorMsg, 'hide');
 
-                  } else {
+                  }else {
                       domStyle.set(this.settingsFirstPageError, 'display', '');
                   }
               } else {
@@ -192,7 +192,7 @@ define([
                       this.btnErrorMsg.innerHTML = this.config.nls.page2.noLayersSelected;
                       html.removeClass(this.btnErrorMsg, 'hide');
 
-                  } else {
+                  }else {
                       domStyle.set(this.settingsSecondPageError, 'display', '');
                   }
               } else {
@@ -231,10 +231,10 @@ define([
                   } else {
                       this.config.selectByQuery = false;
                   }
-              } else if (page === "2") {
-
+              }else if (page === "2") {
+                  
                   var selectVal;
-
+                
                   if (this.layersTable !== null) {
                       this.config.toggleLayersOnOpen = this.toggleLayers.checked;
 
@@ -259,7 +259,7 @@ define([
                           symbol = this.selectionSymbols[rowData.id];
 
                           if (rowData.update === true) {
-
+                             
                               if (this.selectByFeatureQuery.checked === true ||
                                   this.selectByQuery.checked === true) {
                                   selectVal = query('input[name="queryFldSelect"]', row).shift().value;
@@ -339,7 +339,7 @@ define([
               if (this.config.toggleLayersOnOpen != null) {
                   this.toggleLayers.setChecked(this.config.toggleLayersOnOpen);
               }
-
+             
               var selectedTool = this.getSelectedTool();
               var selectByLayerVisible, queryFieldVisible;
               var showOnlyEditable;
@@ -405,7 +405,7 @@ define([
               if (this.controlsAddedToWidgetFrame) {
                   this.btnErrorMsg.innerHTML = this.nls.errorOnOk;
                   html.removeClass(this.btnErrorMsg, 'hide');
-              } else {
+              }else {
                   var display = domStyle.get(this.firstPageDiv, 'display');
                   if (display !== 'none') {
                       domStyle.set(this.settingsFirstPageSaveError, 'display', '');
@@ -451,7 +451,7 @@ define([
                   this.showOKError();
                   return false;
               }
-
+           
               if (this.selectByFeature.checked === true ||
                   this.selectByFeatureQuery.checked === true) {
                   if (this.config.selectByLayer) {
@@ -476,10 +476,10 @@ define([
                       if (layer.queryField === null) {
                           this.showOKError();
                           return true;
-                      } else if (layer.queryField === undefined) {
+                      }else if (layer.queryField === undefined) {
                           this.showOKError();
                           return true;
-                      } else if (layer.queryField === "") {
+                      }else if (layer.queryField === "") {
                           this.showOKError();
                           return true;
                       }
@@ -599,7 +599,7 @@ define([
                       if (firstLay === true) {
                           commonFields = fields;
                           firstLay = false;
-                      } else {
+                      }else {
                           commonFields = this.intersect_array(commonFields, fields);
                       }
                   }
@@ -680,7 +680,7 @@ define([
               var label = '';
               var tableValid = false;
               var update = false;
-
+           
               var queryField;
               var selectByLayer;
               array.forEach(this.map.itemInfo.itemData.operationalLayers, function (layer) {
@@ -807,12 +807,12 @@ define([
                       if (data.geometryType === "esriGeometryPolygon") {
 
                           this.symbolSelector.showByType('fill');
-                      } else if (data.geometryType === "esriGeometryPoint") {
+                      }else if (data.geometryType === "esriGeometryPoint") {
                           this.symbolSelector.showByType('marker');
-                      } else if (data.geometryType === "esriGeometryPolyline") {
+                      }else if (data.geometryType === "esriGeometryPolyline") {
                           this.symbolSelector.showByType('line');
                       }
-                  } else {
+                  }else {
                       this.symbolSelector.showBySymbol(sym);
                   }
 
@@ -851,6 +851,6 @@ define([
               html.removeClass(this.btnBack, 'hide');
 
           }
-
+         
       });
   });

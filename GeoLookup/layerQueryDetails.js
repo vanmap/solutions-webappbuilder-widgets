@@ -1,4 +1,19 @@
-﻿define(['dojo/Evented',
+﻿///////////////////////////////////////////////////////////////////////////
+// Copyright © 2015 Esri. All Rights Reserved.
+//
+// Licensed under the Apache License Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+///////////////////////////////////////////////////////////////////////////
+define(['dojo/Evented',
         'dojo/_base/declare',
         'dojo/_base/lang',
         'dojo/_base/array',
@@ -28,9 +43,9 @@ function(Evented,
     },
     addDeferred : function(def, graphic) {
       def.then(lang.hitch(this, function(results) {
-        if (results.length > 0) {
+        if (results) {
           array.forEach(graphic, lang.hitch(this, function(gra) {
-            array.forEach(results, lang.hitch(this, function(res) {
+            array.forEach(results.features, lang.hitch(this, function(res) {             
               if (geometryEngine.intersects(gra.geometry, res.geometry)) {
                 array.forEach(this.fields, function(field) {
                   if (res.attributes[field]) {
@@ -54,10 +69,10 @@ function(Evented,
           'currentNumber' : this.currentNumber,
           'totalRecords' : this.totalRecords,
           'intesected' : this.numberOfHits,
-          'name' : this.layer.name
+          'name' : this.layer.label
         });
         if (this.isComplete()) {
-          this.layer.setAutoGeneralize(true);
+          //this.layer.setAutoGeneralize(true);
           this.emit('complete', {
             'layerID' : this.layer.id
           });

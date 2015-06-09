@@ -641,6 +641,11 @@
     border-bottom: 1px solid #b5bcc7;
 }
 
+.jimu-widget-NetworkTrace .lastTitlePaneNodeBorder
+{
+     border-bottom: 1px solid #b5bcc7;
+}
+
 .resultItem:last-child
 {
     border-bottom: 0px;

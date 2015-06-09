@@ -92,8 +92,8 @@ define([
         * @memberOf widgets/isolation-trace/settings/outputSetting
         */
         getOutputForm: function () {
-            var isOverViewMap, selectedInputValue, bypassDetails, outputParam;
-            bypassDetails = { "skipable": this.skippable.checked ? true : false };
+            var bypassDetails, outputParam;
+            bypassDetails = { "skipable": this.skippable.checked ? true : false, "IDField": this.skippable.checked ? this.inputTypeData.value : "" };
             outputParam = {
                 "paramName": this.data.name,
                 "type": "Result",
@@ -125,8 +125,9 @@ define([
             this.outputLabelData.id = "outputLabelData_" + this.ObjId;
 
             skippableFieldSelectArr = this.data.defaultValue.fields;
+            this.inputTypeData.startup();
             // if skippable dropdown is created then populates the web map list in dropdown options
-            if (skippableFieldSelectArr && skippableFieldSelectArr.length > 0) {
+            if (this.inputTypeData && skippableFieldSelectArr && skippableFieldSelectArr.length > 0) {
 
                 helpTextData = "";
                 //this.outputSummaryHelpText.innerHTML = "";
@@ -134,6 +135,11 @@ define([
                 helpTextData += "(";
                 // Loop for populating the options in dropdown list
                 for (j = 0; j < skippableFieldSelectArr.length; j++) {
+                    this.inputTypeData.addOption({
+                        value: skippableFieldSelectArr[j].name,
+                        label: skippableFieldSelectArr[j].name,
+                        selected: false
+                    });
                     this.helpTextDataArray[j] = skippableFieldSelectArr[j].name;
                     helpTextData += "{" + skippableFieldSelectArr[j].name;
                     // if loop index is second last then 
@@ -154,11 +160,8 @@ define([
             this.outputMaxScaleData.id = "maxScale_" + this.ObjId;
             this.outputExport.id = "exportCSV_" + this.ObjId;
             this.outputLayer.id = "saveToLayer_" + this.ObjId;
-
             this._addSaveToLayerOptions();
-            this._setConfigParameters();
             this._createSymbolInput();
-
             this.outageArea.isChecked = this.outputLayer.checked;
             this.own(on(this.outputLayer, "click", lang.hitch(this, this._onLayerChange)));
             on(this.outputLayer, "click", lang.hitch(this, function (evt) {
@@ -172,6 +175,9 @@ define([
                 domAttr.set(this.outputLayer, "value", evt);
                 this.outageArea.isChecked = this.outputLayer.checked;
             }));
+            setTimeout(lang.hitch(this, function () {
+                this._setConfigParameters();
+            }), 1000);
         },
 
         _addSaveToLayerOptions: function () {
@@ -245,13 +251,8 @@ define([
                 if (this.outputConfig && this.outputConfig.bypassDetails && this.outputConfig.bypassDetails.skipable) {
                     this.skippable.checked = this.outputConfig.bypassDetails.skipable;
                     domClass.add(this.skippable.checkNode, "checked");
-                    //domClass.remove(this.skippableDropdownDiv, "esriCTHidden");
-                    // loop for setting the dropdown value as in available in config
-//                    for (i = 0; i < this.inputTypeData.options.length; i++) {
-//                        if (this.inputTypeData.options[i].value === this.outputConfig.bypassDetails.IDField) {
-//                            this.inputTypeData.set("value", this.inputTypeData.options[i].value);
-//                        }
-//                    }
+                    domClass.remove(this.skippableDropdownDiv, "esriCTHidden");
+                    this.inputTypeData.set("value", this.outputConfig.bypassDetails.IDField);
                 }
 
                 this.outputTooltipData.set("value", this.outputConfig.toolTip);
@@ -278,6 +279,7 @@ define([
                     domClass.remove(this.selectOutputLayerType, "esriCTHidden");
                 }
             }
+            this.own(on(this.skippable, "click", lang.hitch(this, this._onSkipChange)));
         },
 
 

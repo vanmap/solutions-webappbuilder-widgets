@@ -79,7 +79,7 @@ define([
         * @memberOf widgets/isolation-trace/settings/othersSetting
         */
         _createOthersPanel: function () {
-            var symbol, jsonObj, symbolNode, baseURL;
+            var baseURL;
             this.imageChooser = new ImageChooser({
                 displayImg: this.showImageChooser,
                 goldenWidth: 84,
@@ -90,9 +90,9 @@ define([
             if (this.othersConfig && this.othersConfig.imageData) {
                 if (this.othersConfig.imageData.indexOf("${appPath}") > -1) {
                     baseURL = this.folderUrl.slice(0, this.folderUrl.lastIndexOf("widgets"));
-                    domAttr.set(this.showImageChooser, 'src', string.substitute(this.othersConfig.imageData, { appPath: baseURL }))
+                    domAttr.set(this.showImageChooser, 'src', string.substitute(this.othersConfig.imageData, { appPath: baseURL }));
                 } else {
-                    domAttr.set(this.showImageChooser, 'src', this.othersConfig.imageData)
+                    domAttr.set(this.showImageChooser, 'src', this.othersConfig.imageData);
                 }
             } else {
                 this.thumbnailUrl = this.folderUrl + "/images/ani/default.gif";
@@ -109,20 +109,20 @@ define([
             var othersParam;
             this.imageDataObj = "";
             if (this.imageChooser && this.imageChooser.imageData) {
-                this.imageDataObj = this.imageChooser.imageData
+                this.imageDataObj = this.imageChooser.imageData;
             } else if (this.othersConfig && this.othersConfig.imageData) {
-                this.imageDataObj = this.othersConfig.imageData
+                this.imageDataObj = this.othersConfig.imageData;
             } else if (this.thumbnailUrl) {
                 this.imageDataObj = this.thumbnailUrl;
             }
-            othersParam = { "highlighterDetails":{
+            othersParam = { "highlighterDetails": {
                 "imageData": this.imageDataObj,
                 "height": ((this.spinnerImgHeight && this.spinnerImgHeight.value) ? this.spinnerImgHeight.value : ""),
                 "width": ((this.spinnerImgWidth && this.spinnerImgWidth.value) ? this.spinnerImgWidth.value : ""),
                 "timeout": ((this.spinnerImgTimeout && this.spinnerImgTimeout.value) ? this.spinnerImgTimeout.value : "")
             },
                 "displayTextForRunButton": ((this.displayTextforRun && this.displayTextforRun.value) ? this.displayTextforRun.value : "")
-            };
+                };
             return othersParam;
         },
 

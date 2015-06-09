@@ -5,6 +5,10 @@
 
 .jimu-widget-NetworkTrace-setting .url-section .label
 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    width: 75px;
     margin-top: 9px;
 }
 
@@ -106,6 +110,11 @@
     margin-top: 5px;
     vertical-align: middle;
     padding: 3px;
+}
+
+.jimu-widget-NetworkTrace-setting .esriCTOutageFieldParams .esriCTFieldName 
+{
+    width: 165px !important;
 }
 
 .jimu-widget-NetworkTrace-setting .esriCTtaskDataContainer .common-property .field .common-input, .jimu-widget-NetworkTrace-setting .othersData .field .common-input
@@ -309,7 +318,7 @@
 
 .jimu-widget-NetworkTrace-setting .esriCTOutageAreaFieldName
 {
-    width: 51%;
+    width: 53%;
     height: 30px;
 }
 
@@ -383,7 +392,7 @@
 
 .jimu-widget-NetworkTrace-setting .esriCTOutageFieldParams
 {
-    width: 50%;
+    width: 60%;
     float: left;
 }
 

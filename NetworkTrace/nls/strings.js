@@ -19,6 +19,9 @@
         exportToCSVSuccess: "Export To CSV is successfully completed",
         noLayerSelectedForExportToCSV: "No Layer is selected",
         saveToLayertoolTip: "Save To Layer",
-        unableToSaveLayer: "No Layer is selected"
+        unableToSaveLayer: "Unable to save one or more of the selected layers",
+        noLayerToSave: "No layers selected to save.",
+        noChangeToSave : "No changes to save.",
+        unavailableLayersError: "Could not find ${0} layer(s) in webmap to save results."
     })
 });

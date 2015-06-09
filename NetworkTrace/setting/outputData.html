@@ -13,6 +13,14 @@
         <div data-dojo-type="jimu/dijit/CheckBox" data-dojo-attach-point="skippable" class="jimu-checkbox">
         </div>
         <div class="esriCTHintField">${nls.hintText.skippableHint}</div>
+    </div>   
+    <div class="field skippableDropdownDiv esriCTHidden" title="${nls.outputPanel.uniqueIDField}" data-dojo-attach-point="skippableDropdownDiv">
+        <label title="${nls.outputPanel.uniqueIDField}">
+            ${nls.outputPanel.uniqueIDField}</label>
+        <select data-dojo-attach-point="inputTypeData" id="${ObjId}" data-dojo-type="dijit/form/Select"
+            class="common-input" style="width: 80%; height: 30px;">
+        </select>
+        <div class="esriCTHintField">${nls.hintText.skippableFieldHint}</div>
     </div>
     <div class="field" title="${nls.inputTooltip}">
         <label title="${nls.inputTooltip}">

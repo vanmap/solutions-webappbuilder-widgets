@@ -255,7 +255,6 @@ define([
         _createEsriUnitDropdown: function () {
             var i;
             for (i = 0; i < this.esriUnit.length; i++) {
-
                 if (this.esriUnit[i].value === 9002) {
                     this.esriUnits.addOption({
                         value: this.esriUnit[i].value,
@@ -268,7 +267,6 @@ define([
                         label: this.esriUnit[i].label
                     });
                 }
-
             }
         },
         /**
@@ -276,8 +274,7 @@ define([
         * @memberOf widgets/isolation-trace/settings/outageSetting
         */
         displayOutageData: function (showFieldMap) {
-            var divOutageParam, visibleCheckBoxDiv, outageAreaDropDownValue = [], i, self,
-                k, checkBoxStatus, e, visibleConfigData;
+            var k;
             this.paramNameValue = [];
             if (this.outageData) {
                 domConstruct.empty(this.outageData);
@@ -302,7 +299,8 @@ define([
         * @memberOf widgets/isolation-trace/settings/outageSetting
         **/
         showFieldMapDiv: function (outageLayerName) {
-            var layer, keyValue, i, j, t, k, outageAreaParamValue, outPutArrayLength, outageAreaFieldNameDropDown, self, fieldMap, e, index, arrayIndex, divFieldValue, divParamValue, fieldsetDiv, legendDiv;
+            var layer, keyValue, j, t, outageAreaFieldNameDropDown, self, fieldMap, index, arrayIndex, divFieldValue, fieldsetDiv, selectOptionsArray = [],
+                selectOptionsObject = {};
             // Calling find layer function to get layer from selected layer name
             layer = this.findLayer(this.map.itemInfo.itemData.operationalLayers, this.outputLayerType.value);
             this.paramNameArray = [];
@@ -318,105 +316,91 @@ define([
                 }
                 //Create a dropdown control for Field Name and Parameter Name
                 this.divParamvalue = domConstruct.create("div", { "class": "esriCTOutageField field" }, this.outageData);
+                self = this;
+                fieldsetDiv = domConstruct.create("fieldset", { "class": "esriCTFieldset" }, this.divParamvalue);
+                domConstruct.create("legend", { "class": "esriCTFieldMappingLegend", "innerHTML": this.nls.outagePanel.outageFieldTagName }, fieldsetDiv);
+                domConstruct.create("div", { "class": "esriCTFieldMappingHint", "innerHTML": this.nls.outagePanel.fieldMappingHint_1 }, fieldsetDiv);
+                domConstruct.create("div", { "class": "esriCTFieldMappingHint", "innerHTML": this.nls.outagePanel.fieldMappingHint_2 }, fieldsetDiv);
+                // Setting select option for field mapping, First option is set to be none
+                selectOptionsObject.value = 0;
+                selectOptionsObject.label = this.nls.outagePanel.outageNoneText;
+                selectOptionsObject.selected = true;
+                selectOptionsArray.push(selectOptionsObject);
+                // Looping for field key value to create drop down values for field value
+                for (j = 0; j < keyValue.length; j++) {
+                    selectOptionsObject = {};
+                    selectOptionsObject.value = keyValue[j];
+                    selectOptionsObject.label = keyValue[j];
+                    selectOptionsObject.selected = false;
+                    selectOptionsArray.push(selectOptionsObject);
+                }
+                // Looping for param name value
+                array.forEach(this.paramNameValue, lang.hitch(this, function (paramName, i) {
+                    // Creation of div and select
+                    fieldMap = "";
+                    divFieldValue = domConstruct.create("div", { "class": "esriCTOutageFieldParams" }, fieldsetDiv);
+                    domConstruct.create("label", { "class": "esriCTFieldName ", "innerHTML": paramName, "title": paramName }, divFieldValue);
+                    outageAreaFieldNameDropDown = new Select({ "class": "esriCTOutageAreaFieldName" }, domConstruct.create("input", {}, divFieldValue));
+                    domConstruct.create("div", { "class": "esriCTFieldMapPadding", "innerHTML": this.nls.hintText.fieldNameHint }, divFieldValue);
+                    outageAreaFieldNameDropDown.options = selectOptionsArray;
+                    domAttr.set(outageAreaFieldNameDropDown, "index", i);
+                    outageAreaFieldNameDropDown.title = this.nls.outagePanel.OutageFieldName;
+                    // Setting none text to defalue item value in drop down
+                    outageAreaFieldNameDropDown.set({
+                        value: selectOptionsArray[0].value,
+                        label: selectOptionsArray[0].label
+                    });
+                    // Getting the field maped config
+                    fieldMap = this._getFieldMapConfig(paramName);
+                    // If field map config exsists; set the field name from field map config
+                    if (fieldMap !== "") {
+                        outageAreaFieldNameDropDown.set({
+                            value: fieldMap.fieldName,
+                            label: fieldMap.fieldName
+                        });
+                    }
+                    // setting the param name object and param name array
+                    this.paramNameObject = { "index": i, "value": paramName };
+                    this.paramNameArray.push(this.paramNameObject);
+                    this.fieldName = { "index": i, "value": outageAreaFieldNameDropDown.value };
+                    this.fieldNameArray.push(this.fieldName);
+                    // onchange event of outage area field name drop down
+                    outageAreaFieldNameDropDown.on('change', function (evt) {
+                        index = this.index;
+                        for (t = 0; t < self.fieldNameArray.length; t++) {
+                            if (self.fieldNameArray[t].index === index) {
+                                arrayIndex = t;
+                                break;
+                            }
+                        }
+                        self.fieldNameArray.splice(arrayIndex, 1);
+                        self.fieldName = { "index": index, "value": evt };
+                        self.fieldNameArray.push(self.fieldName);
+                    });
+                }));
+            }
+        },
 
-                if (this.overviewConfig) {
-                    // looping for geoprocessing outputs
-                    for (e = 0; e < this.overviewConfig.fieldMap.length; e++) {
-                        // If geoprocessing outputs type is overview then change the config value in check box
-                        if (this.overviewConfig.fieldMap[e]) {
-                            //                            if (this.outageAreaDropDown.value === this.overviewConfig.fieldMap[e].paramName) {
+        /**
+        * This function gets the field map array
+        * @param {string} paramNameValue param name
+        * @return {object} returns fieldMap
+        * @memberOf widgets/isolation-trace/settings/outageSetting
+        **/
+        _getFieldMapConfig: function (paramNameValue) {
+            var fieldMap = "", e;
+            if (this.overviewConfig) {
+                // looping for geoprocessing outputs
+                for (e = 0; e < this.overviewConfig.fieldMap.length; e++) {
+                    // If geoprocessing outputs type is overview then change the config value in check box
+                    if (this.overviewConfig.fieldMap[e]) {
+                        if (this.overviewConfig.fieldMap[e].paramName === paramNameValue) {
                             fieldMap = this.overviewConfig.fieldMap[e];
-                            //                            }
                         }
                     }
                 }
-                self = this;
-                outPutArrayLength = this.data.length;
-                fieldsetDiv = domConstruct.create("fieldset", { "class": "esriCTFieldset" }, this.divParamvalue);
-                legendDiv = domConstruct.create("legend", { "class": "esriCTFieldMappingLegend", "innerHTML": this.nls.outagePanel.outageFieldTagName }, fieldsetDiv);
-                domConstruct.create("div", { "class": "esriCTFieldMappingHint", "innerHTML": this.nls.outagePanel.fieldMappingHint_1 }, fieldsetDiv);
-                domConstruct.create("div", { "class": "esriCTFieldMappingHint", "innerHTML": this.nls.outagePanel.fieldMappingHint_2 }, fieldsetDiv);
-                //domConstruct.create("div", { "class": "esriCTFieldMappingHint", "innerHTML": this.nls.outagePanel.fieldMappingHint_3 }, fieldsetDiv);
-                array.forEach(this.data, lang.hitch(this, function (outPutArray, indexNumber) {
-                    // Checking for array to execute not for the last index
-                    if (outPutArrayLength !== indexNumber) {
-                        divFieldValue = domConstruct.create("div", { "class": "esriCTOutageFieldParams" }, fieldsetDiv);
-                        domConstruct.create("label", { "class": "esriCTFieldName ", "innerHTML": this.nls.outagePanel.OutageFieldName, "title": this.nls.outagePanel.OutageFieldName }, divFieldValue);
-                        outageAreaFieldNameDropDown = new Select({ "class": "esriCTOutageAreaFieldName" }, domConstruct.create("input", {}, divFieldValue));
-                        domConstruct.create("div", { "class": "esriCTFieldMapPadding", "innerHTML": this.nls.hintText.fieldNameHint }, divFieldValue);
-                        domAttr.set(outageAreaFieldNameDropDown, "index", indexNumber);
-                        outageAreaFieldNameDropDown.title = this.nls.outagePanel.OutageFieldName;
-                        divParamValue = domConstruct.create("div", { "class": "esriCTOutageFieldParams" }, fieldsetDiv);
-                        domConstruct.create("label", { "class": "esriCTParamValue", "innerHTML": this.nls.outagePanel.OutageParamName, "title": this.nls.outagePanel.OutageParamName }, divParamValue);
-                        outageAreaParamValue = new Select({ "class": "esriCTOutageAreaFieldName" }, domConstruct.create("input", {}, divParamValue));
-                        domConstruct.create("div", { "class": "esriCTFieldMapPadding", "innerHTML": this.nls.hintText.paramNameHint }, divParamValue);
-                        domAttr.set(outageAreaParamValue, "index", indexNumber);
-                        outageAreaParamValue.title = this.nls.outagePanel.OutageFieldName;
-                        outageAreaParamValue.removeOption();
-                        // Looping for getting outage area value
-                        for (i = 0; i < this.paramNameValue.length; i++) {
-                            outageAreaParamValue.addOption({
-                                value: this.paramNameValue[i],
-                                label: this.paramNameValue[i],
-                                selected: false
-                            });
-                            if (this.overviewConfig) {
-                                if (this.overviewConfig.fieldMap && this.overviewConfig.fieldMap.length > 0) {
-                                    outageAreaParamValue.set({
-                                        value: this.overviewConfig.fieldMap[indexNumber].paramName,
-                                        label: this.overviewConfig.fieldMap[indexNumber].paramName
-                                    });
-                                }
-                            }
-                        }
-                        // looping key value  array for setting outage field name drop down
-                        for (j = 0; j < keyValue.length; j++) {
-                            outageAreaFieldNameDropDown.addOption({ value: keyValue[j], label: keyValue[j] });
-                            if (this.overviewConfig) {
-                                if (this.overviewConfig.fieldMap && this.overviewConfig.fieldMap.length > 0) {
-                                    outageAreaFieldNameDropDown.set({
-                                        value: this.overviewConfig.fieldMap[indexNumber].fieldName,
-                                        label: this.overviewConfig.fieldMap[indexNumber].fieldName
-                                    });
-                                }
-                            }
-                        }
-                        // setting the param name object and param name array
-                        this.paramNameObject = { "index": indexNumber, "value": outageAreaParamValue.value };
-                        this.paramNameArray.push(this.paramNameObject);
-                        this.fieldName = { "index": indexNumber, "value": outageAreaFieldNameDropDown.value };
-                        this.fieldNameArray.push(this.fieldName);
-                        // onchange event of outage area field name drop down
-                        outageAreaFieldNameDropDown.on('change', function (evt) {
-                            index = this.index;
-                            for (t = 0; t < self.fieldNameArray.length; t++) {
-                                if (self.fieldNameArray[t].index === index) {
-                                    arrayIndex = t;
-                                    break;
-                                }
-                            }
-                            self.fieldNameArray.splice(arrayIndex, 1);
-                            self.fieldName = { "index": index, "value": evt };
-                            self.fieldNameArray.push(self.fieldName);
-                        });
-                        // onchange event of outage area param value
-                        outageAreaParamValue.on('change', function (evt) {
-                            index = this.index;
-                            for (k = 0; k < self.paramNameArray.length; k++) {
-                                if (self.paramNameArray[k].index === index) {
-                                    arrayIndex = k;
-                                    break;
-                                }
-                            }
-                            //removing  array which is matched
-                            self.paramNameArray.splice(arrayIndex, 1);
-                            self.paramNameObject = { "index": index, "value": evt };
-                            self.paramNameArray.push(self.paramNameObject);
-                        });
-                    }
-                }));
-
             }
+            return fieldMap;
         },
 
         /**
@@ -460,11 +444,13 @@ define([
             // Looping param name array for matching and getting value from field name array
             for (p = 0; p < this.paramNameArray.length; p++) {
                 for (q = 0; q < this.fieldNameArray.length; q++) {
-                    // Checking for param name array index and fiel name array index and creating new fiel map array object to set value in config
-                    if (this.paramNameArray[p].index === this.fieldNameArray[q].index) {
-                        fieldMapedObject = { "fieldName": this.fieldNameArray[p].value, "paramName": this.paramNameArray[q].value };
-                        fieldMapedArray.push(fieldMapedObject);
-                        break;
+                    if (this.fieldNameArray[q].value !== 0) {
+                        // Checking for param name array index and fiel name array index and creating new fiel map array object to set value in config
+                        if (this.paramNameArray[p].index === this.fieldNameArray[q].index) {
+                            fieldMapedObject = { "fieldName": this.fieldNameArray[q].value, "paramName": this.paramNameArray[p].value };
+                            fieldMapedArray.push(fieldMapedObject);
+                            break;
+                        }
                     }
                 }
             }

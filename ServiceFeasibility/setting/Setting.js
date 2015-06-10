@@ -82,19 +82,16 @@ define([
         thumbnailUrl: null,
         serviceURL: null,
         attributeLookup: this.defaultDataDictionaryValue,
+        defaultParamValue: [],
         checkedAccessPointLayers: [],
-
-        ESRIBufferUnits: "UNIT_STATUTE_MILE, UNIT_FOOT,UNIT_KILOMETER,UNIT_METER",
-
+        targetLayerFields: {},
         startup: function () {
+            this.defaultParamValue = this.nls.defaultDataDictionaryValue;
             this.inherited(arguments);
-            if (this.map.itemInfo.itemData.operationalLayers.length === 0) {
-                this._errorMessage(this.nls.operationalLayersErrorMessage);
-            }
             this.operationalLayers = this.map.itemInfo.itemData.operationalLayers;
             this._initializeBusinessLayerSelect();
             this._initializeAccessPointLayersCheckboxes();
-            this._initializeBufferUnitsSelect();
+            this._addBufferUnits();
             this._addConfigParameters();
             this._onSetBtnClick();
             this._saveTargetLayerSelect();
@@ -102,6 +99,8 @@ define([
             this._createExportToCSV();
             this._createSymbol();
             this._createHighlighterImage();
+            this.onRefreshBtnClick();
+            this._ToggleFieldMapping();
         },
         postCreate: function () {
             this._initLoading();
@@ -125,15 +124,24 @@ define([
         * This function is used to add parameters from config file
         * @memberOf widgets/ServiceFeasibility/setting/Setting.js
         **/
+
         _addConfigParameters: function () {
             domConstruct.empty(query(".esriCTAttrParamContainer")[0]);
-            var parameters;
+            var parameters, i;
             parameters = { "closestFacilityURL": this.config.closestFacilityURL, "nls": this.nls, "config": this.config };
             // if config object not null and attributes name & closestFacilityURL  available
             if (this.config && this.config.attributeName && this.config.closestFacilityURL) {
                 this.closedFacilityServiceURL.value = this.config.closestFacilityURL;
                 this._attributeParameterObj = new AttributeParameter(parameters);
                 this._validateClosestFacilityServiceURL(true);
+            }
+            // if Buffer unit is available and set config value to dropdown
+            if (this.config && this.config.bufferEsriUnits) {
+                for (i = 0; i < this.selectBufferUnits.options.length; i++) {
+                    if (this.selectBufferUnits.options[i].value === this.config.bufferEsriUnits) {
+                        this.selectBufferUnits.set("value", this.selectBufferUnits.options[i].value);
+                    }
+                }
             }
         },
 
@@ -171,11 +179,15 @@ define([
                     if (response.layerType === "esriNAServerClosestFacilityLayer") {
                         this.serviceURL = url;
                         this._setImpedanceAttributeOptions(response, setConfig);
-                        this._displayAttributeParameter(response, setConfig);
+                        this._displayAttributeParameter(response, this.defaultParamValue);
                         this.loading.hide();
+                        domClass.remove(this.closestFacilityParamContainer, "esriCTHidden");
+
                     } else {
                         this._errorMessage(this.nls.validationErrorMessage.invalidClosestFacilityTask + "'" + this.nls.lblClosestFacilityServiceUrl + "'.");
                         this.loading.hide();
+                        domClass.add(this.closestFacilityParamContainer, "esriCTHidden");
+
                     }
                 }), lang.hitch(this, function (err) {
                     if (this._initialLoad) {
@@ -183,11 +195,28 @@ define([
                     }
                     this._errorMessage(this.nls.invalidURL + "'" + this.nls.lblClosestFacilityServiceUrl + "'.");
                     this.loading.hide();
+                    domClass.add(this.closestFacilityParamContainer, "esriCTHidden");
+
                 }));
             } else {
                 this._errorMessage(this.nls.invalidURL + "'" + this.nls.lblClosestFacilityServiceUrl + "'.");
                 this.loading.hide();
+                domClass.add(this.closestFacilityParamContainer, "esriCTHidden");
+
             }
+        },
+
+        /**
+        * This function is used to update the default to value options
+        * @memberOf widgets/ServiceFeasibility/settings/Settings
+        **/
+        onRefreshBtnClick: function () {
+            this.own(on(this._onRefreshBtnClick, 'click', lang.hitch(this, function (evt) {
+                this.defaultParamValue = this.txtAttributeParam.textbox.value;
+                if (this.serviceURL && this.serviceURL !== "") {
+                    this._attributeParameterObj.refreshDefaultValueOptions(this.defaultParamValue);
+                }
+            })));
         },
 
         /**
@@ -195,16 +224,13 @@ define([
         * @param which will get from response of URL.
         * @memberOf widgets/ServiceFeasibility/setting/Setting.
         **/
-        _displayAttributeParameter: function (response, setConfig) {
-            if (setConfig) {
-                this._attributeParameterObj.addConfigParameters();
-            }
+        _displayAttributeParameter: function (response, defaultParamValue) {
             if (response.attributeParameterValues.length > 0) {
                 domClass.remove(this.attributeParameterValues, "esriCTHidden");
             } else {
                 domClass.add(this.attributeParameterValues, "esriCTHidden");
             }
-            this._attributeParameterObj.displayAttributeParamaterValues(response);
+            this._attributeParameterObj.createAttributeParameterDataset(response, defaultParamValue);
         },
 
         /**
@@ -239,7 +265,6 @@ define([
                 } else {
                     this.selectInpedanceAttribute.set("value", response.impedance);
                 }
-                domClass.remove(this.ImpedanceAttributeContainer, "esriCTHidden");
             }
         },
 
@@ -275,8 +300,6 @@ define([
                     }
                 }
                 this._attachChangeEventToBussinessLayer();
-            } else {
-                this._errorMessage(this.nls.validationErrorMessage.NoLayersInWebMap);
             }
         },
 
@@ -290,8 +313,10 @@ define([
                 this.selectbusinessList.options.length = 0;
                 var currentValue = this.selectBusinessLayer.value;
                 // loop to change the field names on changing the business layer
-                for (j = 0; j < this.operationalLayers[currentValue].layerObject.fields.length; j++) {
-                    this.selectbusinessList.addOption({ label: this.operationalLayers[currentValue].layerObject.fields[j].name, value: this.operationalLayers[currentValue].layerObject.fields[j].name });
+                if (this.operationalLayers[currentValue] && this.operationalLayers[currentValue].layerObject && this.operationalLayers[currentValue].layerObject.fields && this.operationalLayers[currentValue].layerObject.fields.length > 0) {
+                    for (j = 0; j < this.operationalLayers[currentValue].layerObject.fields.length; j++) {
+                        this.selectbusinessList.addOption({ label: this.operationalLayers[currentValue].layerObject.fields[j].name, value: this.operationalLayers[currentValue].layerObject.fields[j].name });
+                    }
                 }
                 if (this.config && this.config.businessDisplayField && this.selectbusinessList && this.selectbusinessList.options && this.selectbusinessList.options.length > 0) {
                     // loop to set the business layer field name according to the value in config
@@ -314,43 +339,50 @@ define([
             this.checkedLayers = [];
             // loop to create check box and it's label for oprational layers
             for (i = 0; i < this.operationalLayers.length; i++) {
-                if (this.operationalLayers[i].layerObject.type === "Feature Layer" && this.operationalLayers[i].layerObject.geometryType === "esriGeometryPoint") {
-                    divAccessPointLayerContainer = domConstruct.create("div");
-                    accessPointChecks = new CheckBox({ "id": this.operationalLayers[i].id + "checkbox" }, divAccessPointLayerContainer);
-                    domAttr.set(accessPointChecks.domNode, "title", this.operationalLayers[i].title);
-                    domConstruct.create("label", { innerHTML: this.operationalLayers[i].title, "class": "esriCTCheckboxLabel" }, divAccessPointLayerContainer);
-                    domConstruct.place(divAccessPointLayerContainer, this.divAccessPointLayer);
-                    domClass.remove(accessPointChecks, "esriCTcheckedPointLayer");
-                    domClass.remove(accessPointChecks.checkNode, "checked");
-                    this._addEventToCheckBox(accessPointChecks);
-                    // if config object not null and accessPointsLayersName available
-                    if (this.config && this.config.accessPointsLayersName) {
-                        chkBoxTitle = domAttr.get(accessPointChecks.domNode, "title");
-                        // if config object not null and accessPointsLayersName length is greater than 1
-                        if (this.config.accessPointsLayersName.split(",").length > 1) {
-                            for (j = 0; j < this.config.accessPointsLayersName.split(",").length; j++) {
-                                // if checkbox title and  accessPointsLayersName of this index are same
-                                if (chkBoxTitle === this.config.accessPointsLayersName.split(",")[j]) {
+                if (this.operationalLayers && this.operationalLayers[i] && this.operationalLayers[i].layerObject && this.operationalLayers[i].layerObject.type && this.operationalLayers[i].layerObject.type === "Feature Layer") {
+                    if (this.operationalLayers[i].layerObject.geometryType && this.operationalLayers[i].layerObject.geometryType === "esriGeometryPoint") {
+                        divAccessPointLayerContainer = domConstruct.create("div");
+                        accessPointChecks = new CheckBox({ "id": this.operationalLayers[i].id + "checkbox" }, divAccessPointLayerContainer);
+                        domAttr.set(accessPointChecks.domNode, "title", this.operationalLayers[i].title);
+                        domConstruct.create("label", { innerHTML: this.operationalLayers[i].title, "class": "esriCTCheckboxLabel" }, divAccessPointLayerContainer);
+                        domConstruct.place(divAccessPointLayerContainer, this.divAccessPointLayer);
+                        domClass.remove(accessPointChecks, "esriCTcheckedPointLayer");
+                        domClass.remove(accessPointChecks.checkNode, "checked");
+                        this._addEventToCheckBox(accessPointChecks);
+                        // if config object not null and accessPointsLayersName available
+                        if (this.config && this.config.accessPointsLayersName) {
+                            chkBoxTitle = domAttr.get(accessPointChecks.domNode, "title");
+                            // if config object not null and accessPointsLayersName length is greater than 1
+                            if (this.config.accessPointsLayersName.split(",").length > 1) {
+                                for (j = 0; j < this.config.accessPointsLayersName.split(",").length; j++) {
+                                    // if checkbox title and  accessPointsLayersName of this index are same
+                                    if (chkBoxTitle === this.config.accessPointsLayersName.split(",")[j]) {
+                                        accessPointChecks.checked = true;
+                                        domClass.add(accessPointChecks.checkNode, "checked");
+                                        domClass.add(accessPointChecks.domNode, "esriCTcheckedPointLayer");
+                                    }
+                                }
+                            } else {
+                                // if checkbox title and accessPointsLayersName in config is same
+                                if (chkBoxTitle === this.config.accessPointsLayersName) {
                                     accessPointChecks.checked = true;
                                     domClass.add(accessPointChecks.checkNode, "checked");
                                     domClass.add(accessPointChecks.domNode, "esriCTcheckedPointLayer");
+                                    this.checkedLayers.push(accessPointChecks.domNode);
+                                    this.checkedAccessPointLayers = this.checkedLayers;
                                 }
                             }
-                        } else {
-                            // if checkbox title and accessPointsLayersName in config is same
-                            if (chkBoxTitle === this.config.accessPointsLayersName) {
-                                accessPointChecks.checked = true;
-                                domClass.add(accessPointChecks.checkNode, "checked");
-                                domClass.add(accessPointChecks.domNode, "esriCTcheckedPointLayer");
+                            // if value doesn't exist in array
+                            if (array.indexOf(this.checkedLayers, accessPointChecks.domNode) === -1) {
                                 this.checkedLayers.push(accessPointChecks.domNode);
                                 this.checkedAccessPointLayers = this.checkedLayers;
                             }
                         }
-                        // if value doesn't exist in array
-                        if (array.indexOf(this.checkedLayers, accessPointChecks.domNode) === -1) {
-                            this.checkedLayers.push(accessPointChecks.domNode);
-                            this.checkedAccessPointLayers = this.checkedLayers;
-                        }
+                    }
+                } else if (i === this.operationalLayers.length - 1) {
+                    this._errorMessage(this.nls.validationErrorMessage.accessPointCheck);
+                    if (this.loading) {
+                        this.loading.hide();
                     }
                 }
             }
@@ -381,18 +413,32 @@ define([
         },
 
         /**
-        * This function will create the buffer units
+        * This function is used to add  buffer units option to dropdown
         * @memberOf widgets/ServiceFeasibility/setting/Settings
         **/
-        _initializeBufferUnitsSelect: function () {
-            var i, ESRIBufferUnits;
-            ESRIBufferUnits = this.ESRIBufferUnits.split(",");
-            // loop to create the drop down for buffer units from config
-            for (i = 0; i < ESRIBufferUnits.length; i++) {
-                if (this.config && this.config.bufferEsriUnits) {
-                    this.selectBufferUnits.set("value", this.config.bufferEsriUnits);
-                }
-                this.selectBufferUnits.addOption({ label: ESRIBufferUnits[i], value: ESRIBufferUnits[i] });
+        _addBufferUnits: function () {
+            var i;
+            this.esriUnit = [{
+                label: this.nls.esriUnit.esriCTFeets,
+                value: 9002
+            },
+                {
+                    label: this.nls.esriUnit.esriCTMiles,
+                    value: 9030
+                },
+                {
+                    label: this.nls.esriUnit.esriCTMeters,
+                    value: 9001
+                },
+                {
+                    label: this.nls.esriUnit.esriCTKilometers,
+                    value: 9036
+                }];
+            for (i = 0; i < this.esriUnit.length; i++) {
+                this.selectBufferUnits.addOption({
+                    value: this.esriUnit[i].value,
+                    label: this.esriUnit[i].label
+                });
             }
             on(this.selectBufferUnits, "change", lang.hitch(this, function (value) {
                 this.selectedBufferUnit = value;
@@ -419,9 +465,17 @@ define([
             if (this.config && this.config.defaultCutoff) {
                 this.txtdefaultCuttoff.set("value", this.config.defaultCutoff);
             }
-            if (this.config && this.config.attributeValueLookup) {
+            if (this.config && this.config.attributeValueLookup && this.config.attributeValueLookup !== "") {
                 this.txtAttributeParam.set("value", "");
                 this.txtAttributeParam.set("value", this.config.attributeValueLookup);
+                this.defaultParamValue = this.config.attributeValueLookup;
+            } else if (this.config && this.config.attributeValueLookup === "") {
+                this.txtAttributeParam.set("value", "");
+                this.defaultParamValue = this.config.attributeValueLookup;
+            } else {
+                this.txtAttributeParam.set("value", "");
+                this.txtAttributeParam.set("value", this.nls.defaultDataDictionaryValue);
+                this.defaultParamValue = this.nls.defaultDataDictionaryValue;
             }
         },
 
@@ -434,17 +488,22 @@ define([
             this._createSaveBussinessCheckBox();
             this._createSaveRouteCheckBox();
             this._createSaveRouteLengthCheckBox();
+            this._createFieldMapping();
+            this._routeBussinessAttributeCheck();
             this._setLayerOptions();
             this._attachCheckBoxEvents();
             setTimeout(lang.hitch(this, function () {
                 on(this.selectSaveRouteLayer, "change", lang.hitch(this, function (value) {
                     this._setRouteAttributeOptions(value, false);
                 }));
+                on(this.selectSaveBusinessLayer, "change", lang.hitch(this, function (value) {
+                    this._setBussinessAttributeOptions(value, false);
+                }));
             }), 500);
         },
 
         /**
-        * this function used to 'Businesses Layer' checkbox
+        * this function used to create 'Businesses Layer' checkbox
         * @memberOf widgets/serviceFeasibility/setting/settings
         **/
         _createSaveBussinessCheckBox: function () {
@@ -458,7 +517,7 @@ define([
         },
 
         /**
-        * this function used to 'Route Layer' checkbox
+        * this function used to create 'Route Layer' checkbox
         * @memberOf widgets/serviceFeasibility/setting/settings
         **/
         _createSaveRouteCheckBox: function () {
@@ -496,32 +555,98 @@ define([
                 domClass.remove(this.selectBusinessCountBlock, "esriCTHidden");
             }
         },
+        /**
+        * This function is used to create  checkbox for fieldmapping
+        * @memberOf widgets/serviceFeasibility/setting/settings
+        **/
+        _createFieldMapping: function () {
+            this.routeBussinessAttrTranferChkBox = new CheckBox({ "class": "routeBussinessAttrTranferChkBox" }, this.routeBussinessAttrTranferCheckBox);
+            domConstruct.create("label", { innerHTML: this.nls.FieldmMappingText, "class": "esriCTTargetLayerLabel esriCTEllipsis" }, this.fieldMappingLabel);
+            if (this.config && this.config.RouteBussinessAttribute) {
+                this.routeBussinessAttrTranferChkBox.checked = true;
+                domClass.add(this.routeBussinessAttrTranferChkBox.checkNode, "checked");
+                this.routeBussinessAttrTranferChkBox.checked = this.config.RouteBussinessAttribute;
+            }
+        },
 
         /**
-        * This function is used to add event to checkbox
+        * This function is used to hide/show fieldmapping panel on check of 'Route layer' and 'Bussiness layer'.
+        * @memberOf widgets/serviceFeasibility/setting/settings
+        **/
+        _ToggleFieldMapping: function () {
+            if (this.saveBusinessCheck.checked && !this.saveRouteCheck.checked) {
+                domClass.add(this.routeBussinessAttrTranfer, "esriCTHidden");
+                domClass.add(this.layerFieldMapping, "esriCTHidden");
+            }
+            if (!this.saveBusinessCheck.checked && this.saveRouteCheck.checked) {
+                domClass.add(this.routeBussinessAttrTranfer, "esriCTHidden");
+                domClass.add(this.layerFieldMapping, "esriCTHidden");
+            } else if (this.saveBusinessCheck.checked && this.saveRouteCheck.checked) {
+                domClass.remove(this.routeBussinessAttrTranfer, "esriCTHidden");
+                if (this.routeBussinessAttrTranferChkBox && this.routeBussinessAttrTranferChkBox.checked) {
+                    domClass.remove(this.layerFieldMapping, "esriCTHidden");
+                } else {
+                    domClass.add(this.layerFieldMapping, "esriCTHidden");
+                }
+
+            } else {
+                domClass.add(this.routeBussinessAttrTranfer, "esriCTHidden");
+            }
+        },
+
+        /**
+        * This function is used to check whwther bussinesses attribute transfer checkbox is checked or not
+        * if it is checked, panel for  'Route layer field' and 'Businesses layer field' is visible
+        * @memberOf widgets/serviceFeasibility/setting/settings
+        **/
+        _routeBussinessAttributeCheck: function () {
+            if (this.config && this.config.RouteBussinessAttribute) {
+                domClass.remove(this.layerFieldMapping, "esriCTHidden");
+            } else {
+                domClass.add(this.layerFieldMapping, "esriCTHidden");
+            }
+        },
+
+        /**
+        * This function is used to add event to  checkbox
         * @memberOf widgets/serviceFeasibility/setting/settings
         **/
         _attachCheckBoxEvents: function () {
             on(this.saveBusinessCheck, "click", lang.hitch(this, function (event) {
                 if (domClass.contains(event.target, "checked")) {
                     domClass.remove(this.selectSaveBusinessLayerBlock, "esriCTHidden");
+                    domClass.remove(this.routeBussinessAttrTranferMainContainer, "esriCTHidden");
+                    this._toggleFieldMappingCheck();
+
                 } else {
                     domClass.add(this.selectSaveBusinessLayerBlock, "esriCTHidden");
+                    domClass.add(this.routeBussinessAttrTranferMainContainer, "esriCTHidden");
+                    this._toggleFieldMappingCheck();
                 }
+                this._ToggleFieldMapping();
+
             }));
             on(this.saveRouteCheck, "click", lang.hitch(this, function (event) {
                 if (domClass.contains(event.target, "checked")) {
                     domClass.remove(this.routeLayerCheck, "esriCTHidden");
                     domClass.remove(this.selectrouteLayerBlock, "esriCTHidden");
+                    domClass.remove(this.routeBussinessAttrTranferMainContainer, "esriCTHidden");
+                    this._toggleFieldMappingCheck();
+
                 } else {
                     domClass.add(this.routeLayerCheck, "esriCTHidden");
                     domClass.add(this.selectrouteLayerBlock, "esriCTHidden");
+                    domClass.add(this.routeBussinessAttrTranferMainContainer, "esriCTHidden");
+                    this._toggleFieldMappingCheck();
+
                 }
+                this._ToggleFieldMapping();
             }));
             on(this.saveRouteLength, "click", lang.hitch(this, function (event) {
                 if (domClass.contains(event.target, "checked")) {
                     domClass.remove(this.selectSaveRouteLength, "esriCTHidden");
                     domClass.remove(this.selectRouteLengthBlock, "esriCTHidden");
+
                 } else {
                     domClass.add(this.selectSaveRouteLength, "esriCTHidden");
                     domClass.add(this.selectRouteLengthBlock, "esriCTHidden");
@@ -536,6 +661,24 @@ define([
                     domClass.add(this.selectBusinessCountBlock, "esriCTHidden");
                 }
             }));
+            on(this.routeBussinessAttrTranferChkBox, "click", lang.hitch(this, function (event) {
+                if (domClass.contains(event.target, "checked")) {
+                    domClass.remove(this.layerFieldMapping, "esriCTHidden");
+                } else {
+                    domClass.add(this.layerFieldMapping, "esriCTHidden");
+                }
+            }));
+        },
+        /**
+        * This function is used to uncheck "route-bussiness attribute Transfer" checkbox.
+        * @memberOf widgets/ServiceFeasibility/setting/Settings
+        **/
+        _toggleFieldMappingCheck: function () {
+            if (this.routeBussinessAttrTranferChkBox && this.routeBussinessAttrTranferChkBox.checked) {
+                this.routeBussinessAttrTranferChkBox.checked = false;
+                domClass.remove(this.routeBussinessAttrTranferChkBox.checkNode, "checked");
+            }
+
         },
 
         /**
@@ -557,6 +700,7 @@ define([
                     if (this.config) {
                         if (this.config.targetBusinessLayer && optionValue === this.config.targetBusinessLayer) {
                             this.selectSaveBusinessLayer.set("value", i);
+                            this._setBussinessAttributeOptions(i, true);
                         }
                         if (this.config.targetRouteLayer && optionValue === this.config.targetRouteLayer) {
                             this.selectSaveRouteLayer.set("value", i);
@@ -567,6 +711,9 @@ define([
             }
             if (!this.config.targetRouteLayer && this.selectSaveRouteLayer.options.length > 0) {
                 this._setRouteAttributeOptions(this.selectSaveRouteLayer.options[0].value, false);
+            }
+            if (!this.config.targetBusinessLayer && this.selectSaveBusinessLayer.options.length > 0) {
+                this._setBussinessAttributeOptions(this.selectSaveBusinessLayer.options[0].value, false);
             }
         },
 
@@ -597,11 +744,13 @@ define([
             var j, optionValue;
             this.selectSaveRouteLength.options.length = 0;
             this.selectSaveBusinessCount.options.length = 0;
+            this.selectSaveRouteLayerField.options.length = 0;
             for (j = 0; j < this.operationalLayers[layerIndex].layerObject.fields.length; j++) {
                 if ((this.operationalLayers[layerIndex].layerObject.fields[j].editable) && (this.operationalLayers[layerIndex].layerObject.fields[j].type === "esriFieldTypeString" || this.operationalLayers[layerIndex].layerObject.fields[j].type === "esriFieldTypeDouble" || this.operationalLayers[layerIndex].layerObject.fields[j].type === "esriFieldTypeInteger" || this.operationalLayers[layerIndex].layerObject.fields[j].type === "esriFieldTypeSingle" || this.operationalLayers[layerIndex].layerObject.fields[j].type === "esriFieldTypeSmallInteger")) {
                     optionValue = this.operationalLayers[layerIndex].layerObject.fields[j].name;
                     this.selectSaveRouteLength.addOption({ label: optionValue, value: optionValue, selected: false });
                     this.selectSaveBusinessCount.addOption({ label: optionValue, value: optionValue });
+                    this.selectSaveRouteLayerField.addOption({ label: optionValue, value: optionValue });
                 }
                 if (setDefaultField && this.config) {
                     if (this.config.saveRoutelengthField && optionValue === this.config.saveRoutelengthField) {
@@ -609,6 +758,31 @@ define([
                     }
                     if (this.config.saveBusinessCountField && optionValue === this.config.saveBusinessCountField) {
                         this.selectSaveBusinessCount.set("value", optionValue);
+                    }
+                    if (this.config.FieldMappingData.routeLayerField && optionValue === this.config.FieldMappingData.routeLayerField) {
+                        this.selectSaveRouteLayerField.set("value", optionValue);
+                    }
+                }
+            }
+        },
+        /**
+        * This function adds bussiness layer attributes for field mapping options.
+        * @param {string} layerIndex
+        * @param {string} setDefaultField
+        * @memberOf widgets/ServiceFeasibility/setting/settings
+        **/
+        _setBussinessAttributeOptions: function (layerIndex, setDefaultField) {
+            var j, optionValue;
+            this.selectSaveBusinessLayerField.options.length = 0;
+            for (j = 0; j < this.operationalLayers[layerIndex].layerObject.fields.length; j++) {
+
+                if ((this.operationalLayers[layerIndex].layerObject.fields[j].editable) && (this.operationalLayers[layerIndex].layerObject.fields[j].type === "esriFieldTypeString" || this.operationalLayers[layerIndex].layerObject.fields[j].type === "esriFieldTypeDouble" || this.operationalLayers[layerIndex].layerObject.fields[j].type === "esriFieldTypeInteger" || this.operationalLayers[layerIndex].layerObject.fields[j].type === "esriFieldTypeSingle" || this.operationalLayers[layerIndex].layerObject.fields[j].type === "esriFieldTypeSmallInteger")) {
+                    optionValue = this.operationalLayers[layerIndex].layerObject.fields[j].name;
+                    this.selectSaveBusinessLayerField.addOption({ label: optionValue, value: optionValue });
+                }
+                if (setDefaultField && this.config) {
+                    if (this.config.FieldMappingData.bussinessLayerField && optionValue === this.config.FieldMappingData.bussinessLayerField) {
+                        this.selectSaveBusinessLayerField.set("value", optionValue);
                     }
                 }
             }
@@ -630,7 +804,7 @@ define([
         /**
         * This function create error alert.
         * @param {string} err
-        * @memberOf widgets/isolation-trace/settings/settings
+        * @memberOf widgets/ServiceFeasibility/settings/settings
         **/
         _errorMessage: function (err) {
             var errorMessage = new Message({ message: err });
@@ -640,7 +814,7 @@ define([
         /**
         * This function gets and create config data in config file.
         * @return {object} Object of config
-        * @memberOf widgets/isolation-trace/settings/settings
+        * @memberOf widgets/ServiceFeasibility/settings/settings
         **/
         getConfig: function () {
             var accessLayerName = "", businessLayer = "", routeLayerValue = "", routelengthLayer = "", businessCountLayer = "", getSymbolvalues, businessLayerCheck = false, routeLayerCheck = false, routelengthCheck = false, businessCountCheck = false, queryLayer, highlighterDetails;
@@ -677,7 +851,11 @@ define([
                     if (routeLayerCheck && businessCountCheck) {
                         businessCountLayer = this.selectSaveBusinessCount && this.selectSaveBusinessCount.value ? this.selectSaveBusinessCount.value : "";
                     }
+
                 }
+
+                this.targetLayerFields.routeLayerField = this.selectSaveRouteLayerField && this.selectSaveRouteLayerField.value !== "" ? this.selectSaveRouteLayerField.value : "";
+                this.targetLayerFields.bussinessLayerField = this.selectSaveBusinessLayerField && this.selectSaveBusinessLayerField.value !== "" ? this.selectSaveBusinessLayerField.value : "";
                 accessLayerName = this._getAccessLayerNames();
                 this.config = {
                     "businessesLayerName": this.operationalLayers[this.selectBusinessLayer.value].title,
@@ -690,7 +868,7 @@ define([
                     "impedanceAttribute": this.selectInpedanceAttribute.value,
                     "attributeName": this._attributeParameterObj.getAttributeParameterConfiguration(),
                     "defaultCutoff": this.txtdefaultCuttoff.value,
-                    "attributeValueLookup": (this.txtAttributeParam && this.txtAttributeParam.textbox && this.txtAttributeParam.textbox.value !== "") ? this.txtAttributeParam.textbox.value : "",
+                    "attributeValueLookup": this.defaultParamValue || "",
                     "businessDisplayField": this.selectbusinessList.value,
                     "targetBusinessLayer": businessLayer,
                     "targetRouteLayer": routeLayerValue,
@@ -698,7 +876,9 @@ define([
                     "exportToCSV": this.exportCheck.checked,
                     "saveBusinessCountField": businessCountLayer,
                     "symbol": getSymbolvalues,
-                    "highlighterDetails": highlighterDetails
+                    "highlighterDetails": highlighterDetails,
+                    "FieldMappingData": this.targetLayerFields,
+                    "RouteBussinessAttribute": this.routeBussinessAttrTranferChkBox.checked
                 };
             } else {
                 return false;
@@ -711,17 +891,17 @@ define([
         * @memberOf widgets/serviceFeasibility/setting/settings
         **/
         _validateConfigData: function () {
-            var isValid, validateInputTask, validateClosestFacilityParameters, validateImageParameters, validateTargateLayer, validateTargateLayerParameters, validateMinMaxValue, validateCheckPoint, validateBusinessLayerGeometry, validateOperationLayer;
+            var isValid, validateInputTask, validateClosestFacilityParameters, validateImageParameters, validateTargateLayer, validateTargateLayerParameters, validateMinMaxValue, validateCheckPoint, validateBusinessLayerGeometry, validateOperationLayer, parameterLookupValue;
             isValid = true;
             validateOperationLayer = this._validateOperationLayer();
             // Validation of Check point Layer
             validateCheckPoint = this._validateAccesspointCheck();
-            // Validation of 'Route length units' and 'Buffer distance'
+            // Validation of 'Route length units' and 'Buffer distance '
             validateInputTask = this._validateInputTaskParameters();
             // Validation of 'closest Facility URL' , 'Facility Search Distance' and 'Default Cutoff distance'
             validateClosestFacilityParameters = this.validateClosestFacilityParameters();
             if (!validateClosestFacilityParameters.hasError) {
-                validateMinMaxValue = this._attributeParameterObj.validateMinMax();
+                validateMinMaxValue = this._attributeParameterObj.ValidateNumericInputs();
             }
             // Validation of Image Parameter
             validateImageParameters = this._validateImageParameters();
@@ -730,6 +910,7 @@ define([
             //Check Bussiness layer Geometry
             validateBusinessLayerGeometry = this._getGeometryFromBussinessLayer();
             validateTargateLayerParameters = this._validateTargetLayerParameters();
+            parameterLookupValue = this._checkParameterLookupValue();
             // validateInputTask is set to true, ie. validation error found then
             if (validateOperationLayer.hasError) {
                 this._errorMessage(validateOperationLayer.returnErr);
@@ -739,6 +920,9 @@ define([
                 isValid = false;
             } else if (validateInputTask.hasError) {
                 this._errorMessage(validateInputTask.returnErr);
+                isValid = false;
+            } else if (parameterLookupValue.hasError) {
+                this._errorMessage(parameterLookupValue.returnErr);
                 isValid = false;
             } else if (validateClosestFacilityParameters.hasError) {
                 this._errorMessage(validateClosestFacilityParameters.returnErr);
@@ -771,6 +955,9 @@ define([
             if (this.operationalLayers.length === 0) {
                 returnObj.returnErr = this.nls.validationErrorMessage.NoLayersInWebMap;
                 returnObj.hasError = true;
+            } else if (this.selectbusinessList.options === 0 && this.selectbusinessList.value) {
+                returnObj.returnErr = this.nls.validationErrorMessage.NoFieldsInBusinessLayer;
+                returnObj.hasError = true;
             }
             return returnObj;
         },
@@ -789,24 +976,27 @@ define([
                         }
                     }
                 }
-                bussinessLayerGeometryType = this.operationalLayers[this.selectBusinessLayer.value].layerObject.geometryType;
-                if (saveBussinessLayerGeometeyType !== bussinessLayerGeometryType) { // If 'Businesses layer' and 'Businesses layer from target layer' are different.
-                    returnObj.returnErr = this.nls.validationErrorMessage.checkGeometryType + " '" + this.businessLayerDiv.innerHTML + " '" + this.nls.validationErrorMessage.BusinessGeometryType + " '" + this.selectBusinessLayerLabel.innerHTML + "'";
-                    returnObj.hasError = true;
+                if (this.operationalLayers.length > 0) {
+                    bussinessLayerGeometryType = this.operationalLayers[this.selectBusinessLayer.value].layerObject.geometryType;
+                    if (saveBussinessLayerGeometeyType !== bussinessLayerGeometryType) { // If 'Businesses layer' and 'Businesses layer from target layer' are different.
+                        returnObj.returnErr = this.nls.validationErrorMessage.checkGeometryType + "'" + this.nls.lblBusinessesLayer + " '" + this.nls.validationErrorMessage.BusinessGeometryType + " '" + this.nls.lblBusinessesLayer + "'.";
+                        returnObj.hasError = true;
+                    }
+                    return returnObj;
                 }
-                return returnObj;
+
             }
         },
 
         /**
         * function is used to check whether at least one 'access point layer ' checkbox is checked or not .
         * @return {object} Object of config
-        * @memberOf widgets/isolation-trace/settings/settings
+        * @memberOf widgets/ServiceFeasibility/settings/settings
         **/
         _validateAccesspointCheck: function () {
             var returnObj = { returnErr: "", hasError: false };
             if (this.checkedAccessPointLayers && this.checkedAccessPointLayers.length === 0) {
-                returnObj.returnErr = this.nls.validationErrorMessage.accessPointCheck + "'" + this.nls.lblAccessPointLayers + "'.";
+                returnObj.returnErr = this.nls.validationErrorMessage.accessPointCheck;
                 returnObj.hasError = true;
             }
             return returnObj;
@@ -824,6 +1014,23 @@ define([
                     returnObj.returnErr = "'" + this.nls.lblRouteLength + "'" + this.nls.validationErrorMessage.andText + "'" + this.nls.lblBusinessCount + "'" + this.nls.validationErrorMessage.diffText + ".";
                     returnObj.hasError = true;
                 }
+            }
+            return returnObj;
+        },
+
+        /**
+        * This function validates parameter look up values
+        * @param {return} flag value for validation
+        * @memberOf widgets/serviceFeasibility/setting/settings
+        **/
+        _checkParameterLookupValue: function () {
+            var returnObj = { returnErr: "", hasError: false };
+            if (this.defaultParamValue !== this.txtAttributeParam.textbox.value) {
+                returnObj.returnErr = this.nls.validationErrorMessage.defaultAttrLookupParamValueMsg;
+                returnObj.hasError = true;
+            } else if (this.txtAttributeParam && this.txtAttributeParam.textbox && this.txtAttributeParam.textbox.hasAttribute("value") && lang.trim(this.txtAttributeParam.textbox.value) === "") {
+                returnObj.returnErr = this.nls.validationErrorMessage.emptyLookupParamValueErr;
+                returnObj.hasError = true;
             }
             return returnObj;
         },
@@ -860,14 +1067,14 @@ define([
             if (imageDataOBJ === "" || imageDataOBJ === null) {
                 returnObj.returnErr = this.nls.validationErrorMessage.highlighterImageErr;
                 returnObj.hasError = true;
-            } else if (this.imageHeight === "" || this.imageHeight === null || isNaN(parseInt(this.imageHeight, 10)) || parseInt(this.imageHeight, 10) < 0) {
-                returnObj.returnErr = "'" + this.nls.highlighter.imageUplaod + this.nls.highlighter.imageHeight + "'" + this.nls.validationErrorMessage.imageHeightErr;
+            } else if (this.imageHeight === "" || this.imageHeight === null || isNaN(parseInt(this.imageHeight, 10)) || parseInt(this.imageHeight, 10) < 1) {
+                returnObj.returnErr = "'" + this.nls.highlighter.imageUplaod + " " + this.nls.highlighter.imageHeight + "'" + this.nls.validationErrorMessage.greaterThanZeroMessage;
                 returnObj.hasError = true;
-            } else if (this.imageWidth === "" || this.imageWidth.value === null || isNaN(parseInt(this.imageWidth, 10)) || parseInt(this.imageWidth, 10) < 0) {
-                returnObj.returnErr = "'" + this.nls.highlighter.imageUplaod + this.nls.highlighter.imageWidth + "'" + this.nls.validationErrorMessage.imageWidthErr;
+            } else if (this.imageWidth === "" || this.imageWidth.value === null || isNaN(parseInt(this.imageWidth, 10)) || parseInt(this.imageWidth, 10) < 1) {
+                returnObj.returnErr = "'" + this.nls.highlighter.imageUplaod + " " + this.nls.highlighter.imageWidth + "'" + this.nls.validationErrorMessage.greaterThanZeroMessage;
                 returnObj.hasError = true;
-            } else if (this.highlighterImageTimeout === "" || this.highlighterImageTimeout === null || isNaN(parseInt(this.highlighterImageTimeout, 10)) || parseInt(this.highlighterImageTimeout, 10) < 0) {
-                returnObj.returnErr = "'" + this.nls.highlighter.imageUplaod + this.nls.highlighter.imageHighlightTimeout + "'" + this.nls.validationErrorMessage.imageTimeoutErr;
+            } else if (this.highlighterImageTimeout === "" || this.highlighterImageTimeout === null || isNaN(parseInt(this.highlighterImageTimeout, 10)) || parseInt(this.highlighterImageTimeout, 10) < 1) {
+                returnObj.returnErr = "'" + this.nls.highlighter.imageUplaod + " " + this.nls.highlighter.imageHighlightTimeout + "'" + this.nls.validationErrorMessage.greaterThanZeroMessage;
                 returnObj.hasError = true;
             }
             return returnObj;
@@ -884,7 +1091,7 @@ define([
                 returnObj.returnErr = this.nls.validationErrorMessage.routeLengthErr + "'" + this.nls.lblForRouteLengthUnits + "'.";
                 returnObj.hasError = true;
             } else if (this.txtBufferDistance.value === "" || this.txtBufferDistance.value === null || isNaN(parseInt(this.txtBufferDistance.value, 10)) || parseInt(this.txtBufferDistance.value, 10) <= 0 || !this._validateInput(this.txtBufferDistance.value)) {
-                returnObj.returnErr = "'" + this.nls.lblBufferDistanceToGenerateServiceArea + "'" + this.nls.validationErrorMessage.bufferDistanceErr;
+                returnObj.returnErr = "'" + this.nls.lblBufferDistanceToGenerateServiceArea + "'" + this.nls.validationErrorMessage.greaterThanZeroMessage;
                 returnObj.hasError = true;
             }
             return returnObj;
@@ -903,13 +1110,14 @@ define([
                 returnObj.hasError = true;
                 // If previous URL that was set on set button and if user enters another URL in textbox control are different
             } else if (this.serviceURL !== this.closedFacilityServiceURL.value) {
+                domClass.add(this.closestFacilityParamContainer, "esriCTHidden");
                 returnObj.returnErr = this.nls.invalidURL + "'" + this.nls.lblClosestFacilityServiceUrl + "'.";
                 returnObj.hasError = true;
             } else if (this.txtFacilityDistance.value === "" || this.txtFacilityDistance.value === null || isNaN(parseInt(this.txtFacilityDistance.value, 10)) || parseInt(this.txtFacilityDistance.value, 10) <= 0 || !this._validateInput(this.txtFacilityDistance.value)) {
-                returnObj.returnErr = "'" + this.nls.lblFacilitySearchDistance + "'" + this.nls.validationErrorMessage.defaultFacilityDistance;
+                returnObj.returnErr = "'" + this.nls.lblFacilitySearchDistance + "'" + this.nls.validationErrorMessage.greaterThanZeroMessage;
                 returnObj.hasError = true;
             } else if (this.txtdefaultCuttoff.value === "" || this.txtdefaultCuttoff.value === null || isNaN(parseInt(this.txtdefaultCuttoff.value, 10)) || parseInt(this.txtdefaultCuttoff.value, 10) <= 0 || !this._validateInput(this.txtdefaultCuttoff.value)) {
-                returnObj.returnErr = "'" + this.nls.lblDefaultCutOffDistance + "'" + this.nls.validationErrorMessage.defaultCutOffDistance;
+                returnObj.returnErr = "'" + this.nls.lblDefaultCutOffDistance + "'" + this.nls.validationErrorMessage.greaterThanZeroMessage;
                 returnObj.hasError = true;
             }
             return returnObj;
@@ -917,7 +1125,7 @@ define([
 
         /**
         * This function is used to allow digits only
-        * @memberOf widgets/isolation-trace/settings/settings
+        * @memberOf widgets/SearviceFeasibility/settings/settings
         **/
         _validateInput: function (input) {
             var regex;
@@ -928,7 +1136,7 @@ define([
         /**
         * This function returns selected access Layer's names
         * @return {string} accessLayerName
-        * @memberOf widgets/isolation-trace/settings/settings
+        * @memberOf widgets/SearviceFeasibility/settings/settings
         **/
         _getAccessLayerNames: function () {
             var i, accessLayerName = "",
@@ -953,7 +1161,7 @@ define([
         /**
         * This function gets and creates config data for symbols
         * @return {object} Object of config
-        * @memberOf widgets/isolation-trace/settings/settings
+        * @memberOf widgets/SearviceFeasibility/settings/settings
         **/
         _getSymbols: function () {
             var symbolParam;
@@ -965,7 +1173,7 @@ define([
 
         /**
         * This function creates symbols in config UI for respective symbols
-        * @memberOf widgets/isolation-trace/settings/settings
+        * @memberOf widgets/SearviceFeasibility/settings/settings
         **/
         _createSymbol: function () {
             this.pointBarrierSymbolVal = this._createSymbolPicker(this.pointBarrierSymbol, "pointBarrierSymbol", "esriGeometryPoint");
@@ -978,7 +1186,7 @@ define([
 
         /**
         * This function creates symbols in config UI
-        * @memberOf widgets/isolation-trace/settings/settings
+        * @memberOf widgets/SearviceFeasibility/settings/settings
         **/
         _createSymbolPicker: function (symbolNode, symbolType, geometryType) {
             var objSymbol, i, symbolObjFlag = false,
@@ -1018,7 +1226,7 @@ define([
 
         /**
         * This function creates Highlighter Image for config UI
-        * @memberOf widgets/isolation-trace/settings/settings
+        * @memberOf widgets/SearviceFeasibility/settings/settings
         **/
         _createHighlighterImage: function () {
             var baseURL;
@@ -1048,7 +1256,7 @@ define([
 
         /**
         * This function returns the highlighter image object for configuration.
-        * @memberOf widgets/isolation-trace/settings/settings
+        * @memberOf widgets/SearviceFeasibility/settings/settings
         */
         _getHighlighterForm: function () {
             var othersParam;

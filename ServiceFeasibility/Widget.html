@@ -5,13 +5,13 @@
                 <div data-dojo-attach-point="tabContainerServiceFeasibility">
                     <div data-dojo-attach-point="tabSearch">
                         <div class="esriCTfindNearestContainer" data-dojo-attach-point="divFindNearest">
-                            <div class="esriCTlblFindNearestLabel">
+                            <div class="esriCTEllipsisForLabel">
                                 <label class="esriCTFindNearest">
                                 </label>
                             </div>
                             <div class="esriCTSelectFindNearest esriCTHidePanel" data-dojo-attach-point="selectFindNearestDropdownDiv">
-                                <select data-dojo-attach-point="selectFindNearest">
-                                </select></div>
+                                <div data-dojo-attach-point="selectFindNearest" class="esriCTFindNearestDropdown">
+                                </div></div>
                         </div>
                         <div class="esriCTbusinessInfluenceContainer" data-dojo-attach-point="divBuisnessInfluence">
                         </div>
@@ -59,17 +59,44 @@
                                 <div class="esriCTBusinessPassedContainer">
                                     <div class="esriCTBusinessPassedLabel">
                                         <label>
-                                            ${nls.businessPassedHeading}</label></div>
+                                            ${nls.businessPassedCountLabel}</label></div>
                                     <div class="esriCTBusinessPassedCount" data-dojo-attach-point="businessPassedCountValue">
                                     </div>
                                 </div>
                             </div>
                             <div class="esriCTBusinessTitleContainer" data-dojo-attach-point="businessTitleContainer">
-                                <div class="esriCTListTitle" data-dojo-attach-point="listTitleContainer">
+                                <div class="mainListTitleContainer esriCTListTitle">
+                                    <div>
+                                        <div class="esriCTBusinessPassedListLabel">
+                                            ${nls.businessPassedResultListHeading}
+                                        </div>
+                                    </div>
+                                    <div data-dojo-attach-point="sortIconDiv">
+                                        <div class="esriCTSortArrow" data-dojo-attach-point="sortOrderIcon">
+                                        </div>
+
+                                        <div data-dojo-attach-point="sortTooltip">
+                                                <input type="radio" data-dojo-attach-point="ascendingButton" checked />
+                                                <span class="esriCTAscendingOrderLabel"> ${nls.ascendingOrderLabel} </span>
+                                            <div class="esriCTDescendingSort">
+                                                <input type="radio" data-dojo-attach-point="descendingButton" />
+                                                <span class="esriCTDescendingOrderLabel"> ${nls.descendingOrderLabel} </span>
+                                            </div>
+                                        </div>
+
+                                    </div>
+                                    <div class="" data-dojo-attach-point="exportToCSVContainer">
+                                    </div>
                                 </div>
                             </div>
                             <div class="esriCTResultListPanel" data-dojo-attach-point="resultListContainer">
                             </div>
+                             <div class="esriCTExportLayerButtonsContainer  esriCTShowPanel" data-dojo-attach-point="divExportToLayerButtons">
+                            <div class="esriCTFindButtonContainer" data-dojo-attach-point="ExportToLayerButtonContainer">
+                            </div>
+                            <div class="esriCTClearButtonContainer" data-dojo-attach-point="divClearBtnContainer">
+                            </div>
+                        </div>
                             <div class="esriCTSaveLayerPanel esriCTHidePanel" data-dojo-attach-point="saveToLayerContainer">
                                 <div class="esriCTSaveLayerTitleContainer" data-dojo-attach-point="saveLayerTitleContainer">
                                     <div class="esriCTBackBtnImg" data-dojo-attach-point="backBtnImgContainer">
@@ -81,17 +108,7 @@
                                         </div>
                                     </div>
                                     <div class="esriCTHidePanel" data-dojo-attach-point="esriCTSaveBusinessRouteLength">
-                                        <div class="esriCTSaveBusinessPassed esriCTHidePanel" data-dojo-attach-point="saveBusinessPassedContainer">
-                                            <div class="esriCTSaveBusinessPassedLabel" data-dojo-attach-point="saveBusinessPassedlabel">
-                                            </div>
-                                            <div class="esriCTSaveBusinessPassedtxtbox" data-dojo-attach-point="saveBusinessPassedTxtbox">
-                                            </div>
-                                        </div>
-                                        <div class="esriCTSaveRouteLength esriCTHidePanel" data-dojo-attach-point="saveRouteLengthContainer">
-                                            <div class="esriCTSaveRouteLengthLabel" data-dojo-attach-point="saveRouteLengthLabel">
-                                            </div>
-                                            <div class="esriCTSaveRouteLengthTxtbox" data-dojo-attach-point="saveRouteLengthTxtbox">
-                                            </div>
+                                        <div class="esriCTEditableFieldContainer" data-dojo-attach-point="editableFieldContainer">
                                         </div>
                                     </div>
                                     <div class="esriCTBusinessLayerContainer" data-dojo-attach-point="businessLayerContainerDiv">

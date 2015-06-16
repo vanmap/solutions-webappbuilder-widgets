@@ -7,6 +7,7 @@
         clearResults: "清除结果",
         plotOnly: "只有剧情点",
         plottingRows: "行作图",
+        messages: "消息",
         error: {
             fetchingCSV: '从CSV存储错误获取项目: ${0}',
             fileIssue: '文件无法处理.',

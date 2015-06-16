@@ -20,6 +20,7 @@ define(['dojo/_base/declare',
         'dijit/form/Button',
         'dijit/form/SimpleTextarea',
         'dijit/form/TextBox',
+        'dijit/Dialog',
         'jimu/BaseWidgetSetting',
         'jimu/dijit/SimpleTable',
         'dojo/query',
@@ -30,17 +31,20 @@ define(['dojo/_base/declare',
         'dojo/_base/lang',
         'dojo/json',
         'dijit/form/Select',
+        'dijit/popup',
         'dojo/dom-construct',
         'jimu/dijit/SymbolChooser',
         'esri/symbols/jsonUtils',
         'esri/layers/FeatureLayer',
-        './layerDetails'], 
+        './layerDetails',
+        './symbolChooser'], 
 function(declare, 
         _WidgetsInTemplateMixin,
         RadioButton,
         Button,
         SimpleTextarea,
         TextBox,
+        Dialog,
         BaseWidgetSetting,
         SimpleTable,
         query,
@@ -51,11 +55,13 @@ function(declare,
         lang,
         JSON,
         Select,
+        popup,
         domConstruct,
         SymbolChooser,
         symbolJsonUtils,
         FeatureLayer,
-        layerDetails) {
+        layerDetails,
+        symbolChooserWid) {
   return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
     //these two properties is defined in the BaseWidget
     baseClass : 'solutions-widget-geolookup-setting',
@@ -78,6 +84,8 @@ function(declare,
 
       }
       this.setConfig(this.config);
+
+      on(this.symbolWithinLabel, 'click', lang.hitch(this, this.popSymbolChooser) );
 
       //Create a Layer and fields table object container
       this.createLayerTable();
@@ -349,11 +357,13 @@ function(declare,
                 isAppended : isAppended
               });
             }, this);
+            
             html.addClass(this.mainPage, 'hideGLItem');
             html.addClass(this.btnAdvSettings, 'hideGLItem');
             html.removeClass(this.fieldsPage, 'hideGLItem');
             html.removeClass(this.btnSaveFields, 'hideGLItem');
-            html.removeClass(this.btnCancelFields, 'hideGLItem');
+            html.removeClass(this.btnCancelFields, 'hideGLItem');          
+   
             this.currentLayer = rowData.id;
           }
         }
@@ -456,6 +466,44 @@ function(declare,
       html.removeClass(this.btnCancelAdv, 'hideGLItem');
       html.addClass(this.btnAdvSettings, 'hideGLItem');
     },
+    
+    popSymbolChooser: function(pParam) {
+
+      /*
+      popup.moveOffScreen(symbolChooserWid);
+
+      if(symbolChooserWid.startup && !symbolChooserWid._started){
+        symbolChooserWid.startup();
+      }      
+           
+      popup.open({
+          parent: this,
+          popup: symbolChooserWid,
+          around: this.symbolWithinLabel,
+          orient: ["below-centered", "above-centered"],
+          onExecute: function(){
+              popup.close(symbolChooserWid);
+          },
+          onCancel: function(){
+              popup.close(symbolChooserWid);
+          },
+          onClose: function(){
+          }
+      });
+      */
+      
+      
+        secondDlg = new Dialog({
+        title: "Choose symbol",
+        style: "width: 382px; height: 417px",
+        content: '<div data-dojo-attach-point="symbolWithin2" id="symbolWithin2" data-dojo-type="jimu/dijit/SymbolChooser" data-dojo-props=type:"marker"></div>'
+        });
+        secondDlg.show();
+      
+      
+    },
+    
+    
     showOKError : function() {
       this.btnErrorMsg.innerHTML = this.nls.errorOnOk;
       html.removeClass(this.btnErrorMsg, 'hideGLItem');

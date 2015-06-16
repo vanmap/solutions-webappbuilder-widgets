@@ -1,7 +1,7 @@
 define({
     root: {
         settingsHeader: "Set the details for the GeoLookup Widget",
-        settingsDesc: "This widget uses 1 or more polygon layers in the map to intersect with a list of locations.  Fields from the polygon layers are appended to the coordinates.",
+        settingsDesc: "Geo-enrich a list of locations from a CSV file against polygon layers on the map. Selected fields from polygon layers are appended to the locations.",
         layerTable: {
             colEnrich: "Enrich",
             colLabel: "Layer",

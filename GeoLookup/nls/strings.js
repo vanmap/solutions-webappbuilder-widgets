@@ -4,9 +4,10 @@ define({
         description: "Browse to or Drag a <a href='./widgets/geolookup/data/sample.csv' tooltip='Download an example sheet'> spreadsheet </a> here to visualize, and append map data to it.",
         selectCSV: "Select a CSV",
         loadingCSV: "Loading CSV",
-        clearResults: "Clear Results",
+        clearResults: "Clear",
         plotOnly: "Only Plot Points",
         plottingRows: "Ploting rows",
+        messages: "Messages",
         error: {
             fetchingCSV: 'Error fetching items from CSV store: ${0}',
             fileIssue: 'File could not be processed.',

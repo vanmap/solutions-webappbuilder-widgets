@@ -10,7 +10,8 @@ define({
         fieldTable: {
             colAppend: "Append",
             colName: "Name",
-            colAlias: "Alias"
+            colAlias: "Alias",
+            label: "Check the field you want to append. Select a field to change its alias, order it, and format it."
         },
         symbolArea: {
             symbolLabelWithin: 'Select the symbol for locations within:',
@@ -23,7 +24,8 @@ define({
             intersectInDesc: "Value to store when location intersected a polygon.",
             intersectOutDesc: "Value to store when location did not intersected a polygon.",
             maxRowCount: "Maximum number of rows in CSV file.",            
-            cacheNumberDesc: "Point cluster threshold for faster processing."
+            cacheNumberDesc: "Point cluster threshold for faster processing.",
+            subTitle: "Set values for CSV file."
         },
         noPolygonLayers: "No Polygon Layers",
         errorOnOk: "Please fill out all parameters before saving config",

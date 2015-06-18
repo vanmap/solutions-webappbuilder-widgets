@@ -1,14 +1,24 @@
 <div style="width:100%;">
-    <div data-dojo-attach-point="fieldsPage" class="hideGLItem">
-        <label data-dojo-attach-point="layername"></label><br />
+    <div data-dojo-type="dijit/Dialog" data-dojo-attach-point="fieldsPage" title="Configure Layer Fields">
+    	<div class="dijitDialogPaneContent" data-dojo-attach-point="fieldsContainer">
+        <label data-dojo-attach-point="layername">${nls.fieldTable.label}</label><p style="height:15px;">
         <div data-dojo-attach-point="tableFieldInfos"></div>
+       </div>
+	    <div class="dijitDialogPaneActionBar">
+	        <div class="jimu-btn" data-dojo-attach-point="ok" data-dojo-attach-event="click:saveFields" >OK</div>
+	        <div class="jimu-btn" data-dojo-attach-point="cancel" data-dojo-attach-event="click:cancelFields" >Cancel</div>
+	    </div>        
     </div>
 
-    <div data-dojo-attach-point="advSettingsPage" class="hideGLItem">
+    <div data-dojo-type="dijit/Dialog" data-dojo-attach-point="advSettingsPage" title="Advance Settings">
 
         <table class="setting-adv-table" cellspacing="0">
             <tbody>
-
+                <tr class="controls">
+                    <td>
+                        <span class="adv-settings-subTitle">${nls.advSettings.subTitle}</span>
+                    </td>
+                </tr>
                 <tr class="controlsMulti">
 
                     <td>
@@ -65,8 +75,28 @@
                     </td>
                 </tr>                
             </tbody>
-        </table><br />
+        </table>
+	    <div class="dijitDialogPaneActionBar">
+	        <div class="jimu-btn" data-dojo-attach-point="ok" data-dojo-attach-event="click:saveAdv" >OK</div>
+	        <div class="jimu-btn" data-dojo-attach-point="cancel" data-dojo-attach-event="click:cancelAdv" >Cancel</div>
+	    </div>        
     </div>
+    
+	<div data-dojo-type="dijit/Dialog" data-dojo-id="symbolDial" data-dojo-attach-point="symbolDial" title="Choose a Symbol">
+	    <table class="dijitDialogPaneContentArea">
+	        <tr>
+	            <td><div data-dojo-attach-point="symbolPicker" data-dojo-type="jimu/dijit/SymbolChooser" data-dojo-props='type:"marker"'></div></td>
+	        </tr>
+	    </table>
+	    	
+	    <div class="dijitDialogPaneActionBar">
+	        <div class="jimu-btn" data-dojo-attach-point="ok" data-dojo-attach-event="click:saveSymbol" >OK</div>
+	        <div class="jimu-btn" data-dojo-attach-point="cancel" data-dojo-attach-event="click:cancelSymbol" >Cancel</div>
+	    </div> 
+	    
+	</div>    
+    
+    
     <div data-dojo-attach-point="mainPage" style="width:100%;">
 
         <!-- <div class="settings-heading" data-dojo-attach-point="settingsHeader">${nls.settingsHeader}</div>  -->
@@ -78,14 +108,23 @@
                 <tr >
                     <td class="symbolItemLeft">
                         <label data-dojo-attach-point="symbolWithinLabel" for="symbolWithin">${nls.symbolArea.symbolLabelWithin}</label>
-                        <div data-dojo-attach-point="symbolWithin" id="symbolWithin" data-dojo-type="jimu/dijit/SymbolChooser" data-dojo-props='type:"marker"'></div>
                     </td>
+                    <td>
+                    	<span  data-dojo-attach-point="symbolInPreview"></span>
+                    </td>
+                </tr>    
+                <tr>
                     <td class="symbolItemLeft">
                         <label data-dojo-attach-point="symbolOutsideLabel" for="symbolOutside">${nls.symbolArea.symbolLabelOutside}</label>
-                        <div data-dojo-attach-point="symbolOutside" id="symbolOutside" data-dojo-type="jimu/dijit/SymbolChooser" data-dojo-props='type:"marker"'></div>
+                    </td>
+                    <td>
+                    	<span  data-dojo-attach-point="symbolOutPreview"></span>
                     </td>
                 </tr>
             </tbody>
         </table>
+        <div class="jimu-btn" data-dojo-attach-point="btnAdvSettings2" data-dojo-attach-event="click:showAdvSettings">${nls.advSettingsBtn}</div>
+        
+        <div class='settings-error hideGLItem'  data-dojo-attach-point="btnErrorMsg"></div>
     </div>
 </div>

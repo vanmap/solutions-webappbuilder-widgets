@@ -2327,12 +2327,14 @@ define([
                     }
                 }
 
-                if (routeFieldInfo !== null) {
+                if (routeFieldInfo != null) {
                     array.forEach(routeFieldInfo, function (fieldInfo) {
-                        if (fieldInfo.format !== null) {
-                            if (fieldInfo.format.dateFormat !== null) {
-                                if (fieldInfo.format.dateFormat === "shortDateShortTime" || fieldInfo.format.dateFormat === "shortDateShortTime24" ||
-                                fieldInfo.format.dateFormat === "shortDateLEShortTime" || fieldInfo.format.dateFormat === "shortDateLEShortTime24") {
+                        if (fieldInfo.format != null) {
+                            if (fieldInfo.format.dateFormat != null) {
+                                if (fieldInfo.format.dateFormat == "shortDateShortTime" ||
+                                fieldInfo.format.dateFormat == "shortDateShortTime24" ||
+                                fieldInfo.format.dateFormat == "shortDateLEShortTime" ||
+                                fieldInfo.format.dateFormat == "shortDateLEShortTime24") {
                                     fieldInfo.format.time = true;
                                 }
 
@@ -2343,7 +2345,7 @@ define([
                     fieldInfo = routeFieldInfo;
                 }
 
-                if (fieldInfo === null) {
+                if (fieldInfo == null) {
                     fieldInfo = array.map(layer.layerObject.fields, function (field) {
                         return {
                             "fieldName": field.name,

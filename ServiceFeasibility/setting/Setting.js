@@ -508,7 +508,7 @@ define([
         **/
         _createSaveBussinessCheckBox: function () {
             this.saveBusinessCheck = new CheckBox({ "title": this.nls.lblBusinessesLayer }, this.businessLayerCheckbox);
-            this.businessLayerDiv = domConstruct.create("label", { innerHTML: this.nls.lblBusinessesLayer, "class": "esriCTTargetLayerLabel" }, this.saveBusinessLayerLabel);
+            this.businessLayerDiv = domConstruct.create("label", { innerHTML: this.nls.lblBusinessesLayer, "title": this.nls.lblBusinessesLayer, "class": "esriCTTargetLayerLabel" }, this.saveBusinessLayerLabel);
             if (this.config && this.config.targetBusinessLayer) {
                 this.saveBusinessCheck.checked = true;
                 domClass.add(this.saveBusinessCheck.checkNode, "checked");
@@ -522,7 +522,7 @@ define([
         **/
         _createSaveRouteCheckBox: function () {
             this.saveRouteCheck = new CheckBox({ "title": this.nls.lblRouteLayer }, this.routeLayerCheckbox);
-            domConstruct.create("label", { innerHTML: this.nls.lblRouteLayer, "class": "esriCTTargetLayerLabel" }, this.saveRouteLayerLabel);
+            domConstruct.create("label", { innerHTML: this.nls.lblRouteLayer, "title": this.nls.lblRouteLayer, "class": "esriCTTargetLayerLabel" }, this.saveRouteLayerLabel);
             if (this.config && this.config.targetRouteLayer) {
                 this.saveRouteCheck.checked = true;
                 domClass.add(this.saveRouteCheck.checkNode, "checked");
@@ -539,9 +539,9 @@ define([
         **/
         _createSaveRouteLengthCheckBox: function () {
             this.saveRouteLength = new CheckBox({ "title": this.nls.lblRouteLength }, this.routelengthCheckbox);
-            domConstruct.create("label", { innerHTML: this.nls.lblRouteLength, "class": "esriCTTargetLayerLabel esriCTEllipsis" }, this.saveRouteLengthLabel);
+            domConstruct.create("label", { innerHTML: this.nls.lblRouteLength, "title": this.nls.lblRouteLength, "class": "esriCTTargetLayerLabel esriCTEllipsis" }, this.saveRouteLengthLabel);
             this.saveBusinessCount = new CheckBox({ "title": this.nls.lblBusinessCount }, this.businessCountCheckbox);
-            domConstruct.create("label", { innerHTML: this.nls.lblBusinessCount, "class": "esriCTTargetLayerLabel esriCTEllipsis" }, this.businessCountLabel);
+            domConstruct.create("label", { innerHTML: this.nls.lblBusinessCount, "title": this.nls.lblBusinessCount, "class": "esriCTTargetLayerLabel esriCTEllipsis" }, this.businessCountLabel);
             if (this.config && this.config.saveRoutelengthField) {
                 this.saveRouteLength.checked = true;
                 domClass.add(this.saveRouteLength.checkNode, "checked");
@@ -561,7 +561,7 @@ define([
         **/
         _createFieldMapping: function () {
             this.routeBussinessAttrTranferChkBox = new CheckBox({ "class": "routeBussinessAttrTranferChkBox" }, this.routeBussinessAttrTranferCheckBox);
-            domConstruct.create("label", { innerHTML: this.nls.FieldmMappingText, "class": "esriCTTargetLayerLabel esriCTEllipsis" }, this.fieldMappingLabel);
+            domConstruct.create("label", { innerHTML: this.nls.FieldmMappingText, "title": this.nls.FieldmMappingText, "class": "esriCTTargetLayerLabel esriCTEllipsis" }, this.fieldMappingLabel);
             if (this.config && this.config.RouteBussinessAttribute) {
                 this.routeBussinessAttrTranferChkBox.checked = true;
                 domClass.add(this.routeBussinessAttrTranferChkBox.checkNode, "checked");
@@ -794,7 +794,7 @@ define([
         **/
         _createExportToCSV: function () {
             this.exportCheck = new CheckBox({ "title": this.nls.captionExportCSV }, this.exportCsvCheck);
-            domConstruct.create("label", { innerHTML: this.nls.captionExportCSV, "class": "esriCTTargetLayerLabel" }, this.exportCsvLabel);
+            domConstruct.create("label", { innerHTML: this.nls.captionExportCSV, "title": this.nls.captionExportCSV, "class": "esriCTTargetLayerLabel" }, this.exportCsvLabel);
             if (this.config && this.config.exportToCSV) {
                 domClass.add(this.exportCheck.checkNode, "checked");
                 this.exportCheck.checked = this.config.exportToCSV;

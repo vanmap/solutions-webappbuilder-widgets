@@ -885,14 +885,14 @@ define([
                 }
             }));
 
-            if (overviewFieldInfo !== null) {
+            if (overviewFieldInfo != null) {
                 array.forEach(overviewFieldInfo, function (fieldInfo) {
-                    if (fieldInfo.format !== null) {
-                        if (fieldInfo.format.dateFormat !== null) {
-                            if (fieldInfo.format.dateFormat === "shortDateShortTime" ||
-                                fieldInfo.format.dateFormat === "shortDateShortTime24" ||
-                                fieldInfo.format.dateFormat === "shortDateLEShortTime" ||
-                                fieldInfo.format.dateFormat === "shortDateLEShortTime24") {
+                    if (fieldInfo.format != null) {
+                        if (fieldInfo.format.dateFormat != null) {
+                            if (fieldInfo.format.dateFormat == "shortDateShortTime" ||
+                                fieldInfo.format.dateFormat == "shortDateShortTime24" ||
+                                fieldInfo.format.dateFormat == "shortDateLEShortTime" ||
+                                fieldInfo.format.dateFormat == "shortDateLEShortTime24") {
                                 fieldInfo.format.time = true;
                             }
 
@@ -903,7 +903,7 @@ define([
                 fieldInfo = overviewFieldInfo;
             }
 
-            if (fieldInfo === null) {
+            if (fieldInfo == null) {
                 fieldInfo = array.map(layer.layerObject.fields, function (field) {
                     return {
                         "fieldName": field.name,

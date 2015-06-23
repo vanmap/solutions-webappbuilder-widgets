@@ -335,7 +335,11 @@ function(declare,
     _createFieldsDropDown: function(pLayer,pI,pTR) {
             var selectOptionArray = [];
             array.forEach(pLayer.fields, lang.hitch(this, function(field) {
-              selectOptionArray.push({ 'label': field.label, 'value': field.name });            
+              if((field.label).toUpperCase() === 'OBJECTID') {
+                selectOptionArray.push({ 'label': 'Features', 'value': field.name });  
+              } else {
+                selectOptionArray.push({ 'label': field.label, 'value': field.name });                
+              }            
             }));
                      
             var childTDs = pTR.children;
@@ -400,6 +404,10 @@ function(declare,
                           validExp = field.name; 
                           validLabel = field.label;
                         }
+                        if(selectVal === 'Features') {
+                          validExp = 'OBJECTID'; 
+                          validLabel = 'OBJECTID';                         
+                        }                        
                       }));  
                       
                       if(validRow != null && validExp != null) {
@@ -436,7 +444,7 @@ function(declare,
                   //TODO: only make picked layers visible.
   
                   if(!dom.byId(layer.name +'_download')){
-                    var rowDowload = domConstruct.toDom("<img src='"+this.folderUrl+"/images/download-csv.png' id='"+ layer.name +"_download'>"); 
+                    var rowDowload = domConstruct.toDom("<img src='"+this.folderUrl+"/images/download-csv.png' id='"+ layer.name +"_download' width='24'>"); 
                     domConstruct.place(rowDowload, dom.byId(layer.name + '_data_download'));                 
                     this.own(on(dom.byId(layer.name + '_download'), 'click', lang.hitch(this, "verifyInputFeatureGeom", evt,layer,evt.geometry,{operation:key,expression:stat.expression,label:stat.label},'export'))); 
                   }
@@ -445,7 +453,11 @@ function(declare,
                   var resultsTableDOM = domConstruct.toDom("<table id='" + resultID + "' class='results-table' ></table");
                   var rowTable = domConstruct.toDom("<tr id='"+ rowID +"'></tr>");
                   var rowPro = domConstruct.toDom("<td width='14' id='"+ rowID +"_0'><img src='"+ this.folderUrl +"/images/processing.gif' width='14'></td>");
-                  var rowExp = domConstruct.toDom("<td class='result-table-label' id='"+ rowID +"_1'>"+ stat.label +"</td>");
+                  if((stat.label).toUpperCase() === 'OBJECTID') {
+                    var rowExp = domConstruct.toDom("<td class='result-table-label' id='"+ rowID +"_1'>Features</td>"); 
+                  } else {
+                    var rowExp = domConstruct.toDom("<td class='result-table-label' id='"+ rowID +"_1'>"+ stat.label +"</td>");
+                  }
                   var rowKey = domConstruct.toDom("<td class='result-table-exp' id='"+ rowID +"_2'>"+ key +"</td>");                    
                   var rowSum = domConstruct.toDom("<td class='result-table-sum' id='"+ rowID +"_3'>0</td>");
                   domConstruct.place(rowPro, rowTable);
@@ -475,6 +487,10 @@ function(declare,
        * if it has less than 1K, go ahead and store in chunk array
        * if over 1K, split feature by 4 extents, and recurse this function again.
        */  
+              if(pAction === 'export') {
+                dom.byId(pLayer.name + '_download').src = this.folderUrl + "/images/processing.gif";   
+              }
+       
               var queryTask = new QueryTask(pLayer.url);
               var query = new Query();
                   query.returnGeometry = true;
@@ -744,7 +760,8 @@ function(declare,
     },
     
     exportToCSV: function(pLayer) {
-      //TODO: reset records after CSV export, or clear before next export so results don't double.'
+      //TODO: reset records after CSV export, or clear before next export so results don't double.'   
+      dom.byId(pLayer.name + '_download').src = this.folderUrl + "/images/download-csv.png";    
       var csvContent = "data:text/csv;charset=utf-8,";
       var firstRec = pLayer.export.records[0];
       var arrayHeader = [];
@@ -773,7 +790,17 @@ function(declare,
           
       pLayer.export.recordCount = null;
       pLayer.export.recordCurrentCount = null;
-      pLayer.export.records= [];          
+      pLayer.export.records= [];  
+      
+      this.saveToLayer();        
+    },
+    
+    saveToLayer: function() {
+      var gra = this.drawBox.drawLayer.graphics[0];
+      console.log(gra);
+      this.map.getLayer("SummaryResult_9495").applyEdits([gra], null, null, lang.hitch(this, function (adds) {
+        console.log(adds);
+      }), null);
     }
 
 

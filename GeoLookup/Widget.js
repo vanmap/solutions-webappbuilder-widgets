@@ -16,7 +16,6 @@
 define(['dojo/_base/declare',
         'dijit/_WidgetsInTemplateMixin',
         'jimu/BaseWidget',
-        'jimu/dijit/LoadingIndicator',
         'dojo/dom',
         'dojo/on',
         'dojo/_base/html',
@@ -27,9 +26,6 @@ define(['dojo/_base/declare',
         'dojo/dom-construct',
         'dojo/dom-style',
         'dojox/data/CsvStore',
-        'dojox/encoding/base64',
-        'esri/graphic',
-        'esri/Color',
         'esri/geometry/webMercatorUtils',
         'esri/layers/FeatureLayer',
         'esri/geometry/Multipoint',
@@ -40,13 +36,11 @@ define(['dojo/_base/declare',
         'esri/SpatialReference',
         'esri/symbols/jsonUtils',
         'esri/renderers/UniqueValueRenderer',
-        'esri/graphicsUtils',
         'jimu/dijit/Message',
-        './layerQueryDetails'], 
-function(declare, 
+        './layerQueryDetails'],
+function(declare,
         _WidgetsInTemplateMixin,
         BaseWidget,
-        LoadingIndicator,
         dom,
         on,
         html,
@@ -57,9 +51,6 @@ function(declare,
         domConstruct,
         domStyle,
         CsvStore,
-        base64,
-        Graphic,
-        Color,
         webMercatorUtils,
         FeatureLayer,
         Multipoint,
@@ -70,7 +61,6 @@ function(declare,
         SpatialReference,
         symbolJsonUtils,
         UniqueValueRenderer,
-        graphicsUtils,
         Message,
         layerQueryDetails) {
 
@@ -103,35 +93,32 @@ function(declare,
       this._buildRenderer();
       this._initalizeLookupLayers();
       var c = dom.byId(this.id);
-      on(c, 'dragover', function(event) {
+      this.own(on(c, 'dragover', function(event) {
         event.preventDefault();
-      });
+      }));
 
-      on(c, 'dragenter', function(event) {
+      this.own(on(c, 'dragenter', function(event) {
         event.preventDefault();
-      });
+      }));
 
-      on(c, 'drop', lang.hitch(this, this._handleCSVDrop));
+      this.own(on(c, 'drop', lang.hitch(this, this._handleCSVDrop)));
       this.srWebMerc = new SpatialReference({
         wkid : 102100
       });
       array.forEach(this.config.enrichLayers, function(lay) {
-        //var mapLay = this.map.getLayer(lay.id);
-        //if (mapLay) {
-          var textID = lay.id;
-          var progID = lay.id + '_prog';
-          var row = domConstruct.toDom("<tr class='controls'>" + "<td><div id='" + progID + "' class='status processing' /></td>" + "<td><div id='" + textID + "' class='result-text' ></div>" + "</td></tr>");
+        var textID = lay.id;
+        var progID = lay.id + '_prog';
+        var row = domConstruct.toDom("<tr class='controls'>" + "<td><div id='" + progID + "' class='status processing' /></td>" + "<td><div id='" + textID + "' class='result-text' ></div>" + "</td></tr>");
 
-          domConstruct.place(row, this.widgetsResultsTableBody);
-          this.enrichResultsProg[textID] = dojo.byId(progID);
-          this.enrichResultsText[textID] = dojo.byId(textID);
-          this.enrichResultsText[textID].innerHTML = string.substitute(this.nls.results.recordsEnriched, {
-            0 : 0,
-            1 : 0,
-            2 : 0,
-            3 : lay.label
-          });
-        //}
+        domConstruct.place(row, this.widgetsResultsTableBody);
+        this.enrichResultsProg[textID] = dom.byId(progID);
+        this.enrichResultsText[textID] = dom.byId(textID);
+        this.enrichResultsText[textID].innerHTML = string.substitute(this.nls.results.recordsEnriched, {
+          0 : 0,
+          1 : 0,
+          2 : 0,
+          3 : lay.label
+        });
       }, this);
       domClass.add(this.clearResultsBtn, 'jimu-state-disabled');
       this.loading.hide();
@@ -149,40 +136,34 @@ function(declare,
     _initalizeLookupLayers : function() {
       this.lookupLayersField = [];
       this.lookupLayersFieldNames = [];
-      var mapLayer;
       var fieldNames;
+      var fieldAlias;
       array.forEach(this.config.enrichLayers, function(configLayer) {
-
-        //configLayer.mapLayer = this.map.getLayer(configLayer.id);
-        //if (configLayer.mapLayer) {
-          fieldNames = array.map(configLayer.fields, function(field) {
-            return field.fieldName;
-          });
-          fieldAlias = array.map(configLayer.fields, function(field) {
-            return field.label;
-          });
-          array.forEach(fieldNames, function(field, i) {
-            //if (fieldNames.indexOf(field.name) >= 0) {
-              var fieldStruct = {
-            'name' : null,
-            'alias' : null,
-            'type' : 'esriFieldTypeString',
-            'editable' : true,
-            'domain' : null
-          };
-              if (this.lookupLayersFieldNames.indexOf(field) < 0) {
-                var aliasPosition = fieldNames.indexOf(field);
-                fieldStruct.name = field;
-                fieldStruct.alias = fieldAlias[aliasPosition];
-                this.lookupLayersFieldNames.push(fieldStruct.name);
-                this.lookupLayersFields.push(fieldStruct);
-              }
-            //}
-          }, this);
-        //}
+        fieldNames = array.map(configLayer.fields, function(field) {
+          return field.fieldName;
+        });
+        fieldAlias = array.map(configLayer.fields, function(field) {
+          return field.label;
+        });
+        array.forEach(fieldNames, function(field) {
+          var fieldStruct = {
+          'name' : null,
+          'alias' : null,
+          'type' : 'esriFieldTypeString',
+          'editable' : true,
+          'domain' : null
+        };
+          if (this.lookupLayersFieldNames.indexOf(field) < 0) {
+            var aliasPosition = fieldNames.indexOf(field);
+            fieldStruct.name = field;
+            fieldStruct.alias = fieldAlias[aliasPosition];
+            this.lookupLayersFieldNames.push(fieldStruct.name);
+            this.lookupLayersFields.push(fieldStruct);
+          }
+        }, this);
       }, this);
     },
-    fileSelected : function(evt) {
+    fileSelected : function() {
       this._processFiles(this.csvFileInput.files);
       this.inputForm.reset();
       //// Check for the various File API support.
@@ -234,7 +215,7 @@ function(declare,
     },
     handleCSV : function(file) {
 
-      console.log('Reading CSV: ', file, ', ', file.name, ', ', file.type, ', ', file.size);
+      //console.log('Reading CSV: ', file, ', ', file.name, ', ', file.type, ', ', file.size);
       var reader = new FileReader();
       reader.onload = lang.hitch(this, function() {
         this._processCSVData(reader.result);
@@ -261,13 +242,12 @@ function(declare,
           Message({
             message : msg
           });
-
           console.error(msg, error);
         })
       });
     },
     _csvReadComplete : function(items) {
-      if (items.length <= parseInt(this.config.maxRowCount)) {
+      if (items.length <= parseInt(this.config.maxRowCount, 10)) {
         var recCount = items.length.toString();
         domClass.remove(this.results, "hide");
         this.resultsLoading.innerHTML = string.substitute(this.nls.results.csvLoaded, {
@@ -279,8 +259,6 @@ function(declare,
         var featureCollection = this._generateFeatureCollectionTemplateCSV(this.csvStore, items);
         var popupInfo = this._generateDefaultPopupInfo(featureCollection);
         var infoTemplate = new InfoTemplate(this._buildInfoTemplate(popupInfo));
-        var latField,
-            longField;
 
         this.latField = null;
         this.longField = null;
@@ -329,7 +307,7 @@ function(declare,
             errorFlag = true;
             errorCnt = errorCnt + 1;
             //increase error id by 2 to handle zero start and 1 has header.
-            this.errorList.push((parseInt(item._csvId) + 2));
+            this.errorList.push((parseInt(item._csvId, 10) + 2));
             this.enrichErrors.innerHTML = string.substitute(this.nls.results.recordsError, {
               0 : errorCnt
             });
@@ -365,21 +343,21 @@ function(declare,
         domClass.remove(this.clearResultsBtn, 'jimu-state-disabled');
         this._zoomToData(this.featureLayer);
 
+        var key;
         if (!this.chkboxPlotOnly.checked) {
           this._enrichData(this.featureLayer, this.config.enrichLayers);
-
-          for (var key in this.enrichResultsProg) {
+          for (key in this.enrichResultsProg) {
             if (this.enrichResultsProg.hasOwnProperty(key)) {
               domStyle.set(this.enrichResultsProg[key], 'display', 'block');
             }
           }
         } else {
-          for (var key in this.enrichResultsText) {
+          for (key in this.enrichResultsText) {
             if (this.enrichResultsText.hasOwnProperty(key)) {
               this.enrichResultsText[key].innerHTML = '';
             }
           }
-          for (var key in this.enrichResultsProg) {
+          for (key in this.enrichResultsProg) {
             if (this.enrichResultsProg.hasOwnProperty(key)) {
               domStyle.set(this.enrichResultsProg[key], 'display', 'none');
             }
@@ -400,15 +378,15 @@ function(declare,
       this.syncLayers = [];
       var counter = 0;
       var points = 1;
-      var arrGraphics = new Array();
-      arrGraphics[counter] = new Array();
+      var arrGraphics = [];
+      arrGraphics[counter] = [];
       array.forEach(flayer.graphics, lang.hitch(this, function(graphic) {
-        if (points >= parseInt(this.config.cacheNumber)) {
+        if (points >= parseInt(this.config.cacheNumber, 10)) {
           arrGraphics[counter].push(graphic);
-          if (flayer.graphics.length > ((counter + 1) * parseInt(this.config.cacheNumber))) {
+          if (flayer.graphics.length > ((counter + 1) * parseInt(this.config.cacheNumber, 10))) {
             counter++;
             points = 1;
-            arrGraphics[counter] = new Array();
+            arrGraphics[counter] = [];
           }
         } else {
           arrGraphics[counter].push(graphic);
@@ -433,12 +411,12 @@ function(declare,
           'valueInSym' : this.symIn,
           'valueOutSym' : this.symOut
         });
-        on(syncDet, 'complete', lang.hitch(this, this._syncComplete));
-        on(syncDet, 'requestComplete', lang.hitch(this, this._requestComplete));
-        on(syncDet, 'error', lang.hitch(this, this._deferredErrorCallback));
+        this.own(on(syncDet, 'complete', lang.hitch(this, this._syncComplete)));
+        this.own(on(syncDet, 'requestComplete', lang.hitch(this, this._requestComplete)));
+        this.own(on(syncDet, 'error', lang.hitch(this, this._deferredErrorCallback)));
         this.syncLayers.push(syncDet);
 
-        this.queryCallback(arrGraphics, idx, layer, fields, syncDet); 
+        this.queryCallback(arrGraphics, idx, layer, fields, syncDet);
 
       }, this);
     },
@@ -463,9 +441,12 @@ function(declare,
         query.returnGeometry = true;
         query.outFields = ["*"];
         query.geometry = multipoint;
-        def = queryTask.execute(query, lang.hitch(this, this.queryCallback(chunks, idx + 1, layer, fields, syncDet)), lang.hitch(this, this.queryErrorback(layer)));
+        def = queryTask.execute(query, lang.hitch(this,
+          this.queryCallback(chunks, idx + 1, layer, fields, syncDet)),
+          lang.hitch(this, this.queryErrorback(layer)
+        ));
         //layer.mapLayer.setAutoGeneralize(false);
-        //def = layer.mapLayer.selectFeatures(query, FeatureLayer.MODE_ONDEMAND, lang.hitch(this, this.queryCallback(chunks, idx + 1, layer, fields, syncDet)), lang.hitch(this, this.queryErrorback(layer)));        
+        //def = layer.mapLayer.selectFeatures(query, FeatureLayer.MODE_ONDEMAND, lang.hitch(this, this.queryCallback(chunks, idx + 1, layer, fields, syncDet)), lang.hitch(this, this.queryErrorback(layer)));
         syncDet.addDeferred(def, chunks[idx]);
         this.featureLayer.redraw();
       } else {
@@ -475,9 +456,12 @@ function(declare,
             query.returnGeometry = true;
             query.outFields = ["*"];
             query.geometry = multipoint;
-            def = queryTask.execute(query, lang.hitch(this, this.queryCallback(chunks, idx + 1, layer, fields, syncDet)), lang.hitch(this, this.queryErrorback(layer)));
+            def = queryTask.execute(query, lang.hitch(this,
+              this.queryCallback(chunks, idx + 1, layer, fields, syncDet)),
+              lang.hitch(this, this.queryErrorback(layer)
+            ));
             //layer.mapLayer.setAutoGeneralize(false);
-            //def = layer.mapLayer.selectFeatures(query, FeatureLayer.MODE_ONDEMAND, lang.hitch(this, this.queryCallback(chunks, idx + 1, layer, fields, syncDet)), lang.hitch(this, this.queryErrorback(layer)));            
+            //def = layer.mapLayer.selectFeatures(query, FeatureLayer.MODE_ONDEMAND, lang.hitch(this, this.queryCallback(chunks, idx + 1, layer, fields, syncDet)), lang.hitch(this, this.queryErrorback(layer)));
             syncDet.addDeferred(def, chunks[idx]);
             this.featureLayer.redraw();
           }
@@ -486,9 +470,9 @@ function(declare,
           };
         };
       }
-    },    
+    },
     queryErrorback : function(layer) {
-      return lang.hitch(this, function(err, layer) {
+      return lang.hitch(this, function(err) {
         if (this.enrichResultsProg.hasOwnProperty(layer.id)) {
           domClass.replace(this.enrichResultsProg[layer.id], 'error', 'complete');
           domClass.replace(this.enrichResultsProg[layer.id], 'error', 'processing');
@@ -528,20 +512,20 @@ function(declare,
     _resetResults : function() {
       domClass.replace(this.resultsLoadingImage, 'processing', 'complete');
       domClass.replace(this.resultsPlottingImage, 'processing', 'complete');
-      for (var key in this.enrichResultsProg) {
+      var key;
+      for (key in this.enrichResultsProg) {
         if (this.enrichResultsProg.hasOwnProperty(key)) {
           domClass.replace(this.enrichResultsProg[key], 'processing', 'error');
           domClass.replace(this.enrichResultsProg[key], 'processing', 'complete');
         }
       }
-      for (var key in this.enrichResultsProg) {
+      for (key in this.enrichResultsProg) {
         if (this.enrichResultsText.hasOwnProperty(key)) {
-          //var mapLay = this.map.getLayer(key);
           var mapLay;
           array.forEach(this.config.enrichLayers, lang.hitch(this, function(layer) {
             if(layer.id === key) {
               mapLay = layer;
-            } 
+            }
           }));
 
           this.enrichResultsText[key].innerHTML = string.substitute(this.nls.results.recordsEnriched, {
@@ -599,8 +583,7 @@ function(declare,
           'spatialReference' : {
             'wkid' : 102100
           }
-        },
-
+        }
       };
 
       featureCollection.layerDefinition = {

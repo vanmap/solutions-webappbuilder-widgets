@@ -15,31 +15,32 @@
         <table class="setting-adv-table" cellspacing="0">
             <tbody>
                 <tr class="controls">
-                    <td>
+                    <td colspan="2">
                         <span class="adv-settings-subTitle">${nls.advSettings.subTitle}</span>
                     </td>
                 </tr>
                 <tr class="controlsMulti">
 
-                    <td>
-                        <span>${nls.advSettings.latFieldsDesc}</span>
+                    <td><span>${nls.advSettings.latFieldsDesc}</span></td>
 
-                        <textarea class="textArea" data-dojo-attach-point="advSettingsLatValues" data-dojo-type="dijit/form/SimpleTextarea"></textarea>
+                    <td><textarea class="textAreaCoord" data-dojo-attach-point="advSettingsLatValues" data-dojo-type="dijit/form/SimpleTextarea"></textarea>
                     </td>
                 </tr>
                 <tr class="controlsMulti">
 
                     <td>
                         <span>${nls.advSettings.longFieldsDesc}</span>
-
-                        <textarea class="textArea" data-dojo-attach-point="advSettingsLongValues" data-dojo-type="dijit/form/SimpleTextarea"></textarea>
+					</td>
+					<td>
+                        <textarea class="textAreaCoord" data-dojo-attach-point="advSettingsLongValues" data-dojo-type="dijit/form/SimpleTextarea"></textarea>
                     </td>
                 </tr>
                 <tr class="controls">
 
                     <td>
                         <span>${nls.advSettings.intersectFieldDesc}</span>
-
+					</td>
+					<td>
                         <div class="textBox" data-dojo-attach-point="advSettingsIntersectField" data-dojo-type="dijit/form/TextBox"></div>
                     </td>
                 </tr>
@@ -47,7 +48,8 @@
 
                     <td>
                         <span>${nls.advSettings.intersectInDesc}</span>
-
+					</td>
+					<td>
                         <div class="textBox" data-dojo-attach-point="advSettingsIntersectInValue" data-dojo-type="dijit/form/TextBox"></div>
                     </td>
                  
@@ -56,21 +58,24 @@
 
                     <td>
                         <span>${nls.advSettings.intersectOutDesc}</span>
-
+					</td>
+					<td>
                         <div class="textBox" data-dojo-attach-point="advSettingsIntersectOutValue" data-dojo-type="dijit/form/TextBox"></div>
                     </td>
                 </tr>
                 <tr class="controls">
                     <td>
                         <span>${nls.advSettings.maxRowCount}</span>
-
+					</td>
+					<td>
                         <div class="textBox" data-dojo-attach-point="advSettingsMaxRowCount" data-dojo-type="dijit/form/TextBox"></div>
                     </td>
                 </tr>                 
                 <tr class="controls">
                     <td>
                         <span>${nls.advSettings.cacheNumberDesc}</span>
-
+					</td>
+					<td>
                         <div class="textBox" data-dojo-attach-point="advSettingsCacheNumber" data-dojo-type="dijit/form/TextBox"></div>
                     </td>
                 </tr>                

@@ -15,12 +15,8 @@
 ///////////////////////////////////////////////////////////////////////////
 
 define(['dojo/_base/declare',
-        'dijit/_WidgetsInTemplateMixin',
-        'dijit/form/RadioButton',
-        'dijit/form/Button',
-        'dijit/form/SimpleTextarea',
-        'dijit/form/TextBox',
         'jimu/BaseWidgetSetting',
+        'dijit/_WidgetsInTemplateMixin',
         'jimu/dijit/SimpleTable',
         'dojo/query',
         'dojo/_base/html',
@@ -28,37 +24,25 @@ define(['dojo/_base/declare',
         'dojo/_base/array',
         'dojo/on',
         'dojo/_base/lang',
-        'dojo/json',
-        'dijit/form/Select',
         'dojo/dom-construct',
-        'jimu/dijit/SymbolChooser',
         'jimu/symbolUtils',
         'esri/symbols/jsonUtils',
-        'esri/layers/FeatureLayer',
-        'esri/symbols/SimpleMarkerSymbol',
-        './layerDetails'], 
-function(declare, 
-        _WidgetsInTemplateMixin,
-        RadioButton,
-        Button,
-        SimpleTextarea,
-        TextBox,
+        'jimu/dijit/SymbolChooser',
+        './layerDetails'],
+function(declare,
         BaseWidgetSetting,
+        _WidgetsInTemplateMixin,
         SimpleTable,
         query,
         html,
         domStyle,
         array,
-        on,       
+        on,
         lang,
-        JSON,
-        Select,
         domConstruct,
-        SymbolChooser,
         jimuSymUtils,
         symbolJsonUtils,
-        FeatureLayer,
-        SimpleMarkerSymbol,
+        SymbolChooser,
         layerDetails) {
   return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
     //these two properties is defined in the BaseWidget
@@ -84,15 +68,15 @@ function(declare,
       }
       this.setConfig(this.config);
 
-      on(this.symbolInPreview, 'click', lang.hitch(this, function() {
+      this.own(on(this.symbolInPreview, 'click', lang.hitch(this, function() {
         this.popSymbolChooser('Within');
         this.symbolDial.show();
-      }));
+      })));
 
-      on(this.symbolOutPreview, 'click', lang.hitch(this, function() {
+      this.own(on(this.symbolOutPreview, 'click', lang.hitch(this, function() {
         this.popSymbolChooser('Outside');
         this.symbolDial.show();
-      }));
+      })));
 
       //Create a Layer and fields table object container
       this.createLayerTable();
@@ -104,7 +88,7 @@ function(declare,
       if ((this.map.itemInfo.itemData.operationalLayers).length > 0) {
         var lyrDet = new layerDetails(this.map);
         lyrDet.getAllMapLayers();
-        on(lyrDet, 'complete', lang.hitch(this, this._completeLayerDetails));
+        this.own(on(lyrDet, 'complete', lang.hitch(this, this._completeLayerDetails)));
       } else {
         this._noLayersDisplay();
       }
@@ -112,7 +96,7 @@ function(declare,
 
     setConfig : function(config) {
       this.config = config;
-      var error = array.forEach(this.config.enrichLayers, function(row) {
+      array.forEach(this.config.enrichLayers, function(row) {
         this.selectedFields[row.id] = row.fields;
       }, this);
       this.showInitSymbols();
@@ -186,7 +170,7 @@ function(declare,
             if (filteredArr.length > 0) {
               enrich = true;
             }
-            var row = this.layersTable.addRow({
+            this.layersTable.addRow({
               label : label,
               enrich : enrich,
               id : layer.id,
@@ -300,6 +284,7 @@ function(declare,
             var filtFields;
             var filtAlias;
             var isAppended;
+            var aliasLabel;
             if (fields) {
               filtFields = array.map(fields, function(field) {
                 return field.fieldName;
@@ -308,7 +293,7 @@ function(declare,
                 return field.label;
               });
             }
-            var fields = layer.children;
+            fields = layer.children;
             array.forEach(fields, function(field) {
               aliasLabel = field.label;
               isAppended = false;
@@ -363,7 +348,7 @@ function(declare,
       valSpl = val.split('\n');
       this.config.latFields = [];
       array.forEach(valSpl, function(value) {
-        if (value != '') {
+        if (value !== '') {
           this.config.latFields.push(value);
         }
       }, this);
@@ -372,7 +357,7 @@ function(declare,
       valSpl = val.split('\n');
       this.config.longFields = [];
       array.forEach(valSpl, function(value) {
-        if (value != '') {
+        if (value !== '') {
           this.config.longFields.push(value);
         }
       }, this);
@@ -412,12 +397,12 @@ function(declare,
     popSymbolChooser : function(pParam) {
 
       this.symbolEvent = pParam;
-
+      var symSelect;
+      var sym;
       if (pParam === 'Within') {
-        var symSelect = this.config.SymbolWithin;
-
+        symSelect = this.config.SymbolWithin;
       } else {
-        var symSelect = this.config.SymbolOutside;
+        symSelect = this.config.SymbolOutside;
       }
 
       sym = symbolJsonUtils.fromJson(symSelect);
@@ -442,15 +427,17 @@ function(declare,
     },
 
     showInitSymbols : function() {
+      var sym;
+      var node;
+      var symbolNode;
       if (this.config.SymbolWithin) {
         sym = symbolJsonUtils.fromJson(this.config.SymbolWithin);
         if (sym) {
-          var node = this.symbolInPreview;
-          var sym = symbolJsonUtils.fromJson(this.config.SymbolWithin);
+          node = this.symbolInPreview;
 
           html.empty(node);
 
-          var symbolNode = jimuSymUtils.createSymbolNode(sym);
+          symbolNode = jimuSymUtils.createSymbolNode(sym);
           if (!symbolNode) {
             symbolNode = html.create('div');
           }
@@ -462,12 +449,11 @@ function(declare,
       if (this.config.SymbolOutside) {
         sym = symbolJsonUtils.fromJson(this.config.SymbolOutside);
         if (sym) {
-          var node = this.symbolOutPreview;
-          var sym = symbolJsonUtils.fromJson(this.config.SymbolOutside);
+          node = this.symbolOutPreview;
 
           html.empty(node);
 
-          var symbolNode = jimuSymUtils.createSymbolNode(sym);
+          symbolNode = jimuSymUtils.createSymbolNode(sym);
           if (!symbolNode) {
             symbolNode = html.create('div');
           }
@@ -489,7 +475,6 @@ function(declare,
     },
     _noLayersDisplay : function() {
       domStyle.set(this.tableLayerInfosError, 'display', '');
-      this.loadCustomButtons(false);
     }
   });
 });

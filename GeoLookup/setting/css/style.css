@@ -1,24 +1,24 @@
 
 /*Shared Page*/
-.settings-heading {
+.solutions-widget-geolookup-setting .settings-heading {
     font-size: 1.35em;
     margin-top: 15px;
 }
 
-.settings-description {
+.solutions-widget-geolookup-setting .settings-description {
 	font-family: 'Open Sans', sans-serif;
     font-size: 14px;
     color: #596679;
     margin-top: 15px;    
 }
 
-.settings-error {
+.solutions-widget-geolookup-setting .settings-error {
 	padding-top: 15px;
     font-size: 14px;
     color: orangered;
 }
 
-.hideGLItem {
+.solutions-widget-geolookup-setting .hideGLItem {
     display: none;
 }
 
@@ -69,13 +69,13 @@
     margin-left: 15px;
 }
 
-.controlsMulti {
+.solutions-widget-geolookup-setting .controlsMulti {
     width: 100%;
     height: 130px;
     vertical-align: middle;
 }
 
-.controls {
+.solutions-widget-geolookup-setting .controls {
     width: 100%;
     vertical-align: middle;
 }
@@ -103,16 +103,16 @@
     color: #596679; 		
 }
 
-.textArea {
-    height: 100px;
-    float: right;
+.textAreaCoord {
+    height: 130px;
     min-height: 100px;
+    float: right;
     resize: none;
-    width: auto;
+    width: 100%;
     font-size: 1em;
 }
 
-.textBox {
+.solutions-widget-geolookup-setting .textBox {
     float: right;
     width: auto;
     margin-left: 5px;

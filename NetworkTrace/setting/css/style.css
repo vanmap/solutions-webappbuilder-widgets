@@ -73,6 +73,10 @@
     white-space: nowrap;
 }
 
+.jimu-widget-NetworkTrace-setting  .jimu-btn{
+    padding: 7px 12px;
+    max-width: 110px;
+}
 
 .jimu-widget-NetworkTrace-setting .esriCTtaskDataContainer
 {
@@ -382,6 +386,13 @@
     min-height: 10px;
     margin-top: 5px;
     margin-bottom: 5px;
+}
+
+.jimu-widget-NetworkTrace-setting .esriCTSelectImageHint
+{
+    float: right;
+    margin-top: -20px;
+    width: 400px;
 }
 
 .jimu-widget-NetworkTrace-setting .esriCTfieldContainer

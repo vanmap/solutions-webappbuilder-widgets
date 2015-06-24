@@ -611,6 +611,7 @@ define([
         _displayExportToCSVPanel: function () {
             var labelText, saveButton, checkboxDiv, btnExportToLayerDiv, exportToLayerCheckBox;
             domConstruct.empty(this.exportToCSVBottomDiv);
+            domConstruct.empty(this.exportToCSVButtonDiv);
             array.forEach(this.config.geoprocessing.outputs, function (output) {
                 if (output.exportToCSV) {
                     checkboxDiv = domConstruct.create("div", {
@@ -634,7 +635,7 @@ define([
                 "class": "esriCTSaveButton"
             });
             //Save
-            saveButton = domConstruct.create("button", {
+            saveButton = domConstruct.create("div", {
                 "class": "jimu-btn",
                 "innerHTML": this.nls.btnSaveExportToLayer
             }, btnExportToLayerDiv);
@@ -662,7 +663,7 @@ define([
                     }
                 }
             })));
-            domConstruct.place(btnExportToLayerDiv, this.exportToCSVBottomDiv);
+            domConstruct.place(btnExportToLayerDiv, this.exportToCSVButtonDiv);
         },
 
         /**
@@ -823,7 +824,7 @@ define([
                     "name": this.config.overview.type,
                     "class": "clearInstance saveToLayerData"
                 }, this.outageAreaDiv);
-                this.CheckBoxOutageArea.title = this.nls.outageAreaValue;
+                this.CheckBoxOutageArea.title = this.nls.outageAreaLabel;
                 domConstruct.create("label", {
                     "innerHTML": this.nls.outageAreaLabel,
                     "class": "esriCTLabelMargin"
@@ -835,12 +836,12 @@ define([
                         this.attInspector.destroy();
                     }
                     this.attInspector = null;
-                    overviewLayerFields = this._getPopupinfoOverviewLayer(this.config.overview.saveToLayer);
+                    overviewLayerFields = this.layerFieldsToFieldInfos(this.config.overview.saveToLayer);
                     overviewLayerInfos = [{
                         'featureLayer': this.overviewGraphicsLayer,
                         'showAttachments': false,
                         'isEditable': true,
-                        'fieldInfos': this._filterOverviewLayerFieldInfo(overviewLayerFields)
+                        'fieldInfos': overviewLayerFields
                     }];
                     this.attInspector = new AttributeInspector({
                         layerInfos: overviewLayerInfos
@@ -875,15 +876,48 @@ define([
             }));
         },
 
-        _getPopupinfoOverviewLayer: function (layerName) {
-            var overviewFieldInfo = [];
+        layerFieldsToFieldInfos: function (layerName) {
+            var fieldInfo = null, layer = null, overviewFieldInfo = [];
             array.some(this.map.webMapResponse.itemInfo.itemData.operationalLayers, lang.hitch(this, function (layer) {
                 if (layer.id === layerName) {
                     overviewFieldInfo = layer.popupInfo.fieldInfos;
                     return true;
                 }
             }));
-            return overviewFieldInfo;
+
+            if (overviewFieldInfo != null) {
+                array.forEach(overviewFieldInfo, function (fieldInfo) {
+                    if (fieldInfo.format != null) {
+                        if (fieldInfo.format.dateFormat != null) {
+                            if (fieldInfo.format.dateFormat == "shortDateShortTime" ||
+                                fieldInfo.format.dateFormat == "shortDateShortTime24" ||
+                                fieldInfo.format.dateFormat == "shortDateLEShortTime" ||
+                                fieldInfo.format.dateFormat == "shortDateLEShortTime24") {
+                                fieldInfo.format.time = true;
+                            }
+
+
+                        }
+                    }
+                });
+                fieldInfo = overviewFieldInfo;
+            }
+
+            if (fieldInfo == null) {
+                fieldInfo = array.map(layer.layerObject.fields, function (field) {
+                    return {
+                        "fieldName": field.name,
+                        "isEditable": field.editable,
+                        "tooltip": field.alias,
+                        "label": field.alias,
+                        "format": { "time": true }
+                    };
+                });
+            }
+
+            return array.filter(fieldInfo, function (field) {
+                return field.isEditable;
+            });
         },
 
         /**

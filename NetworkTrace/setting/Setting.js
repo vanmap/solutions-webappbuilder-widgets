@@ -952,7 +952,7 @@ define([
         },
 
         /**
-        * This function will validate 'Save To Layer' target layer. 
+        * This function will validate 'Save To Layer' target layer.
         * @memberOf widgets/isolation-trace/settings/settings
         **/
         _validateSaveToLayerParameters: function () {
@@ -1024,7 +1024,7 @@ define([
                         othersParam = otherData.getOthersForm();
                         imageDataOBJ = otherData.imageDataObj;
                         //otherData.imageChooser.imageData;
-                        if (othersParam.highlighterDetails && othersParam.displayTextForRunButton && imageDataOBJ) {
+                        if (othersParam && othersParam.highlighterDetails && othersParam.displayTextForRunButton !== null && imageDataOBJ) {
                             if (imageDataOBJ === "" || imageDataOBJ === null) {
                                 returnObj.returnErr = this.nls.validationErrorMessage.otherHighlighterImage;
                                 returnObj.returnFlag = true;

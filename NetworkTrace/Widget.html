@@ -17,13 +17,13 @@
                     </div>
                 </div>
                 <div class="traceButtons">
-                    <button class="jimu-btn jimu-state-disabled" data-dojo-type="dijit/form/Button" data-dojo-attach-point="btnTrace"
+                    <div class="jimu-btn jimu-state-disabled"  data-dojo-attach-point="btnTrace"
                         type="submit" disabled data-dojo-attach-event="onclick:_onTraceButtonClick">
-                    </button>
-                    <button class="jimu-btn jimu-state-disabled" data-dojo-type="dijit/form/Button" data-dojo-attach-point="btnClear"
+                    </div>
+                    <div class="jimu-btn jimu-state-disabled" data-dojo-attach-point="btnClear"
                         type="submit" disabled data-dojo-attach-event="onclick:_onClearButtonClick">
                         ${nls.clearButtonValue}
-                    </button>
+                    </div>
                 </div>
             </div>
             <div class="resultPanelContainer">
@@ -55,17 +55,11 @@
                 <div data-dojo-attach-point="SaveToLayerPanel" style="display: none">
                     <div data-dojo-attach-point="saveToLayerDiv" class="esriCTMainDiv">
                         <div data-dojo-attach-point="TopDiv" class="esriCTTopDiv">
-                            <!-- <div data-dojo-attach-point="btnBackDiv" data-dojo-attach-event="onclick:_onBackButtonClick">
-                                <div class="esriCTBackButton" style="float: left"></div>
-                                <div class="esriCTBackButtonLinkLbl">${nls.backButtonValue}</div>
-                            </div>-->
-                            <div class="esriCThyperlinkDiv">
-                                <a href="#" class="esriCTHyperlink" data-dojo-attach-event="onclick:_onBackButtonClick">
-                                    &lt;${nls.backButtonValue}</a></div>
+                            <div class="esriCThyperlinkDiv" data-dojo-attach-event="onclick:_onBackButtonClick">
+                                    &lt;${nls.backButtonValue}
+							</div>
                             <div class="esriCTTitleSaveToLayer">
-                                <label>
                                     ${nls.lblSaveToLayer}
-                                </label>
                             </div>
                         </div>
                         <div data-dojo-attach-point="bottomDiv" class="esriCTbottomDiv">
@@ -108,8 +102,10 @@
                                         </div>
                                     </div>
                                 </div>
+                               
                                  <div data-dojo-attach-point="outageAreaSelectDiv">
                                        </div>
+                            
                                 <div data-dojo-attach-point="textBoxDiv" class="esriCTCommonDiv">
                                     <div data-dojo-attach-point="resultParametersCount">
                                     </div>
@@ -121,12 +117,12 @@
                                     </div>
                                 </div>
                             </div>
-                            <div data-dojo-attach-point="btnSaveParentDiv" class="esriCTCommonDiv">
+                            <div data-dojo-attach-point="btnSaveParentDiv">
                                 <div data-dojo-attach-point="btnSaveDiv" class="esriCTSaveButton">
-                                    <button class="jimu-btn" data-dojo-type="dijit/form/Button" data-dojo-attach-point="btnSave"
+                                    <div class="jimu-btn"  data-dojo-attach-point="btnSave"
                                         type="submit" data-dojo-attach-event="onclick:_onSaveClick">
                                         ${nls.lblSaveButtonValue}
-                                    </button>
+                                    </div>
                                     <div class="esriCThiddenDIV"></div>
                                 </div>
                             </div>
@@ -136,22 +132,18 @@
                 <div data-dojo-attach-point="exportToCSVPanel" style="display: none">
                     <div data-dojo-attach-point="saveToLayerDiv" class="esriCTMainDiv">
                         <div data-dojo-attach-point="exportToCSVTopDiv" class="esriCTTopDiv">
-                            <!-- <div data-dojo-attach-point="btnBackDiv" data-dojo-attach-event="onclick:_onBackButtonClick">
-                                <div class="esriCTBackButton" style="float: left"></div>
-                                <div class="esriCTBackButtonLinkLbl">${nls.backButtonValue}</div>
-                            </div>-->
-                            <div class="esriCThyperlinkDiv">
-                                <a href="#" class="esriCTHyperlink" data-dojo-attach-event="onclick:_onBackButtonClick">
-                                    &lt;${nls.backButtonValue}</a></div>
+                            <div class="esriCThyperlinkDiv" data-dojo-attach-event="onclick:_onBackButtonClick">
+                                    &lt;${nls.backButtonValue}
+							</div>
                             <div class="esriCTTitleSaveToLayer">
-                                <label>
                                     ${nls.lblExportToCSV}
-                                </label>
                             </div>
                         </div>
                         <div data-dojo-attach-point="exportToCSVBottomDiv" class="esriCTCommonDiv">
 
 
+                        </div>
+                        <div data-dojo-attach-point="exportToCSVButtonDiv">
                         </div>
                     </div>
                 </div>

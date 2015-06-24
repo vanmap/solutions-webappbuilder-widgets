@@ -182,20 +182,20 @@ define([
             //User input section
             userToInputValueDiv = domConstruct.create("div", { "class": "esriCTIndendedTextBoxMargin esriCTAttrParamDisplay" }, attrNonRestrictionParamvalue);
 
-            minLabelDiv = domConstruct.create("div", { "class": "esriCTLeftAlign esriCTIndendedMinMargin" }, userToInputValueDiv);
+            minLabelDiv = domConstruct.create("div", { "class": "esriCTLeftAlign esriCTIndendedMinMargin esriCTMinMaxLabel" }, userToInputValueDiv);
             domConstruct.create("label", { "class": "", "title": this.nls.attributeParameter.minText, "innerHTML": this.nls.attributeParameter.minText }, minLabelDiv);
             minTextBoxDiv = domConstruct.create("div", { "class": "esriCTLeftAlign" }, userToInputValueDiv);
             minTextBox = new NumberTextBox({ "class": "esriCTLeftAlign esriCTNonRestrictionUserInputMargin", "name": "" }, minTextBoxDiv);
 
-            maxLabelDiv = domConstruct.create("div", { "class": "esriCTIndendedMaxMargin esriCTLeftAlign" }, userToInputValueDiv);
+            maxLabelDiv = domConstruct.create("div", { "class": "esriCTIndendedMaxMargin esriCTLeftAlign esriCTMinMaxLabel" }, userToInputValueDiv);
             domConstruct.create("label", { "class": "", "title": this.nls.attributeParameter.maxText, "innerHTML": this.nls.attributeParameter.maxText }, maxLabelDiv);
             maxTextBoxDiv = domConstruct.create("div", { "class": "esriCTLeftAlign" }, userToInputValueDiv);
             maxTextBox = new NumberTextBox({ "class": "esriCTLeftAlign esriCTNonRestrictionUserInputMargin", "name": "" }, maxTextBoxDiv);
 
             // for default value
             defaultInputValueDiv = domConstruct.create("div", { "class": "esriCTIndendedTextBoxMargin esriCTAttrParamDisplay" }, attrNonRestrictionParamvalue);
-            defaultValueLabelDiv = domConstruct.create("div", { "class": "esriCTLeftAlign esriCTIndendedMinMargin" }, defaultInputValueDiv);
-            domConstruct.create("label", { "class": "", "title": "Value", "innerHTML": "Value" }, defaultValueLabelDiv);
+            defaultValueLabelDiv = domConstruct.create("div", { "class": "esriCTLeftAlign esriCTIndendedMinMargin esriCTValueLabel" }, defaultInputValueDiv);
+            domConstruct.create("label", { "class": "", "title": this.nls.valueText, "innerHTML": this.nls.valueText }, defaultValueLabelDiv);
             defaultTextBoxDiv = domConstruct.create("div", { "class": "esriCTLeftAlign esriCTAttrParamDisplay" }, defaultInputValueDiv);
             defaultTextBox = new NumberTextBox({ "class": "esriCTLeftAlign esriCTNonRestrictionUserInputMargin", "name": "" }, defaultTextBoxDiv);
             defaultTextBox.set("value", attrParameter.parameters[0].defaultValue);
@@ -259,7 +259,7 @@ define([
 
             defaultToValueDropdown = this._createDefaultToValueDropDown(attributeParameterDropDownColumn, checkBox, attrParameter.attributeName, configParameterObj);
             attrParamvalueLookupContainer = domConstruct.create("div", { "class": " esriCTAttrParamDisplay" }, attrParamvalueChildContainer);
-            parameterLookupLabel = domConstruct.create("div", { "class": "esriCTValueLabelMargin esriCTParameterValueMargin" }, attrParamvalueLookupContainer);
+            parameterLookupLabel = domConstruct.create("div", { "class": "esriCTValueLabelMargin esriCTParameterValueMargin esriCTValueLabel" }, attrParamvalueLookupContainer);
             domConstruct.create("label", { "class": "", "title": this.nls.valueText, "innerHTML": this.nls.valueText }, parameterLookupLabel);
             attributeParameterValueDropDown = domConstruct.create("div", { "class": "esriCTParameterValueMargin  esriCTAttrParamValueDropDown " }, attrParamvalueLookupContainer);
 
@@ -306,12 +306,12 @@ define([
             //User input section
             userToInputValueDiv = domConstruct.create("div", { "class": "esriCTIndendedTextBoxMargin" }, identedParameterContainer);
 
-            minLabelDiv = domConstruct.create("div", { "class": "esriCTLeftAlign esriCTIndendedMinMargin esriCTMarginNonRestriction" }, userToInputValueDiv);
+            minLabelDiv = domConstruct.create("div", { "class": "esriCTLeftAlign esriCTIndendedMinMargin esriCTMarginNonRestriction esriCTMinMaxLabel" }, userToInputValueDiv);
             domConstruct.create("label", { "class": "", "title": this.nls.attributeParameter.minText, "innerHTML": this.nls.attributeParameter.minText }, minLabelDiv);
             minTextBoxDiv = domConstruct.create("div", { "class": "esriCTLeftAlign" }, userToInputValueDiv);
             minTextBox = new NumberTextBox({ "class": "esriCTLeftAlign esriCTNonRestrictionUserInputMargin", "name": "" }, minTextBoxDiv);
 
-            maxLabelDiv = domConstruct.create("div", { "class": "esriCTIndendedMaxMargin esriCTLeftAlign" }, userToInputValueDiv);
+            maxLabelDiv = domConstruct.create("div", { "class": "esriCTIndendedMaxMargin esriCTLeftAlign esriCTMinMaxLabel" }, userToInputValueDiv);
             domConstruct.create("label", { "class": "", "title": this.nls.attributeParameter.maxText, "innerHTML": this.nls.attributeParameter.maxText }, maxLabelDiv);
             maxTextBoxDiv = domConstruct.create("div", { "class": "esriCTLeftAlign" }, userToInputValueDiv);
             maxTextBox = new NumberTextBox({ "class": "esriCTLeftAlign esriCTNonRestrictionUserInputMargin ", "name": "" }, maxTextBoxDiv);

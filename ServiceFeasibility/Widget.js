@@ -181,8 +181,8 @@ define([
             this._initializingNetworkAnalysisServiceData();
             this._initializingJimuTabContainer();
             this._initializingFindNearestOptions();
-            this.findButton = domConstruct.create("div", { innerHTML: this.nls.FindButton, id: "btnFindButton", "class": "esriCTFindButton" }, this.divFindButtonContainer);
-            this.clearButtonSearch = domConstruct.create("div", { innerHTML: this.nls.ClearButton, id: "btnClearButton", "class": "esriCTClearButton" }, this.divClearButtonContainer);
+            this.findButton = domConstruct.create("div", { innerHTML: this.nls.FindButton, id: "btnFindButton", "class": "esriCTFindButton jimu-btn jimu-state-disabled" }, this.divFeasibilityButtons);
+            this.clearButtonSearch = domConstruct.create("div", { innerHTML: this.nls.ClearButton, id: "btnClearButton", "class": "esriCTClearButton jimu-btn jimu-state-disabled" }, this.divFeasibilityButtons);
             this.IsOpera = !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
             this.IsSafari = Object.prototype.toString.call(window.HTMLElement).indexOf('Constructor') > 0;
             this.IsChrome = !!window.chrome && !this.IsOpera;
@@ -208,9 +208,7 @@ define([
             on(window, 'resize', lang.hitch(this, this._setResultListHeight));
             this.inherited(arguments);
             this.findButton.disabled = true;
-            domClass.add(this.findButton, "esriCTButtonDisableColor");
             this.clearButtonSearch.disabled = true;
-            domClass.add(this.clearButtonSearch, "esriCTButtonDisableColor");
             this._createTimer();
             this._createRouteFeatureLayer();
             on(this.findButton, "click", lang.hitch(this, function (evt) {
@@ -288,17 +286,21 @@ define([
         _createResultPanelButtons: function () {
             var j;
             if (this.config.targetBusinessLayer || (this.config.targetRouteLayer && this.routeFeatureLayer.objectIdField && this.routeFeatureLayer.objectIdField !== "")) {
-                this.ExportToLayer = domConstruct.create("div", { innerHTML: this.nls.ExportToLayer, "class": "ExportToLayer esriCTButtonEnabledColor" }, this.ExportToLayerButtonContainer);
+                this.ExportToLayer = domConstruct.create("div", { innerHTML: this.nls.ExportToLayer, "class": "ExportToLayer jimu-btn" }, this.divExportToLayerButtons);
                 on(this.ExportToLayer, "click", lang.hitch(this, function () {
-                    if (!this._checkLayerAvailability(this.config.targetBusinessLayer)) {
-                        this._showAlertMessage(this.nls.targetBusinessLayerUnavailable);
-                    } else if (!this._validateEditCapabilities(this.config.targetBusinessLayer)) {
-                        this._showAlertMessage(this.nls.targetBusinessLayerUneditable);
+                    if (this.config.targetBusinessLayer !== "") {
+                        if (!this._checkLayerAvailability(this.config.targetBusinessLayer)) {
+                            this._showAlertMessage(this.nls.targetBusinessLayerUnavailable);
+                        } else if (!this._validateEditCapabilities(this.config.targetBusinessLayer)) {
+                            this._showAlertMessage(this.nls.targetBusinessLayerUneditable);
+                        }
                     }
-                    if (!this._checkLayerAvailability(this.config.targetRouteLayer)) {
-                        this._showAlertMessage(this.nls.targetRouteLayerUnavailable);
-                    } else if (!this._validateEditCapabilities(this.config.targetRouteLayer)) {
-                        this._showAlertMessage(this.nls.targetRouteLayerUneditable);
+                    if (this.config.targetRouteLayer !== "") {
+                        if (!this._checkLayerAvailability(this.config.targetRouteLayer)) {
+                            this._showAlertMessage(this.nls.targetRouteLayerUnavailable);
+                        } else if (!this._validateEditCapabilities(this.config.targetRouteLayer)) {
+                            this._showAlertMessage(this.nls.targetRouteLayerUneditable);
+                        }
                     }
                     this.saveLayerClicked = true;
                     this.isResultExist = false;
@@ -306,9 +308,9 @@ define([
                     this._onSaveToLayerClick();
                     domClass.add(this.divExportToLayerButtons, "esriCTHidePanel");
                 }));
+                domStyle.set(this.ExportToLayer, "display", "none");
             }
-            this.clearButton = domConstruct.create("div", { innerHTML: this.nls.ClearButton, "class": "ExportToLayer esriCTButtonEnabledColor" }, this.divClearBtnContainer);
-            domStyle.set(this.ExportToLayerButtonContainer, "display", "none");
+            this.clearButton = domConstruct.create("div", { innerHTML: this.nls.ClearButton, "class": "jimu-btn ExportToLayer" }, this.divExportToLayerButtons);
             on(this.clearButton, "click", lang.hitch(this, function () {
                 this._onClearButtonClicked();
                 for (j = 0; j < this.tabContainer.controlNodes.length; j++) {
@@ -498,7 +500,7 @@ define([
                         this.businessInfluenceValue.length = 0;
                         if (this.findButton.disabled === true && this.selectLocationArray && this.selectLocationArray.length > 0) {
                             this.findButton.disabled = false;
-                            domClass.replace(this.findButton, "esriCTButtonEnabledColor", "esriCTButtonDisableColor");
+                            domClass.remove(this.findButton, "jimu-state-disabled");
                         }
                         this._setLayerForDropdown(value);
                     }
@@ -517,7 +519,7 @@ define([
             lineSymbol = this._createGraphicFromJSON(routeSymbolData);
             rendererObj = new SimpleRenderer(lineSymbol);
             if (this.config.targetRouteLayer !== "") {
-                if (this.routeLayer.layerObject) {
+                if (this.routeLayer && this.routeLayer.layerObject) {
                     outFields = array.map(this.routeLayer.layerObject.fields, function (field) {
                         return field.name;
                     });
@@ -699,19 +701,19 @@ define([
                     // enable the find button when disabled and when location is already added to map
                     if (this.findButton.disabled === true && this.selectLocationArray && this.selectLocationArray.length > 0) {
                         this.findButton.disabled = false;
-                        domClass.replace(this.findButton, "esriCTButtonEnabledColor", "esriCTButtonDisableColor");
+                        domClass.remove(this.findButton, "jimu-state-disabled");
                     }
                     slider.attr("value", textbox.value);
                 } else {
                     this.findButton.disabled = true;
-                    domClass.replace(this.findButton, "esriCTButtonDisableColor", "esriCTButtonEnabledColor");
+                    domClass.add(this.findButton, "jimu-state-disabled");
                 }
             }));
             on(slider, "change", lang.hitch(this, function (value) {
                 // enable the find button when disabled and when location is already added to map
                 if (this.findButton.disabled === true && (this.selectLocationArray && this.selectLocationArray.length > 0)) {
                     this.findButton.disabled = false;
-                    domClass.replace(this.findButton, "esriCTButtonEnabledColor", "esriCTButtonDisableColor");
+                    domClass.remove(this.findButton, "jimu-state-disabled");
                 }
                 setTimeout(function () {
                     if (textbox) {
@@ -752,7 +754,7 @@ define([
                 // enable the find button when disabled and when location is already added to map
                 if (this.selectLocationArray && this.selectLocationArray.length > 0) {
                     this.findButton.disabled = false;
-                    domClass.replace(this.findButton, "esriCTButtonEnabledColor", "esriCTButtonDisableColor");
+                    domClass.remove(this.findButton, "jimu-state-disabled");
                 }
             }));
             selectValue.set("value", attributeParameterValues.parameters[0].value);
@@ -977,12 +979,12 @@ define([
             this._addDataInBarrierArray(evt);
             if (this.selectLocationArray && this.selectLocationArray.length > 0) {
                 this.findButton.disabled = false;
-                domClass.replace(this.findButton, "esriCTButtonEnabledColor", "esriCTButtonDisableColor");
+                domClass.remove(this.findButton, "jimu-state-disabled");
             }
             // enable clear button when disabled
             if (this.clearButtonSearch.disabled) {
                 this.clearButtonSearch.disabled = false;
-                domClass.replace(this.clearButtonSearch, "esriCTButtonEnabledColor", "esriCTButtonDisableColor");
+                domClass.remove(this.clearButtonSearch, "jimu-state-disabled");
             }
         },
 
@@ -1026,7 +1028,7 @@ define([
             var selectLocationSymbol, graphic, pointLocationSymbolData;
             if (!this.appConfig.geometryService || (this.appConfig.geometryService === null || this.appConfig.geometryService === "")) {
                 this.findButton.disabled = true;
-                domClass.replace(this.findButton, "esriCTButtonDisableColor", "esriCTButtonEnabledColor");
+                domClass.add(this.findButton, "jimu-state-disabled");
             } else {
                 this.selectLocationGraphicLayer.clear();
                 this.selectLocationArray = [];
@@ -1038,12 +1040,11 @@ define([
                     this.selectLocationGraphicLayer.add(graphic);
                     if (this.selectLocationArray && this.selectLocationArray.length > 0) {
                         this.findButton.disabled = false;
-                        domClass.replace(this.findButton, "esriCTButtonEnabledColor", "esriCTButtonDisableColor");
+                        domClass.remove(this.findButton, "jimu-state-disabled");
                     }
                     if (this.clearButtonSearch) {
                         this.clearButtonSearch.disabled = false;
-                        domClass.replace(this.clearButtonSearch, "esriCTButtonEnabledColor", "esriCTButtonDisableColor");
-
+                        domClass.remove(this.clearButtonSearch, "jimu-state-disabled");
                     }
                     this.locationPointGeometry = graphic.geometry;
                 }
@@ -1065,7 +1066,7 @@ define([
                 domStyle.set(this.businessTitleContainer, "display", "none");
                 domStyle.set(this.resultContainer, "display", "none");
                 domStyle.set(this.resultListContainer, "display", "none");
-                domStyle.set(this.ExportToLayerButtonContainer, "display", "none");
+                domStyle.set(this.ExportToLayer, "display", "none");
                 domClass.add(this.divExportToLayerButtons, "esriCTHidePanel");
                 this.locationPointGeometry = null;
                 this._disableBarrierControls();
@@ -1507,7 +1508,7 @@ define([
                         this.routeFeatureLayer.add(finalRoute);
                         this.attInspector = null;
                         domConstruct.empty(this.editableFieldContainer);
-                        routeFieldInfo = this._filterRouteLayerFieldInfo();
+                        routeFieldInfo = this.layerFieldsToFieldInfos();
                         routeLayerInfos = [{
                             'featureLayer': this.routeFeatureLayer,
                             'showAttachments': false,
@@ -1688,6 +1689,7 @@ define([
                 }
                 domConstruct.create("div", { "innerHTML": this.nls.noBusinessPassedMsg, "class": "esriCTDefaultCursor" }, this.resultListContainer);
                 domClass.add(this.resultListContainer.childNodes[0], "esriCTDefaultCursor");
+                domStyle.set(this.ExportToLayer, "display", "none");
                 this.resultListContainer.disabled = true;
                 this._switchToResultPanel();
                 this._enableAllControls();
@@ -1724,7 +1726,7 @@ define([
                         domStyle.set(this.tabContainer.tabs[j].content, "display", "block");
                         domStyle.set(this.resultContainer, "display", "block");
                         domStyle.set(this.resultListContainer, "display", "block");
-                        domStyle.set(this.divExportToLayerButtons, "display", "block");
+                        domClass.remove(this.divExportToLayerButtons, "esriCTHidePanel");
                         domStyle.set(this.businessTitleContainer, "display", "block");
                     } else if (this.tabContainer.controlNodes[j].innerHTML === this.nls.searchContainerHeading) {
                         domClass.replace(this.tabContainer.controlNodes[j], "tab jimu-vcenter-text", "tab jimu-vcenter-text jimu-state-selected");
@@ -1735,7 +1737,7 @@ define([
                     domStyle.set(this.resultContainer, "display", "none");
                     domStyle.set(this.resultListContainer, "display", "none");
                     domStyle.set(this.businessTitleContainer, "display", "none");
-                    domStyle.set(this.divExportToLayerButtons, "display", "none");
+                    domClass.add(this.divExportToLayerButtons, "esriCTHidePanel");
                     domClass.add(this.tabContainer.controlNodes[j], "changeForResultContainer");
                 } else if (this.saveLayerClicked) {
                     domStyle.set(this.tabContainer.controlNodes[j], "display", "none");
@@ -1750,12 +1752,12 @@ define([
         **/
         _disableAllControls: function () {
             this.findButton.disabled = true;
-            domClass.replace(this.findButton, "esriCTButtonDisableColor", "esriCTButtonEnabledColor");
+            domClass.add(this.findButton, "jimu-state-disabled");
             domClass.replace(this.imgSelectLocationDojo, "esriCTimgSelectLocation", "esriCTImgLocationSelected");
             domClass.replace(this.pointImageContainer, "esriCTImgPoint", "esriCTImgPointSelected");
             domClass.replace(this.polylineImageContainer, "esriCTImgPolyline", "esriCTImgPolylineSelected");
             domClass.replace(this.polygonImageContainer, "esriCTImgPolygon", "esriCTImgPolygonSelected");
-            domClass.replace(this.clearButtonSearch, "esriCTButtonDisableColor", "esriCTButtonEnabledColor");
+            domClass.add(this.clearButtonSearch, "jimu-state-disabled");
             this.toolbar.deactivate();
             this.clearButtonSearch.disabled = true;
             domConstruct.empty(this.resultListContainer);
@@ -1771,7 +1773,7 @@ define([
         _enableAllControls: function () {
             var numberSliderNode, numberTextbox, numberSliderbox, resettxtbox;
             if (this.barrierGraphicLayer.graphics.length > 0 || this.selectLocationGraphicLayer.graphics.length > 0 || this.routeFeatureLayer.graphics.length > 0 || this.map.getLayer("bufferGraphicLayer").length > 0) {
-                domClass.add(this.clearButtonSearch, "esriCTButtonEnabledColor", "esriCTButtonDisableColor");
+                domClass.remove(this.clearButtonSearch, "jimu-state-disabled");
                 this.clearButtonSearch.disabled = false;
             }
             this.selectLocationClicked = false;
@@ -1864,9 +1866,7 @@ define([
                     }
                 }
                 all(deferredArray).then(lang.hitch(this, function (result) {
-                    if (result && result.length > 0) {
-                        this._setContentForResultGrid(result);
-                    }
+                    this._setContentForResultGrid(result);
                 }));
             }
         },
@@ -1879,30 +1879,32 @@ define([
         _setContentForResultGrid: function (result) {
             var l, j;
             // loop to get the attributes of each feature for the given field in config and push it in array
-            for (j = 0; j < result.length; j++) {
-                if (this.results.length === 0) {
-                    this.results = result[j].features;
-                } else {
-                    this.results.concat(result[j].features);
+            if (result) {
+                for (j = 0; j < result.length; j++) {
+                    if (this.results.length === 0) {
+                        this.results = result[j].features;
+                    } else {
+                        this.results.concat(result[j].features);
+                    }
                 }
-            }
-            this.resultDisplayAttributes.length = 0;
-            this.resultDisplayField.length = 0;
-            for (l = 0; l < this.results.length; l++) {
-                if (this.results[l].attributes.hasOwnProperty(this.config.businessDisplayField)) {
-                    this.resultDisplayAttributes.push(this.results[l]);
-                    this.resultDisplayField.push({ "name": this.results[l].attributes[this.config.businessDisplayField], "objectId": this.results[l].attributes[this.businessLayer.layerObject.fields[0].name] });
+                this.resultDisplayAttributes.length = 0;
+                this.resultDisplayField.length = 0;
+                for (l = 0; l < this.results.length; l++) {
+                    if (this.results[l].attributes.hasOwnProperty(this.config.businessDisplayField)) {
+                        this.resultDisplayAttributes.push(this.results[l]);
+                        this.resultDisplayField.push({ "name": this.results[l].attributes[this.config.businessDisplayField], "objectId": this.results[l].attributes[this.businessLayer.layerObject.fields[0].name] });
+                    }
                 }
+                this.businessGraphicArray = lang.clone(this.resultDisplayAttributes);
             }
-            this.businessGraphicArray = lang.clone(this.resultDisplayAttributes);
             if (this.results.length > 0) {
                 this._businesspassedAscOrder();
                 domStyle.set(this.exportToCSVContainer, "display", "block");
-                domStyle.set(this.ExportToLayerButtonContainer, "display", "block");
+                domStyle.set(this.ExportToLayer, "display", "inline-block");
             } else {
                 domClass.add(this.sortIconDiv, "esriCTHidePanel");
                 domStyle.set(this.exportToCSVContainer, "display", "none");
-                domStyle.set(this.ExportToLayerButtonContainer, "display", "none");
+                domStyle.set(this.ExportToLayer, "display", "none");
             }
         },
 
@@ -2048,6 +2050,7 @@ define([
         _createCSVContent: function () {
             var i, fieldAttributes = [], csvNewLineChar, fieldName = [], dateFields = [], csvContent;
             try {
+                this.showLoadingIndicator();
                 setTimeout(lang.hitch(this, function () {
                     var key, resultField;
                     csvNewLineChar = "\r\n";
@@ -2163,6 +2166,7 @@ define([
                 }
                 domConstruct.destroy(link);
             }
+            this._hideLoadingIndicator();
         },
 
         /**
@@ -2184,7 +2188,6 @@ define([
             on(saveLayerBackBtn, "click", lang.hitch(this, function () {
                 this.saveLayerClicked = false;
                 this._setDisplayForPanels();
-                domClass.remove(this.divExportToLayerButtons, "esriCTHidePanel");
             }));
             if (this.config && this.config.targetRouteLayer && this.routeFeatureLayer && this.routeFeatureLayer.graphics.length > 0 && this.routeFeatureLayer.objectIdField && this.routeFeatureLayer.objectIdField !== "") {
                 this._createRouteLayerCheck();
@@ -2221,12 +2224,11 @@ define([
         * @memberOf widgets/ServiceFeasibility/Widget
         **/
         _createSaveToLayerBtn: function () {
-            this.saveToLayerBtn = domConstruct.create("div", { "class": "esriCTSaveButtonLabel esriCTButtonDisableColor", "innerHTML": this.nls.saveBtnLabel }, this.saveToLayerBtnContainer);
+            this.saveToLayerBtn = domConstruct.create("div", { "class": "esriCTSaveButtonLabel jimu-btn jimu-state-disabled", "innerHTML": this.nls.saveBtnLabel }, this.saveToLayerBtnContainer);
             this.saveToLayerBtn.disabled = true;
             on(this.saveToLayerBtn, "click", lang.hitch(this, function () {
                 if (!this.saveToLayerBtn.disabled) {
                     this._onSaveBtnClick();
-                    domClass.remove(this.divExportToLayerButtons, "esriCTHidePanel");
                 }
             }));
             domClass.remove(this.saveToLayerContainer, "esriCTHidePanel");
@@ -2258,7 +2260,7 @@ define([
                             this.checkedLayers.push(event.currentTarget);
                         }
                         this.saveToLayerBtn.disabled = false;
-                        domClass.replace(this.saveToLayerBtn, "esriCTButtonEnabledColor", "esriCTButtonDisableColor");
+                        domClass.remove(this.saveToLayerBtn, "jimu-state-disabled");
                         this._showFieldsToEdit();
                     } else {
                         domClass.add(this.esriCTSaveBusinessRouteLength, "esriCTHidePanel");
@@ -2268,7 +2270,7 @@ define([
                         }
                         if (this.checkedLayers.length === 0) {
                             this.saveToLayerBtn.disabled = true;
-                            domClass.replace(this.saveToLayerBtn, "esriCTButtonDisableColor", "esriCTButtonEnabledColor");
+                            domClass.add(this.saveToLayerBtn, "jimu-state-disabled");
                         }
                     }
                 }
@@ -2314,6 +2316,52 @@ define([
             return fieldInfoArr;
         },
 
+
+        layerFieldsToFieldInfos: function () {
+            var fieldInfo = null, layer = null, routeFieldInfo = [], j;
+            if (this.routeLayer && this.routeLayer.title) {
+                for (j = 0; j < this.map.webMapResponse.itemInfo.itemData.operationalLayers.length; j++) {
+                    if (this.map.webMapResponse.itemInfo.itemData.operationalLayers[j].title === this.routeLayer.title) {
+                        routeFieldInfo = this.map.webMapResponse.itemInfo.itemData.operationalLayers[j].popupInfo.fieldInfos;
+                        break;
+                    }
+                }
+
+                if (routeFieldInfo != null) {
+                    array.forEach(routeFieldInfo, function (fieldInfo) {
+                        if (fieldInfo.format != null) {
+                            if (fieldInfo.format.dateFormat != null) {
+                                if (fieldInfo.format.dateFormat == "shortDateShortTime" ||
+                                fieldInfo.format.dateFormat == "shortDateShortTime24" ||
+                                fieldInfo.format.dateFormat == "shortDateLEShortTime" ||
+                                fieldInfo.format.dateFormat == "shortDateLEShortTime24") {
+                                    fieldInfo.format.time = true;
+                                }
+
+
+                            }
+                        }
+                    });
+                    fieldInfo = routeFieldInfo;
+                }
+
+                if (fieldInfo == null) {
+                    fieldInfo = array.map(layer.layerObject.fields, function (field) {
+                        return {
+                            "fieldName": field.name,
+                            "isEditable": field.editable,
+                            "tooltip": field.alias,
+                            "label": field.alias,
+                            "format": { "time": true }
+                        };
+                    });
+                }
+            }
+            return array.filter(fieldInfo, function (field) {
+                return field.isEditable;
+            });
+        },
+
         /**
         * This function is used to bind the event for business Layer checkBox in "Save to Layer" panel
         * @params{object}checkBox: Checkbox for saving business layer
@@ -2326,7 +2374,7 @@ define([
                     if (array.indexOf(this.checkedLayers, event.currentTarget) === -1) {
                         this.checkedLayers.push(event.currentTarget);
                         this.saveToLayerBtn.disabled = false;
-                        domClass.replace(this.saveToLayerBtn, "esriCTButtonEnabledColor", "esriCTButtonDisableColor");
+                        domClass.remove(this.saveToLayerBtn, "jimu-state-disabled");
                     }
                 } else {
                     domClass.remove(event.currentTarget, "esriCTSaveCheckbox");
@@ -2335,7 +2383,7 @@ define([
                     }
                     if (this.checkedLayers.length === 0) {
                         this.saveToLayerBtn.disabled = true;
-                        domClass.replace(this.saveToLayerBtn, "esriCTButtonDisableColor", "esriCTButtonEnabledColor");
+                        domClass.add(this.saveToLayerBtn, "jimu-state-disabled");
                     }
                 }
             }));
@@ -2370,7 +2418,7 @@ define([
                 domStyle.set(this.resultListContainer, "display", "block");
                 domClass.add(this.saveLayercontentContainer, "esriCTHidePanel");
                 domClass.add(this.saveToLayerContainer, "esriCTHidePanel");
-
+                domClass.replace(this.divExportToLayerButtons, "esriCTShowPanel", "esriCTHidePanel");
             }
         },
 

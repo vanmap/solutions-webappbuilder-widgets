@@ -6,7 +6,7 @@ define({
             selectByShape: "Select by Area",
             selectBySpatQuery: "Select by Feature",
             selectByAttQuery: "Select by Feature & Related Features",
-            selectByQuery: "Select by Query-ComingSoon",
+            selectByQuery: "Select by Query",
             toolNotSelected:"Please select a selection method"
         },
         page2:{
@@ -19,6 +19,7 @@ define({
                 colSelectByField: "Query field",
                 colhighlightSymbol:"Highlight Symbol"
             },
+            toggleLayers: "Toggle layers visibility on open and close",
             noEditableLayers: "No Editable Layers",
             noLayersSelected:"Select one of more layers before proceeding"
         },

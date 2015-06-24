@@ -1,7 +1,6 @@
 # solutions-builder-widgets
-The ArcGIS Solutions Builder Widgets is a set of widgets for use with the Web AppBuilder for ArcGIS. These widgets adress specialized workflow created and managed by the Esri Solutions teams. These widgets are a component of many of the applications created by the solutions team.
+The ArcGIS Solutions Builder Widgets is a set of widgets for use with the Web AppBuilder for ArcGIS. These widgets address specialized workflow created and managed by the Esri Solutions teams. These widgets are a component of many of the applications created by the solutions team.
 
-Important Note: All the Widgets in this repo should be considered Beta. There has been some testing with Web AppBuilder for ArcGIS 1.0 but there are still some minor issues which are being captured as part of this repository.
 ## Sections
 
 * [Features](#features)
@@ -18,7 +17,7 @@ The Widget Reposistory currently includes:
 Utilities Widgets
 
 * [Batch Editor](./BatchEditor/README.md)
-* [Cost Analysis](./CostAnalysis/README.md)
+* [Cost Analysis](https://github.com/Esri/solutions-webappbuilder-widgets/blob/CostAnalysis/CostAnalysis/README.md)
 * [GeoEnrich](./GeoEnrich/README.md)
 
 Emergency Management & Domestic Operations Widgets
@@ -30,16 +29,8 @@ Emergency Management & Domestic Operations Widgets
 * [MissionEditor](./MissionEditor/README.md)
 * [Swipe](./Swipe/README.md)
 
-Imagery Analysis Widgets
-
-* [Image Info](./ImageInfo/README.md)
-* [Image Mensuration](./ImageMensuration/README.md)
-* [Image Properties](./ImageProperties/README.md)
-* [Image Select](./ImageSelect/README.md)
-* [WAMI Time Slider](./WAMITimeSlider/README.md)
-
 ## Requirements
-Requires Web AppBuilder for ArcGIS 1.0
+Requires Web AppBuilder for ArcGIS version 1.1
 
 ## Instructions
 Deploying Widgets.
@@ -67,6 +58,15 @@ Esri welcomes contributions from anyone and everyone. Please see our [guidelines
 
 If you are using [JS Hint](http://http://www.jshint.com/) there is a .jshintrc file included in the root folder which enforces this style.
 We allow for 120 characters per line instead of the highly restrictive 80.
+
+### Branching and Releases
+#### Branches ####
+New widgets should always be created in a separate branch from master. One or more widgets can be contained in a branch. A widget should only be merged with the Master branch if it has been tested is ready to be used with the current released version of Web App Builder - Developer Edition. 
+#### Releases ####
+Releases are created for the following reasons:
+- A new version of Web App Builder has been released. The release is used to tag widgets compatible with that release
+- A widget (or set of widgets) has been released on the solutions website
+
 
 ## Licensing
 

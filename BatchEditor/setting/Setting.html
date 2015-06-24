@@ -16,16 +16,16 @@
                     </td>
                 </tr>
                 <tr class="controls">
-                    <td >
-                        <span >${nls.page1.selectBySpatQuery}</span>
-                        <input  type="radio" data-dojo-attach-point="selectByFeature"
+                    <td>
+                        <span>${nls.page1.selectBySpatQuery}</span>
+                        <input type="radio" data-dojo-attach-point="selectByFeature"
                                data-dojo-type="dijit/form/RadioButton" value="selectByFeature" />
 
                     </td>
                 </tr>
                 <tr class="controls">
-                    <td >
-                        <span >${nls.page1.selectByAttQuery}</span>
+                    <td>
+                        <span>${nls.page1.selectByAttQuery}</span>
                         <input type="radio" data-dojo-attach-point="selectByFeatureQuery"
                                data-dojo-type="dijit/form/RadioButton" value="selectByFeatureQuery" />
 
@@ -62,7 +62,13 @@
         <div class="settings-description" data-dojo-attach-point="layersToolDesc">${nls.page2.layersToolDesc}</div>
 
         <div class="setting-layer-table" data-dojo-attach-point="tableLayerInfos"></div><br />
-    
+        <div>
+            
+            <div class="setting-layer-toggle-checkbox" data-dojo-type="dijit/form/CheckBox" data-dojo-attach-point="toggleLayers"></div>
+            <span>${nls.page2.toggleLayers}</span>
+        </div>
+
+
         <div data-dojo-attach-point="tableLayerInfosError" class="settings-error" style="display:none">${nls.page2.noEditableLayers}</div><br />
         <table class="settings-navigation-table" data-dojo-attach-point="pageTwoControls" cellspacing="0">
             <tbody>
@@ -86,7 +92,7 @@
         <div class="settings-heading" data-dojo-attach-point="tableCommonFieldHeader">${nls.page3.commonFieldsHeader}</div>
         <div class="settings-description" data-dojo-attach-point="tableCommonFieldDesc">${nls.page3.commonFieldsDesc}</div>
 
-        <div class="setting-common-fields-table" data-dojo-attach-point="tableCommonFields"></div><br />           
+        <div class="setting-common-fields-table" data-dojo-attach-point="tableCommonFields"></div><br />
         <div data-dojo-attach-point="tableCommonFieldsError" class="settings-error" style="display:none">${nls.page3.noCommonFields}</div><br />
         <table class="settings-navigation-table" data-dojo-attach-point="pageThreeControls" cellspacing=" 0">
             <tbody>

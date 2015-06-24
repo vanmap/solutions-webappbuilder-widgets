@@ -40,6 +40,8 @@ define([
     "dojo/string",
     "jimu/dijit/CheckBox",
     "jimu/dijit/SymbolChooser",
+    "jimu/dijit/GpSource",
+    "jimu/dijit/Popup",
     "jimu/utils",
     "esri/symbols/jsonUtils",
     "dijit/form/TextBox",
@@ -83,6 +85,8 @@ define([
     string,
     CheckBox,
     SymbolChooser,
+    GpSource,
+    Popup,
     utils,
     jsonUtils,
     TextBox,
@@ -104,7 +108,7 @@ define([
     OutageSetting
 ) {
     return declare([BaseWidgetSetting, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
-        baseClass: 'jimu-widget-IsolationTrace-setting',
+        baseClass: 'jimu-widget-NetworkTrace-setting',
         url: null,
         config: {},
         gpServiceTasks: null,
@@ -117,33 +121,14 @@ define([
         },
 
         postCreate: function () {
-            var popupButton, j;
             // validating the fetching the request data
             setTimeout(lang.hitch(this, function () {
                 if (this.config && this.config.geoprocessing && this.config.geoprocessing.url) {
                     this.txtURL.set('value', this.config.geoprocessing.url);
-                    this._onInputValueChange();
-                    this._onValidate();
+                    this._resetConfigParams();
+                    this._validateGPServiceURL();
                 }
             }), 200);
-
-            popupButton = query(".jimu-popup-btn");
-            // if jimu-popup-btn found in config popup
-            if (popupButton && popupButton.length > 0) {
-                // loop to hidding all the buttons with this class name
-                for (j = 0; j < popupButton.length; j++) {
-                    domStyle.set(popupButton[j], "display", "none");
-                }
-            }
-
-            // paste event on text url
-            on(this.txtURL, "paste", lang.hitch(this, function () {
-                this._onInputValueChange();
-            }));
-            // key up event setting on text url
-            on(this.txtURL, "keyup", lang.hitch(this, function () {
-                this._onInputValueChange();
-            }));
             this._initLoading();
         },
 
@@ -151,118 +136,96 @@ define([
         * function  enables or disables set button on textbox input.
         * @memberOf widgets/isolation-trace/settings/settings.js
         */
-        _onInputValueChange: function () {
-            var getUrl, validateURLNode, i, j, disabledValidateURLNode, popupButton;
-            getUrl = this.txtURL.get('value');
-            validateURLNode = dom.byId('validateUrl');
-            disabledValidateURLNode = dom.byId('disableValidateUrl');
-            popupButton = query(".jimu-popup-btn");
+        _resetConfigParams: function () {
+            var gpURL = this.txtURL.get('value');
 
-            // if input value is not null then disables otherwise enables.
-            if (getUrl !== null && getUrl !== "") {
-                // if validate URL node exist then only
-                if (validateURLNode) {
-                    domClass.remove(validateURLNode, "esriCTHidden");
-                    domClass.add(disabledValidateURLNode, "esriCTHidden");
-                    // popup ok and cancel button found
-                    if (popupButton && popupButton.length > 0) {
-                        // loop for traversing all the ok and cancel button in popup
-                        for (i = 0; i < popupButton.length; i++) {
-                            //  disable type ok and cancel button
-                            if (domClass.contains(popupButton[i], "jimu-state-disabled")) {
-                                domStyle.set(popupButton[i], "display", "block");
-                            } else {
-                                domStyle.set(popupButton[i], "display", "none");
-                            }
-                        }
-                    }
-                }
-            } else {
-                // if validate URL node exist then only
-                if (validateURLNode) {
-                    domClass.add(validateURLNode, "esriCTHidden");
-                    domClass.remove(disabledValidateURLNode, "esriCTHidden");
-                    // popup ok and cancel button found
-                    if (popupButton && popupButton.length > 0) {
-                        // loop for traversing all the ok and cancel button in popup
-                        for (j = 0; j < popupButton.length; j++) {
-                            domStyle.set(popupButton[j], "display", "none");
-                        }
-                    }
-                    domConstruct.empty(this.taskData);
-                    this._destroyWidget(this.inputProperty);
-                    this._destroyWidget(this.outputAdditionalProperty);
-                    domConstruct.empty(this.othersData);
-                    domClass.add(this.taskDataContainer, "esriCTHidden");
-                }
+            // if input value is null or empty then disable all the config options.
+            if (gpURL === null || gpURL === "") {
+                domConstruct.empty(this.taskData);
+                this._destroyWidget(this.inputProperty);
+                this._destroyWidget(this.outputAdditionalProperty);
+                domConstruct.empty(this.othersData);
+                domClass.add(this.taskDataContainer, "esriCTHidden");
             }
+        },
+
+        /**
+        * Set task URL button click handler.
+        * @memberOf widgets/isolation-trace/settings/settings.js
+        */
+        _onChooseTaskClicked: function () {
+            var args = {
+                portalUrl: this.appConfig.portalUrl
+            }, gpSource = new GpSource(args), popup = new Popup({
+                titleLabel: "Set Task",
+                width: 830,
+                height: 560,
+                content: gpSource
+            });
+
+            this.own(on(gpSource, 'ok', lang.hitch(this, function (tasks) {
+                if (tasks.length === 0) {
+                    popup.close();
+                    return;
+                }
+                this.config = {};
+                this.txtURL.set('value', tasks[0].url);
+                this._resetConfigParams();
+                this._validateGPServiceURL();
+                popup.close();
+            })));
+            this.own(on(gpSource, 'cancel', lang.hitch(this, function () {
+                popup.close();
+            })));
         },
 
         /**
         * This function will execute when user clicked on the "Set Task."
         * @memberOf widgets/isolation-trace/settings/settings.js
         */
-        _onValidate: function () {
+        _validateGPServiceURL: function () {
             this.gpServiceTasks = [];
-            var requestArgs, gpTaskParameters = [], isURLcorrect;
+            var requestArgs, gpTaskParameters = [];
             this.loading.show();
             this._destroyWidget(this.inputProperty);
             this._destroyWidget(this.outputAdditionalProperty);
-            isURLcorrect = this._urlValidator(this.txtURL.value);
-            // if configuration is already set
-            if (this.config && this.config.geoprocessing && this.config.geoprocessing.url) {
-                // if previously set gp service is same as new requested then refresh the ta
-                if (this.txtURL.value === this.config.geoprocessing.url) {
-                    this._refreshConfigContainer();
-                } else {
-                    this.config = {};
-                }
-            }
+
             if (this.map && this.map.itemInfo && this.map.itemInfo.itemData && this.map.itemInfo.itemData.operationalLayers && (this.map.itemInfo.itemData.operationalLayers.length > 0)) {
                 // if the task URL is valid
-                if (isURLcorrect) {
-                    this.url = this.txtURL.value;
-                    requestArgs = {
-                        url: this.url,
-                        content: {
-                            f: "json"
-                        },
-                        handleAs: "json",
-                        callbackParamName: "callback",
-                        timeout: 20000
-                    };
-                    esriRequest(requestArgs).then(lang.hitch(this, function (response) {
-                        // if response returned from the queried request
-                        if (response.hasOwnProperty("name")) {
-                            // if name value exist in response object
-                            if (response.name !== null) {
-                                gpTaskParameters = response.parameters;
-                                // if gpTaskParameters array is not null
-                                if (gpTaskParameters) {
-                                    this._validateGpTaskResponseParameters(gpTaskParameters);
-                                }
+                this.url = this.txtURL.value;
+                requestArgs = {
+                    url: this.url,
+                    content: {
+                        f: "json"
+                    },
+                    handleAs: "json",
+                    callbackParamName: "callback",
+                    timeout: 20000
+                };
+                esriRequest(requestArgs).then(lang.hitch(this, function (response) {
+                    // if response returned from the queried request
+                    if (response.hasOwnProperty("name")) {
+                        // if name value exist in response object
+                        if (response.name !== null) {
+                            gpTaskParameters = response.parameters;
+                            // if gpTaskParameters array is not null
+                            if (gpTaskParameters) {
+                                this._validateGpTaskResponseParameters(gpTaskParameters);
                             }
-                        } else {
-                            this._refreshConfigContainer();
-                            this.loading.hide();
-                            this._errorMessage(this.nls.invalidURL);
                         }
-                    }), lang.hitch(this, function (err) {
+                    } else {
                         this._refreshConfigContainer();
                         this.loading.hide();
-                        this._errorMessage(this.nls.invalidURL);
-                    }));
-
-                } else {
+                    }
+                }), lang.hitch(this, function (err) {
+                    this._errorMessage(this.nls.validationErrorMessage.UnableToLoadGeoprocessError);
                     this._refreshConfigContainer();
                     this.loading.hide();
-                    this._errorMessage(this.nls.inValidGPService);
-                }
+                }));
             } else {
                 this.loading.hide();
                 this._errorMessage(this.nls.validationErrorMessage.webMapError);
             }
-
         },
 
         /**
@@ -271,7 +234,7 @@ define([
         * @memberOf widgets/isolation-trace/settings/settings.js
         */
         _validateGpTaskResponseParameters: function (gpTaskParameters) {
-            var i, j, recordSetValCheckFlag = true, inputParametersArr = [], inputGPParamFlag = true, errMsg, popupButton;
+            var i, recordSetValCheckFlag = true, inputParametersArr = [], inputGPParamFlag = true, errMsg;
             // loop for checking gptask type is GPFeatureRecordSetLayer or not
             for (i = 0; i < gpTaskParameters.length; i++) {
                 // if gp task is not GPFeatureRecordSetLayer then flag to false
@@ -290,19 +253,6 @@ define([
             // if all the gp task is having type "GPFeatureRecordSetLayer"
             if (recordSetValCheckFlag && inputGPParamFlag) {
                 this.validConfig = true;
-                popupButton = query(".jimu-popup-btn");
-                // popup ok and cancel button found
-                if (popupButton && popupButton.length > 0) {
-                    // loop for traversing all the ok and cancel button in popup
-                    for (j = 0; j < popupButton.length; j++) {
-                        // not disable type ok and cancel button
-                        if (domClass.contains(popupButton[j], "jimu-state-disabled")) {
-                            domStyle.set(popupButton[j], "display", "none");
-                        } else {
-                            domStyle.set(popupButton[j], "display", "block");
-                        }
-                    }
-                }
                 this._showTaskDetails(gpTaskParameters);
                 // if config is already exist
                 if (this.config && this.config.geoprocessing && this.config.geoprocessing.url) {
@@ -322,6 +272,8 @@ define([
                     // if the gp task does not having type "GPFeatureRecordSetLayer" neither input parameters is less than 0 and greater than 3 then
                     errMsg = this.nls.inValidGPService;
                 }
+                this.txtURL.set('value', "");
+                this.url = "";
                 this._errorMessage(errMsg);
             }
         },
@@ -355,10 +307,8 @@ define([
         * @memberOf widgets/isolation-trace/settings/settings.js
         */
         _focusTop: function () {
-            dojox.fx.smoothScroll({
-                node: query('#taskDataContainerId :first-child')[0],
-                win: dom.byId('taskDataContainerId')
-            }).play();
+            var node = dom.byId('taskDataContainerId');
+            node.scrollTop = 0;
         },
 
         /**
@@ -413,7 +363,8 @@ define([
                 // creates the output task parameters panel
                 this._createOutputTaskParameters();
                 //Outage task.
-                this._createOutageTaskParameters();
+                //this._createOutageTaskParameters();
+                this._createOutageTaskParameter();
             }
             // creates the Others task parameters panel
             this._createOthersTaskParameters();
@@ -444,22 +395,14 @@ define([
         * @memberOf widgets/isolation-trace/settings/settings.js
         */
         _setOutageByPass: function () {
-            var isChecked, outputParam, outageLayerName;
+            var outputParam;
             // loop for outage setting bypass value from output parameters
             array.forEach(this.outputSettingArray, lang.hitch(this, function (widgetNode) {
                 if (widgetNode) {
                     outputParam = widgetNode.getOutputForm();
                     // if save to layer is not null
                     if (outputParam.saveToLayer !== "") {
-                        outageLayerName = widgetNode.outputLayerType.value;
                         this.outageSettingObj.outageLayerName = outputParam.saveToLayer;
-                        isChecked = widgetNode.outputLayer.checked;
-                        var displayName = domAttr.get(widgetNode.domNode, "displayName");
-                        // if the affected area is found for the output parameters and save to layer is checked and the target layer value is not null
-                        if (displayName && this.outageSettingObj.outageAreaDropDown && this.outageSettingObj.outageAreaDropDown.value === displayName && isChecked) {
-                            this.outageSettingObj.outageAreaLayerSaveOption = isChecked;
-                            this.outageSettingObj.showFieldMapDiv(outageLayerName);
-                        }
                     }
                 }
             }));
@@ -563,43 +506,30 @@ define([
         },
 
         _onInputTypeChange: function (inputSettingInstance) {
-            var skipFlag = false;
             inputSettingInstance.inputTypeChange = lang.hitch(this, function (inputNode) {
-                var k, key;
+                var k, key, skipFlag = false;
                 // loop of all the input array, which checks if input type of parameter containing Skip or not
                 for (k in this.inputSettingArray) {
                     if (this.inputSettingArray.hasOwnProperty(k)) {
-                        skipFlag = false;
                         // if input type is "Skip" then only
                         if (this.inputSettingArray[k].inputTypeData && this.inputSettingArray[k].inputTypeData.value === "Skip") {
-                            // loop to show and hide skippable checkbox for all output parameters except outage type
-                            for (key in this.outputSettingArray) {
-                                if (this.outputSettingArray.hasOwnProperty(key)) {
-                                    if (this.outputSettingArray[key]) {
-                                        // if the output parameters type is esriGeometryPoint then only
-                                        if (this.outputSettingArray[key].data && this.outputSettingArray[key].data.defaultValue && this.outputSettingArray[key].data.defaultValue.geometryType === "esriGeometryPoint") {
-                                            domClass.remove(this.outputSettingArray[key].skippableCheckboxBlock, "esriCTHidden");
-                                        }
-                                        // if the output parameter skippable value is already checked
-                                        if (this.outputSettingArray[key].skippable.checked) {
-                                            domClass.remove(this.outputSettingArray[key].skippableDropdownDiv, "esriCTHidden");
-                                        } else {
-                                            domClass.add(this.outputSettingArray[key].skippableDropdownDiv, "esriCTHidden");
-                                        }
-                                    }
-                                }
-                            }
                             skipFlag = true;
-                        } else {
-                            // loop to hide and hide skippable checkbox for all output parameters except outage type
-                            for (key in this.outputSettingArray) {
-                                if (this.outputSettingArray.hasOwnProperty(key)) {
-                                    /*if (this.outputSettingArray[key].skippable.checked) {
-                                    domClass.remove(this.outputSettingArray[key].skippable.checkNode, "checked");
-                                    this.outputSettingArray[key].skippable.checked = false;
-                                    }*/
-                                    domClass.add(this.outputSettingArray[key].skippableCheckboxBlock, "esriCTHidden");
-                                    domClass.add(this.outputSettingArray[key].skippableDropdownDiv, "esriCTHidden");
+                        }
+                        // loop to show and hide skippable checkbox for all output parameters except outage type
+                        for (key in this.outputSettingArray) {
+                            if (this.outputSettingArray.hasOwnProperty(key)) {
+                                if (this.outputSettingArray[key]) {
+                                    // if the output parameters type is esriGeometryPoint then only
+                                    if (this.outputSettingArray[key].data && this.outputSettingArray[key].data.defaultValue && this.outputSettingArray[key].data.defaultValue.geometryType === "esriGeometryPoint" && skipFlag) {
+                                        domClass.remove(this.outputSettingArray[key].skippableCheckboxBlock, "esriCTHidden");
+                                        domClass.remove(this.outputSettingArray[key].skippable.checkNode, "checked");
+                                        this.outputSettingArray[key].skippable.checked = false;
+                                        this.outputSettingArray[key].inputTypeData.set("value", this.outputSettingArray[key].inputTypeData.options[0].value);
+                                    } else {
+                                        domClass.add(this.outputSettingArray[key].skippableCheckboxBlock, "esriCTHidden");
+                                        domClass.add(this.outputSettingArray[key].skippableDropdownDiv, "esriCTHidden");
+                                        this.outputSettingArray[key].skippable.checked = false;
+                                    }
                                 }
                             }
                         }
@@ -616,7 +546,7 @@ define([
         * @memberOf widgets/isolation-trace/settings/settings
         **/
         _createOutputTaskParameters: function () {
-            var k, outputTitlepaneDiv, outputContainer, outputTP, param, outputConfig, selectedItems, m;
+            var outputTitlepaneDiv, outputContainer, outputTP, param, outputConfig, selectedItems, m;
             outputTitlepaneDiv = domConstruct.create("div", {
                 "id": "esriCTOutputHolder",
                 "class": "esriCTOutputTitlepaneHolder"
@@ -633,12 +563,12 @@ define([
                 });
                 this.outputSettingArray = [];
                 // loop for populating output data in output fields and also creating additional output fields dynamically
-                for (k = 0; k < this.outputParametersArray.length; k++) {
+                array.forEach(this.outputParametersArray, lang.hitch(this, function (outputParameters, k) {
                     // if input parameterType is required field then reflect Required as a true otherwise false
-                    if (this.outputParametersArray[k].parameterType === "esriGPParameterTypeRequired") {
-                        this.outputParametersArray[k].isOutputRequired = "True";
+                    if (outputParameters.parameterType === "esriGPParameterTypeRequired") {
+                        outputParameters.isOutputRequired = "True";
                     } else {
-                        this.outputParametersArray[k].isOutputRequired = "False";
+                        outputParameters.isOutputRequired = "False";
                     }
 
                     outputConfig = null;
@@ -648,18 +578,18 @@ define([
                     }
                     param = {
                         "nls": this.nls,
-                        "data": this.outputParametersArray[k],
+                        "data": outputParameters,
                         "ObjId": "selectOutput_" + k,
                         "map": this.map,
                         "outputConfig": outputConfig,
                         "parentContainer": outputContainer,
-                        "id": "ParameterDiv_" + k + "_" + this.outputParametersArray[k].name
+                        "id": "ParameterDiv_" + k + "_" + outputParameters.name
                     };
                     if (dijit.byId("selectOutput_" + k)) {
                         dijit.byId("selectOutput_" + k).destroy();
                     }
                     this.outputSettingInstance = new OutputSetting(param, domConstruct.create("div", {}, this.outputAdditionalProperty));
-                    domAttr.set(this.outputSettingInstance.domNode, "displayName", this.outputParametersArray[k].name);
+                    domAttr.set(this.outputSettingInstance.domNode, "displayName", outputParameters.name);
                     this.outputSettingArray.push(this.outputSettingInstance);
 
                     this.outputSettingInstance.outputFieldClicked = lang.hitch(this, function (widgetNode) {
@@ -672,22 +602,7 @@ define([
                             domClass.add(node.domNode, "esriCTHidden");
                             domClass.remove(node.outputDataNode, "esriCTSelected");
                         });
-                        // loop of all the input array, which checks if input type of parameter containing Skip or not
-                        array.forEach(this.inputSettingArray, function (inputNode) {
-                            if (inputNode && inputNode.inputConfig && inputNode.inputConfig.type && inputNode.inputConfig.type === "Skip" && widgetNode && widgetNode.data && widgetNode.data.defaultValue && widgetNode.data.defaultValue.geometryType === "esriGeometryPoint") {
-                                domClass.remove(widgetNode.skippableCheckboxBlock, "esriCTHidden");
-                                // if the output parameter skippable value is already checked
-                                if (widgetNode.skippable.checked) {
-                                    domClass.remove(widgetNode.skippableDropdownDiv, "esriCTHidden");
-                                } else {
-                                    domClass.add(widgetNode.skippableDropdownDiv, "esriCTHidden");
-                                }
-                            }
-                            /*else{
-                            domClass.add(widgetNode.skippableCheckboxBlock, "esriCTHidden");
-                            domClass.add(widgetNode.skippableDropdownDiv, "esriCTHidden");
-                            }*/
-                        });
+
                         domClass.remove(widgetNode.domNode, "esriCTHidden");
                         domClass.add(widgetNode.outputDataNode, "esriCTSelected");
                         domClass.remove(this.esriCTInputOutputParameters, "esriCTHidden");
@@ -699,69 +614,18 @@ define([
                     });
                     // for handling the check and uncheck event of save to layer checkbox
                     this.outputSettingInstance.layerChangeHandler = lang.hitch(this, function (event) {
-                        //outageLayerName = event.outputLayerType.value;
-                        // if target layer name drop down is not null
-                        /*if (outageLayerName) {
-                        //this.outageSettingObj.showFieldMapDiv(outageLayerName);
-                        } */
                         this._setOutageByPass();
                     });
                     // for handling the target layer name from dropdown on change event of save to layer
                     this.outputSettingInstance.layerChangeHandler = lang.hitch(this, function (evt) {
-                        //outageLayerName = evt.outputLayerType.value;
-                        // if target layer name drop down is not null
-                        /*if (outageLayerName) {
-                        this.outageSettingObj.showFieldMapDiv(outageLayerName);
-                        }*/
                         this._setOutageByPass();
                     });
                     // if title pane is created then append complete Dom HTML
                     if (outputTP) {
                         outputTitlepaneDiv.appendChild(outputTP.domNode);
                     }
-                }
+                }));
             }
-        },
-
-        /**
-        * This function creates outage task parameters panel and data container
-        * @memberOf widgets/isolation-trace/settings/settings
-        **/
-        _createOutageTaskParameters: function () {
-            var selectedItems, param, outageConfig, m;
-            // if counter is at one for displaying first value selected by default
-            outageConfig = null;
-            // config value is not null
-            if (this.config && this.config.geoprocessing && this.config.geoprocessing.outputs) {
-                outageConfig = this.config.geoprocessing.outputs;
-            }
-            param = {
-                "nls": this.nls,
-                "map": this.map,
-                "data": this.outputParametersArray,
-                "outageConfig": outageConfig,
-                "outageData": this.outageData
-            };
-            this.outageSettingObj = new OutageSetting(param, domConstruct.create("div", {}, this.taskData));
-            this.outageSettingObj.outageFieldClicked = lang.hitch(this, function (widgetNode) {
-                selectedItems = query(".esriCTSelected", this.taskData);
-                // loop for selecting the clicked others and deselecting rest of the all
-                for (m = 0; m < selectedItems.length; m++) {
-                    domClass.remove(selectedItems[m], 'esriCTSelected');
-                }
-                domClass.add(widgetNode.outageDiv, "esriCTSelected");
-                domClass.add(this.esriCTInputOutputParameters, "esriCTHidden");
-                domClass.remove(this.taskDataContainer, "esriCTHidden");
-                domClass.add(this.othersData, "esriCTHidden");
-                domClass.remove(this.outageData, "esriCTHidden");
-                //this._setOutageByPass();
-            });
-            this.outageSettingObj.outageParamChanged = lang.hitch(this, function (evt) {
-                this._disableOutageOutputPanel();
-            });
-            this.outageSettingObj.displayOutageData(false);
-            this._setOutageByPass();
-            this._disableOutageOutputPanel();
         },
 
         _disableOutageOutputPanel: function () {
@@ -785,7 +649,6 @@ define([
                         } else {
                             if (widgetNode.domNode) {
                                 hideOutputDiv = query(".esriCTOutputOutageField", widgetNode.domNode);
-                                //showOutputDiv = query(".esriCTHidden", hideOutputDiv);
                                 if (hideOutputDiv && hideOutputDiv.length > 0) {
                                     // loop for traversing all the div block with class name esriCTOutputOutageField
                                     for (i = 0; i < hideOutputDiv.length; i++) {
@@ -799,16 +662,54 @@ define([
             }
         },
 
+        _createOutageTaskParameter: function () {
+            var OutageHolderDiv, selectedItems, m, overviewConfig, param, outageSettingInstance;
+            OutageHolderDiv = domConstruct.create("div", {
+                "id": "esriCTOutageHolder",
+                "class": "esriCTSelectedOutageHolder",
+                "innerHTML": this.nls.outagePanel.outage
+            }, this.taskData);
+            on(OutageHolderDiv, "click", lang.hitch(this, function (evt) {
+                selectedItems = query(".esriCTSelected", this.taskData);
+                // loop for selecting the clicked others and deselecting rest of the all
+                for (m = 0; m < selectedItems.length; m++) {
+                    domClass.remove(selectedItems[m], 'esriCTSelected');
+                }
+                domClass.add(evt.target.id, "esriCTSelected");
+                domClass.add(this.esriCTInputOutputParameters, "esriCTHidden");
+                domClass.remove(this.taskDataContainer, "esriCTHidden");
+                domClass.add(this.othersData, "esriCTHidden");
+                domClass.remove(this.outageData, "esriCTHidden");
+                this._focusTop();
+            }));
+            this.outageSettingObj = [];
+            domConstruct.empty(this.outageData);
+            overviewConfig = null;
+            // if config object is not null
+            if (this.config && this.config.overview) {
+                overviewConfig = this.config.overview;
+            }
+
+            param = {
+                "nls": this.nls,
+                "data": this.outputParametersArray,
+                "folderUrl": this.folderUrl,
+                "map": this.map,
+                "overviewConfig": overviewConfig
+            };
+            outageSettingInstance = new OutageSetting(param, domConstruct.create("div", {}, this.outageData));
+            this.outageSettingObj.push(outageSettingInstance);
+        },
         /**
         * This function creates output task parameters panel and data container
         * @memberOf widgets/isolation-trace/settings/settings
         **/
         _createOthersTaskParameters: function () {
-            var m, othersConfig, othersSettingInstance, OthersHolderDiv, selectedItems, param;
+            var m, othersConfig, othersSettingInstance, OthersHolderDiv, selectedItems, param, displayTextForRunButton;
             OthersHolderDiv = domConstruct.create("div", {
                 "id": "esriCTOtherHolder",
                 "class": "esriCTOtherHolder",
-                "innerHTML": this.nls.others
+                "innerHTML": this.nls.OthersHighlighter.others
             }, this.taskData);
             on(OthersHolderDiv, "click", lang.hitch(this, function (evt) {
                 selectedItems = query(".esriCTSelected", this.taskData);
@@ -825,13 +726,19 @@ define([
             this.othersSettingObj = [];
             domConstruct.empty(this.othersData);
             othersConfig = null;
+            displayTextForRunButton = null;
             if (this.config && this.config.highlighterDetails) {
                 othersConfig = this.config.highlighterDetails;
             }
+            if (this.config && this.config.displayTextForRunButton) {
+                displayTextForRunButton = this.config.displayTextForRunButton;
+            }
+
             param = {
                 "nls": this.nls,
                 "folderUrl": this.folderUrl,
-                "othersConfig": othersConfig
+                "othersConfig": othersConfig,
+                "displayTextForRunButton": displayTextForRunButton
             };
             othersSettingInstance = new OthersSetting(param, domConstruct.create("div", {}, this.othersData));
             this.othersSettingObj.push(othersSettingInstance);
@@ -857,8 +764,6 @@ define([
             return regexValueForTest && finalValue;
         },
 
-
-
         /**
         * This function creates the Input Parameters in config
         * @return {object} returns the config ouject
@@ -868,8 +773,6 @@ define([
             var inputParam = {};
             this.config.geoprocessing.inputs = [];
             this.config.geoprocessing.inputs.length = 0;
-            // setting url in geoprocessing array
-            this.config.geoprocessing.url = this.url;
             // if input param object created
             if (this.inputSettingArray) {
                 array.forEach(this.inputSettingArray, lang.hitch(this, function (widgetNode) {
@@ -879,8 +782,25 @@ define([
                     }
                 }));
             }
-            // logging config geo processing data
-            return this.config.geoprocessing;
+        },
+
+        /**
+        * This function creates the overview Parameters in config
+        * @return {object} returns the config Outage
+        * @memberOf widgets/isolation-trace/settings/settings
+        **/
+        _getOverviewConfigParameters: function (config) {
+            var overviewParam, cloneOverviewParamArray = "";
+            // if input param object created
+            if (this.outageSettingObj) {
+                array.forEach(this.outageSettingObj, lang.hitch(this, function (widgetNode) {
+                    if (widgetNode) {
+                        overviewParam = widgetNode.getOverviewForm();
+                        cloneOverviewParamArray = lang.clone(overviewParam);
+                        this.config.overview = cloneOverviewParamArray;
+                    }
+                }));
+            }
         },
 
         /**
@@ -889,7 +809,7 @@ define([
         * @memberOf widgets/isolation-trace/settings/settings
         **/
         _getOutputConfigParameters: function () {
-            var outageLayerName, outputParam = {}, domDisplayName, cloneFieldMapArray, isOverViewMap, saveToLayerCheckBox, saveToLayerCheckBoxStatus, fieldMapArray = [], i, j, k, l, m;
+            var outputParam = {}, i, j, k, l;
             this.polygonOutputParameters = [];
             this.polylineOutputParameters = [];
             this.pointOutputParameters = [];
@@ -899,45 +819,8 @@ define([
                 // if input param object created
                 if (this.outputSettingArray) {
                     array.forEach(this.outputSettingArray, lang.hitch(this, function (widgetNode) {
-                        domDisplayName = "";
-                        saveToLayerCheckBox = false;
-                        isOverViewMap = false;
                         if (widgetNode) {
-
                             outputParam = widgetNode.getOutputForm();
-                            //this.config.geoprocessing.outputs.push(outputParam);
-                            //////////////////////////////
-                            domDisplayName = domAttr.get(widgetNode.domNode, "displayName");
-                            //  saveToLayerCheckBox = widgetNode.outputLayer.checked;
-                            outageLayerName = outputParam.saveToLayer;
-                            //this.outageSettingObj.showFieldMapDiv(outageLayerName);
-                            saveToLayerCheckBoxStatus = widgetNode.outputLayer.checked ? outageLayerName : "";
-                            //isChecked = widgetNode.outputLayer.checked;
-                            // Checking for outage area drop down value with outage selected container selected value
-                            if (this.outageSettingObj.outageAreaDropDown.value === domDisplayName) {
-                                isOverViewMap = true;
-                            }
-                            // Checking for outage area drop down value and save to layer chedk box checked status
-                            if (saveToLayerCheckBoxStatus && this.outageSettingObj.outageAreaDropDown.value === domDisplayName) {
-                                saveToLayerCheckBox = true;
-                            }
-                            if (isOverViewMap) {
-                                outputParam.type = "Overview";
-                                outputParam.visible = this.outageSettingObj.visibleCheckBox.checked ? true : false;
-                            } else {
-                                outputParam.type = "Result";
-                            }
-                            // Checking for field map value is enabled if enabled then set field to map attribute and set visible to true
-                            if (saveToLayerCheckBox) {
-                                cloneFieldMapArray = "";
-                                // Getting the field map array value from all drop down value
-                                fieldMapArray = this.outageSettingObj.getOutageConfig();
-                                // Cloning the feld map array for storing it in field to map value
-                                cloneFieldMapArray = lang.clone(fieldMapArray);
-                                // Creating field to map object and inserting value
-                                outputParam.fieldMap = cloneFieldMapArray;
-                            }
-                            /////////////////////////////////////
                             // Pushing value in geoprocessing output parameter
                             this.config.geoprocessing.outputs.push(outputParam);
                         }
@@ -964,17 +847,9 @@ define([
                     this.tempPolygonOutputParameters = [];
                     // if polygon type parameter array is not null
                     if (this.polygonOutputParameters && this.polygonOutputParameters.length > 0) {
-                        for (m = 0; m < this.polygonOutputParameters.length; m++) {
-                            if (this.polygonOutputParameters[m].type === "Overview") {
-                                this.tempPolygonOutputParameters.push(this.polygonOutputParameters[m]);
-                            }
-                        }
+
                         for (j = 0; j < this.polygonOutputParameters.length; j++) {
-                            if (j === 0) {
-                                this.config.geoprocessing.outputs.push(this.tempPolygonOutputParameters[j]);
-                            } else {
-                                this.config.geoprocessing.outputs.push(this.polygonOutputParameters[j]);
-                            }
+                            this.config.geoprocessing.outputs.push(this.polygonOutputParameters[j]);
                         }
                     }
                     // if polyline type parameter array is not null
@@ -990,9 +865,6 @@ define([
                         }
                     }
                 }
-                console.log(this.config.geoprocessing.outputs);
-                // Returning geoprocessing data to config file
-                return this.config.geoprocessing;
             }
         },
 
@@ -1009,11 +881,12 @@ define([
                     //if widget obj found for Others config details for highlighter image
                     if (widgetNode) {
                         othersParam = widgetNode.getOthersForm();
-                        this.config.highlighterDetails = othersParam;
+                        this.config.displayTextForRunButton = othersParam.displayTextForRunButton;
+                        //delete othersParam.displayTextforRunButton;
+                        this.config.highlighterDetails = othersParam.highlighterDetails;
                     }
                 }));
             }
-            return this.config.highlighterDetails;
         },
 
         /**
@@ -1022,7 +895,7 @@ define([
         * @memberOf widgets/isolation-trace/settings/settings
         **/
         getConfig: function () {
-            var highlighterDetails = {}, inputArray = [], outputArray = [], geoprocessingObject = {}, validateInputTask = false, validateOutputTask = false, validateOutageTask = false, validateOthersTask = false;
+            var highlighterDetails = {}, inputArray = [], outputArray = [], geoprocessingObject = {}, validateInputTask = false, validateOutputTask = false, validateOutageTask = false, validateOthersTask = false, validateSaveToLayer = false;
             // Setting object for highlighted details
             highlighterDetails = { "imageData": "", "height": "", "width": "", "timeout": "" };
             // Setting geoprocessing object
@@ -1034,8 +907,11 @@ define([
                 validateOutputTask = this._validateOutputTaskParameters();
                 validateOutageTask = this._validateOutageTaskParameters();
                 validateOthersTask = this._validateOthersTaskParameters();
-                // validateInputTask is set to true, ie. validation error found then
-                if (validateInputTask.returnFlag) {
+                validateSaveToLayer = this._validateSaveToLayerParameters();
+                // validating the configuration inputs
+                if (!this.url || this.url === "") {
+                    this._errorMessage(this.nls.inValidGPService);
+                } else if (validateInputTask.returnFlag) {
                     this._errorMessage(validateInputTask.returnErr);
                     validateInputTask = false;
                 } else if (validateOutputTask.returnFlag) {
@@ -1047,25 +923,90 @@ define([
                 } else if (validateOthersTask.returnFlag) {
                     this._errorMessage(validateOthersTask.returnErr);
                     validateInputTask = false;
+                } else if (validateSaveToLayer.returnFlag) {
+                    this._errorMessage(validateSaveToLayer.returnErr);
+                    validateInputTask = false;
                 }
                 if (validateInputTask) {
                     // Setting config object
                     this.config = { "highlighterDetails": highlighterDetails, "geoprocessing": geoprocessingObject };
+                    // setting url in config object
+                    this.config.geoprocessing.url = this.url;
                     // Get config for input parameters
                     this._getInputConfigParameters();
                     // Get config for Output parameters
                     this._getOutputConfigParameters();
                     // Get config for others parameter
                     this._getOtherConfigParameters();
+                    // Get config for overview parameter
+                    this._getOverviewConfigParameters();
                 } else {
                     return false;
                 }
             } else {
-                this._errorMessage(this.nls.configDataNull);
+                this._errorMessage(this.nls.inValidGPService);
                 return false;
             }
             console.log(this.config);
             return this.config;
+        },
+
+        /**
+        * This function will validate 'Save To Layer' target layer. 
+        * @memberOf widgets/isolation-trace/settings/settings
+        **/
+        _validateSaveToLayerParameters: function () {
+            var returnObj = { returnErr: "", returnFlag: false }, saveToLayerCount = [], l, m, uniqueSaveToLayerCount = [], tempFlag = true, key, tempValue;
+            //Pushing those output parameter in which Save to layer is checked.
+            if (this.outputSettingArray) {
+                // Loop through the output setting array to get elements
+                for (key in this.outputSettingArray) {
+                    // Checking if array has property
+                    if (this.outputSettingArray.hasOwnProperty(key)) {
+                        // Checking if output setting array is checked
+                        if (this.outputSettingArray[key].outputLayer && this.outputSettingArray[key].outputLayer.checked) {
+                            // Pushing the save to layer value in an array
+                            saveToLayerCount.push(this.outputSettingArray[key].outputLayerType.value);
+                        }
+                    }
+                }
+            }
+            // Checking if the overview div is available
+            if (this.outageSettingObj) {
+                // Looping to overview div
+                for (l = 0; l < this.outageSettingObj.length; l++) {
+                    // Checking for the save to layer checkbox is checked
+                    if (this.outageSettingObj[l].outputLayer && this.outageSettingObj[l].outputLayer.checked) {
+                        saveToLayerCount.push(this.outageSettingObj[l].outputLayerType.value);
+                    }
+                }
+            }
+            // Looping to save to layer value for validation
+            for (m = 0; m < saveToLayerCount.length; m++) {
+                // If any of the save to layer drop down value is empty then show error message
+                if (saveToLayerCount[m] === "") {
+                    returnObj.returnErr = this.nls.validationErrorMessage.saveToLayerTargetLayers;
+                    returnObj.returnFlag = true;
+                    return returnObj;
+                }
+            }
+
+            //Checking whether array has duplicate values or not.
+            tempFlag = saveToLayerCount.slice(0).every(function (item, index, array) {
+                if (uniqueSaveToLayerCount.indexOf(item) > -1) {
+                    array.length = 0;
+                    tempValue = false;
+                } else {
+                    uniqueSaveToLayerCount.push(item);
+                    tempValue = true;
+                }
+                return tempValue;
+            });
+            if (!tempFlag) {
+                returnObj.returnErr = this.nls.validationErrorMessage.saveToLayerTargetLayers;
+                returnObj.returnFlag = true;
+            }
+            return returnObj;
         },
 
         /**
@@ -1074,7 +1015,7 @@ define([
         * @memberOf widgets/isolation-trace/settings/settings
         **/
         _validateOthersTaskParameters: function () {
-            var returnObj = { returnErr: "", returnFlag: false };
+            var returnObj = { returnErr: "", returnFlag: false }, othersParam, imageDataOBJ;
             // if Others setting Obj is created
             if (this.othersSettingObj) {
                 array.forEach(this.othersSettingObj, lang.hitch(this, function (otherData) {
@@ -1083,9 +1024,31 @@ define([
                         othersParam = otherData.getOthersForm();
                         imageDataOBJ = otherData.imageDataObj;
                         //otherData.imageChooser.imageData;
-                        if (imageDataOBJ === "" || imageDataOBJ === null) {
-                            returnObj.returnErr = this.nls.validationErrorMessage.otherHighlighterImage;
-                            returnObj.returnFlag = true;
+                        if (othersParam.highlighterDetails && othersParam.displayTextForRunButton && imageDataOBJ) {
+                            if (imageDataOBJ === "" || imageDataOBJ === null) {
+                                returnObj.returnErr = this.nls.validationErrorMessage.otherHighlighterImage;
+                                returnObj.returnFlag = true;
+                            }
+                            if (othersParam.displayTextForRunButton === "" || othersParam.displayTextForRunButton === null || othersParam.displayTextForRunButton.trim() === "") {
+                                returnObj.returnErr = this.nls.validationErrorMessage.displayTextForButtonError;
+                                returnObj.returnFlag = true;
+                            }
+
+                            if (othersParam.highlighterDetails.height === "" || parseInt(othersParam.highlighterDetails.height, 10) < 0 || isNaN(parseInt(othersParam.highlighterDetails.height, 10))) {
+                                returnObj.returnErr = this.nls.validationErrorMessage.otherHighlighterImageHeight;
+                                returnObj.returnFlag = true;
+                            }
+
+                            if (othersParam.highlighterDetails.width === "" || parseInt(othersParam.highlighterDetails.width, 10) < 0 || isNaN(parseInt(othersParam.highlighterDetails.width, 10))) {
+                                returnObj.returnErr = this.nls.validationErrorMessage.otherHighlighterImageWidth;
+                                returnObj.returnFlag = true;
+                            }
+
+                            if (othersParam.highlighterDetails.timeout === "" || parseInt(othersParam.highlighterDetails.timeout, 10) < 0 || isNaN(parseInt(othersParam.highlighterDetails.timeout, 10))) {
+                                returnObj.returnErr = this.nls.validationErrorMessage.otherHighlighterImageTimeout;
+                                returnObj.returnFlag = true;
+                            }
+
                         }
                     }
                 }));
@@ -1107,7 +1070,7 @@ define([
                 // loop for parsing all the input parameters for valid set of data
                 array.forEach(this.inputSettingArray, lang.hitch(this, function (widgetNode) {
                     // if widgetNode found
-                    if (widgetNode) {
+                    if (widgetNode && widgetNode.inputTypeData) {
                         inputTypeData = widgetNode.inputTypeData.value;
                         // if input type is flag then count the number of flag type input
                         if (inputTypeData === "Flag") {
@@ -1148,74 +1111,74 @@ define([
         * @memberOf widgets/isolation-trace/settings/settings
         **/
         _validateOutputTaskParameters: function () {
-            var returnObj = { returnErr: "", returnFlag: false }, key, displayName, skippableChecked, summaryTextVal, validSummary = false, validDisplayTextArr, displayTextVal, validDisplay;
+            var returnObj = { returnErr: "", returnFlag: false }, key, skippableChecked, summaryTextVal, validSummary = false, validDisplayTextArr, displayTextVal, validDisplay;
             // if output parameters is created in Dom
             if (this.outputSettingArray) {
                 // loop for parsing all the output parameters for valid set of data
                 for (key in this.outputSettingArray) {
-                    validDisplayTextArr = [];
+
                     if (this.outputSettingArray.hasOwnProperty(key)) {
-                        displayName = domAttr.get(this.outputSettingArray[key].domNode, "displayName");
+                        validDisplayTextArr = [];
                         // if outage area drop down is not null and the this particular container belongs to the outage area
-                        if ((this.outputSettingArray[key].outputLabelData.value === "" || this.outputSettingArray[key].outputLabelData.value === null) ||
-                                (this.outputSettingArray[key].outputSummaryText.value === "" || this.outputSettingArray[key].outputSummaryText.value === null) ||
-                                (this.outputSettingArray[key].outputDisplayText.value === "" || this.outputSettingArray[key].outputDisplayText.value === null) ||
-                                (this.outputSettingArray[key].outputMinScaleData.value === "" || this.outputSettingArray[key].outputMinScaleData.value === null ||
-                                isNaN(parseInt(this.outputSettingArray[key].outputMinScaleData.value, 10)) || (parseInt(this.outputSettingArray[key].outputMinScaleData.value, 10) < 0)) || (this.outputSettingArray[key].outputMaxScaleData.value === "" ||
-                                this.outputSettingArray[key].outputMaxScaleData.value === null || isNaN(parseInt(this.outputSettingArray[key].outputMaxScaleData.value, 10)) || (parseInt(this.outputSettingArray[key].outputMaxScaleData.value, 10) < 0))) {
-                            // label value is null
-                            if ((this.outputSettingArray[key]) && (this.outputSettingArray[key].outputLabelData) && (this.outputSettingArray[key].outputLabelData.value === "" || this.outputSettingArray[key].outputLabelData.value === null) && (displayName && this.outageSettingObj.outageAreaDropDown && this.outageSettingObj.outageAreaDropDown.value !== displayName)) {
-                                returnObj.returnErr = this.nls.validationErrorMessage.outputLabelDataErr + " in " + this.outputSettingArray[key].data.displayName;
-                                returnObj.returnFlag = true;
-                                //                            break;
-                            } else if ((this.outputSettingArray[key]) && (this.outputSettingArray[key].outputSummaryText) && (this.outputSettingArray[key].outputSummaryText.value === "" || this.outputSettingArray[key].outputSummaryText.value === null) && (displayName && this.outageSettingObj.outageAreaDropDown && this.outageSettingObj.outageAreaDropDown.value !== displayName)) {
-                                // Summary Text value is null
-                                returnObj.returnErr = this.nls.validationErrorMessage.outputSummaryDataErr + " in " + this.outputSettingArray[key].data.displayName;
-                                returnObj.returnFlag = true;
-                                //                            break;
-                            } else if ((this.outputSettingArray[key]) && (this.outputSettingArray[key].outputDisplayText) && (this.outputSettingArray[key].outputDisplayText.value === "" || this.outputSettingArray[key].outputDisplayText.value === null) && (displayName && this.outageSettingObj.outageAreaDropDown && this.outageSettingObj.outageAreaDropDown.value !== displayName)) {
-                                // if Display text value is null
-                                returnObj.returnErr = this.nls.validationErrorMessage.outputDisplayDataErr + " in " + this.outputSettingArray[key].data.displayName;
-                                returnObj.returnFlag = true;
-                                //                            break;
-                            } else if ((this.outputSettingArray[key]) && (this.outputSettingArray[key].outputMinScaleData) && (this.outputSettingArray[key].outputMinScaleData.value === "" || this.outputSettingArray[key].outputMinScaleData.value === null || isNaN(parseInt(this.outputSettingArray[key].outputMinScaleData.value, 10)) || parseInt(this.outputSettingArray[key].outputMinScaleData.value, 10) < 0)) {
-                                // if min scale is value is null or not an number
-                                returnObj.returnErr = this.nls.validationErrorMessage.outputMinScaleDataErr + " in " + this.outputSettingArray[key].data.displayName;
-                                returnObj.returnFlag = true;
-                                //                            break;
-                            } else if ((this.outputSettingArray[key]) && (this.outputSettingArray[key].outputMaxScaleData) && (this.outputSettingArray[key].outputMaxScaleData.value === "" || this.outputSettingArray[key].outputMaxScaleData.value === null || isNaN(parseInt(this.outputSettingArray[key].outputMaxScaleData.value, 10)) || parseInt(this.outputSettingArray[key].outputMaxScaleData.value, 10) < 0)) {
-                                // if max scale is value is null or not an number
-                                returnObj.returnErr = this.nls.validationErrorMessage.outputMaxScaleDataErr + " in " + this.outputSettingArray[key].data.displayName;
-                                returnObj.returnFlag = true;
-                                //                            break;
-                            }
+                        if (this.outputSettingArray[key].outputLabelData && this.outputSettingArray[key].outputSummaryText && this.outputSettingArray[key].outputSummaryText && this.outputSettingArray[key].outputMinScaleData && this.outputSettingArray[key].outputMaxScaleData) {
+                            if ((this.outputSettingArray[key].outputLabelData.value === "" || this.outputSettingArray[key].outputLabelData.value === null) ||
+                                    (this.outputSettingArray[key].outputSummaryText.value === "" || this.outputSettingArray[key].outputSummaryText.value === null) ||
+                                    (this.outputSettingArray[key].outputDisplayText.value === "" || this.outputSettingArray[key].outputDisplayText.value === null) ||
+                                    (this.outputSettingArray[key].outputMinScaleData.value === "" || this.outputSettingArray[key].outputMinScaleData.value === null ||
+                                    isNaN(parseInt(this.outputSettingArray[key].outputMinScaleData.value, 10)) || (parseInt(this.outputSettingArray[key].outputMinScaleData.value, 10) < 0)) || (this.outputSettingArray[key].outputMaxScaleData.value === "" ||
+                                    this.outputSettingArray[key].outputMaxScaleData.value === null || isNaN(parseInt(this.outputSettingArray[key].outputMaxScaleData.value, 10)) || (parseInt(this.outputSettingArray[key].outputMaxScaleData.value, 10) < 0))) {
+                                // label value is null
+                                if ((this.outputSettingArray[key]) && (this.outputSettingArray[key].outputLabelData) && (this.outputSettingArray[key].outputLabelData.value === "" || this.outputSettingArray[key].outputLabelData.value === null)) {
+                                    returnObj.returnErr = this.nls.validationErrorMessage.outputLabelDataErr + " in " + this.outputSettingArray[key].data.displayName;
+                                    returnObj.returnFlag = true;
+                                } else if ((this.outputSettingArray[key]) && (this.outputSettingArray[key].outputSummaryText) && (this.outputSettingArray[key].outputSummaryText.value === "" || this.outputSettingArray[key].outputSummaryText.value === null)) {
+                                    // Summary Text value is null
+                                    returnObj.returnErr = this.nls.validationErrorMessage.outputSummaryDataErr + " in " + this.outputSettingArray[key].data.displayName;
+                                    returnObj.returnFlag = true;
+                                } else if ((this.outputSettingArray[key]) && (this.outputSettingArray[key].outputDisplayText) && (this.outputSettingArray[key].outputDisplayText.value === "" || this.outputSettingArray[key].outputDisplayText.value === null)) {
+                                    // if Display text value is null
+                                    returnObj.returnErr = this.nls.validationErrorMessage.outputDisplayDataErr + " in " + this.outputSettingArray[key].data.displayName;
+                                    returnObj.returnFlag = true;
+                                } else if ((this.outputSettingArray[key]) && (this.outputSettingArray[key].outputMinScaleData) && (this.outputSettingArray[key].outputMinScaleData.value === "" || this.outputSettingArray[key].outputMinScaleData.value === null || isNaN(parseInt(this.outputSettingArray[key].outputMinScaleData.value, 10)) || parseInt(this.outputSettingArray[key].outputMinScaleData.value, 10) < 0)) {
+                                    // if min scale is value is null or not an number
+                                    returnObj.returnErr = this.nls.validationErrorMessage.outputMinScaleDataErr + " in " + this.outputSettingArray[key].data.displayName;
+                                    returnObj.returnFlag = true;
+                                } else if ((this.outputSettingArray[key]) && (this.outputSettingArray[key].outputMaxScaleData) && (this.outputSettingArray[key].outputMaxScaleData.value === "" || this.outputSettingArray[key].outputMaxScaleData.value === null || isNaN(parseInt(this.outputSettingArray[key].outputMaxScaleData.value, 10)) || parseInt(this.outputSettingArray[key].outputMaxScaleData.value, 10) < 0)) {
+                                    // if max scale is value is null or not an number
+                                    returnObj.returnErr = this.nls.validationErrorMessage.outputMaxScaleDataErr + " in " + this.outputSettingArray[key].data.displayName;
+                                    returnObj.returnFlag = true;
+                                }
 
-                        } else {
-                            // if the summary text value is not null and not and outage area type output
-                            if ((this.outputSettingArray[key].outputSummaryText) && (this.outputSettingArray[key].outputSummaryText.value !== "") && (displayName && this.outageSettingObj.outageAreaDropDown && this.outageSettingObj.outageAreaDropDown.value !== displayName)) {
-                                skippableChecked = this.outputSettingArray[key].skippable.checked;
-                                summaryTextVal = this.outputSettingArray[key].outputSummaryText.value;
-                                validSummary = this._validateSummaryText(summaryTextVal, skippableChecked);
+                            } else {
+                                // if the summary text value is not null and not and outage area type output
+                                if ((this.outputSettingArray[key].outputSummaryText) && (this.outputSettingArray[key].outputSummaryText.value !== "")) {
+                                    skippableChecked = this.outputSettingArray[key].skippable.checked;
+                                    summaryTextVal = this.outputSettingArray[key].outputSummaryText.value;
+                                    validSummary = this._validateSummaryText(summaryTextVal, skippableChecked);
 
-                            }
-                            // if the display text value is not null and not and outage area type output
-                            if (!validSummary && (this.outputSettingArray[key].outputDisplayText) && this.outputSettingArray[key].outputDisplayText.value !== "" && (displayName && this.outageSettingObj.outageAreaDropDown && this.outageSettingObj.outageAreaDropDown.value !== displayName)) {
-                                // if valid set of display text is not null
-                                if (this.outputSettingArray[key] && this.outputSettingArray[key].helpTextDataArray && this.outputSettingArray[key].helpTextDataArray.length > 0) {
-                                    validDisplayTextArr = this.outputSettingArray[key].helpTextDataArray;
-                                    displayTextVal = this.outputSettingArray[key].outputDisplayText.value;
-                                    validDisplay = this._validateDisplayText(displayTextVal, validDisplayTextArr);
+                                }
+                                // if the display text value is not null and not and outage area type output
+                                if (!validSummary && (this.outputSettingArray[key].outputDisplayText) && this.outputSettingArray[key].outputDisplayText.value !== "") {
+                                    // if valid set of display text is not null
+                                    if (this.outputSettingArray[key] && this.outputSettingArray[key].helpTextDataArray && this.outputSettingArray[key].helpTextDataArray.length > 0) {
+                                        validDisplayTextArr = this.outputSettingArray[key].helpTextDataArray;
+                                        displayTextVal = this.outputSettingArray[key].outputDisplayText.value;
+                                        validDisplay = this._validateDisplayText(displayTextVal, validDisplayTextArr);
+                                    }
+                                }
+                                // if the summary text format is not valid
+                                if (validSummary) {
+                                    returnObj.returnErr = this.nls.validationErrorMessage.outputSummaryDataText + " in " + this.outputSettingArray[key].data.displayName;
+                                    returnObj.returnFlag = validSummary;
+                                } else if (validDisplay) {
+                                    // if the display text format is not valid
+                                    returnObj.returnErr = this.nls.validationErrorMessage.outputDisplayDataText + " in " + this.outputSettingArray[key].data.displayName;
+                                    returnObj.returnFlag = validDisplay;
                                 }
                             }
-                            // if the summary text format is not valid
-                            if (validSummary) {
-                                returnObj.returnErr = this.nls.validationErrorMessage.outputSummaryDataText + " in " + this.outputSettingArray[key].data.displayName;
-                                returnObj.returnFlag = validSummary;
-                            } else if (validDisplay) {
-                                // if the display text format is not valid
-                                returnObj.returnErr = this.nls.validationErrorMessage.outputDisplayDataText + " in " + this.outputSettingArray[key].data.displayName;
-                                returnObj.returnFlag = validDisplay;
-                            }
+                        } else {
+                            returnObj.returnErr = "";
+                            returnObj.returnFlag = true;
                         }
                         if (returnObj.returnFlag) {
                             break;
@@ -1288,7 +1251,7 @@ define([
         * @memberOf widgets/isolation-trace/settings/settings
         **/
         _validateDisplayText: function (displayTextVal, validDisplayTextArr) {
-            var displayString, i, j, validArray = [], validFlag = false, firstPlace, secondPlace, displayArray = [];
+            var displayString, i, j, k, validArray = [], validFlag = false, firstPlace, secondPlace, displayArray = [], tempValidDisplayTextArr;
             displayTextVal = displayTextVal.trim();
             firstPlace = displayTextVal.indexOf("{");
             secondPlace = displayTextVal.indexOf("}");
@@ -1308,74 +1271,70 @@ define([
                         validArray.push(displayArray[i][0].toUpperCase());
                     }
                 }
+                tempValidDisplayTextArr = [];
+                // loop for traversing array and changing all elements in array to uppercase
+                for (k = 0; k < validDisplayTextArr.length; k++) {
+                    tempValidDisplayTextArr[k] = validDisplayTextArr[k].toUpperCase();
+                }
+                validFlag = false;
                 // loop for traversing array and checking if display text contains valid data or not
                 for (j = 0; j < validArray.length; j++) {
                     // if array index having valid string
-                    if (validDisplayTextArr.indexOf(validArray[j]) === -1) {
+                    if (tempValidDisplayTextArr.indexOf(validArray[j]) === -1) {
                         validFlag = true;
                         break;
-                    } else {
-                        validFlag = false;
                     }
                 }
             } else {
                 validFlag = true;
             }
-
             return validFlag;
         },
         /**
-        * This function validates the Outage field mapping parameters
+        * This function validates the Overview parameters
         * @param {return} flag value for validation
         * @memberOf widgets/isolation-trace/settings/settings
         **/
         _validateOutageTaskParameters: function () {
-            var returnObj = { returnErr: "", returnFlag: false }, domDisplayName, outputParam, outageLayerName, i, fieldMapArr, fieldNameArr = [], paramNameArr = [], saveToLayerCheckBox, saveToLayerCheckBoxStatus;
+            var returnObj = { returnErr: "", returnFlag: false }, i, overviewParam, fieldNameArr = [], paramNameArr = [];
             // if outage type parameters is created in the config outage object
             if (this.outageSettingObj) {
-                // if output type parameters is created in the config output object
-                if (this.outputSettingArray) {
-                    saveToLayerCheckBox = false;
-                    // loop for traversing the output Dom nodes for checking affected area and save to layer check boxes
-                    array.forEach(this.outputSettingArray, lang.hitch(this, function (widgetNode) {
-                        domDisplayName = "";
-                        outputParam = widgetNode.getOutputForm();
-                        domDisplayName = domAttr.get(widgetNode.domNode, "displayName");
-                        outageLayerName = outputParam.saveToLayer;
-                        saveToLayerCheckBoxStatus = widgetNode.outputLayer.checked ? outageLayerName : "";
-                        if (widgetNode) {
-                            domDisplayName = domAttr.get(widgetNode.domNode, "displayName");
-                        }
-                        // Checking for outage area drop down value and save to layer chedk box checked status
-                        if (saveToLayerCheckBoxStatus && this.outageSettingObj.outageAreaDropDown.value === domDisplayName) {
-                            saveToLayerCheckBox = true;
-                        }
-                    }));
-                }
-                if (saveToLayerCheckBox) {
-                    fieldMapArr = this.outageSettingObj.getOutageConfig();
-                }
-                // if field mapping array is available for the outage area
-                if (fieldMapArr && saveToLayerCheckBox) {
-                    // loop for traversing the field mapping data
-                    for (i = 0; i < fieldMapArr.length; i++) {
-                        // if fieldNameArr length is greater than 0 and field value already not exist
-                        if (fieldNameArr.length > 0 && fieldNameArr.indexOf(fieldMapArr[i].fieldName) !== -1) {
+                array.forEach(this.outageSettingObj, lang.hitch(this, function (widgetNode) {
+                    if (widgetNode) {
+                        overviewParam = widgetNode.getOverviewForm();
+                    }
+                }));
+                if (overviewParam.BufferDistance === 0 || overviewParam.BufferDistance < 0 || overviewParam.BufferDistance === null || isNaN(overviewParam.BufferDistance) || overviewParam.BufferDistance === undefined) {
+                    returnObj.returnFlag = true;
+                    returnObj.returnErr = this.nls.validationErrorMessage.BufferDisatanceOverview;
+
+                } else if (overviewParam.MaxScale === null || isNaN(overviewParam.MaxScale) || overviewParam.MaxScale < 0) {
+                    returnObj.returnFlag = true;
+                    returnObj.returnErr = this.nls.validationErrorMessage.outputMaxScaleDataErr;
+
+                } else if (overviewParam.MinScale === null || isNaN(overviewParam.MinScale) || overviewParam.MinScale < 0) {
+                    returnObj.returnFlag = true;
+                    returnObj.returnErr = this.nls.validationErrorMessage.outputMinScaleDataErr;
+                } else if (overviewParam.saveToLayer !== "") {
+                    for (i = 0; i < overviewParam.fieldMap.length; i++) {
+                        if (fieldNameArr.length > 0 && fieldNameArr.indexOf(overviewParam.fieldMap[i].fieldName) !== -1) {
                             returnObj.returnErr = this.nls.validationErrorMessage.outageFieldMappingErr;
                             returnObj.returnFlag = true;
                             break;
                         }
-                        fieldNameArr.push(fieldMapArr[i].fieldName);
-                        // if paramNameArr length is greater than 0 and param value already not exist
-                        if (paramNameArr.length > 0 && paramNameArr.indexOf(fieldMapArr[i].paramName) !== -1) {
+                        fieldNameArr.push(overviewParam.fieldMap[i].fieldName);
+
+                        if (paramNameArr.length > 0 && paramNameArr.indexOf(overviewParam.fieldMap[i].paramName) !== -1) {
                             returnObj.returnErr = this.nls.validationErrorMessage.outageFieldMappingErr;
                             returnObj.returnFlag = true;
                             break;
                         }
-                        paramNameArr.push(fieldMapArr[i].paramName);
+                        paramNameArr.push(overviewParam.fieldMap[i].paramName);
                     }
                 }
+
             }
+
             return returnObj;
         },
 

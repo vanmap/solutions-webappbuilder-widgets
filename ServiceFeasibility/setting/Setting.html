@@ -1,58 +1,313 @@
 ﻿<div style="width: 100%; height: 100%;">
     <div class="divBusinessesLayerContainer row">
-        <div class="SFlabel">${nls.lblBusinessesLayer}</div>
-        <div class="inputbox"><select data-dojo-attach-point="selectBusinessLayer" data-dojo-type="dijit/form/Select"></select></div>
+        <div class="SFlabel" data-dojo-attach-point="selectBusinessLayerLabel">
+            ${nls.lblBusinessesLayer}
+        </div>
+        <div class="inputbox">
+            <select data-dojo-attach-point="selectBusinessLayer" data-dojo-type="dijit/form/Select">
+            </select>
+        </div>
+        <div class="esriCTHint esriCTMargin">
+            ${nls.hintText.bussinessesLayerText}</div>
     </div>
     <div class="divAccessPointLayersContainer row">
-        <div class="SFlabel">${nls.lblAccessPointLayers}</div>
-        <div class="chkbox"><div class="divAceessPointLayersCheckboxes" data-dojo-attach-point="divAccessPointLayer"></div>
+        <div class="SFlabel" data-dojo-attach-point="accessPointLayerLabel">
+            ${nls.lblAccessPointLayers}
+        </div>
+        <div class="chkbox">
+            <div class="divAceessPointLayersCheckboxes" data-dojo-attach-point="divAccessPointLayer">
+            </div>
+            <div class="esriCTHint esriCTMargin">
+                ${nls.hintText.accessPointLayerText}</div>
         </div>
     </div>
     <div class="divRouteLengthUnitsContainer row">
-        <div class="SFlabel">${nls.lblForRouteLengthUnits}</div>
-        <div class="inputbox"><input type="text" /></div>
+        <div class="SFlabel" data-dojo-attach-point="RouteLengthUnitLabel">
+            ${nls.lblForRouteLengthUnits}
+        </div>
+        <div class="esriCTInputTextbox" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="txtRouteLength"
+            data-dojo-props='required:true,trim:true,disabled:false'>
+        </div>
+        <div class="esriCTHint esriCTMargin">
+            ${nls.hintText.routeLengthUnitText}</div>
     </div>
     <div class="divBusinessListContainer row">
-        <div class="SFlabel">${nls.lblFieldTobeDisplayed}</div>
-        <div class="inputbox"><select data-dojo-attach-point="selectbusinessList" data-dojo-type="dijit/form/Select"></select></div>
+        <div class="SFlabel">
+            ${nls.lblFieldTobeDisplayed}
+        </div>
+        <div class="inputbox">
+            <select data-dojo-attach-point="selectbusinessList" data-dojo-type="dijit/form/Select">
+            </select>
+        </div>
+        <div class="esriCTHint esriCTMargin">
+            ${nls.hintText.bussinessListText}</div>
     </div>
     <fieldset class="fldSetServiceAreaParameters row">
-        <legend class="fieldSetLegend">${nls.captionServiceAreaParameters}</legend>
+        <legend class="fieldSetLegend esriCTEllipsisFieldSet">${nls.captionServiceAreaParameters}</legend>
         <div class="divServiceAreaParametersContainer">
             <div class="divBufferDistanceContainer row">
-                <div class="SFlabel">${nls.lblBufferDistanceToGenerateServiceArea}</div>
-                <div class="inputbox"><input type="text" /></div>
+                <div class="SFlabel" data-dojo-attach-point="BufferDistanceLabel">
+                    ${nls.lblBufferDistanceToGenerateServiceArea}
+                </div>
+                <div class="esriCTInputTextbox" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="txtBufferDistance"
+                    data-dojo-props='required:true,trim:true,disabled:false'>
+                </div>
+                <div class="esriCTHint esriCTMargin">
+                    ${nls.hintText.bufferDistanceText}</div>
             </div>
             <div class="divBufferUnitsContainer row">
-                <div class="SFlabel">${nls.lblBufferUnits}</div>
-                <div class="inputbox"><select data-dojo-attach-point="selectBufferUnits" data-dojo-type="dijit/form/Select"></select></div>
-            </div>
-            <div class="divBufferWKIDContainer row">
-                <div class="SFlabel">${nls.lblBufferWKID}</div>
-                <div class="inputbox"><input type="text" /></div>
+                <div class="SFlabel">
+                    ${nls.lblBufferUnits}
+                </div>
+                <div class="inputbox">
+                    <select data-dojo-attach-point="selectBufferUnits" data-dojo-type="dijit/form/Select">
+                    </select>
+                </div>
+                <div class="esriCTHint esriCTMargin">
+                    ${nls.hintText.bufferUnitsText}</div>
             </div>
         </div>
     </fieldset>
     <fieldset class="fldSetClosestFacilityParameters row">
-        <legend class="fieldSetLegend">${nls.captionClosestFacilityParameters}</legend>
+        <legend class="fieldSetLegend esriCTEllipsisFieldSet ">${nls.captionClosestFacilityParameters}</legend>
         <div class="divClosestFacilityParametersContainer">
             <div class="divClosestFacilityURLContainer row">
-                <div class="SFlabel">${nls.lblClosestFacilityServiceUrl}</div>
-                <div class="inputurlbox"><input type="text" />
-                <button class="jimu-popup-btn jimu-float-trailing jimu-leading-margin1 urlButton">${nls.btnSet}</button></div>
+                <div class="SFlabel">
+                    ${nls.lblClosestFacilityServiceUrl}
+                </div>
+                <div class="inputurlbox">
+                    <div class="setClosestURL" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="closedFacilityServiceURL"
+                        data-dojo-props='required:true,trim:true'>
+                    </div>
+                    <button class="jimu-popup-btn jimu-float-trailing jimu-leading-margin1 urlButton esriCTBtnEllipsis"
+                        data-dojo-attach-point="onSetBtnClick">
+                        ${nls.btnSet}</button>
+                </div>
+                <div class="esriCTHint esriCTMargin">
+                    ${nls.hintText.closestFacilityText}</div>
             </div>
             <div class="divFacilitySearchDistanceContainer row">
-                <div class="SFlabel">${nls.lblFacilitySearchDistance}</div>
-                <div class="inputbox"><input type="text" /></div>
+                <div class="SFlabel">
+                    ${nls.lblFacilitySearchDistance}</div>
+                <div class="esriCTInputTextbox" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="txtFacilityDistance"
+                    data-dojo-props='required:true,trim:true,disabled:false'>
+                </div>
+                <div class="esriCTHint esriCTMargin">
+                    ${nls.hintText.facilitySearchDistanceText}</div>
             </div>
-            <div class="divImpedanceAttributeContainer row">
-                <div class="SFlabel">${nls.lblImpedanceAttribute}</div>
-                <div class="inputbox"><input type="text" /></div>
+            <div class="divImpedanceAttributeContainer row esriCTHidden" data-dojo-attach-point="ImpedanceAttributeContainer">
+                <div class="SFlabel">
+                    ${nls.lblImpedanceAttribute}</div>
+                <div class="inputbox">
+                    <select data-dojo-attach-point="selectInpedanceAttribute" data-dojo-type="dijit/form/Select">
+                    </select>
+                </div>
+                <div class="esriCTHint esriCTMargin">
+                    ${nls.hintText.impedanceText}</div>
             </div>
             <div class="divCutoffDistanceContainer row">
-                <div class="SFlabel">${nls.lblDefaultCutOffDistance}</div>
-                <div class="inputbox"><input type="text" /></div>
+                <div class="SFlabel">
+                    ${nls.lblDefaultCutOffDistance}</div>
+                <div class="esriCTInputTextbox" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="txtdefaultCuttoff"
+                    data-dojo-props='required:true,trim:true,disabled:false'>
+                </div>
+                <div class="esriCTHint esriCTMargin">
+                    ${nls.hintText.cuttOffDistanceText}</div>
             </div>
+            <div class="row esriCTHidden" data-dojo-attach-point="attributeParameterValues">
+                <div class="esriCTMainAttrPos">
+                    <div class="SFlabel" style="float: left; width: 100%">
+                        ${nls.lblAttributeParameterValues}</div>
+                    <div class="esriCTHint esriCTMargin esriCTAttrPos">
+                        ${nls.hintText.AttributeParameterValueText1}</div>
+                    <div class="esriCTHint esriCTMargin esriCTAttrPos">
+                        ${nls.hintText.AttributeParameterValueText2}</div>
+                </div>
+                <div class="esriCTAttrParamContainer" data-dojo-attach-point="esriCTAttrParamContainer">
+                </div>
+            </div>
+    </fieldset>
+    <fieldset class="fldSetServiceAreaParameters row">
+        <legend class="fieldSetLegend esriCTEllipsisFieldSet">${nls.captiveAttributeLookup}</legend>
+        <div class="esriCTattributeParamLookup row">
+            <div class="SFlabel">
+                ${nls.lblAttributeParamLookup}
+            </div>
+            <div>
+                <textarea class="esriCTAttributeTextArea" data-dojo-type="dijit/form/SimpleTextarea"
+                    rows="4" cols="50" data-dojo-attach-point="txtAttributeParam" data-dojo-props='required:true,trim:true,disabled:false'>${nls.defaultDataDictionaryValue}</textarea></div>
+            <div class="esriCTHint esriCTMargin esriCTMarginForLookupHint">
+                ${nls.hintText.lookupText}</div>
+            <div class="esriCTHint esriCTMargin esriCTMarginForLookupHint">
+                ${nls.hintText.lookupTextOnSet}</div>
+        </div>
+    </fieldset>
+    <fieldset class="fldSetServiceAreaParameters row">
+        <legend class="fieldSetLegend esriCTEllipsisFieldSet">${nls.captionSaveResults}</legend>
+        <div class="esriCTattributeParamLookup row">
+            <div class="esriCTBusinessLayerChecks" data-dojo-attach-point="businessLayerCheckbox">
+            </div>
+            <div class="esriCTSaveBusinessLayerLabel esriCTSaveTargetLabel esriCTEllipsis" data-dojo-attach-point="saveBusinessLayerLabel">
+            </div>
+            <div class="inputbox esriCTHidden esriCTTargetLayerAlign" data-dojo-attach-point="selectSaveBusinessLayerBlock">
+                <select style="width: 100%" data-dojo-attach-point="selectSaveBusinessLayer" data-dojo-type="dijit/form/Select">
+                </select>
+                <div class="esriCTHint esriCTMargin">
+                    ${nls.hintText.bussinessLayerText}</div>
+            </div>
+        </div>
+        <div class="esriCTattributeParamLookup row">
+            <div class="esriCTBusinessLayerChecks esriCTRouteLayerChecks" data-dojo-attach-point="routeLayerCheckbox">
+            </div>
+            <div class="esriCTSaveRouteLayerLabel esriCTSaveTargetLabel esriCTEllipsis" data-dojo-attach-point="saveRouteLayerLabel">
+            </div>
+            <div class="inputbox esriCTHidden esriCTTargetLayerAlign" data-dojo-attach-point="selectrouteLayerBlock">
+                <select style="width: 100%" data-dojo-attach-point="selectSaveRouteLayer" data-dojo-type="dijit/form/Select">
+                </select>
+                <div class="esriCTHint esriCTMargin">
+                    ${nls.hintText.routeLayerText}</div>
+            </div>
+        </div>
+        <div data-dojo-attach-point="routeLayerCheck" class="esriCTHidden esriCTRouteLayerCheckBlock">
+            <div class="esriCTattributeParamLookup row">
+                <div class="esriCTBusinessLayerChecks esriCTRouteLayerChecks" data-dojo-attach-point="routelengthCheckbox">
+                </div>
+                <div class="esriCTSaveRouteLengthLabel esriCTSaveTargetLabel" data-dojo-attach-point="saveRouteLengthLabel">
+                </div>
+                <div class="inputbox esriCTHidden esriCTTargetLayerAlign" data-dojo-attach-point="selectRouteLengthBlock">
+                    <select style="width: 100%" data-dojo-attach-point="selectSaveRouteLength" data-dojo-type="dijit/form/Select">
+                    </select>
+                    <div class="esriCTHint esriCTMargin">
+                        ${nls.hintText.routeLengthText}</div>
+                </div>
+            </div>
+            <div class="esriCTattributeParamLookup row">
+                <div class="esriCTBusinessLayerChecks esriCTRouteLayerChecks" data-dojo-attach-point="businessCountCheckbox">
+                </div>
+                <div class="esriCTBusinessCountLabel esriCTSaveTargetLabel" data-dojo-attach-point="businessCountLabel">
+                </div>
+                <div class="inputbox">
+                    <div class="inputbox esriCTHidden esriCTTargetLayerAlign" data-dojo-attach-point="selectBusinessCountBlock">
+                        <select style="width: 100%" data-dojo-attach-point="selectSaveBusinessCount" data-dojo-type="dijit/form/Select">
+                        </select>
+                        <div class="esriCTHint esriCTMargin">
+                            ${nls.hintText.saveBussinessText}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+    <fieldset class="fldSetServiceAreaParameters row">
+        <legend class="fieldSetLegend esriCTEllipsisFieldSet ">${nls.captionExportCSV}</legend>
+        <div class="esriCTattributeParamLookup row">
+            <div class="esriCTBusinessLayerChecks" data-dojo-attach-point="exportCsvCheck">
+            </div>
+            <div class="esriCTExportCsvLabel esriCTSaveTargetLabel" data-dojo-attach-point="exportCsvLabel">
+            </div>
+        </div>
+        <div class="esriCTHint esriCTMargin">
+            ${nls.hintText.exportToCSVText}</div>
+    </fieldset>
+    <fieldset class="fldSetClosestFacilityParameters row">
+        <legend class="fieldSetLegend esriCTEllipsisFieldSet">${nls.symbol.barrier}</legend>
+        <div class="divBusinessListContainer row">
+            <div class="SFlabel">
+                ${nls.symbol.pointBarrierSymbol}
+            </div>
+            <div data-dojo-attach-point="pointBarrierSymbol" class="common-input esriCTSymbolData">
+            </div>
+        </div>
+        <div class="divBusinessListContainer row">
+            <div class="SFlabel">
+                ${nls.symbol.lineBarrierSymbol}
+            </div>
+            <div data-dojo-attach-point="lineBarrierSymbol" class="common-input esriCTSymbolData">
+            </div>
+        </div>
+        <div class="divBusinessListContainer row">
+            <div class="SFlabel">
+                ${nls.symbol.polygonBarrierSymbol}
+            </div>
+            <div data-dojo-attach-point="polygonBarrierSymbol" class="common-input esriCTSymbolData">
+            </div>
+        </div>
+    </fieldset>
+    <fieldset class="fldSetClosestFacilityParameters row">
+        <legend class="fieldSetLegend esriCTEllipsisFieldSet">${nls.symbol.location}</legend>
+        <div class="divBusinessListContainer row">
+            <div class="SFlabel">
+                ${nls.symbol.pointLocationSymbol}
+            </div>
+            <div data-dojo-attach-point="pointLocationSymbol" class="common-input esriCTSymbolData">
+            </div>
+        </div>
+    </fieldset>
+    <fieldset class="fldSetClosestFacilityParameters row">
+        <legend class="fieldSetLegend esriCTEllipsisFieldSet">${nls.symbol.route}</legend>
+        <div class="divBusinessListContainer row">
+            <div class="SFlabel">
+            </div>
+            <div data-dojo-attach-point="routeSymbol" class="common-input esriCTSymbolData">
+            </div>
+        </div>
+    </fieldset>
+    <fieldset class="fldSetClosestFacilityParameters row">
+        <legend class="fieldSetLegend">${nls.symbol.buffer}</legend>
+        <div class="divBusinessListContainer row">
+            <div class="SFlabel">
+            </div>
+            <div data-dojo-attach-point="bufferSymbol" class="common-input esriCTSymbolData">
+            </div>
+        </div>
+    </fieldset>
+    <fieldset class="fldSetClosestFacilityParameters row">
+        <legend class="fieldSetLegend esriCTEllipsisFieldSet">${nls.highlighter.highlighterSection}</legend>
+        <div class="divBusinessListContainer row">
+            <div class="SFlabel" title="${nls.highlighter.imageUplaod}">
+                <div class="SFlabel">
+                    ${nls.highlighter.imageUplaod}
+                </div>
+            </div>
+            <div>
+                <div class="image_chooser_base" data-dojo-attach-point="imageChooserBase">
+                </div>
+                <div data-dojo-attach-point="thumbnailImgDiv">
+                    <img class="thumbnail-img" src="" data-dojo-attach-point="showImageChooser">
+                </div>
+            </div>
+        </div>
+        <div class="divBusinessListContainer row">
+            <div class="SFlabel">
+                ${nls.highlighter.imageHeight}
+            </div>
+            <input data-dojo-attach-point="imageHeight" data-dojo-type="dijit/form/NumberSpinner"
+                class="common-inputspin" value="100" data-dojo-props="smallDelta:1, constraints:{min:1,places:0,pattern: '#'}" />
+            <label class="esriCTImg esriCTLayoutLeft esriCTunitsForOther">
+                ${nls.highlighter.pixel}</label>
+            <div class="esriCTHint esriCTMargin">
+                ${nls.hintText.imageHeightText}</div>
+        </div>
+        <div class="divBusinessListContainer row">
+            <div class="SFlabel">
+                ${nls.highlighter.imageWidth}
+            </div>
+            <input data-dojo-attach-point="imageWidth" data-dojo-type="dijit/form/NumberSpinner"
+                class="common-inputspin" value="100" data-dojo-props="smallDelta:1, constraints:{min:1,places:0,pattern: '#'}" />
+            <label class="esriCTImg esriCTLayoutLeft esriCTunitsForOther">
+                ${nls.highlighter.pixel}</label>
+            <div class="esriCTHint esriCTMargin">
+                ${nls.hintText.imageWidthText}</div>
+        </div>
+        <div class="divBusinessListContainer row">
+            <div class="SFlabel">
+                ${nls.highlighter.imageHighlightTimeout}
+            </div>
+            <input data-dojo-attach-point="highlighterImageTimeout" data-dojo-type="dijit/form/NumberSpinner"
+                class="common-inputspin" value="1000" data-dojo-props="smallDelta:1000, constraints:{min:1,places:0,pattern: '#'}" />
+            <label class="esriCTImg esriCTLayoutLeft esriCTunitsForOther">
+                ${nls.highlighter.miliseconds}</label>
+            <div class="esriCTHint esriCTMargin">
+                ${nls.hintText.imageTimeoutText}</div>
         </div>
     </fieldset>
 </div>

@@ -234,6 +234,7 @@ define([
                 this.bombLocationGraphicsLayer.clear();
                 //this.addressLocationLayer.clear();
                 this.drawToolbar.activate(tool);
+                this.onClearBtnClicked();
             },
 
             // BUFFER THE BOMB LOCATION BASED ON THE SELECTED BOMB TYPE

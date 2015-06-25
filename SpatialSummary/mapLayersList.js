@@ -14,21 +14,33 @@
 // limitations under the License.
 ///////////////////////////////////////////////////////////////////////////
 define(['dojo/Evented',
+        'dojo/ready',
         'dojo/_base/declare',
         'dojo/_base/lang',
         'dojo/_base/array',
+        'dojo/on',
+        'dojo/dom',
+        'dojo/dom-style',
         'dojo/Deferred',
         'dojo/promise/all',
-        'esri/request'],
+        'dijit/form/CheckBox',
+        'esri/request',
+        'dojo/dom-construct'], 
 function(Evented,
+          ready,
           declare,
           lang,
           array,
+          on,
+          dom,
+          domStyle,
           Deferred,
           all,
-          esriRequest) {
+          CheckBox,
+          esriRequest,
+          domConstruct) {
   return declare([Evented], {
-    declaredClass : 'layerDetails',
+    declaredClass : 'mapLayersList',
     map : null,
     layers : null,
     layerStore : null,
@@ -47,6 +59,7 @@ function(Evented,
       this.layerStore = null;
       this.layerStore = [];
     },
+    
     //This gets all the operational layers and gets the info and places it in a custom data object.
     //This will also process sublayers not directly added to the map.
     //The layers are also passed to the getLayerInfo function to get geometry type and field info.
@@ -54,53 +67,50 @@ function(Evented,
     getAllMapLayers: function() {
       var promises = [];
       var deferred = new Deferred();
-      var dataItem;
-      console.log(this.map.itemInfo.itemData.operationalLayers);
+      
       array.forEach(this.map.itemInfo.itemData.operationalLayers, lang.hitch(this, function(layer) {
-        if(!layer.featureCollection) {
-          if (layer.layerObject.type && layer.layerObject.type === 'Feature Layer') {
-            dataItem = {
-              label : layer.title,
-              id : layer.id,
-              url : layer.url,
+        if (layer.layerObject.type && layer.layerObject.type === 'Feature Layer') {
+          dataItem = {
+            label : layer.title,
+            id : layer.id,
+            url : layer.url,
+            fieldName : this.fieldName,
+            type : 'Feature Layer',
+            checked : false,
+            children : []
+          };
+          promises.push(this._getLayerInfo(dataItem));
+
+          this.layerStore.push(dataItem);
+        } else if (layer.layers) {
+
+          this.childList = [];
+          array.forEach(layer.layers, lang.hitch(this, function(subLyr, i) {
+            var subDataItem = {
+              label : layer.layerObject.layerInfos[i + 1].name,
+              id : layer.id + '.' + subLyr.id,
+              url : layer.url + '/' + subLyr.id,
+              type : 'Layer',
               fieldName : this.fieldName,
-              type : 'Feature Layer',
               checked : false,
               children : []
             };
-            promises.push(this._getLayerInfo(dataItem));
-  
-            this.layerStore.push(dataItem);
-          } else if (layer.layers) {
-  
-            this.childList = [];
-            array.forEach(layer.layers, lang.hitch(this, function(subLyr, i) {
-              var subDataItem = {
-                label : layer.layerObject.layerInfos[i + 1].name,
-                id : layer.id + '.' + subLyr.id,
-                url : layer.url + '/' + subLyr.id,
-                type : 'Layer',
-                fieldName : this.fieldName,
-                checked : false,
-                children : []
-              };
-              this.childList.push(subDataItem);
-              promises.push(this._getLayerInfo(subDataItem));
-  
-            }));
-            dataItem = {
-              label : layer.title,
-              id : layer.id,
-              url : layer.url,
-              type : 'Service',
-              checked : false,
-              children : this.childList
-            };
-            this.layerStore.push(dataItem);
-          }
+            this.childList.push(subDataItem);
+            promises.push(this._getLayerInfo(subDataItem));
+
+          }));
+          dataItem = {
+            label : layer.title,
+            id : layer.id,
+            url : layer.url,
+            type : 'Service',
+            checked : false,
+            children : this.childList
+          };
+          this.layerStore.push(dataItem);
         }
       }));
-      //Once all the layers and requst are setup, wrap them in ALL to make sure all completes
+      //Once all the layers and request are setup, wrap them in ALL to make sure all completes
       //before proceeding on.
       all(promises).then(lang.hitch(this, function() {
         var node = this._controlComplete();
@@ -131,7 +141,7 @@ function(Evented,
             'f' : 'json'
           },
           'callbackParamName' : 'callback'
-        }).then(lang.hitch(this, function(response) {
+        }).then(lang.hitch(this, function(response, io) {
           //show field names and aliases
           if (response.hasOwnProperty('fields') && this.layersOnly === false) {
 
@@ -147,8 +157,9 @@ function(Evented,
               };
 
             }));
+
             //Update code to find fields that are in list .
-            var filteredArr = array.filter(fieldInfo, lang.hitch(this, function(fieldItem) {
+            var filteredArr = array.filter(fieldInfo, lang.hitch(this, function(fieldItem, i) {
               return array.indexOf(this.validFieldTypes, fieldItem.fieldType) >= 0;
             }));
 
@@ -171,8 +182,7 @@ function(Evented,
 
           deferred.resolve(response);
 
-        }), function() {
-          //error callback
+        }), function(error) {
           deferred.resolve(null);
         });
       }

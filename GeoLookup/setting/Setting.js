@@ -15,12 +15,8 @@
 ///////////////////////////////////////////////////////////////////////////
 
 define(['dojo/_base/declare',
-        'dijit/_WidgetsInTemplateMixin',
-        'dijit/form/RadioButton',
-        'dijit/form/Button',
-        'dijit/form/SimpleTextarea',
-        'dijit/form/TextBox',
         'jimu/BaseWidgetSetting',
+        'dijit/_WidgetsInTemplateMixin',
         'jimu/dijit/SimpleTable',
         'dojo/query',
         'dojo/_base/html',
@@ -28,20 +24,14 @@ define(['dojo/_base/declare',
         'dojo/_base/array',
         'dojo/on',
         'dojo/_base/lang',
-        'dojo/json',
-        'dijit/form/Select',
         'dojo/dom-construct',
-        'jimu/dijit/SymbolChooser',
+        'jimu/symbolUtils',
         'esri/symbols/jsonUtils',
-        'esri/layers/FeatureLayer',
-        './layerDetails'], 
-function(declare, 
-        _WidgetsInTemplateMixin,
-        RadioButton,
-        Button,
-        SimpleTextarea,
-        TextBox,
+        'jimu/dijit/SymbolChooser',
+        './layerDetails'],
+function(declare,
         BaseWidgetSetting,
+        _WidgetsInTemplateMixin,
         SimpleTable,
         query,
         html,
@@ -49,12 +39,10 @@ function(declare,
         array,
         on,
         lang,
-        JSON,
-        Select,
         domConstruct,
-        SymbolChooser,
+        jimuSymUtils,
         symbolJsonUtils,
-        FeatureLayer,
+        SymbolChooser,
         layerDetails) {
   return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
     //these two properties is defined in the BaseWidget
@@ -63,6 +51,7 @@ function(declare,
     currentLayer : null,
     selectedFields : [],
     layerList : [],
+    symbolEvent : null,
     startup : function() {
       this.inherited(arguments);
       if (this.config === null) {
@@ -79,83 +68,42 @@ function(declare,
       }
       this.setConfig(this.config);
 
+      this.own(on(this.symbolInPreview, 'click', lang.hitch(this, function() {
+        this.popSymbolChooser('Within');
+        this.symbolDial.show();
+      })));
+
+      this.own(on(this.symbolOutPreview, 'click', lang.hitch(this, function() {
+        this.popSymbolChooser('Outside');
+        this.symbolDial.show();
+      })));
+
       //Create a Layer and fields table object container
       this.createLayerTable();
       this.createFieldsTable();
-      //This code calls a class.  This class takes the map object and will 
+      //This code calls a class.  This class takes the map object and will
       //return an array of layers and sublayers once complete event is fired.
       //If there are no operational layers, find buttons and only let user cancel.
       this.layerList = [];
       if ((this.map.itemInfo.itemData.operationalLayers).length > 0) {
         var lyrDet = new layerDetails(this.map);
         lyrDet.getAllMapLayers();
-        on(lyrDet, 'complete', lang.hitch(this, this._completeLayerDetails));
+        this.own(on(lyrDet, 'complete', lang.hitch(this, this._completeLayerDetails)));
       } else {
         this._noLayersDisplay();
       }
     },
 
-    //This function creates custom buttonsfor advanced functions. If no polygon layers, all these get hidden
-    loadCustomButtons : function(valid) {
-      try {
-        var btnBar = (this.domNode.parentNode.parentNode.parentNode.parentNode.lastChild.lastChild);
-        var btnOKLocation = (this.domNode.parentNode.parentNode.parentNode.parentNode.lastChild.lastChild.previousSibling);
-
-        this.btnAdvSettings = domConstruct.toDom("<div class='jimu-popup-btn jimu-float-trailing jimu-leading-margin1'>" + this.nls.advSettingsBtn + "</div>");
-        on(this.btnAdvSettings, 'click', lang.hitch(this, this.showAdvSettings));
-
-        this.btnSaveFields = domConstruct.toDom("<div class='jimu-popup-btn jimu-float-trailing jimu-leading-margin1 hideGLItem'>" + this.nls.saveFields + "</div>");
-        on(this.btnSaveFields, 'click', lang.hitch(this, this.saveFields));
-
-        this.btnCancelFields = domConstruct.toDom("<div class='jimu-popup-btn jimu-float-trailing jimu-leading-margin1 hideGLItem'>" + this.nls.cancelFields + "</div>");
-        on(this.btnCancelFields, 'click', lang.hitch(this, this.cancelFields));
-
-        this.btnSaveAdv = domConstruct.toDom("<div class='jimu-popup-btn jimu-float-trailing jimu-leading-margin1 hideGLItem'>" + this.nls.saveAdv + "</div>");
-        on(this.btnSaveAdv, 'click', lang.hitch(this, this.saveAdv));
-
-        this.btnCancelAdv = domConstruct.toDom("<div class='jimu-popup-btn jimu-float-trailing jimu-leading-margin1 hideGLItem'>" + this.nls.cancelAdv + "</div>");
-        on(this.btnCancelAdv, 'click', lang.hitch(this, this.cancelAdv));
-
-        this.btnErrorMsg = domConstruct.toDom("<div class='settings-error hideGLItem'></div>");
-
-        if (valid) {
-          domConstruct.place(this.btnAdvSettings, btnBar, 'after');
-          domConstruct.place(this.btnSaveAdv, this.btnAdvSettings, 'after');
-          domConstruct.place(this.btnCancelAdv, this.btnSaveAdv, 'after');
-          domConstruct.place(this.btnSaveFields, this.btnCancelAdv, 'after');
-          domConstruct.place(this.btnCancelFields, this.btnSaveFields, 'after');
-          domConstruct.place(this.btnErrorMsg, this.btnCancelFields, 'after');
-        } else {
-          html.addClass(btnOKLocation, 'hideGLItem');
-        }
-
-      } catch (err) {
-        console.log(err.message);
-      }
-    },
-
     setConfig : function(config) {
       this.config = config;
-      var error = array.forEach(this.config.enrichLayers, function(row) {
+      array.forEach(this.config.enrichLayers, function(row) {
         this.selectedFields[row.id] = row.fields;
       }, this);
-      var sym;
-      if (this.config.SymbolWithin) {
-        sym = symbolJsonUtils.fromJson(this.config.SymbolWithin);
-        if (sym) {
-          this.symbolWithin.showBySymbol(sym);
-        }
-      }
-      if (this.config.SymbolOutside) {
-        sym = symbolJsonUtils.fromJson(this.config.SymbolOutside);
-        if (sym) {
-          this.symbolOutside.showBySymbol(sym);
-        }
-      }
+      this.showInitSymbols();
     },
     getConfig : function() {
-      this.config.SymbolWithin = this.symbolWithin.getSymbol().toJson();
-      this.config.SymbolOutside = this.symbolOutside.getSymbol().toJson();
+      this.config.SymbolWithin = this.config.SymbolWithin;
+      this.config.SymbolOutside = this.config.SymbolOutside;
       var data = this.layersTable.getData();
       this.config.enrichLayers = [];
       var layersValid = false;
@@ -222,7 +170,7 @@ function(declare,
             if (filteredArr.length > 0) {
               enrich = true;
             }
-            var row = this.layersTable.addRow({
+            this.layersTable.addRow({
               label : label,
               enrich : enrich,
               id : layer.id,
@@ -235,14 +183,12 @@ function(declare,
       }, this);
 
       if (!tableValid) {
-        this.loadCustomButtons(false);
         domStyle.set(this.tableLayerInfosError, 'display', '');
       } else {
-        this.loadCustomButtons(true);
         domStyle.set(this.tableLayerInfosError, 'display', 'none');
       }
     },
-    
+
     //This creates the layer table structure
     createLayerTable : function() {
       var layerTableFields = [{
@@ -277,7 +223,11 @@ function(declare,
       this.layersTable = new SimpleTable(args);
       this.layersTable.placeAt(this.tableLayerInfos);
       this.layersTable.startup();
-      this.own(on(this.layersTable, 'actions-edit', lang.hitch(this, this.showLayerFields)));
+      this.own(on(this.layersTable, 'actions-edit', lang.hitch(this, function(tr) {
+        this.showLayerFields(tr);
+        this.fieldsPage.show();
+        this.resizeFieldsTable();
+      })));
 
     },
     //This creates the fields table structure.  This only gets called when the parent layer table buttonis clicked
@@ -305,8 +255,17 @@ function(declare,
       this.layerFieldsTable.placeAt(this.tableFieldInfos);
       this.layerFieldsTable.startup();
     },
+
+    resizeFieldsTable : function() {
+      //manually resize the dijit dialog.  by default, it gets client height
+      this.layerFieldsTable.domNode.style.width = "608px";
+      this.layerFieldsTable.domNode.style.height = "360px";
+      this.fieldsPage.resize();
+    },
+
     //Loads the field table
     showLayerFields : function(tr) {
+
       this.currentLayer = null;
       var tds = query('.action-item-parent', tr);
       if (tds && tds.length) {
@@ -325,6 +284,7 @@ function(declare,
             var filtFields;
             var filtAlias;
             var isAppended;
+            var aliasLabel;
             if (fields) {
               filtFields = array.map(fields, function(field) {
                 return field.fieldName;
@@ -333,7 +293,7 @@ function(declare,
                 return field.label;
               });
             }
-            var fields = layer.children;
+            fields = layer.children;
             array.forEach(fields, function(field) {
               aliasLabel = field.label;
               isAppended = false;
@@ -349,11 +309,7 @@ function(declare,
                 isAppended : isAppended
               });
             }, this);
-            html.addClass(this.mainPage, 'hideGLItem');
-            html.addClass(this.btnAdvSettings, 'hideGLItem');
-            html.removeClass(this.fieldsPage, 'hideGLItem');
-            html.removeClass(this.btnSaveFields, 'hideGLItem');
-            html.removeClass(this.btnCancelFields, 'hideGLItem');
+
             this.currentLayer = rowData.id;
           }
         }
@@ -375,41 +331,24 @@ function(declare,
       }, this);
 
       this.selectedFields[this.currentLayer] = fields;
-      html.removeClass(this.mainPage, 'hideGLItem');
-      html.addClass(this.fieldsPage, 'hideGLItem');
-      html.addClass(this.btnSaveFields, 'hideGLItem');
-      html.addClass(this.btnCancelFields, 'hideGLItem');
-      html.removeClass(this.btnAdvSettings, 'hideGLItem');
+
+      this.fieldsPage.hide();
+
     },
     cancelFields : function() {
-      html.removeClass(this.mainPage, 'hideGLItem');
-      html.addClass(this.fieldsPage, 'hideGLItem');
-      html.addClass(this.btnSaveFields, 'hideGLItem');
-      html.addClass(this.btnCancelFields, 'hideGLItem');
-      html.removeClass(this.btnAdvSettings, 'hideGLItem');
-
+      this.fieldsPage.hide();
     },
     cancelAdv : function() {
-      html.removeClass(this.mainPage, 'hideGLItem');
-      html.addClass(this.advSettingsPage, 'hideGLItem');
-      html.addClass(this.btnSaveAdv, 'hideGLItem');
-      html.addClass(this.btnCancelAdv, 'hideGLItem');
-      html.removeClass(this.btnAdvSettings, 'hideGLItem');
+      this.advSettingsPage.hide();
     },
     saveAdv : function() {
-      html.removeClass(this.mainPage, 'hideGLItem');
-      html.addClass(this.advSettingsPage, 'hideGLItem');
-      html.addClass(this.btnSaveAdv, 'hideGLItem');
-      html.addClass(this.btnCancelAdv, 'hideGLItem');
-      html.removeClass(this.btnAdvSettings, 'hideGLItem');
-
       var val;
       var valSpl;
       val = this.advSettingsLatValues.get('value');
       valSpl = val.split('\n');
       this.config.latFields = [];
       array.forEach(valSpl, function(value) {
-        if (value != '') {
+        if (value !== '') {
           this.config.latFields.push(value);
         }
       }, this);
@@ -418,7 +357,7 @@ function(declare,
       valSpl = val.split('\n');
       this.config.longFields = [];
       array.forEach(valSpl, function(value) {
-        if (value != '') {
+        if (value !== '') {
           this.config.longFields.push(value);
         }
       }, this);
@@ -427,6 +366,8 @@ function(declare,
       this.config.valueOut = this.advSettingsIntersectOutValue.get('value');
       this.config.cacheNumber = this.advSettingsCacheNumber.get('value');
       this.config.maxRowCount = this.advSettingsMaxRowCount.get('value');
+
+      this.advSettingsPage.hide();
     },
     //When  user clicks advance setting, show some custom Dom with settings to change
     showAdvSettings : function() {
@@ -450,12 +391,78 @@ function(declare,
       this.advSettingsCacheNumber.set('value', this.config.cacheNumber);
       this.advSettingsMaxRowCount.set('value', this.config.maxRowCount);
 
-      html.addClass(this.mainPage, 'hideGLItem');
-      html.removeClass(this.advSettingsPage, 'hideGLItem');
-      html.removeClass(this.btnSaveAdv, 'hideGLItem');
-      html.removeClass(this.btnCancelAdv, 'hideGLItem');
-      html.addClass(this.btnAdvSettings, 'hideGLItem');
+      this.advSettingsPage.show();
     },
+
+    popSymbolChooser : function(pParam) {
+
+      this.symbolEvent = pParam;
+      var symSelect;
+      var sym;
+      if (pParam === 'Within') {
+        symSelect = this.config.SymbolWithin;
+      } else {
+        symSelect = this.config.SymbolOutside;
+      }
+
+      sym = symbolJsonUtils.fromJson(symSelect);
+      if (sym) {
+        this.symbolPicker.showBySymbol(sym);
+      }
+
+    },
+
+    saveSymbol : function() {
+      if (this.symbolEvent === 'Within') {
+        this.config.SymbolWithin = this.symbolPicker.getSymbol().toJson();
+      } else {
+        this.config.SymbolOutside = this.symbolPicker.getSymbol().toJson();
+      }
+      this.showInitSymbols();
+      this.symbolDial.hide();
+    },
+
+    cancelSymbol : function() {
+      this.symbolDial.hide();
+    },
+
+    showInitSymbols : function() {
+      var sym;
+      var node;
+      var symbolNode;
+      if (this.config.SymbolWithin) {
+        sym = symbolJsonUtils.fromJson(this.config.SymbolWithin);
+        if (sym) {
+          node = this.symbolInPreview;
+
+          html.empty(node);
+
+          symbolNode = jimuSymUtils.createSymbolNode(sym);
+          if (!symbolNode) {
+            symbolNode = html.create('div');
+          }
+          html.place(symbolNode, this.symbolInPreview);
+
+        }
+      }
+
+      if (this.config.SymbolOutside) {
+        sym = symbolJsonUtils.fromJson(this.config.SymbolOutside);
+        if (sym) {
+          node = this.symbolOutPreview;
+
+          html.empty(node);
+
+          symbolNode = jimuSymUtils.createSymbolNode(sym);
+          if (!symbolNode) {
+            symbolNode = html.create('div');
+          }
+          html.place(symbolNode, this.symbolOutPreview);
+
+        }
+      }
+    },
+
     showOKError : function() {
       this.btnErrorMsg.innerHTML = this.nls.errorOnOk;
       html.removeClass(this.btnErrorMsg, 'hideGLItem');
@@ -468,7 +475,6 @@ function(declare,
     },
     _noLayersDisplay : function() {
       domStyle.set(this.tableLayerInfosError, 'display', '');
-      this.loadCustomButtons(false);
     }
   });
-}); 
+});

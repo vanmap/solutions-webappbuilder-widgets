@@ -17,7 +17,7 @@ define(['dojo/Evented',
         'dojo/_base/declare',
         'dojo/_base/lang',
         'dojo/_base/array',
-        'esri/geometry/geometryEngine'],
+        'esri/geometry/geometryEngine'], 
 function(Evented,
         declare,
         lang,
@@ -45,7 +45,7 @@ function(Evented,
       def.then(lang.hitch(this, function(results) {
         if (results) {
           array.forEach(graphic, lang.hitch(this, function(gra) {
-            array.forEach(results.features, lang.hitch(this, function(res) {
+            array.forEach(results.features, lang.hitch(this, function(res) {             
               if (geometryEngine.intersects(gra.geometry, res.geometry)) {
                 array.forEach(this.fields, function(field) {
                   if (res.attributes[field]) {

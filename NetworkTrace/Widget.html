@@ -1,0 +1,153 @@
+<div>
+    <div class="item">
+        <div class="content">
+            <div class="tracePanel" data-dojo-attach-point="tracePanel">
+                <div class="traceControls">
+                    <div class="btnFlagStyle">
+                        <label class="flagLabel" data-dojo-attach-point ="flagLabel" for="btnFlag">
+                        </label>
+                        <div class="flagbutton" data-dojo-attach-point="btnFlag" data-dojo-attach-event="onclick:_onFlagButtonClick">
+                        </div>
+                    </div>
+                    <div class="btnBarrierStyle esriCTHidden">
+                        <label class="barrierLabel" data-dojo-attach-point ="barrierLabel" for="btnBarrier">
+                        </label>
+                        <div class="barrierButton" data-dojo-attach-point="btnBarrier" data-dojo-attach-event="onclick:_onBarrierButtonClick">
+                        </div>
+                    </div>
+                </div>
+                <div class="traceButtons">
+                    <div class="jimu-btn jimu-state-disabled"  data-dojo-attach-point="btnTrace"
+                        type="submit" disabled data-dojo-attach-event="onclick:_onTraceButtonClick">
+                    </div>
+                    <div class="jimu-btn jimu-state-disabled" data-dojo-attach-point="btnClear"
+                        type="submit" disabled data-dojo-attach-event="onclick:_onClearButtonClick">
+                        ${nls.clearButtonValue}
+                    </div>
+                </div>
+            </div>
+            <div class="resultPanelContainer">
+                <div class="resultPanelStyle" data-dojo-attach-point="resultPanel" style="display: none;">
+                    <div class="dijitheadPaneTitle">
+                        <div class="dijitheadPanelIcons">
+                            <div class="saveToLayer">
+                            </div>
+                            <div class="exportToCsv">
+                            </div>
+                        </div>
+                        <div class="resultsHeadText">
+                            <div class="esriCTResultHead">
+                                ${nls.resultPanelhading}
+                            </div>
+                            <div class="esriCTImageDiv">
+                                <div class="esriCTSaveToLayerButton esriCTHidden" data-dojo-attach-point="btnSaveToLayer" data-dojo-attach-event="onclick:_onSaveToLayerButtonClick">
+                                </div>
+                                <div class="esriCTExportToCSVButton" data-dojo-attach-point="btnExportToLayer" data-dojo-attach-event="onclick:_onExportToLayerButtonClick">
+                                </div>
+                            </div>
+                        </div>
+                        <div data-dojo-attach-point="titlePaneHolder">
+                        </div>
+                    </div>
+                </div>
+                 <div class="runIconidle" data-dojo-attach-point="loadingIcon">
+                </div>
+                <div data-dojo-attach-point="SaveToLayerPanel" style="display: none">
+                    <div data-dojo-attach-point="saveToLayerDiv" class="esriCTMainDiv">
+                        <div data-dojo-attach-point="TopDiv" class="esriCTTopDiv">
+                            <div class="esriCThyperlinkDiv" data-dojo-attach-event="onclick:_onBackButtonClick">
+                                    &lt;${nls.backButtonValue}
+							</div>
+                            <div class="esriCTTitleSaveToLayer">
+                                    ${nls.lblSaveToLayer}
+                            </div>
+                        </div>
+                        <div data-dojo-attach-point="bottomDiv" class="esriCTbottomDiv">
+                            <div data-dojo-attach-point="outageCheckBoxMainDiv" class="esriCTCommonDiv">
+                                <div class="chkbox" data-dojo-attach-point="outageCheckBoxDiv">
+                                </div>
+                            </div>
+                            <div data-dojo-attach-point="outageAreaVisibiltyDiv" class="esriCTOutageAreaVisibilty">
+                                <div data-dojo-attach-point="outageStartDateTimeDiv" class="esriCTCommonDiv">
+                                    <div data-dojo-attach-point="outageStartDateDiv" class="esriCTLeft">
+                                        <div class="esriCTWidth">
+                                        </div>
+                                        <div data-dojo-attach-point="StartDateDiv">
+                                        </div>
+                                    </div>
+                                    <div data-dojo-attach-point="outageStartTimeDiv" class="esriCTRight">
+                                        <div class="esriCTWidth">
+                                            <label>
+                                            </label>
+                                        </div>
+                                        <div data-dojo-attach-point="startTimeDiv">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div data-dojo-attach-point="outageEndDateTimeDiv" class="esriCTCommonDiv">
+                                    <div data-dojo-attach-point="outageEndDateDiv" class="esriCTLeft">
+                                        <div class="esriCTWidth">
+                                            <label>
+                                            </label>
+                                        </div>
+                                        <div data-dojo-attach-point="endDateDiv">
+                                        </div>
+                                    </div>
+                                    <div data-dojo-attach-point="outageEndTimeDiv" class="esriCTRight">
+                                        <div class="esriCTWidth">
+                                            <label>
+                                            </label>
+                                        </div>
+                                        <div data-dojo-attach-point="endTimeDiv">
+                                        </div>
+                                    </div>
+                                </div>
+                               
+                                 <div data-dojo-attach-point="outageAreaSelectDiv">
+                                       </div>
+                            
+                                <div data-dojo-attach-point="textBoxDiv" class="esriCTCommonDiv">
+                                    <div data-dojo-attach-point="resultParametersCount">
+                                    </div>
+                                </div>
+                            </div>
+                            <div data-dojo-attach-point="groupcheckBoxDiv" class="esriCTCommonDiv">
+                                <div>
+                                    <div class="esriCTChkMargin" data-dojo-attach-point="chkLayerDiv">
+                                    </div>
+                                </div>
+                            </div>
+                            <div data-dojo-attach-point="btnSaveParentDiv">
+                                <div data-dojo-attach-point="btnSaveDiv" class="esriCTSaveButton">
+                                    <div class="jimu-btn"  data-dojo-attach-point="btnSave"
+                                        type="submit" data-dojo-attach-event="onclick:_onSaveClick">
+                                        ${nls.lblSaveButtonValue}
+                                    </div>
+                                    <div class="esriCThiddenDIV"></div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div data-dojo-attach-point="exportToCSVPanel" style="display: none">
+                    <div data-dojo-attach-point="saveToLayerDiv" class="esriCTMainDiv">
+                        <div data-dojo-attach-point="exportToCSVTopDiv" class="esriCTTopDiv">
+                            <div class="esriCThyperlinkDiv" data-dojo-attach-event="onclick:_onBackButtonClick">
+                                    &lt;${nls.backButtonValue}
+							</div>
+                            <div class="esriCTTitleSaveToLayer">
+                                    ${nls.lblExportToCSV}
+                            </div>
+                        </div>
+                        <div data-dojo-attach-point="exportToCSVBottomDiv" class="esriCTCommonDiv">
+
+
+                        </div>
+                        <div data-dojo-attach-point="exportToCSVButtonDiv">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

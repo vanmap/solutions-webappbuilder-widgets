@@ -55,7 +55,6 @@ function(Evented,
       var promises = [];
       var deferred = new Deferred();
       var dataItem;
-      console.log(this.map.itemInfo.itemData.operationalLayers);
       array.forEach(this.map.itemInfo.itemData.operationalLayers, lang.hitch(this, function(layer) {
         if(!layer.featureCollection) {
           if (layer.layerObject.type && layer.layerObject.type === 'Feature Layer') {
@@ -69,10 +68,8 @@ function(Evented,
               children : []
             };
             promises.push(this._getLayerInfo(dataItem));
-  
             this.layerStore.push(dataItem);
           } else if (layer.layers) {
-  
             this.childList = [];
             array.forEach(layer.layers, lang.hitch(this, function(subLyr, i) {
               var subDataItem = {
@@ -86,7 +83,6 @@ function(Evented,
               };
               this.childList.push(subDataItem);
               promises.push(this._getLayerInfo(subDataItem));
-  
             }));
             dataItem = {
               label : layer.title,

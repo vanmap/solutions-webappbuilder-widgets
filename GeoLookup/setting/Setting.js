@@ -87,8 +87,8 @@ function(declare,
       this.layerList = [];
       if ((this.map.itemInfo.itemData.operationalLayers).length > 0) {
         var lyrDet = new layerDetails(this.map);
-        lyrDet.getAllMapLayers();
         this.own(on(lyrDet, 'complete', lang.hitch(this, this._completeLayerDetails)));
+        lyrDet.getAllMapLayers();
       } else {
         this._noLayersDisplay();
       }
@@ -150,6 +150,8 @@ function(declare,
         } else {
           this._noLayersDisplay();
         }
+      } else {
+        this._noLayersDisplay();
       }
     },
 

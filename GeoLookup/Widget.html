@@ -1,4 +1,4 @@
-<div style="height:100%;width:100%;overflow:hidden">
+<div style="width:100%;overflow-y:auto">
 
    <!-- <div data-dojo-type="dijit/layout/ContentPane" style="height:100%;width:100%"> -->
         <div class="widgetDescription" data-dojo-attach-point="widgetDescription"></div>
@@ -11,7 +11,7 @@
         	<td width="50%" class="tdCSVButton"><div class="jimu-btn" data-dojo-attach-point="showFileDialogBtn" data-dojo-attach-event="click:showFileDialog">${nls.selectCSV}</div></td>
         	<td width="50%" class="tdClearButton"><div class="clear-CSVresult" data-dojo-attach-point="clearResultsBtn" data-dojo-attach-event="click:clearCSVResults">${nls.clearResults}</div></td>
         </tr>
-        </table>       
+        </table>
         <div data-dojo-attach-point="results" class="hide">
         	<div class="results-header">${nls.messages}</div>
             <table class="widgets-results-table" data-dojo-attach-point="widgetsResultsTable" cellspacing="0">

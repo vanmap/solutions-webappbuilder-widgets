@@ -1,11 +1,8 @@
-# Cost Analysis
-The Cost Analysis widget allows users to select a draw a series of features and display an acumlated cost for those features.  Feature templates are used to provide the cost per measurement or cost per asset.
+# solutions-widget-cost-analysis
+The ArcGIS Solutions Cost Analsysis widget is a widget to provide a cost by asset group and create a project.  
 
-Usage examples:
-* gas utility wants to generate a rough cost for connecting a new customer.
-* developer needs to estimate the cost of the sewer infrastructure for a new subdivision
+Important Note: This widget is in development and is not currently operational
 
-Important Note: These widgets are only tested with the Beta 1 release of or ArcGIS WebApp Builder. All the Widgets in this repo should be considered Beta (or possibly untested) until the final release of Web AppBuilder for ArcGIS.
 ## Sections
 
 * [Features](#features)
@@ -17,33 +14,26 @@ Important Note: These widgets are only tested with the Beta 1 release of or ArcG
 * [Licensing](#licensing)
 
 ## Features
-
-* Editor widget to draw all supported types of geometry.
-* Total cost of all added features.
-* Total count of all added features
-* Ability to save a project area with cost and count details.
+The Widget Reposistory currently includes:
 
 ## Requirements
-* ArcGIS WebApp Builder Beta 1.
+Requires Web AppBuilder for ArcGIS 1.1
 
 ## Instructions
-Deploying Widget
+Deploying Widgets.
 
-Setting Up Repository for Development
-In order to develop and test widgets you need to deploy the BatchEditor folder to the stemapp/widgets directory in your WebApp Builder installation. If you use Github for windows this can be accomplished using the following steps.
+To use the widgets with you should copy any of the widgets to the stemapp/widget directory. This is located in %webappbuilder_install%/client directory.
 
-1. Sync the repository to your local machine.
-2. Close Open the Repository in Windows Explorer
-3. Close Github for Windows
-4. Cut and paste the entire BatchEditor folder into the stemapp/widgets folder
-5. Launch Github for Windows and choose the option to locate the repository. This will change the location on disk to the new location.
+For more resources on developing modifying widgets please visit
+[Web AppBuilder for ArcGIS Documentation](http://doc.arcgis.com/en/web-appbuilder/)
 
 ### General Help
-[New to Github? Get started here.](http://htmlpreview.github.io/?https://github.com/Esri/esri.github.com/blob/master/help/esri-getting-to-know-github.html)
+[New to Github? Get started here.](http://htmlpreview.github.com/?https://github.com/Esri/esri.github.com/blob/master/help/esri-getting-to-know-github.html)
+
 
 ## Resources
 
-* Learn more about Esri's [Solutions for ArcGIS](http://solutions.arcgis.com/).
+* Learn more about Esri's Solutions [Focused Maps and Apps for Your Organization](http://solutions.arcgis.com/).
 
 ## Issues
 
@@ -58,7 +48,7 @@ We allow for 120 characters per line instead of the highly restrictive 80.
 
 ## Licensing
 
-Copyright 2013 Esri
+Copyright 2015 Esri
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -75,5 +65,5 @@ limitations under the License.
 A copy of the license is available in the repository's
 [license.txt](license.txt) file.
 
-[](Esri Tags: ArcGIS Gas Electric Telco Telecommunications Utilities)
+[](Esri Tags: ArcGISSolutions ArcGIS Defense and Intelligence Military Environment Planning Analysis Emergency Management Local-Government Local Government State-Government State Government Utilities ArcGISSolutions)
 [](Esri Language: Javascript)

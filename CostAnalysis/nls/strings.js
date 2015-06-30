@@ -1,16 +1,20 @@
-define({
-  root: {
-    editorPopupSaveBtn: "Save",
-    polylines: "Polylines",
-    polygons: "Polygons",
-    points: "Points",
-    totalLengthIn: "Total Length in",
-    totalAreaIn: "Total Area In",
-    totalCostIn: "Total Cost In",
-    clearSession: "Clear Session",
-    save: "Save",
-    squareFeet: "Square Feet (sq ft)",
-    foot: "Foot (ft)",
-    dollar: "Dollar ($)"
-  }
+﻿define({
+    root: ({
+        _widgetLabel: "Cost Analysis",
+        countPoints: "Points : ",
+        totalCalculatedLength: "Length",
+        totalCalculatedArea: "Area",
+        calculatedTotalAssetCost: "Total Asset Cost",
+        additionalCost: "Additional Cost",
+        projectMultiplier: "Project Multiplier :",
+        calculatedGrossProjectCost: "Gross Project Cost",
+        clearSession: "Clear Session",
+        save: "Save",
+        dollar: "$",
+
+        squareFeet: "Sq. ft.",
+        foot: "ft.",
+
+    })
+
 });

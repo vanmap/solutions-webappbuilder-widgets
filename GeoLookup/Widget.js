@@ -514,6 +514,7 @@ function(declare,
       domClass.replace(this.resultsLoadingImage, 'processing', 'complete');
       domClass.replace(this.resultsPlottingImage, 'processing', 'complete');
       var key;
+      var labelText = '';
       for (key in this.enrichResultsProg) {
         if (this.enrichResultsProg.hasOwnProperty(key)) {
           domClass.replace(this.enrichResultsProg[key], 'processing', 'error');
@@ -529,11 +530,15 @@ function(declare,
             }
           }));
 
+          if(mapLay) {
+            labelText = mapLay.label;
+          }
+
           this.enrichResultsText[key].innerHTML = string.substitute(this.nls.results.recordsEnriched, {
             0 : 0,
             1 : 0,
             2 : 0,
-            3 : mapLay.label
+            3 : labelText
           });
 
         }

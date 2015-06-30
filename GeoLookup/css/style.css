@@ -51,8 +51,7 @@ input[type="file"] {
 
 .solutions-widget-geolookup .tdClearButton {
 	text-align: right;
-	width: 50%;		
-	background-color: #ffffff;
+	width: 50%;
 }
 
 .solutions-widget-geolookup .clear-CSVresult {

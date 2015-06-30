@@ -1,9 +1,0 @@
-{
-    "name": "SpatialSummary",
-    "platform": "HTML",
-    "version": "0.1.0",
-    "author": "ESRI",
-    "description": "A Web Application Builder Widget allowing for summarization of information for a spatial area.",
-    "copyright": "",
-    "license": "http://www.apache.org/licenses/LICENSE-2.0"
-}

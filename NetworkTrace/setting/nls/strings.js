@@ -92,7 +92,7 @@
             inputTypeHint: "Hint: Select the type/purpose of this input parameter.",
             labelTextHint: "Hint: Provide display label for result panel of output parameter.",
             skippableHint: "Hint: Enable/disable skip functionality for this output parameter.",
-            skippableFieldHint: "Hint: Select unique ID Field for skip functionality.",
+            skippableFieldHint: "Hint: Select unique ID Field for skip functionality, do not use the OBJECTID.",
             summaryTextHint: "Hint: This will be displayed in the summary panel for this output parameter. Optionally you can include the following fields:",
             displayTextHint: "Hint: This will be displayed in the details panel for this output parameter. Optionally you can include the following fields:",
             exportToCSVHint: "Hint: Enable/disable export to CSV functionality for this output parameter.",

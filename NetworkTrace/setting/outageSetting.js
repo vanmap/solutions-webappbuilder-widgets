@@ -286,7 +286,7 @@ define([
                 if (this.data[k] && this.data[k].defaultValue && this.data[k].defaultValue.geometryType) {
                     // Checking for "GPFeatureRecordSetLayer" data type for showing param name in drop down
                     if (this.data[k].dataType === "GPFeatureRecordSetLayer") {
-                        this.paramNameValue.push(this.data[k].displayName);
+                        this.paramNameValue.push(this.data[k]);
                     }
                 }
             }
@@ -339,7 +339,7 @@ define([
                     // Creation of div and select
                     fieldMap = "";
                     divFieldValue = domConstruct.create("div", { "class": "esriCTOutageFieldParams" }, fieldsetDiv);
-                    domConstruct.create("label", { "class": "esriCTFieldName ", "innerHTML": paramName, "title": paramName }, divFieldValue);
+                    domConstruct.create("label", { "class": "esriCTFieldName ", "innerHTML": paramName.displayName, "title": paramName.displayName }, divFieldValue);
                     outageAreaFieldNameDropDown = new Select({ "class": "esriCTOutageAreaFieldName" }, domConstruct.create("input", {}, divFieldValue));
                     domConstruct.create("div", { "class": "esriCTFieldMapPadding", "innerHTML": this.nls.hintText.fieldNameHint }, divFieldValue);
                     outageAreaFieldNameDropDown.options = selectOptionsArray;
@@ -351,7 +351,7 @@ define([
                         label: selectOptionsArray[0].label
                     });
                     // Getting the field maped config
-                    fieldMap = this._getFieldMapConfig(paramName);
+                    fieldMap = this._getFieldMapConfig(paramName.name);
                     // If field map config exsists; set the field name from field map config
                     if (fieldMap !== "") {
                         outageAreaFieldNameDropDown.set({
@@ -360,7 +360,7 @@ define([
                         });
                     }
                     // setting the param name object and param name array
-                    this.paramNameObject = { "index": i, "value": paramName };
+                    this.paramNameObject = { "index": i, "value": paramName.name };
                     this.paramNameArray.push(this.paramNameObject);
                     this.fieldName = { "index": i, "value": outageAreaFieldNameDropDown.value };
                     this.fieldNameArray.push(this.fieldName);

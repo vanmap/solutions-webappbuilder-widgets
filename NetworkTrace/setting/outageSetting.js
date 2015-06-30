@@ -286,7 +286,7 @@ define([
                 if (this.data[k] && this.data[k].defaultValue && this.data[k].defaultValue.geometryType) {
                     // Checking for "GPFeatureRecordSetLayer" data type for showing param name in drop down
                     if (this.data[k].dataType === "GPFeatureRecordSetLayer") {
-                        this.paramNameValue.push(this.data[k].name);
+                        this.paramNameValue.push(this.data[k].displayName);
                     }
                 }
             }

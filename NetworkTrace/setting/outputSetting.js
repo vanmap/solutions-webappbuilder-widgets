@@ -71,7 +71,7 @@ define([
         _createOutputPanel: function () {
             var nlsTemp = string.substitute(this.outputSettingString, this);
             this.outputDataNode = domConstruct.toDom(nlsTemp).childNodes[0];
-
+            this.outputSummaryHint.innerHTML = this.nls.hintText.summaryTextHint + " {Count}, {SkipCount}.";
             on(this.outputDataNode, "click", lang.hitch(this, function (evt) {
                 this.outputFieldClicked(this);
             }));
@@ -142,7 +142,7 @@ define([
                     });
                     this.helpTextDataArray[j] = skippableFieldSelectArr[j].name;
                     helpTextData += "{" + skippableFieldSelectArr[j].name;
-                    // if loop index is second last then 
+                    // if loop index is second last then
                     if (j !== (skippableFieldSelectArr.length - 1)) {
                         helpTextData += "}, ";
                     } else {
@@ -260,7 +260,7 @@ define([
                 this.outputDisplayText.set("value", this.outputConfig.displayText);
                 this.outputMinScaleData.set("value", ((this.outputConfig && this.outputConfig.MinScale) ? this.outputConfig.MinScale : 0));
                 this.outputMaxScaleData.set("value", ((this.outputConfig && this.outputConfig.MaxScale) ? this.outputConfig.MaxScale : 0));
-                // if exportToCSV is not null 
+                // if exportToCSV is not null
                 if (this.outputConfig.exportToCSV) {
                     this.outputExport.checked = this.outputConfig.exportToCSV;
                     domClass.add(this.outputExport.checkNode, "checked");

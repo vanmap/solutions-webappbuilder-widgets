@@ -31,7 +31,9 @@ define([
     "dijit/form/Select",
     "dojo/dom-attr",
     "dojo/dom-class",
-    "dijit/form/ValidationTextBox"
+    "dijit/form/ValidationTextBox",
+    "dijit/form/NumberTextBox",
+    "dojo/string"
 ], function (
     declare,
     _WidgetBase,
@@ -48,10 +50,13 @@ define([
     Select,
     domAttr,
     domClass,
-    ValidationTextBox
+    ValidationTextBox,
+    NumberTextBox,
+    String
 ) {
     return declare(null, {
         _clickedRows: [], // store rows that are clicked.
+        _dropDownArray: [], // stores Dropdown controls
         _initialLoad: false, // keeps tracks whether widget is initially loaded or not
 
         /**
@@ -64,76 +69,326 @@ define([
         },
 
         /**
-        * This function is used to display attribute parameter values
-        * @param {object} response of layer
+        * This function creates attribute parameter dataset to create UI
+        * @param {object} response: service description of closest facility
+        * @param {object} lookupValues: parameter lookup values
         * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
         **/
-        displayAttributeParamaterValues: function (response) {
-            var i, j, k, attributeParameterValues, showMinAndMaxRange, minAndMaxValue, minAndMaxValueObj, dropDownObj, isAttributeConfigured, parameterObj, defaultToValueDropDownOption;
-            this._clickedRows.length = 0;
-            domConstruct.empty(query(".esriCTAttrParamContainer")[0]);
-            for (i = 0; i < response.attributeParameterValues.length; i++) {
-                for (j = 0; j < response.networkDataset.networkAttributes.length; j++) {
-                    if (response.networkDataset.networkAttributes[j].name === response.attributeParameterValues[i].attributeName) {
-                        isAttributeConfigured = false;
-                        if (this.config && this.config.attributeName) {
-                            for (k = 0; k < this.config.attributeName.length; k++) {
-                                if ((this.config.attributeName[k].name === response.attributeParameterValues[i].attributeName) && (this.config.attributeName[k].displayLabel === response.attributeParameterValues[i].parameterName)) {
-                                    defaultToValueDropDownOption = null;
-                                    isAttributeConfigured = true;
-                                    showMinAndMaxRange = false;
-                                    attributeParameterValues = { "attributeName": this.config.attributeName[k].name, "parameterName": this.config.attributeName[k].displayLabel };
-                                    minAndMaxValue = this.config.attributeName[k].value.split(",");
-                                    if (minAndMaxValue.length > 1) {
-                                        showMinAndMaxRange = true;
-                                        minAndMaxValueObj = { "minValue": minAndMaxValue[0], "maxValue": minAndMaxValue[1] };
-                                    } else {
-                                        defaultToValueDropDownOption = this.config.attributeName[k].value;
-                                    }
-                                    dropDownObj = { "allowUserInput": this.config.attributeName[k].allowUserInput };
-                                    parameterObj = { "attributeParameterValues": attributeParameterValues, "rowIndex": i, "showMinAndMaxRange": showMinAndMaxRange, "minAndMaxValueObj": minAndMaxValueObj, "dropDownObj": dropDownObj, "checkBoxState": true, "defaultToValueDropDownOption": defaultToValueDropDownOption, "dataType": response.networkDataset.networkAttributes[j].dataType };
-                                    this._addParameter(parameterObj);
-                                    break;
-                                }
-                            }
-                        }
-                        if (!isAttributeConfigured) {
-                            parameterObj = { "attributeParameterValues": response.attributeParameterValues[i], "rowIndex": i, "showMinAndMaxRange": false, "minAndMaxValueObj": null, "dropDownObj": null, "checkBoxState": false, "defaultToValueDropDownOption": null, "dataType": response.networkDataset.networkAttributes[j].dataType };
-                            this._addParameter(parameterObj);
+        createAttributeParameterDataset: function (response, lookupValues) {
+            var attributeNames, attributeParameters, m, apv, l, restAttrIndex;
+            attributeNames = [];
+            attributeParameters = [];
+            for (m = 0; m < response.attributeParameterValues.length; m++) {
+                if (response.attributeParameterValues[m].parameterName === "Restriction Usage") {
+                    apv = {
+                        "attributeName": response.attributeParameterValues[m].attributeName,
+                        "type": "Restriction",
+                        "parameters": [{
+                            "name": response.attributeParameterValues[m].parameterName,
+                            "defaultValue": response.attributeParameterValues[m].value
+                        }]
+                    };
+                    for (l = 0; l < response.attributeParameterValues.length; l++) {
+                        if (response.attributeParameterValues[l].attributeName === apv.attributeName && response.attributeParameterValues[l].parameterName !== "Restriction Usage") {
+                            apv.parameters.push({
+                                "name": response.attributeParameterValues[l].parameterName,
+                                "defaultValue": response.attributeParameterValues[l].value
+                            });
                         }
                     }
+                    attributeParameters.push(apv);
+                    attributeNames.push(apv.attributeName);
+
+                } else {
+                    restAttrIndex = attributeNames.indexOf(response.attributeParameterValues[m].attributeName);
+                    if (restAttrIndex < 0) {
+                        attributeParameters.push({
+                            "attributeName": response.attributeParameterValues[m].attributeName,
+                            "type": "",
+                            "parameters": [{
+                                "name": response.attributeParameterValues[m].parameterName,
+                                "defaultValue": response.attributeParameterValues[m].value
+                            }]
+                        });
+                    }
                 }
+
             }
-            this._initialLoad = false;
+            this._createAttrParamInput(attributeParameters, lookupValues);
         },
 
         /**
-        * This function is used to add attribute parameter value having min & max range
-        * @param {object} data of parameters
+        * This function creates attribute parameters settings UI
+        * @param {object} attributeParameters: attribute parameter dataset
+        * @param {object} lookupValues: service description of closest facility
         * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
         **/
-        _addParameter: function (parameterObj) {
-            var esriCTAttrParamRow, attributeParameterCheckBoxColumn, attributeParameterNameColumn, attributeParameterDropDownColumn, esriCTAttrParamContainer, checkBox;
-            esriCTAttrParamRow = domConstruct.create("div", { "class": "esriCTAttrParamRow" });
-            attributeParameterCheckBoxColumn = domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamCheckBox" }, esriCTAttrParamRow);
-            checkBox = new CheckBox({ checked: parameterObj.checkBoxState }, attributeParameterCheckBoxColumn);
-            domAttr.set(checkBox.domNode, "rowID", parameterObj.rowIndex);
-            domAttr.set(checkBox.domNode, "dataType", parameterObj.dataType);
-            this._onCheckBoxChange(checkBox.domNode);
-            if (this._initialLoad && parameterObj.checkBoxState) {
-                this._clickedRows.push(checkBox.domNode);
+        _createAttrParamInput: function (attributeParameters, lookupValues) {
+            var i, j, attrParamValueContainer, esriCTAttrParamValueContainer, attrParamParent, configParameterObj, defaultToValueDropdown;
+            esriCTAttrParamValueContainer = query(".esriCTAttrParamContainer");
+            if (esriCTAttrParamValueContainer.length > 0) {
+                attrParamParent = esriCTAttrParamValueContainer[0];
+                for (i = 0; i < attributeParameters.length; i++) {
+                    configParameterObj = null;
+                    defaultToValueDropdown = null;
+                    attrParamValueContainer = domConstruct.create("div", { "class": "esriCTparamaterwidth" }, attrParamParent);
+                    if (this.config && this.config.attributeName) {
+                        for (j = 0; j < this.config.attributeName.length; j++) {
+                            if (this.config.attributeName[j].name === attributeParameters[i].attributeName) {
+                                configParameterObj = this.config.attributeName[j];
+                            }
+                        }
+                    }
+
+                    if (attributeParameters[i].type === "Restriction") {
+                        this._createRestrictionAttributeInput(attrParamValueContainer, attributeParameters[i], lookupValues, configParameterObj, defaultToValueDropdown);
+                    } else {
+                        this._createNonRestrictionAttributeInput(attrParamValueContainer, attributeParameters[i], lookupValues, configParameterObj, defaultToValueDropdown);
+                    }
+                }
             }
-            attributeParameterNameColumn = domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamName", "innerHTML": parameterObj.attributeParameterValues.attributeName }, esriCTAttrParamRow);
-            domAttr.set(attributeParameterNameColumn, "displayLabel", parameterObj.attributeParameterValues.parameterName);
-            attributeParameterDropDownColumn = domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamDropDown" }, esriCTAttrParamRow);
-            this._createDefaultToValueDropDown(attributeParameterDropDownColumn, parameterObj);
-            if (parameterObj.showMinAndMaxRange) {
-                esriCTAttrParamRow = this._addParameterForAllowToUserOption(esriCTAttrParamRow, parameterObj);
+        },
+
+        /**
+        * This function creates non restriction attribute parameter settings UI
+        * @param {object} attrParamValueContainer: attribute parameter parent container
+        * @param {object} attrParameter: restriction attribute object
+        * @param {object} lookupValues: service description of closest facility
+        * @param {object} configParameterObj: configuration parameter object of the attribute object
+        * @param {object} defaultToValueDropdown: default to value drop down
+        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
+        **/
+        _createNonRestrictionAttributeInput: function (attrParamValueContainer, attrParameter, lookupValues, configParameterObj, defaultToValueDropdown) {
+            var attrNonRestrictionParamvalue, attributeParameterCheckBoxDiv, checkBox, attributenameLabelDiv, attrParamvalueDefaultDropDownContainer, attributeParameterDropDownColumn,
+                minLabelDiv, minTextBoxDiv, minTextBox, maxLabelDiv, maxTextBoxDiv, maxTextBox, defaultInputValueDiv, defaultValueLabelDiv, defaultTextBoxDiv, defaultTextBox, userToInputValueDiv, parameterValues;
+
+            attrNonRestrictionParamvalue = domConstruct.create("div", { "class": "esriCTNonRestriction" }, attrParamValueContainer);
+
+            attributeParameterCheckBoxDiv = domConstruct.create("div", { "class": "esriCTNonRestrictionCheckBox esriCTParameterValueMargin" }, attrNonRestrictionParamvalue);
+            checkBox = this._createAttributeCheckBox(attrParameter, attributeParameterCheckBoxDiv);
+
+            domAttr.set(checkBox.domNode, "restrictionParameterName", attrParameter.parameters[0].name);
+            domAttr.set(checkBox.domNode, "restrictionAttributeName", attrParameter.attributeName);
+
+            attributenameLabelDiv = domConstruct.create("div", { "class": "esriCTAttrLabelWidth esriCTParameterValueMargin" }, attrNonRestrictionParamvalue);
+            domConstruct.create("label", { "class": "", "title": attrParameter.parameters[0].name, "innerHTML": attrParameter.parameters[0].name }, attributenameLabelDiv);
+
+            attrParamvalueDefaultDropDownContainer = domConstruct.create("div", { "class": "esriCTNonRestriction esriCTParameterValueMargin esriCTAttrParamDisplay" }, attrNonRestrictionParamvalue);
+            attributeParameterDropDownColumn = domConstruct.create("div", { "class": " esriCTAttrParamDropDown" }, attrParamvalueDefaultDropDownContainer);
+
+
+            defaultToValueDropdown = this._createDefaultToValueDropDown(attributeParameterDropDownColumn, checkBox, attrParameter.attributeName, configParameterObj);
+
+            //User input section
+            userToInputValueDiv = domConstruct.create("div", { "class": "esriCTIndendedTextBoxMargin esriCTAttrParamDisplay" }, attrNonRestrictionParamvalue);
+
+            minLabelDiv = domConstruct.create("div", { "class": "esriCTLeftAlign esriCTIndendedMinMargin esriCTMinMaxLabel" }, userToInputValueDiv);
+            domConstruct.create("label", { "class": "", "title": this.nls.attributeParameter.minText, "innerHTML": this.nls.attributeParameter.minText }, minLabelDiv);
+            minTextBoxDiv = domConstruct.create("div", { "class": "esriCTLeftAlign" }, userToInputValueDiv);
+            minTextBox = new NumberTextBox({ "class": "esriCTLeftAlign esriCTNonRestrictionUserInputMargin", "name": "" }, minTextBoxDiv);
+
+            maxLabelDiv = domConstruct.create("div", { "class": "esriCTIndendedMaxMargin esriCTLeftAlign esriCTMinMaxLabel" }, userToInputValueDiv);
+            domConstruct.create("label", { "class": "", "title": this.nls.attributeParameter.maxText, "innerHTML": this.nls.attributeParameter.maxText }, maxLabelDiv);
+            maxTextBoxDiv = domConstruct.create("div", { "class": "esriCTLeftAlign" }, userToInputValueDiv);
+            maxTextBox = new NumberTextBox({ "class": "esriCTLeftAlign esriCTNonRestrictionUserInputMargin", "name": "" }, maxTextBoxDiv);
+
+            // for default value
+            defaultInputValueDiv = domConstruct.create("div", { "class": "esriCTIndendedTextBoxMargin esriCTAttrParamDisplay" }, attrNonRestrictionParamvalue);
+            defaultValueLabelDiv = domConstruct.create("div", { "class": "esriCTLeftAlign esriCTIndendedMinMargin esriCTValueLabel" }, defaultInputValueDiv);
+            domConstruct.create("label", { "class": "", "title": this.nls.valueText, "innerHTML": this.nls.valueText }, defaultValueLabelDiv);
+            defaultTextBoxDiv = domConstruct.create("div", { "class": "esriCTLeftAlign esriCTAttrParamDisplay" }, defaultInputValueDiv);
+            defaultTextBox = new NumberTextBox({ "class": "esriCTLeftAlign esriCTNonRestrictionUserInputMargin", "name": "" }, defaultTextBoxDiv);
+            defaultTextBox.set("value", attrParameter.parameters[0].defaultValue);
+
+            //Select if attribute is already configured
+            if (configParameterObj) {
+                checkBox.check();
+
+                if (defaultToValueDropdown) {
+                    this._setDropDownValue(defaultToValueDropdown, configParameterObj);
+                }
+                parameterValues = configParameterObj.parameters[0].value.split(',');
+                if (parameterValues.length > 1) {
+                    minTextBox.set("value", parameterValues[0]);
+                    maxTextBox.set("value", parameterValues[1]);
+                } else if (parameterValues.length > 0) {
+                    defaultTextBox.set("value", parameterValues[0]);
+                }
+            }
+        },
+
+        /**
+        * This function creates check box
+        * @param {object} parentDiv: parent div to which checkbox to be added
+        * @param {object} attrParameter: restriction attribute object
+        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
+        **/
+        _createAttributeCheckBox: function (attrParameter, parentDiv) {
+            var checkBox, self = this;
+            checkBox = new CheckBox({ "name": attrParameter.attributeName, onChange: function (evt) {
+                self._showHideInputControls(this.domNode, domClass.contains(this.domNode.childNodes[0], "checked"));
+            }}, parentDiv);
+            return checkBox;
+        },
+
+        /**
+        * This function creates restriction attribute parameter settings UI
+        * @param {object} attrParamValueContainer: attribute parameter parent container
+        * @param {object} attrParameter: restriction attribute object
+        * @param {object} lookupValues: service description of closest facility
+        * @param {object} configParameterObj: configuration parameter object of the attribute object
+        * @param {object} defaultToValueDropdown: default to value drop down
+        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
+        **/
+        _createRestrictionAttributeInput: function (attrParamValueContainer, attrParameter, lookupValues, configParameterObj, defaultToValueDropdown) {
+            var k, parameterConfigObj, attrParamvalueChildContainer, attributeParameterCheckBoxDiv, checkBox, attributenameLabelDiv, parameterLookupLabel,
+                attrParamvalueDefaultDropDownContainer, attributeParameterDropDownColumn, attrParamvalueLookupContainer, attributeParameterValueDropDown, valueDropDown;
+            attrParamvalueChildContainer = domConstruct.create("div", { "class": "esriCTRestriction" }, attrParamValueContainer);
+            attributeParameterCheckBoxDiv = domConstruct.create("div", { "class": "esriCTParameterValueMargin" }, attrParamvalueChildContainer);
+            checkBox = this._createAttributeCheckBox(attrParameter, attributeParameterCheckBoxDiv);
+
+            domAttr.set(checkBox.domNode, "restrictionParameterName", attrParameter.parameters[0].name);
+            domAttr.set(checkBox.domNode, "restrictionAttributeName", attrParameter.attributeName);
+
+            attributenameLabelDiv = domConstruct.create("div", { "class": "esriCTAttrLabelWidth esriCTParameterValueMargin" }, attrParamvalueChildContainer);
+            domConstruct.create("label", { "class": "", "title": attrParameter.attributeName, "innerHTML": attrParameter.attributeName }, attributenameLabelDiv);
+
+            attrParamvalueDefaultDropDownContainer = domConstruct.create("div", { "class": "esriCTAttrParamDropDown esriCTParameterValueMargin esriCTAttrParamDisplay" }, attrParamvalueChildContainer);
+            attributeParameterDropDownColumn = domConstruct.create("div", { "class": " " }, attrParamvalueDefaultDropDownContainer);
+
+
+            defaultToValueDropdown = this._createDefaultToValueDropDown(attributeParameterDropDownColumn, checkBox, attrParameter.attributeName, configParameterObj);
+            attrParamvalueLookupContainer = domConstruct.create("div", { "class": " esriCTAttrParamDisplay" }, attrParamvalueChildContainer);
+            parameterLookupLabel = domConstruct.create("div", { "class": "esriCTValueLabelMargin esriCTParameterValueMargin esriCTValueLabel" }, attrParamvalueLookupContainer);
+            domConstruct.create("label", { "class": "", "title": this.nls.valueText, "innerHTML": this.nls.valueText }, parameterLookupLabel);
+            attributeParameterValueDropDown = domConstruct.create("div", { "class": "esriCTParameterValueMargin  esriCTAttrParamValueDropDown " }, attrParamvalueLookupContainer);
+
+            valueDropDown = new Select({ "class": "defaultValueDropdown" }, attributeParameterValueDropDown);
+            domAttr.set(valueDropDown.domNode, "defaultValue", attrParameter.parameters[0].defaultValue);
+            valueDropDown.startup();
+            this._addValuesInDropDown(valueDropDown, lookupValues, attrParameter.parameters[0].defaultValue, configParameterObj);
+
+            // if parameters are more than one
+            if (attrParameter.parameters.length > 1) {
+                for (k = 1; k < attrParameter.parameters.length; k++) {
+                    parameterConfigObj = configParameterObj ? configParameterObj.parameters[k] : null;
+                    this._createRestrictionParameterInput(attrParamValueContainer, attrParameter.parameters[k], parameterConfigObj);
+                }
+            }
+            //Select if attribute is already configured
+            if (configParameterObj) {
+                checkBox.check();
+                if (defaultToValueDropdown) {
+                    this._setDropDownValue(defaultToValueDropdown, configParameterObj);
+                }
+            }
+        },
+
+        /**
+        * This function creates parameter input for non restriction usage parameter
+        * @param {object} attrParamValueContainer: attribute parameter parent container
+        * @param {object} parameter: parameter object
+        * @param {object} configParameterObj: configuration parameter object of the attribute object
+        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
+        **/
+        _createRestrictionParameterInput: function (attrParamValueContainer, parameter, parameterConfigObj) {
+            var parameterValues, identedParameterContainer, indentedTextDiv, userToInputValueDiv, minLabelDiv, minTextBoxDiv,
+                minTextBox, maxLabelDiv, maxTextBoxDiv, maxTextBox, defaultInputValueDiv, defaultTextBox;
+
+            identedParameterContainer = domConstruct.create("div", { "class": "esriCTIndendedMargin esriCTAttrParamDisplay esriCTNRestriction" }, attrParamValueContainer);
+
+            domAttr.set(identedParameterContainer, "restrictionParameterName", parameter.name);
+
+            //parameter label
+            indentedTextDiv = domConstruct.create("div", { "class": "esriCTLeftAlign esriCTIndendedTextAlign" }, identedParameterContainer);
+            domConstruct.create("label", { "class": "", "title": parameter.name, "innerHTML": parameter.name }, indentedTextDiv);
+
+            //User input section
+            userToInputValueDiv = domConstruct.create("div", { "class": "esriCTIndendedTextBoxMargin" }, identedParameterContainer);
+
+            minLabelDiv = domConstruct.create("div", { "class": "esriCTLeftAlign esriCTIndendedMinMargin esriCTMarginNonRestriction esriCTMinMaxLabel" }, userToInputValueDiv);
+            domConstruct.create("label", { "class": "", "title": this.nls.attributeParameter.minText, "innerHTML": this.nls.attributeParameter.minText }, minLabelDiv);
+            minTextBoxDiv = domConstruct.create("div", { "class": "esriCTLeftAlign" }, userToInputValueDiv);
+            minTextBox = new NumberTextBox({ "class": "esriCTLeftAlign esriCTNonRestrictionUserInputMargin", "name": "" }, minTextBoxDiv);
+
+            maxLabelDiv = domConstruct.create("div", { "class": "esriCTIndendedMaxMargin esriCTLeftAlign esriCTMinMaxLabel" }, userToInputValueDiv);
+            domConstruct.create("label", { "class": "", "title": this.nls.attributeParameter.maxText, "innerHTML": this.nls.attributeParameter.maxText }, maxLabelDiv);
+            maxTextBoxDiv = domConstruct.create("div", { "class": "esriCTLeftAlign" }, userToInputValueDiv);
+            maxTextBox = new NumberTextBox({ "class": "esriCTLeftAlign esriCTNonRestrictionUserInputMargin ", "name": "" }, maxTextBoxDiv);
+
+            // for default value
+            defaultInputValueDiv = domConstruct.create("div", { "class": "esriCTIndendedTextBoxMargin esriCTMarginNonRestriction esriCTMarginInded" }, identedParameterContainer);
+            defaultTextBox = new NumberTextBox({ "class": "esriCTLeftAlign esriCTIndendedTextBoxAlign", "name": "" }, defaultInputValueDiv);
+            defaultTextBox.set("value", parameter.defaultValue);
+            if (parameterConfigObj) {
+                parameterValues = parameterConfigObj.value.split(',');
+                if (parameterValues.length > 1) {
+                    minTextBox.set("value", parameterValues[0]);
+                    maxTextBox.set("value", parameterValues[1]);
+                } else if (parameterValues.length > 0) {
+                    defaultTextBox.set("value", parameterValues[0]);
+                }
+            }
+        },
+
+
+        /**
+        * This function is used to add options in drop downwhose selected value needs to be set
+        * @param {object} drop down in which value needs to be added
+        * @param {object} config parameter parameter
+        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
+        **/
+        _setDropDownValue: function (selectList, configParameterObj) {
+            if (configParameterObj && configParameterObj.allowUserInput) {
+                selectList.set("value", this.nls.allowToUserInput);
+            }
+        },
+
+
+        /**
+        * This function is used to add options in drop down
+        * @param {object} drop down in which value needs to be added
+        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
+        **/
+        _addValuesInDropDown: function (valueDropDown, lookupValues, defaultValue, configParameterObj) {
+            var i;
+            valueDropDown.value = "";
+            valueDropDown.options.length = 0;
+
+            lookupValues = lookupValues.split(",");
+            lookupValues = lookupValues.filter(function (n) {
+                return n !== undefined && n !== "";
+            });
+            if (lookupValues.length > 0) {
+                for (i = 0; i < lookupValues.length; i++) {
+                    if (i === 0) {
+                        valueDropDown.addOption({ value: lookupValues[i], label: lookupValues[i], selected: true });
+                    } else {
+                        valueDropDown.addOption({ value: lookupValues[i], label: lookupValues[i] });
+                    }
+                }
+                if (configParameterObj && configParameterObj.parameters && configParameterObj.parameters[0].value) {
+                    valueDropDown.set("value", configParameterObj.parameters[0].value);
+                } else if (defaultValue && defaultValue !== "") {
+                    valueDropDown.set("value", defaultValue);
+                }
             } else {
-                esriCTAttrParamRow = this._addParameterForDefaultToValueOption(esriCTAttrParamRow, parameterObj);
+                valueDropDown.addOption({ value: "", label: "", selected: true });
             }
-            esriCTAttrParamContainer = query(".esriCTAttrParamContainer");
-            esriCTAttrParamContainer[0].appendChild(esriCTAttrParamRow);
+
+        },
+
+        /**
+        * This function is used to refresh options in drop down
+        * @param {object} drop down in which value needs to be added
+        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
+        **/
+        refreshDefaultValueOptions: function (lookupValues) {
+            var i, dropDownArray;
+            dropDownArray = query(".defaultValueDropdown");
+            for (i = 0; i < dropDownArray.length; i++) {
+                this._addValuesInDropDown(dijit.byId(dropDownArray[i].id), lookupValues);
+            }
         },
 
         /**
@@ -142,355 +397,271 @@ define([
         * @param {object} data of parameters
         * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
         **/
-        _createDefaultToValueDropDown: function (attributeParameterDropDownColumn, parameterObj) {
+        _createDefaultToValueDropDown: function (attributeParameterDropDownColumn, checkBox, attrName, configParameterObj) {
             var select;
             select = new Select({}, attributeParameterDropDownColumn);
             select.startup();
-            if ((parameterObj.showMinAndMaxRange) || (parameterObj.dropDownObj && parameterObj.dropDownObj.allowUserInput === "true")) {
-                select.addOption({ value: this.nls.allowToUserInput, label: this.nls.allowToUserInput, selected: true });
-                select.addOption({ value: this.nls.defaultToValue, label: this.nls.defaultToValue });
-            } else {
-                select.addOption({ value: this.nls.defaultToValue, label: this.nls.defaultToValue, selected: true });
-                select.addOption({ value: this.nls.allowToUserInput, label: this.nls.allowToUserInput });
-            }
-            this._onDropDownChange(select);
-            if (!parameterObj.checkBoxState) {
-                domClass.add(select.domNode, "esriCTAttrParamHidden");
-            }
+            select.addOption({ value: this.nls.defaultToValue, label: this.nls.defaultToValue, selected: true });
+            select.addOption({ value: this.nls.allowToUserInput, label: this.nls.allowToUserInput });
+            this._onDropDownChange(select, checkBox);
+            return select;
         },
 
         /**
-        * This function is used to add parameters for allow to user option
-        * @param {object} row in which parameter control needs to be added
-        * @param {object} data of parameters
-        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
-        **/
-        _addParameterForAllowToUserOption: function (esriCTAttrParamRow, parameterObj) {
-            var attributeParameterMinValueTextInputColumn, attributeParameterValueDropDownColumn, valueDropDown, attributeParameterMaxValueTextInputColumn;
-            if (parameterObj.checkBoxState && (parameterObj.dataType === "esriNADTDouble" || parameterObj.dataType === "esriNADTInteger")) {
-                domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMinLabel esriCTAttrParamEllipsis", "innerHTML": this.nls.minText }, esriCTAttrParamRow);
-            } else {
-                domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMinLabel esriCTAttrParamHidden esriCTAttrParamEllipsis", "innerHTML": this.nls.minText }, esriCTAttrParamRow);
-            }
-            domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamValueLabel esriCTAttrParamHiddenColumn esriCTAttrParamEllipsis", "innerHTML": this.nls.valueText }, esriCTAttrParamRow);
-            if (parameterObj.checkBoxState && (parameterObj.dataType === "esriNADTDouble" || parameterObj.dataType === "esriNADTInteger")) {
-                attributeParameterMinValueTextInputColumn = domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMinValue" }, esriCTAttrParamRow);
-            } else {
-                attributeParameterMinValueTextInputColumn = domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMinValue esriCTAttrParamHidden" }, esriCTAttrParamRow);
-            }
-            attributeParameterValueDropDownColumn = domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamValueDropDown esriCTAttrParamHiddenColumn" }, esriCTAttrParamRow);
-            valueDropDown = new Select({}, attributeParameterValueDropDownColumn);
-            valueDropDown.startup();
-            this._addValuesInDropDown(valueDropDown);
-            domClass.add(valueDropDown.domNode, "esriCTAttrParamHiddenColumn");
-            this._toogleMinTextBox(attributeParameterMinValueTextInputColumn, parameterObj);
-            if (parameterObj.checkBoxState && (parameterObj.dataType === "esriNADTDouble" || parameterObj.dataType === "esriNADTInteger")) {
-                domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMaxLabel esriCTAttrParamEllipsis", "innerHTML": this.nls.maxText }, esriCTAttrParamRow);
-                attributeParameterMaxValueTextInputColumn = domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMaxValue" }, esriCTAttrParamRow);
-            } else {
-                domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMaxLabel esriCTAttrParamHidden esriCTAttrParamEllipsis", "innerHTML": this.nls.maxText }, esriCTAttrParamRow);
-                attributeParameterMaxValueTextInputColumn = domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMaxValue esriCTAttrParamHidden" }, esriCTAttrParamRow);
-            }
-            this._toogleMaxTextBox(attributeParameterMaxValueTextInputColumn, parameterObj);
-            return esriCTAttrParamRow;
-        },
-
-        /**
-        * This function is used to hide/show min value text box
-        * @param {object} column in which min text-box needs to be added
-        * @param {object} data of parameters
-        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
-        **/
-        _toogleMinTextBox: function (attributeParameterMinValueTextInputColumn, parameterObj) {
-            var input;
-            if (parameterObj.minAndMaxValueObj) {
-                input = new ValidationTextBox({ "trim": true }, attributeParameterMinValueTextInputColumn);
-                if (parameterObj.checkBoxState && (parameterObj.dataType === "esriNADTDouble" || parameterObj.dataType === "esriNADTInteger")) {
-                    domClass.add(input.domNode, "esriCTAttrParamMinTextBox");
-                } else {
-                    domClass.add(input.domNode, "esriCTAttrParamMinTextBox esriCTAttrParamHidden");
-                }
-                input.textbox.value = parameterObj.minAndMaxValueObj.minValue;
-            } else {
-                input = new ValidationTextBox({ "trim": true }, attributeParameterMinValueTextInputColumn);
-                if (parameterObj.checkBoxState && (parameterObj.dataType === "esriNADTDouble" || parameterObj.dataType === "esriNADTInteger")) {
-                    domClass.add(input.domNode, "esriCTAttrParamMinTextBox");
-                } else {
-                    domClass.add(input.domNode, "esriCTAttrParamMinTextBox esriCTAttrParamHidden");
-                }
-            }
-        },
-
-        /**
-        * This function is used to hide/show max value text box
-        * @param {object} column in which max text-box needs to be added
-        * @param {object} data of parameters
-        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
-        **/
-        _toogleMaxTextBox: function (attributeParameterMaxValueTextInputColumn, parameterObj) {
-            var input;
-            if (parameterObj.minAndMaxValueObj) {
-                input = new ValidationTextBox({ "trim": true }, attributeParameterMaxValueTextInputColumn);
-                if (parameterObj.checkBoxState && (parameterObj.dataType === "esriNADTDouble" || parameterObj.dataType === "esriNADTInteger")) {
-                    domClass.add(input.domNode, "esriCTAttrParamMaxTextBox");
-                } else {
-                    domClass.add(input.domNode, "esriCTAttrParamMaxTextBox esriCTAttrParamHidden");
-                }
-                input.textbox.value = parameterObj.minAndMaxValueObj.maxValue;
-            } else {
-                input = new ValidationTextBox({ "trim": true }, attributeParameterMaxValueTextInputColumn);
-                if (parameterObj.checkBoxState && (parameterObj.dataType === "esriNADTDouble" || parameterObj.dataType === "esriNADTInteger")) {
-                    domClass.add(input.domNode, "esriCTAttrParamMaxTextBox");
-                } else {
-                    domClass.add(input.domNode, "esriCTAttrParamMaxTextBox esriCTAttrParamHidden");
-                }
-            }
-        },
-
-        /**
-        * This function is used to add options in drop down
-        * @param {object} drop down in which value needs to be added
-        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
-        **/
-        _addValuesInDropDown: function (valueDropDown) {
-            var defaultDataDictionaryValue, i;
-            defaultDataDictionaryValue = query(".esriCTAttributeTextArea")[0].value.split(",");
-            for (i = 0; i < defaultDataDictionaryValue.length; i++) {
-                if (i === 0) {
-                    valueDropDown.addOption({ value: defaultDataDictionaryValue[i], label: defaultDataDictionaryValue[i], selected: true });
-                } else {
-                    valueDropDown.addOption({ value: defaultDataDictionaryValue[i], label: defaultDataDictionaryValue[i] });
-                }
-            }
-        },
-
-        /**
-        * This function is used to get updated value in the dropdown.
-        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
-        **/
-        _retainValueInDropDown: function (parameterObj, valueDropDown) {
-            var defaultDataDictionaryValue, defaultDataDictionaryValueArr, i;
-            defaultDataDictionaryValue = query(".esriCTAttributeTextArea")[0].value.split(",");
-            defaultDataDictionaryValueArr = [];
-            for (i = 0; i < defaultDataDictionaryValue.length; i++) {
-                if (defaultDataDictionaryValue[i] === parameterObj.defaultToValueDropDownOption) {
-                    defaultDataDictionaryValueArr.unshift({ value: defaultDataDictionaryValue[i], label: defaultDataDictionaryValue[i], selected: true });
-                } else {
-                    defaultDataDictionaryValueArr.push({ value: defaultDataDictionaryValue[i], label: defaultDataDictionaryValue[i] });
-                }
-            }
-            valueDropDown.addOption(defaultDataDictionaryValueArr);
-        },
-
-        /**
-        * This function is used to add parameters for default to value option
-        * @param {object} row in which parameter control needs to be added
-        * @param {object} data of parameters
-        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
-        **/
-        _addParameterForDefaultToValueOption: function (esriCTAttrParamRow, parameterObj) {
-            var attributeParameterMinValueTextInputColumn, attributeParameterValueDropDownColumn, valueDropDown, input, attributeParameterMaxValueTextInputColumn;
-            domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMinLabel esriCTAttrParamHiddenColumn esriCTAttrParamEllipsis", "innerHTML": this.nls.minText }, esriCTAttrParamRow);
-            if (parameterObj.checkBoxState) {
-                domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamValueLabel esriCTAttrParamEllipsis", "innerHTML": this.nls.valueText }, esriCTAttrParamRow);
-            } else {
-                domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamValueLabel esriCTAttrParamHidden esriCTAttrParamEllipsis", "innerHTML": this.nls.valueText }, esriCTAttrParamRow);
-            }
-            attributeParameterMinValueTextInputColumn = domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMinValue esriCTAttrParamHiddenColumn" }, esriCTAttrParamRow);
-            if (parameterObj.checkBoxState) {
-                attributeParameterValueDropDownColumn = domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamValueDropDown" }, esriCTAttrParamRow);
-            } else {
-                attributeParameterValueDropDownColumn = domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamValueDropDown esriCTAttrParamHidden" }, esriCTAttrParamRow);
-            }
-            valueDropDown = new Select({}, attributeParameterValueDropDownColumn);
-            valueDropDown.startup();
-            if (parameterObj.defaultToValueDropDownOption) {
-                this._retainValueInDropDown(parameterObj, valueDropDown);
-            } else {
-                this._addValuesInDropDown(valueDropDown);
-            }
-            if (parameterObj.checkBoxState) {
-                domClass.remove(valueDropDown.domNode, "esriCTAttrParamHidden");
-            } else {
-                domClass.add(valueDropDown.domNode, "esriCTAttrParamHidden");
-            }
-            input = new ValidationTextBox({ "trim": true }, attributeParameterMinValueTextInputColumn);
-            domClass.add(input.domNode, "esriCTAttrParamMinTextBox esriCTAttrParamHiddenColumn");
-            domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMaxLabel esriCTAttrParamHidden esriCTAttrParamEllipsis ", "innerHTML": this.nls.maxText }, esriCTAttrParamRow);
-            attributeParameterMaxValueTextInputColumn = domConstruct.create("div", { "class": "esriCTAttrParamColumn esriCTAttrParamMaxValue esriCTAttrParamHidden" }, esriCTAttrParamRow);
-            input = new ValidationTextBox({ "trim": true }, attributeParameterMaxValueTextInputColumn);
-            domClass.add(input.domNode, "esriCTAttrParamMaxTextBox esriCTAttrParamHidden");
-            return esriCTAttrParamRow;
-        },
-
-        /**
-        * This function is used to display controls on change of
-        * @param {object} dropdown whose click & change event needs to be attached
-        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
-        **/
-        _onDropDownChange: function (select) {
-            var columns, dataType;
-            on(select, 'mouseUp', lang.hitch(this, function (evt) {
-                columns = evt.currentTarget.parentElement.childNodes;
-            }));
-            on(select, 'click', lang.hitch(this, function (evt) {
-                columns = evt.currentTarget.parentElement.childNodes;
-            }));
-            on(select, 'change', lang.hitch(this, function (evt) {
-                dataType = domAttr.get(columns[0], "dataType");
-                if ((evt === this.nls.allowToUserInput) && (dataType === "esriNADTDouble" || dataType === "esriNADTInteger")) {
-                    domClass.remove(columns[3], "esriCTAttrParamHidden esriCTAttrParamHiddenColumn");
-                    domClass.add(columns[4], "esriCTAttrParamHiddenColumn");
-                    domClass.remove(columns[5], "esriCTAttrParamHidden esriCTAttrParamHiddenColumn");
-                    domClass.add(columns[6], "esriCTAttrParamHiddenColumn");
-                    domClass.remove(columns[7], "esriCTAttrParamHidden");
-                    domClass.remove(columns[8], "esriCTAttrParamHidden");
-                } else if ((evt === this.nls.allowToUserInput) && dataType !== "esriNADTDouble" && dataType !== "esriNADTInteger") {
-                    domClass.remove(columns[3], "esriCTAttrParamHiddenColumn");
-                    domClass.add(columns[3], "esriCTAttrParamHidden");
-                    domClass.add(columns[4], "esriCTAttrParamHiddenColumn");
-                    domClass.remove(columns[5], "esriCTAttrParamHiddenColumn");
-                    domClass.add(columns[5], "esriCTAttrParamHidden");
-                    domClass.add(columns[6], "esriCTAttrParamHiddenColumn");
-                } else {
-                    domClass.replace(columns[3], "esriCTAttrParamHiddenColumn", "esriCTAttrParamHidden");
-                    domClass.remove(columns[4], "esriCTAttrParamHiddenColumn");
-                    domClass.replace(columns[5], "esriCTAttrParamHiddenColumn", "esriCTAttrParamHidden");
-                    domClass.remove(columns[6], "esriCTAttrParamHiddenColumn");
-                    domClass.add(columns[7], "esriCTAttrParamHidden");
-                    domClass.add(columns[8], "esriCTAttrParamHidden");
-                }
-            }));
-        },
-
-        /**
-        * This function is used to store checked values in an array
-        * @param {object} checkBox whose click event needs to be attached
-        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
-        **/
-        _onCheckBoxChange: function (checkBox) {
-            on(checkBox, 'click', lang.hitch(this, function (evt) {
-                if (!domClass.contains(evt.target, "jimu-checkbox")) {
-                    this._filterCheckedRows(evt.currentTarget);
-                }
-            }));
-        },
-
-        /**
-        * This function is used to add/remove checked/unchecked row in the array
+        * This function is used to show or hide the input controls
         * @param {object} checkBox that is checked/unchecked
         * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
         **/
-        _filterCheckedRows: function (checkBox) {
-            var i, isRowFound, columns, existingColumns;
-            isRowFound = false;
-            existingColumns = checkBox.parentElement.childNodes;
-            if (this._clickedRows.length === 0) {
-                this._clickedRows.push(checkBox);
-                this._showExistingColumns(existingColumns, true);
-            } else {
-                for (i = 0; i < this._clickedRows.length; i++) {
-                    columns = this._clickedRows[i].parentElement.childNodes;
-                    if (domAttr.get(columns[0], "rowID") === domAttr.get(checkBox, "rowID")) {
-                        isRowFound = true;
-                        this._clickedRows.splice(i, 1);
-                        this._showExistingColumns(existingColumns, false);
-                        break;
+        _showHideInputControls: function (checkBox, flag) {
+            var i, existingRows, dropDownNode, selectdropDownNode;
+            existingRows = checkBox.parentElement.parentElement.childNodes;
+            dropDownNode = existingRows[0].childNodes[2];
+            selectdropDownNode = query(".dijitSelect", dropDownNode)[0];
+            if (!flag) {
+                dijit.byId(selectdropDownNode.id).set("value", this.nls.defaultToValue);
+            }
+            if (!domClass.contains(existingRows[0].childNodes[0], "esriCTNonRestrictionCheckBox")) {
+                if (flag) {
+                    if (existingRows) {
+                        for (i = 1; i < existingRows.length; i++) {
+                            domClass.remove(existingRows[i], "esriCTAttrParamDisplay");
+                            domClass.add(existingRows[i].childNodes[1], "esriCTAttrParamDisplay");
+                            domClass.remove(existingRows[i].childNodes[2], "esriCTAttrParamDisplay");
+                        }
+                        domClass.remove(checkBox.parentElement.childNodes[2], "esriCTAttrParamDisplay");
+                        domClass.remove(checkBox.parentElement.childNodes[3], "esriCTAttrParamDisplay");
+                    } else {
+                        domClass.remove(checkBox.parentElement.childNodes[2], "esriCTAttrParamDisplay");
+                        domClass.remove(checkBox.parentElement.childNodes[3], "esriCTAttrParamDisplay");
+                    }
+                } else {
+                    if (existingRows) {
+                        for (i = 1; i < existingRows.length; i++) {
+                            domClass.add(existingRows[i], "esriCTAttrParamDisplay");
+                        }
+                        domClass.add(checkBox.parentElement.childNodes[2], "esriCTAttrParamDisplay");
+                        domClass.add(checkBox.parentElement.childNodes[3], "esriCTAttrParamDisplay");
+                    } else {
+                        domClass.add(checkBox.parentElement.childNodes[2], "esriCTAttrParamDisplay");
+                        domClass.add(checkBox.parentElement.childNodes[3], "esriCTAttrParamDisplay");
                     }
                 }
-                if (!isRowFound) {
-                    this._clickedRows.push(checkBox);
-                    this._showExistingColumns(existingColumns, true);
+            } else {
+
+                if (flag) {
+                    if (existingRows) {
+                        for (i = 0; i < existingRows.length; i++) {
+                            domClass.remove(existingRows[i].childNodes[2], "esriCTAttrParamDisplay");
+                            domClass.add(existingRows[i].childNodes[3], "esriCTAttrParamDisplay");
+                            domClass.remove(existingRows[i].childNodes[4], "esriCTAttrParamDisplay");
+                        }
+
+                    }
+                } else {
+                    if (existingRows) {
+                        for (i = 0; i < existingRows.length; i++) {
+                            domClass.add(existingRows[i].childNodes[2], "esriCTAttrParamDisplay");
+                            domClass.add(existingRows[i].childNodes[3], "esriCTAttrParamDisplay");
+                            domClass.add(existingRows[i].childNodes[4], "esriCTAttrParamDisplay");
+                        }
+
+                    }
                 }
             }
         },
 
         /**
-        * This function is used to show existing columns on click of check box
+        * This function is used to handle mouseup,click and change event of dropdown
+        * @param {object} dropdown whose click & change event needs to be attached
         * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
         **/
-        _showExistingColumns: function (existingColumns, showColumn) {
-            var dataType;
-            if (showColumn) {
-                if ((existingColumns[2].textContent === this.nls.defaultToValue) || (existingColumns[2].outerText === this.nls.defaultToValue)) {
-                    domClass.remove(existingColumns[2], "esriCTAttrParamHidden");
-                    domClass.remove(existingColumns[4], "esriCTAttrParamHidden");
-                    domClass.remove(existingColumns[6], "esriCTAttrParamHidden");
-                } else {
-                    dataType = domAttr.get(existingColumns[0], "dataType");
-                    domClass.remove(existingColumns[2], "esriCTAttrParamHidden");
-                    if (dataType === "esriNADTDouble" || dataType === "esriNADTInteger") {
-                        domClass.remove(existingColumns[3], "esriCTAttrParamHidden");
-                        domClass.remove(existingColumns[5], "esriCTAttrParamHidden");
-                        domClass.remove(existingColumns[7], "esriCTAttrParamHidden");
-                        domClass.remove(existingColumns[8], "esriCTAttrParamHidden");
+        _onDropDownChange: function (select, checkBox) {
+            var columns, rows, self = this, i;
+            on(select, 'change', function (value) {
+                columns = this.domNode.parentElement.parentElement.childNodes;
+                rows = this.domNode.parentElement.parentElement.parentElement.childNodes;
+                if (columns && checkBox && checkBox) {
+                    if (!domClass.contains(columns[2], "esriCTNonRestriction")) {
+                        if (value === self.nls.allowToUserInput) {
+                            domClass.add(columns[3], "esriCTAttrParamDisplay");
+                            if (rows && rows.length > 0) {
+                                for (i = 1; i < rows.length; i++) {
+                                    domClass.remove(rows[i].childNodes[1], "esriCTAttrParamDisplay");
+                                    domClass.add(rows[i].childNodes[2], "esriCTAttrParamDisplay");
+                                }
+                            }
+                        } else {
+                            if (!domClass.contains(columns[2], "esriCTAttrParamDisplay")) {
+                                domClass.remove(columns[3], "esriCTAttrParamDisplay");
+                            }
+                            if (rows && rows.length > 0) {
+                                for (i = 1; i < rows.length; i++) {
+                                    domClass.add(rows[i].childNodes[1], "esriCTAttrParamDisplay");
+                                    domClass.remove(rows[i].childNodes[2], "esriCTAttrParamDisplay");
+                                }
+                            }
+                        }
+                    } else {
+                        if (value === self.nls.allowToUserInput) {
+                            domClass.add(columns[4], "esriCTAttrParamDisplay");
+                            domClass.remove(columns[3], "esriCTAttrParamDisplay");
+                        } else {
+                            domClass.add(columns[3], "esriCTAttrParamDisplay");
+                            if (!domClass.contains(columns[2], "esriCTAttrParamDisplay")) {
+                                domClass.remove(columns[4], "esriCTAttrParamDisplay");
+                            }
+                        }
                     }
                 }
-            } else {
-                if ((existingColumns[2].textContent === this.nls.defaultToValue) || (existingColumns[2].outerText === this.nls.defaultToValue)) {
-                    domClass.add(existingColumns[2], "esriCTAttrParamHidden");
-                    domClass.add(existingColumns[4], "esriCTAttrParamHidden");
-                    domClass.add(existingColumns[6], "esriCTAttrParamHidden");
-                } else {
-                    domClass.add(existingColumns[2], "esriCTAttrParamHidden");
-                    domClass.add(existingColumns[3], "esriCTAttrParamHidden");
-                    domClass.add(existingColumns[5], "esriCTAttrParamHidden");
-                    domClass.add(existingColumns[7], "esriCTAttrParamHidden");
-                    domClass.add(existingColumns[8], "esriCTAttrParamHidden");
-                }
-            }
+            });
         },
 
         /**
         * This function is used to get configration of checked values
+        * @return{array}: Selected attribute parameter list
         * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
         **/
         getAttributeParameterConfiguration: function () {
-            var attributeNameJsonArr, i, attributeName, columns;
+            var attributeNameJsonArr, i, j, attributeName, attributeNameRows, parameter, queryResults, attrParamParent;
             attributeNameJsonArr = [];
-            for (i = 0; i < this._clickedRows.length; i++) {
-                columns = this._clickedRows[i].parentElement.childNodes;
-                attributeName = { "name": columns[1].textContent || columns[1].outerText, "displayLabel": domAttr.get(columns[1], "displayLabel"), "allowUserInput": this._getAllowUserInput(columns[2].textContent || columns[2].outerText).toString(), "value": this._getMinAndMaxValue(columns) };
-                attributeNameJsonArr.push(attributeName);
+            queryResults = query(".esriCTAttrParamContainer");
+            attrParamParent = queryResults[0];
+            for (i = 0; i < attrParamParent.childNodes.length; i++) {
+                attributeName = { "allowUserInput": false, "type": "", "parameters": [] };
+                attributeNameRows = attrParamParent.childNodes[i].childNodes;
+                if (domClass.contains(attributeNameRows[0].childNodes[0].childNodes[0], "checked")) {
+                    for (j = 0; j < attributeNameRows.length; j++) {
+                        //if 0 row then - it means not indented
+                        parameter = { "name": "", "value": "" };
+                        if (j === 0) {
+                            //set attribute name
+                            attributeName.name = domAttr.get(attributeNameRows[j].childNodes[0], "restrictionAttributeName");
+                            //set parameter name
+                            parameter.name = domAttr.get(attributeNameRows[j].childNodes[0], "restrictionParameterName");
+
+                            //if it is Restriction type
+                            if (domClass.contains(attributeNameRows[j], "esriCTRestriction")) {
+                                attributeName.type = "Restriction";
+                                //it means allowUserInput is selected
+                                if (attributeNameRows[j].childNodes[2].textContent === this.nls.allowToUserInput) {
+                                    //set allowUserInput to true if it is selected in dropdown
+                                    attributeName.allowUserInput = true;
+                                    //set value for the parameter as prohibited
+                                    parameter.value = domAttr.get(attributeNameRows[j].childNodes[3].childNodes[1], "defaultValue");
+                                } else {
+                                    //it means default to value is selected
+                                    parameter.value = attributeNameRows[j].childNodes[3].childNodes[1].textContent;
+                                }
+                            } else {
+                                if (attributeNameRows[j].childNodes[2].textContent === this.nls.allowToUserInput) {
+                                    //set allowUserInput to true if it is selected in dropdown
+                                    attributeName.allowUserInput = true;
+                                    //set value for the parameter as prohibited
+                                    parameter.value = attributeNameRows[j].childNodes[3].childNodes[1].childNodes[1].childNodes[0].value.replace(/\,/g, '') + "," + attributeNameRows[j].childNodes[3].childNodes[3].childNodes[1].childNodes[0].value.replace(/\,/g, '');
+                                } else {
+                                    //it means default to value is selected
+                                    parameter.value = attributeNameRows[j].childNodes[4].childNodes[1].childNodes[1].childNodes[0].value.replace(/\,/g, '');
+                                }
+                            }
+
+                        } else {
+                            //it means it is indented
+                            parameter.name = domAttr.get(attributeNameRows[j], "restrictionParameterName");
+                            if (attributeName.allowUserInput) {
+                                parameter.value = attributeNameRows[j].childNodes[1].childNodes[1].childNodes[1].childNodes[0].value.replace(/\,/g, '') + "," + attributeNameRows[j].childNodes[1].childNodes[3].childNodes[1].childNodes[0].value.replace(/\,/g, '');
+                            } else {
+                                parameter.value = attributeNameRows[j].childNodes[2].childNodes[1].childNodes[0].value.replace(/\,/g, '');
+                            }
+                        }
+                        attributeName.parameters.push(parameter);
+                    }
+                    attributeNameJsonArr.push(attributeName);
+                }
             }
             return attributeNameJsonArr;
         },
 
         /**
-        *
+        * This function is used to get configration of checked values
+        * @return{object}: return object of validation result indicating error and its messages
         * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
         **/
-        validateMinMax: function () {
-            var i, columns, minValue, maxValue, returnObj, dataType, minMaxValue;
+        ValidateNumericInputs: function () {
+            var i, j, attributeNameRows, queryResults, attrParamParent, returnObj, parameterName, defaultValue,
+                minValue, maxValue;
             returnObj = { returnErr: "", hasError: false };
-            for (i = 0; i < this._clickedRows.length; i++) {
-                columns = this._clickedRows[i].parentElement.childNodes;
-                dataType = domAttr.get(columns[0], "dataType");
-                maxValue = columns[8].childNodes[1].childNodes[0].value;
-                minValue = columns[5].childNodes[1].childNodes[0].value;
-                minMaxValue = columns[1].textContent || columns[1].outerText;
-                if (((columns[2].textContent === this.nls.allowToUserInput) || (columns[2].outerText === this.nls.allowToUserInput)) && (dataType === "esriNADTDouble" || dataType === "esriNADTInteger")) {
-                    if (minValue === "" || minValue === null) {
-                        returnObj.returnErr = minMaxValue + ":" + this.nls.validationErrorMessage.minNullValueErr;
-                        returnObj.hasError = true;
-                    } else if (isNaN(parseInt(minValue, 10))) {
-                        returnObj.returnErr = minMaxValue + ":" + this.nls.validationErrorMessage.minValueNumberOnlyErr;
-                        returnObj.hasError = true;
-                    } else if (!this.ValidateInput(minValue)) {
-                        returnObj.returnErr = minMaxValue + ":" + this.nls.validationErrorMessage.minValueCharErr;
-                        returnObj.hasError = true;
-                    } else if (maxValue === "" || maxValue === null) {
-                        returnObj.returnErr = minMaxValue + ":" + this.nls.validationErrorMessage.MaxNullValueErr;
-                        returnObj.hasError = true;
-                    } else if (isNaN(parseInt(maxValue, 10))) {
-                        returnObj.returnErr = minMaxValue + ":" + this.nls.validationErrorMessage.MaxValueNumberOnlyErr;
-                        returnObj.hasError = true;
-                    } else if (!this.ValidateInput(maxValue)) {
-                        returnObj.returnErr = minMaxValue + ":" + this.nls.validationErrorMessage.MaxValueCharErr;
-                        returnObj.hasError = true;
-                    } else if (parseInt(minValue, 10) >= parseInt(maxValue, 10)) {
-                        returnObj.returnErr = minMaxValue + ":" + this.nls.validationErrorMessage.minValueErr;
-                        returnObj.hasError = true;
+            queryResults = query(".esriCTAttrParamContainer");
+            attrParamParent = queryResults[0];
+            for (i = 0; i < attrParamParent.childNodes.length; i++) {
+                attributeNameRows = attrParamParent.childNodes[i].childNodes;
+                if (domClass.contains(attributeNameRows[0].childNodes[0].childNodes[0], "checked")) {
+                    for (j = 0; j < attributeNameRows.length; j++) {
+                        parameterName = "";
+                        defaultValue = "";
+                        minValue = "";
+                        maxValue = "";
+                        if (j === 0) {
+                            if (!domClass.contains(attributeNameRows[j], "esriCTRestriction")) {
+                                //Validate non restriction parameter values
+                                parameterName = domAttr.get(attributeNameRows[j].childNodes[0], "restrictionParameterName");
+                                if (attributeNameRows[j].childNodes[2].textContent === this.nls.allowToUserInput) {
+                                    //Validate Min max value text boxes
+                                    minValue = attributeNameRows[j].childNodes[3].childNodes[1].childNodes[1].childNodes[0].value.replace(/\,/g, '');
+                                    maxValue = attributeNameRows[j].childNodes[3].childNodes[3].childNodes[1].childNodes[0].value.replace(/\,/g, '');
+                                    this._validateInput(minValue, parameterName, returnObj, this.nls.validationErrorMessage.minValueErrorLabel);
+                                    if (!returnObj.hasError) {
+                                        this._validateInput(maxValue, parameterName, returnObj, this.nls.validationErrorMessage.maxValueErrorLabel);
+                                        if (!returnObj.hasError) {
+                                            if (parseInt(minValue, 10) > parseInt(maxValue, 10)) {
+                                                returnObj.returnErr = parameterName + ":" + this.nls.validationErrorMessage.minValueErr;
+                                                returnObj.hasError = true;
+                                                return returnObj;
+                                            }
+                                        } else {
+                                            return returnObj;
+                                        }
+                                    } else {
+                                        return returnObj;
+                                    }
+                                } else {
+                                    //Validate default value text box
+                                    defaultValue = attributeNameRows[j].childNodes[4].childNodes[1].childNodes[1].childNodes[0].value.replace(/\,/g, '');
+                                    this._validateInput(defaultValue, parameterName, returnObj, this.nls.validationErrorMessage.defaultValueErrorLabel);
+                                    if (returnObj.hasError) {
+                                        return returnObj;
+                                    }
+                                }
+                            }
+                        } else {//Validate restriction parameter values
+                            parameterName = domAttr.get(attributeNameRows[j], "restrictionParameterName");
+                            if (attributeNameRows[0].childNodes[2].textContent === this.nls.allowToUserInput) {
+                                //Validate Min max value text boxes
+                                minValue = attributeNameRows[j].childNodes[1].childNodes[1].childNodes[1].childNodes[0].value.replace(/\,/g, '');
+                                maxValue = attributeNameRows[j].childNodes[1].childNodes[3].childNodes[1].childNodes[0].value.replace(/\,/g, '');
+                                this._validateInput(minValue, parameterName, returnObj, this.nls.validationErrorMessage.minValueErrorLabel);
+                                if (!returnObj.hasError) {
+                                    this._validateInput(maxValue, parameterName, returnObj, this.nls.validationErrorMessage.maxValueErrorLabel);
+                                    if (!returnObj.hasError) {
+                                        if (parseInt(minValue, 10) > parseInt(maxValue, 10)) {
+                                            returnObj.returnErr = parameterName + ":" + this.nls.validationErrorMessage.minValueErr;
+                                            returnObj.hasError = true;
+                                            return returnObj;
+                                        }
+                                    } else {
+                                        return returnObj;
+                                    }
+                                } else {
+                                    return returnObj;
+                                }
+                            } else {
+                                //Validate default text box
+                                defaultValue = attributeNameRows[j].childNodes[2].childNodes[1].childNodes[0].value.replace(/\,/g, '');
+                                this._validateInput(defaultValue, parameterName, returnObj, this.nls.validationErrorMessage.defaultValueErrorLabel);
+                                if (returnObj.hasError) {
+                                    return returnObj;
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -498,57 +669,21 @@ define([
         },
 
         /**
-        * This function is used to allow digits only
-        * @memberOf widgets/isolation-trace/settings/settings
+        * This function is used to validate for numeric input and minimum and maximum validation
+        * @memberOf widgets/ServiceFeasibility/settings/settings
         **/
-        ValidateInput: function (input) {
+        _validateInput: function (input, paramName, returnObj, valueType) {
             var regex;
-            regex = /^[+\-]?\d*(?:\.\d{1,2})?$/; // allow only numbers [0-9]
-            return regex.test(input);
-        },
-
-        /**
-        * This function is used to determine whether allow user input is selected or not
-        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
-        **/
-        _getAllowUserInput: function (selectedOption) {
-            if (selectedOption === this.nls.allowToUserInput) {
-                return true;
-            }
-            return false;
-        },
-
-        /**
-        * This function is used to get minimum & maximum value of parameters
-        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
-        **/
-        _getMinAndMaxValue: function (columns) {
-            var value;
-            if (columns[2].textContent === this.nls.defaultToValue || columns[2].outerText === this.nls.defaultToValue) {
-                value = columns[6].textContent || columns[6].outerText;
-            } else {
-                value = columns[5].childNodes[1].childNodes[0].value + "," + columns[8].childNodes[1].childNodes[0].value;
-            }
-            return value;
-        },
-
-        /**
-        * This function create error alert.
-        * @param {string} err
-        * @memberOf widgets/isolation-trace/settings/settings
-        **/
-        _errorMessage: function (err) {
-            var errorMessage = new Message({ message: err });
-            errorMessage.message = err;
-        },
-
-        /**
-        * This function is used to add parameters from config file
-        * @memberOf widgets/ServiceFeasibility/settings/attribute-parameter
-        **/
-        addConfigParameters: function () {
-            if (this.config && this.config.attributeName && this.closestFacilityURL) {
-                this._initialLoad = true;
+            regex = /^[+\-]?\d*(?:\.\d{1,2})?$/; // allow only numbers [+/-] [0-9] upto 2 decimal
+            if (input === "" || input === null) { //if minimum value is blank or null
+                returnObj.returnErr = paramName + ":" + String.substitute(this.nls.validationErrorMessage.nullValueErr, [valueType]);
+                returnObj.hasError = true;
+            } else if (isNaN(parseInt(input, 10))) { //if minimum value is not a numeric value
+                returnObj.returnErr = paramName + ":" + String.substitute(this.nls.validationErrorMessage.valueNumberOnlyErr, [valueType]);
+                returnObj.hasError = true;
+            } else if (!regex.test(input)) { //Minimum value check with regex ^[+\-]?\d*(?:\.\d{1,2})?$,if it fails validation message will occur
+                returnObj.returnErr = paramName + ":" + String.substitute(this.nls.validationErrorMessage.valueCharErr, [valueType]);
+                returnObj.hasError = true;
             }
         }
     });

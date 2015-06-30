@@ -104,6 +104,7 @@ define([
         getInputForm: function () {
             var inputParam = {
                 "paramName": this.data.name,
+                "displayName": this.data.displayName,
                 "toolTip": this.inputTooltipData.value,
                 "type": this.inputTypeData.value,
                 "symbol": this.symbolChooser.getSymbol().toJson()

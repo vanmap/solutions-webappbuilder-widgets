@@ -145,7 +145,15 @@ function (declare,
             }
         },
         _configureWidget: function () {
-
+            this.existingText = {};
+            this.existingText.addPoint = esri.bundle.toolbars.draw.addPoint;
+            this.existingText.addShape = esri.bundle.toolbars.draw.addShape;
+            this.existingText.freehand = esri.bundle.toolbars.draw.freehand;
+            this.existingText.start = esri.bundle.toolbars.draw.start;
+                  esri.bundle.toolbars.draw.addPoint = "Click to select in this area";
+                  esri.bundle.toolbars.draw.addShape = "Draw a shape to select features";
+                  esri.bundle.toolbars.draw.freehand = "Press and hold to draw a shape to select features";
+                  esri.bundle.toolbars.draw.start = "Draw a shape to select features";
             var types = null;
             if (this.config.selectByShape === true) {
                 this.toolType = "Area";
@@ -188,7 +196,7 @@ function (declare,
                 this.drawBox.setMap(this.map);
 
                 this.own(on(this.drawBox, 'DrawEnd', lang.hitch(this, this._onDrawEnd)));
-
+              
             } else {
 
                 this.searchTextBox = new dijit.form.TextBox({
@@ -800,7 +808,7 @@ function (declare,
                         'syncStatus': this.nls.featuresSkipped
                     });
                     var cell = query('.syncStatus', row).shift();
-                   
+
                     html.removeClass(cell, 'syncProcessing');
                     html.removeClass(cell, 'syncComplete');
                     html.addClass(cell, 'syncSkipped');
@@ -990,8 +998,7 @@ function (declare,
             }, this);
         },
         _clearResults: function (clearResultMessage) {
-            if (clearResultMessage === null)
-            {
+            if (clearResultMessage === null) {
                 clearResultMessage = true;
             }
             array.forEach(this.updateLayers, function (layer) {
@@ -1036,6 +1043,11 @@ function (declare,
         onOpen: function () {
 
             this.disableWebMapPopup();
+         
+            esri.bundle.toolbars.draw.addPoint = this.nls.drawBox.addPointToolTip;
+            esri.bundle.toolbars.draw.addShape  = this.nls.drawBox.addShapeToolTip;
+            esri.bundle.toolbars.draw.freehand  = this.nls.drawBox.freehandToolTip;
+            esri.bundle.toolbars.draw.start  = this.nls.drawBox.startToolTip;
             if (this.config.toggleLayersOnOpen == true) {
                 array.forEach(this.updateLayers, function (layer) {
                     layer.layerObject.setVisibility(true);
@@ -1043,6 +1055,11 @@ function (declare,
             }
         },
         onClose: function () {
+            esri.bundle.toolbars.draw.addPoint =   this.existingText.addPoint ;
+            esri.bundle.toolbars.draw.addShape = this.existingText.addShape;
+            esri.bundle.toolbars.draw.freehand = this.existingText.freehand;
+            esri.bundle.toolbars.draw.start = this.existingText.start;
+          
             this.enableWebMapPopup();
             if (this.config.toggleLayersOnOpen == true) {
                 array.forEach(this.updateLayers, function (layer) {

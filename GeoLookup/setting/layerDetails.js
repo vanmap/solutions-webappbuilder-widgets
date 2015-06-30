@@ -70,7 +70,9 @@ function(Evented,
             promises.push(this._getLayerInfo(dataItem));
             this.layerStore.push(dataItem);
           } else if (layer.layers) {
-            this.childList = [];
+            if(!this.childList) {
+              this.childList = [];
+            }
             array.forEach(layer.layers, lang.hitch(this, function(subLyr, i) {
               var subDataItem = {
                 label : layer.layerObject.layerInfos[i + 1].name,
@@ -89,6 +91,32 @@ function(Evented,
               id : layer.id,
               url : layer.url,
               type : 'Service',
+              checked : false,
+              children : this.childList
+            };
+            this.layerStore.push(dataItem);
+          } else if (layer.layerType === 'ArcGISMapServiceLayer') {
+            if(!this.childList) {
+              this.childList = [];
+            }
+            array.forEach(layer.layerObject.layerInfos, lang.hitch(this, function(subLyr) {
+              var subDataItem = {
+                label : subLyr.name,
+                id : layer.id + '.' + subLyr.id,
+                url : layer.url + '/' + subLyr.id,
+                type : 'Layer',
+                fieldName : this.fieldName,
+                checked : false,
+                children : []
+              };
+              this.childList.push(subDataItem);
+              promises.push(this._getLayerInfo(subDataItem));
+            }));
+            dataItem = {
+              label : layer.title,
+              id : layer.id,
+              url : layer.url,
+              type : 'MapService',
               checked : false,
               children : this.childList
             };

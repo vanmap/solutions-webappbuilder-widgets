@@ -1,0 +1,658 @@
+
+@import url('http://js.arcgis.com/3.12/dijit/themes/claro/claro.css');
+
+
+.jimu-widget-NetworkTrace .flagbutton
+{
+    float: left;
+    cursor: pointer;
+    width: 42px;
+    height: 42px;
+    background-repeat: no-repeat;
+    background-image: url("../images/add-flags.png");
+    background-color: #858585;
+}
+
+.jimu-widget-NetworkTrace .esriCTSaveToLayerButton
+{
+    float: left;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    background-repeat: no-repeat;
+    margin-right: 10px;
+    background-image: url("../images/save-layer.png");
+}
+
+.jimu-widget-NetworkTrace .esriCTBackButton
+{
+    float: left;
+    margin-top: 5%;
+    margin-left: 6%;
+    cursor: pointer;
+    width: 13px;
+    height: 13px;
+    background-repeat: no-repeat;
+    background-color: black;
+    background-image: url("../images/back-arrow.png");
+}
+
+.jimu-widget-NetworkTrace .esriCTExportToCSVButton
+{
+    float: right;
+    cursor: pointer;
+    width: 24px;
+    height: 24px;
+    background-repeat: no-repeat;
+    background-image: url("../images/download-csv.png");
+}
+
+.jimu-widget-NetworkTrace .barrierButton
+{
+    float: left;
+    cursor: pointer;
+    width: 42px;
+    height: 42px;
+    background-repeat: no-repeat;
+    background-image: url("../images/add-barriers.png");
+    background-color: #858585;
+}
+
+.jimu-widget-NetworkTrace .flagButtonselected
+{
+    float: left;
+    cursor: pointer;
+    width: 42px;
+    height: 42px;
+    background-repeat: no-repeat;
+    background-image: url("../images/add-flags-select.png");
+    background-color: #858585;
+}
+
+.jimu-widget-NetworkTrace .barrierButtonselected
+{
+    float: left;
+    cursor: pointer;
+    width: 42px;
+    height: 42px;
+    background-repeat: no-repeat;
+    background-image: url("../images/add-barriers-select .png");
+    background-color: #858585;
+}
+
+.jimu-widget-NetworkTrace .esriCTImageDiv
+{
+    float: right;
+    margin-right: 10px;
+}
+
+.jimu-widget-NetworkTrace .tracePanel
+{
+    padding: 10px 20px;
+}
+
+.jimu-widget-NetworkTrace .traceControl
+{
+    float: left;
+    width: 100%;
+}
+
+.jimu-widget-NetworkTrace .btnFlagStyle
+{
+    width: 50%;
+}
+
+.jimu-widget-NetworkTrace .btnBarrierStyle
+{
+    width: 50%;
+    float: right;
+}
+
+.jimu-widget-NetworkTrace .flagLabel
+{
+    float: left;
+    margin: 17px 10px 0 0;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 60%;
+}
+
+.jimu-widget-NetworkTrace .barrierLabel
+{
+    float: left;
+    margin: 17px 10px 0 0;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 60%;
+}
+
+.jimu-widget-NetworkTrace .traceButtons
+{
+    float: left;
+    width: 100%;
+    text-align: center;
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.resultItemButton
+{
+    padding: 0;
+    width: 40px;
+    height: 40px;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    cursor: pointer;
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -o-border-radius: 5px;
+    border-radius: 5px;
+    outline: none;
+    background-position: center center;
+    background-repeat: no-repeat;
+    border: 0;
+    margin-right: 10px;
+    float: left;
+}
+
+.resultItemLabel
+{
+    display: table-cell;
+    width: 100%;
+    vertical-align: middle;
+    text-align: left;
+    cursor: pointer;
+    color: blue;
+    text-decoration: underline;
+}
+
+.resultItemSubDiv
+{
+    clear: both;
+    display: table;
+    text-align: center;
+    width: 100%;
+    margin: 5px;
+}
+
+.resultItemButtonSkipIcon
+{
+    background-image: url("../images/skip.png");
+    background-color: #666666;
+}
+
+.resultItemButtonSkipIconSelected
+{
+    background-color: #ff0000 !important;
+}
+
+.resultItemButtonZoomIcon
+{
+    background-image: url("../images/ZoomTo.png");
+    background-color: #666666;
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
+.resultItemButtonZoomIconSelected
+{
+    background-image: url("../images/ZoomTo.png");
+    background-color: #ff0000;
+    margin-bottom: 5px;
+    margin-top: 5px;
+}
+
+.jimu-widget-NetworkTrace .runIconidle
+{
+    display: none;
+}
+
+.jimu-widget-NetworkTrace .runIconProcessing
+{
+    background-image: url("../images/loading.gif");
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    background-size: 100% auto;
+    height: 60px;
+    margin: 0 auto;
+    width: 40px;
+}
+
+.jimu-widget-NetworkTrace .traceControlDisabledDiv
+{
+    pointer-events: none;
+}
+
+.claro .dijitTitlePaneContentInner
+{
+    /*overflow-x: auto;*/
+    padding: 0px;
+}
+
+.dijitButtonNode
+{
+    border: 0px solid gray;
+}
+
+.dijitValidationTextBoxError input.dijitValidationInner, .dijitSelect input, .dijitTextBox input.dijitArrowButtonInner
+{
+    height: 28px !important;
+}
+
+.jimu-widget-NetworkTrace .DynamicCheckbox
+{
+    margin-right: 5px;
+}
+
+.jimu-widget-NetworkTrace .DateAndTime
+{
+    width: 12em !important;
+}
+
+.dijitTimeTextBox
+{
+    width: 12em !important;
+}
+
+.dijitDateTextBox
+{
+    width: 12em !important;
+}
+
+.jimu-widget-NetworkTrace .resultPanelStyle
+{
+    width: 100%;
+}
+
+.jimu-widget-NetworkTrace .resultItemClass
+{
+    padding: 8px;
+    padding-left: 19px;
+}
+
+.jimu-widget-NetworkTrace .jimu-btn
+{
+    font-size: 12px;
+    min-width: 70px;
+    text-align: center;
+    vertical-align: middle;
+    white-space: nowrap;
+    margin-right: 12px;
+    overflow: hidden;
+    max-width: 45%;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 31px;
+    padding: 0 15px;
+    height: 31px;
+}
+
+.jimu-widget-NetworkTrace .jimu-btn.jimu-state-disabled
+{
+    pointer-events: none;
+}
+
+.jimu-widget-NetworkTrace .esriCTSaveButton .jimu-btn
+{
+    max-width: 95% !important;
+}
+
+.jimu-widget-NetworkTrace .esriCThiddenDIV
+{
+    height: 30px;
+    width: 100%;
+}
+
+.jimu-widget-NetworkTrace .resultPanelContainer
+{
+    clear: both;
+    position: relative;
+    width: 100%;
+}
+
+.jimu-widget-frame.jimu-container
+{
+    background-color: white;
+    overflow: auto;
+    padding: 0px;
+    position: relative;
+}
+
+.dijitArrowNode
+{
+    float: right;
+}
+
+.claro .dijitTitlePaneTitleOpen, .claro .dijitTitlePaneTitleFixedOpen
+{
+    background-color: #E9EEF4;
+    color: Black;
+}
+
+.dijitTitlePane
+{
+    background-color: #fff;
+}
+
+.claro .dijitTitlePaneTitle
+{
+    background-color: #efefef;
+    background-image: none;
+    background-repeat: repeat-x;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-top: 1px solid #b5bcc7;
+    color: #494949;
+    min-height: 17px;
+    padding: 7px 15px;
+}
+
+.claro .dijitTitlePaneContentOuter
+{
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-top: 1px solid #b5bcc7; /* padding: 0 10px; */
+}
+
+
+.dijitheadPaneTitle
+{
+    background-color: #ccc;
+    background-image: none;
+    background-repeat: repeat-x;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-top: 1px solid #b5bcc7;
+    color: #494949;
+    min-height: 17px;
+}
+
+.jimu-widget-NetworkTrace .esriCThyperlinkDiv
+{
+    max-width: 30%;
+    font-weight: bold;
+    color: #485566;
+    font-size: 14px;
+    float: left;
+    cursor: pointer;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 50px;
+    margin-left: 10px;
+}
+
+.jimu-widget-NetworkTrace .esriCThyperlinkDiv:hover
+{
+    text-decoration: underline;
+}
+
+.jimu-widget-NetworkTrace .resultsHeadText
+{
+    padding: 5px;
+    font-weight: bold;
+    padding-bottom: 30px;
+}
+
+.jimu-widget-NetworkTrace .esriCTResultHead
+{
+    float: left;
+    margin-top: 8px;
+    margin-left: 10px;
+    width: 69%;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    overflow: hidden;
+}
+
+.jimu-widget-NetworkTrace .dijitheadPanelIcons
+{
+    float: right;
+}
+
+.jimu-widget-NetworkTrace .saveToLayer
+{
+    float: left;
+}
+
+.jimu-widget-NetworkTrace .exportToCsv
+{
+    float: left;
+}
+
+.claro .dijitTitlePaneTitleFocus
+{
+    outline: none;
+}
+
+.jimu-widget-NetworkTrace .esriCTMainDiv
+{
+    width: 100%;
+}
+
+.jimu-widget-NetworkTrace .esriCTTopDiv
+{
+    height: 50px;
+    border-bottom: 1px solid #000;
+    text-align: center;
+    float: left;
+    width: 100%;
+}
+
+.jimu-widget-NetworkTrace .esriCTBackButtonLinkLbl
+{
+    float: left;
+    margin-top: 5%;
+}
+
+.jimu-widget-NetworkTrace .esriCTSaveButton
+{
+    height: 30px;
+    width: 100%;
+    float: left;
+    vertical-align: middle;
+    text-align: center;
+}
+
+.jimu-widget-NetworkTrace .esriCTTitleSaveToLayer
+{
+    width: 65%;
+    font-size: 14px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 50px;
+    margin-left: 0px;
+    margin-right: 0px;
+}
+
+.jimu-widget-NetworkTrace .esriCTCommonDiv
+{
+    padding: 5px 0px 3px 0px;
+    clear: both;
+    float: left;
+    margin-left: 29px;
+}
+
+.jimu-widget-NetworkTrace .esriCTWidth
+{
+    width: 100%;
+    margin-bottom: 5px;
+}
+
+.jimu-widget-NetworkTrace .esriCTLeft
+{
+    float: left;
+    margin-right: 15px;
+}
+
+.jimu-widget-NetworkTrace .esriCTRight
+{
+    float: left;
+}
+
+.jimu-widget-NetworkTrace .esriCTTextbox
+{
+    width: 144px;
+    height: 30px;
+}
+
+.jimu-widget-NetworkTrace .esriCTDateTextbox
+{
+    width: 134px;
+    height: 23px;
+}
+
+.jimu-widget-NetworkTrace .esriCTTimeTextbox
+{
+    width: 131px;
+    height: 23px;
+}
+
+.jimu-widget-NetworkTrace .esriCTChkMargin
+{
+    margin-bottom: 5px;
+    width: 45%;
+}
+
+.jimu-widget-NetworkTrace .esriCTHidden
+{
+    display: none;
+}
+
+.jimu-widget-NetworkTrace .esriCTOutageControl
+{
+    width: 144px !important;
+}
+
+.jimu-widget-NetworkTrace .esriCTOutageAreaVisibilty
+{
+    width: 99%;
+    height: 100%;
+    float: left;
+}
+
+.jimu-widget-NetworkTrace .esriCTBtnPos
+{
+    margin-left: 200px;
+}
+
+.jimu-widget-NetworkTrace .esriCTExportToCSVBtnDiv
+{
+    margin-left: 30px;
+    margin-top: 10px;
+}
+
+.jimu-widget-NetworkTrace .esriCTLabelMargin
+{
+    margin-left: 20px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    display: block;
+    width: 250px;
+}
+
+.jimu-widget-NetworkTrace .esriCTInfoLink
+{
+    color: black;
+    margin: 0 auto;
+    cursor: pointer;
+}
+
+.jimu-widget-NetworkTrace .esriCTParamCheckBox
+{
+    position: relative;
+    margin: 0px 0px 7px 0px;
+}
+
+.jimu-widget-NetworkTrace .esriCTChkLabel
+{
+    position: absolute;
+    top: 2px;
+    left: 20px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    width: 250px;
+}
+
+
+.claro .dijitSelect, .claro .dijitTextBox
+{
+    width: 144px;
+}
+
+.esriCTChkGroup
+{
+    width: 159px;
+    float: left;
+    margin: 5px 0;
+}
+
+.attrResultInfoTable
+{
+    border-collapse: collapse;
+}
+
+.attrResultInfoTable td.attrName
+{
+    color: #888888;
+    padding-right: 5px;
+}
+
+.attrResultInfoTable td
+{
+    padding: 2px;
+    padding-bottom: 5px;
+}
+
+.attrHeader
+{
+    font-weight: bold;
+}
+
+.attrSeparator
+{
+    border: none;
+    border-top: 1px solid #333333;
+    margin-top: 6px;
+    margin-bottom: 6px;
+}
+
+.jimu-widget-NetworkTrace .esriAttributeInspector .atiButton, .jimu-widget-NetworkTrace .esriAttributeInspector .atiLayerName
+{
+    display: none;
+}
+
+.jimu-widget-NetworkTrace .esriAttributeInspector .atiButtons
+{
+    display: none;
+}
+
+.resultItem
+{
+    border-bottom: 1px solid #b5bcc7;
+}
+
+.jimu-widget-NetworkTrace .lastTitlePaneNodeBorder
+{
+    border-bottom: 1px solid #b5bcc7;
+}
+
+.resultItem:last-child
+{
+    border-bottom: 0px;
+}
+
+.jimu-widget-NetworkTrace .lastTitlePane
+{
+}

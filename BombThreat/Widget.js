@@ -81,11 +81,6 @@ define([
          * @module widgets/BombThreat
          */
         var clazz = declare([BaseWidget, _WidgetsInTemplateMixin], {
-            // DemoWidget code goes here
-
-            //please note that this property is be set by the framework when widget is loaded.
-            //templateString: template,
-
             baseClass: 'jimu-widget-bombThreat',
             name: 'BombThreat',
             selectedBombType: null,
@@ -96,13 +91,10 @@ define([
             chartLayer: null,
             charts: [],
             currentChartIndex: -1,
+            widgets: [],
 
             startup: function () {
                 this.inherited(arguments);
-//                var geocoder = registry.byId("geocoderWidget");
-//                this.own(on(geocoder, "find-results", lang.hitch(this, this.onAddressReturned)));
-                console.log('startup');
-
                 this.tabContainer = new TabContainer({
                     tabs: [
                         {
@@ -120,6 +112,7 @@ define([
                     ],
                     selected: this.nls.tabBombThreat
                 }, this.tabBT);
+                this.trackDijits(this.tabContainer);
                 this.tabContainer.startup();
                 utils.setVerticalCenter(this.tabContainer.domNode);
 
@@ -184,17 +177,10 @@ define([
                 this.own(on(this.bombLocationGraphicsLayer, "mouse-out",
                     lang.hitch(this, this.bombLocationGraphicsLayerMouseOut)));
 
-                // this.addressLocationLayer = new GraphicsLayer();
-                // this.map.addLayer(this.addressLocationLayer);
-
-                //affected layers
-                // this.facilitiesGraphicsLayer = new GraphicsLayer();
-                // this.map.addLayer(this.facilitiesGraphicsLayer);
-                // this.own(on(this.facilitiesGraphicsLayer, "click", lang.hitch(this, this.facilitiesGraphicsLayerClick)));
-
                 this.drawToolbar = new Draw(this.map);
                 this.own(on(this.drawToolbar, "draw-end", lang.hitch(this, this.addBombLocation)));
                 this.own(on(this.drawSpillInfo, "click", lang.hitch(this, this.bindDrawToolbar)));
+                this.trackDijits(this.drawToolbar);
             },
 
             // CLEAR THE MAP
@@ -229,11 +215,10 @@ define([
                 if (evt.target.id === "drawSpillInfo") {
                     return;
                 }
-                var tool = evt.target.id.toLowerCase();
                 this.map.disableMapNavigation();
                 this.bombLocationGraphicsLayer.clear();
-                //this.addressLocationLayer.clear();
-                this.drawToolbar.activate(tool);
+                this.drawToolbar.activate("point");
+                this.onClearBtnClicked();
             },
 
             // BUFFER THE BOMB LOCATION BASED ON THE SELECTED BOMB TYPE
@@ -288,11 +273,6 @@ define([
                     bufferGeometry = this.bombLocationGraphicsLayer.graphics[0].geometry;
                     bufferParams.geometries = [bufferGeometry];
                 }
-                // else if(this.addressLocationLayer.graphics.length >0){
-                //   console.log(this.addressLocationLayer.graphics.length)
-                //   bufferGeometry = this.addressLocationLayer.graphics[0].geometry;
-                //   bufferParams.geometries = [bufferGeometry];
-                // }
 
                 bufferParams.distances = [BuildingEvacDistance, OutdoorEvacDistance];
                 esriConfig.defaults.geometryService.buffer(bufferParams);
@@ -367,6 +347,7 @@ define([
 
             bombLocationGraphicsLayerMouseOut: function (evt) {
                 this.map.infoWindow.hide();
+                this.map.graphics.clear();
             },
 
             facilitiesGraphicsLayerClick: function (evt) {
@@ -374,32 +355,16 @@ define([
                 var graphic = evt.graphic;
             },
 
-            onOpen: function () {
-                console.log('onOpen');
-            },
-
-            onClose: function () {
-                console.log('onClose');
-            },
-
-            onMinimize: function () {
-                console.log('onMinimize');
-            },
-
-            onMaximize: function () {
-                console.log('onMaximize');
-            },
-
-            onSignIn: function (credential) {
-                /* jshint unused:false*/
-                console.log('onSignIn');
-            },
-
-            onSignOut: function () {
-                console.log('onSignOut');
-            },
-
             destroy: function () {
+                this.inherited(arguments);
+
+                this._clearCharts();             
+
+                if (this.bufferGraphicsLayer) {
+                    this.map.removeLayer(this.bufferGraphicsLayer);
+                    this.bufferGraphicsLayer = null;
+                }
+
                 if (this.chartLayer) {
                     this.map.removeLayer(this.chartLayer);
                     this.chartLayer = null;
@@ -409,6 +374,12 @@ define([
                     this.map.removeLayer(this.facilitiesGraphicsLayer);
                     this.facilitiesGraphicsLayer = null;
                 }
+
+                if (this.bombLocationGraphicsLayer ) {
+                    this.map.removeLayer(this.bombLocationGraphicsLayer );
+                    this.bombLocationGraphicsLayer  = null;
+                }                
+                this.cleanUp();
             },
 
             _doFacilitiesQuery: function(geometry) {
@@ -447,6 +418,7 @@ define([
                         gLayer: this.facilitiesGraphicsLayer
                     }, listContainer);
                     html.setStyle(this.facilitiesListSection, 'display', 'block');
+                    this.trackDijits(fp);
 
                     this.facilitiesGraphicsLayer.clear();
                     for (var i = 0; i < features.length; i++) {
@@ -819,6 +791,7 @@ define([
 
                 //construct chart
                 var barsChart = new Chart(chartNode);
+                this.trackDijits(barsChart);
 
                 barsChart.addPlot('default', {
                     type: Bars,
@@ -884,6 +857,7 @@ define([
 
                 //construct chart
                 var columnsChart = new Chart(chartNode);
+                this.trackDijits(columnsChart);
 
                 columnsChart.addPlot('default', {
                     type: Columns,
@@ -949,6 +923,7 @@ define([
 
                 //construct chart
                 var lineChart = new Chart(chartNode);
+                this.trackDijits(lineChart);
 
                 lineChart.addPlot('default', {
                     type: Lines,
@@ -1021,6 +996,7 @@ define([
 
                 //construct chart
                 var pieChart = new Chart(chartNode);
+                this.trackDijits(pieChart);
 
                 pieChart.setTheme(MiamiNice);
 
@@ -1052,7 +1028,34 @@ define([
                 pieChart.render();
 
                 return pieChart;
-            }
+            },
+
+            trackDijits: function ()
+            {
+                array.forEach(arguments, function (argument)
+                {
+                    if (argument && argument.destroyRecursive)
+                    {
+                        this.widgets.push(argument);
+                    }
+                }, this);
+            },
+
+            cleanUp: function ()
+            {
+                array.forEach(this.widgets, function (widget)
+                {
+                    if (widget && widget.destroyRecursive)
+                    {
+                        widget.destroyRecursive(false);
+                    }
+                }, this);
+                this.widgets = [];
+
+                array.forEach(dijit.findWidgets(this.id), function(w) {
+                    w.destroyRecursive(false);
+                });                
+            }                       
         });
         return clazz;
     });

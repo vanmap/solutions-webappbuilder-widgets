@@ -290,6 +290,11 @@
     height: 31px;
 }
 
+.jimu-widget-NetworkTrace .jimu-btn.jimu-state-disabled
+{
+    pointer-events: none;
+}
+
 .jimu-widget-NetworkTrace .esriCTSaveButton .jimu-btn
 {
     max-width: 95% !important;

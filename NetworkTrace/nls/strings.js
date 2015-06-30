@@ -1,8 +1,6 @@
 ﻿define({
     root: ({
         configError: "Widget is not properly configured.",
-        flagHeading: "Add",
-        barrierHeading: "Add",
         clearButtonValue: "Clear",
         resultPanelhading: "Results",
         GPExecutionFailed: "The trace cannot be completed. Please try again.",

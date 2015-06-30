@@ -514,30 +514,28 @@ define([
                         // if input type is "Skip" then only
                         if (this.inputSettingArray[k].inputTypeData && this.inputSettingArray[k].inputTypeData.value === "Skip") {
                             skipFlag = true;
-                        }
-                        // loop to show and hide skippable checkbox for all output parameters except outage type
-                        for (key in this.outputSettingArray) {
-                            if (this.outputSettingArray.hasOwnProperty(key)) {
-                                if (this.outputSettingArray[key]) {
-                                    // if the output parameters type is esriGeometryPoint then only
-                                    if (this.outputSettingArray[key].data && this.outputSettingArray[key].data.defaultValue && this.outputSettingArray[key].data.defaultValue.geometryType === "esriGeometryPoint" && skipFlag) {
-                                        domClass.remove(this.outputSettingArray[key].skippableCheckboxBlock, "esriCTHidden");
-                                        domClass.remove(this.outputSettingArray[key].skippable.checkNode, "checked");
-                                        this.outputSettingArray[key].skippable.checked = false;
-                                        this.outputSettingArray[key].inputTypeData.set("value", this.outputSettingArray[key].inputTypeData.options[0].value);
-                                    } else {
-                                        domClass.add(this.outputSettingArray[key].skippableCheckboxBlock, "esriCTHidden");
-                                        domClass.add(this.outputSettingArray[key].skippableDropdownDiv, "esriCTHidden");
-                                        this.outputSettingArray[key].skippable.checked = false;
-                                    }
-                                }
-                            }
-                        }
-                        if (skipFlag) {
                             break;
                         }
                     }
                 }
+                // loop to show and hide skippable checkbox for all output parameters except outage type
+                for (key in this.outputSettingArray) {
+                    if (this.outputSettingArray.hasOwnProperty(key)) {
+                        if (this.outputSettingArray[key]) {
+                            // if the output parameters type is esriGeometryPoint then only
+                            if (this.outputSettingArray[key].data && this.outputSettingArray[key].data.defaultValue && this.outputSettingArray[key].data.defaultValue.geometryType === "esriGeometryPoint" && skipFlag) {
+                                domClass.remove(this.outputSettingArray[key].skippableCheckboxBlock, "esriCTHidden");
+                            } else {
+                                domClass.remove(this.outputSettingArray[key].skippable.checkNode, "checked");
+                                this.outputSettingArray[key].skippable.checked = false;
+                                this.outputSettingArray[key].inputTypeData.set("value", this.outputSettingArray[key].inputTypeData.options[0].value);
+                                domClass.add(this.outputSettingArray[key].skippableCheckboxBlock, "esriCTHidden");
+                                domClass.add(this.outputSettingArray[key].skippableDropdownDiv, "esriCTHidden");
+                            }
+                        }
+                    }
+                }
+
             });
         },
 

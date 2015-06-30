@@ -1,7 +1,7 @@
 define({
   root : {
     _widgetLabel : "GeoLookup(Beta)",
-    description : "Browse to or Drag a <a href='./widgets/GeoLookup/data/sample.csv' tooltip='Download an example sheet'> spreadsheet </a> here to visualize, and append map data to it.",
+    description : "Browse to or Drag a <a href='./widgets/GeoLookup/data/sample.csv' tooltip='Download an example sheet' target='_blank'> spreadsheet </a> here to visualize, and append map data to it.",
     selectCSV : "Select a CSV",
     loadingCSV : "Loading CSV",
     clearResults : "Clear",

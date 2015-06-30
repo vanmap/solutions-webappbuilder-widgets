@@ -136,7 +136,7 @@ function(declare,
         array.forEach(args.data.items, lang.hitch(this, function(layer) {
           if (layer.type === 'Feature Layer') {
             this.layerList.push(layer);
-          } else if (layer.type === 'Service') {
+          } else if (layer.type === 'Service' || layer.type === 'MapService') {
             array.forEach(layer.children, lang.hitch(this, function(subLayer) {
               if (subLayer.type === 'Layer') {
                 this.layerList.push(subLayer);

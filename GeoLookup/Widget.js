@@ -196,13 +196,14 @@ function(declare,
               message : this.nls.error.fileIssue
             });
             domClass.remove(this.showFileDialogBtn, 'jimu-state-disabled');
+            this.clearCSVResults();
           }
         } else {
           new Message({
             message : this.nls.error.notCSVFile
           });
           domClass.remove(this.showFileDialogBtn, 'jimu-state-disabled');
-          this._resetResults();
+          this.clearCSVResults();
         }
       }
     },
@@ -513,6 +514,7 @@ function(declare,
       domClass.replace(this.resultsLoadingImage, 'processing', 'complete');
       domClass.replace(this.resultsPlottingImage, 'processing', 'complete');
       var key;
+      var labelText = '';
       for (key in this.enrichResultsProg) {
         if (this.enrichResultsProg.hasOwnProperty(key)) {
           domClass.replace(this.enrichResultsProg[key], 'processing', 'error');
@@ -528,11 +530,15 @@ function(declare,
             }
           }));
 
+          if(mapLay) {
+            labelText = mapLay.label;
+          }
+
           this.enrichResultsText[key].innerHTML = string.substitute(this.nls.results.recordsEnriched, {
             0 : 0,
             1 : 0,
             2 : 0,
-            3 : mapLay.label
+            3 : labelText
           });
 
         }
@@ -697,13 +703,15 @@ function(declare,
     },
 
     _buildInfoTemplate : function(popupInfo) {
+      var linestyle = 'border:none;border-top: 1px solid #333333;margin-top: 6px;margin-bottom: 6px;';
       var json = {
-        content : '<table>'
+        content : '<div style="font-weight:bold;">CSV Result</div><div style="' + linestyle + '"></div><table>'
       };
 
-      array.forEach(popupInfo.fieldInfos, function buildTemplate(field) {
+      array.forEach(popupInfo.fieldInfos, function(field) {
         if (field.visible) {
-          json.content += '<tr><td valign="top">' + field.label + ': <\/td><td valign="top">${' + field.fieldName + '}<\/td><\/tr>';
+          json.content += '<tr><td valign="top" style="color:#888888;padding-right:5px;">' + field.label + ': <\/td>';
+          json.content += '<td valign="top" style="padding:2px;padding-bottom:5px;">${' + field.fieldName + '}<\/td><\/tr>';
         }
       });
       json.content += '<\/table>';

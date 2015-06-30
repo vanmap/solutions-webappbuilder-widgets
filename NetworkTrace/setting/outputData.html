@@ -3,7 +3,7 @@
         <label title="${nls.inputLabel}">
             ${nls.inputLabel}</label>
         <input data-dojo-attach-point="outputLabelData" data-dojo-type="dijit/form/ValidationTextBox"
-            class="common-input esriCTLabelClass" data-dojo-props="required: true,  invalidMessage:'Enter alphabets only.'">
+            class="common-input esriCTLabelClass" value="${data.displayName}" data-dojo-props="required: true,  invalidMessage:'Enter alphabets only.'">
         <div class="esriCTHintField">${nls.hintText.labelTextHint}</div>
     </div>
     
@@ -26,7 +26,7 @@
         <label title="${nls.inputTooltip}">
             ${nls.inputTooltip}</label>
         <input data-dojo-attach-point="outputTooltipData" data-dojo-type="dijit/form/ValidationTextBox"
-            class="common-input esriCTTooltipDataClass" data-dojo-props="required: true,  invalidMessage:'Enter alphabets only.'">
+            class="common-input esriCTTooltipDataClass" value="${data.description}" data-dojo-props="required: true,  invalidMessage:'Enter alphabets only.'">
     </div>
 
     <div class="field esriCTOutputOutageField" title="${nls.outputPanel.outputSummary}">
@@ -34,7 +34,7 @@
             ${nls.outputPanel.outputSummary}</label>
         <input data-dojo-attach-point="outputSummaryText" data-dojo-type="dijit/form/ValidationTextBox"
              class="common-input esriCToutputSummaryDataClass" data-dojo-props="required: true,  invalidMessage:'Enter alphabets only.'">
-        <div class="esriCTHintField">${nls.hintText.summaryTextHint}</div>
+        <div class="esriCTHintField" data-dojo-attach-point="outputSummaryHint"></div>
         <div class="esriCTOutputHelpText esriCTOutputOutageField" data-dojo-attach-point="outputSummaryHelpText"></div>
     </div>
     

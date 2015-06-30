@@ -49,7 +49,6 @@
 	padding-bottom: 8px;
 }
 
-
 .solutions-widget-geolookup-setting .symbolItemleft {
     width: 50%;
     float: left;
@@ -59,6 +58,11 @@
     color: #596679; 
     margin-right: 10px;   
 }
+
+.solutions-widget-geolookup-setting .symPreview {
+	cursor: pointer;	
+}
+
 /*Fields Table*/
 .solutions-widget-geolookup-setting .appended {
     width: 100px;

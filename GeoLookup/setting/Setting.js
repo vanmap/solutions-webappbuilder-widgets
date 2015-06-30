@@ -87,8 +87,8 @@ function(declare,
       this.layerList = [];
       if ((this.map.itemInfo.itemData.operationalLayers).length > 0) {
         var lyrDet = new layerDetails(this.map);
-        lyrDet.getAllMapLayers();
         this.own(on(lyrDet, 'complete', lang.hitch(this, this._completeLayerDetails)));
+        lyrDet.getAllMapLayers();
       } else {
         this._noLayersDisplay();
       }
@@ -136,7 +136,7 @@ function(declare,
         array.forEach(args.data.items, lang.hitch(this, function(layer) {
           if (layer.type === 'Feature Layer') {
             this.layerList.push(layer);
-          } else if (layer.type === 'Service') {
+          } else if (layer.type === 'Service' || layer.type === 'MapService') {
             array.forEach(layer.children, lang.hitch(this, function(subLayer) {
               if (subLayer.type === 'Layer') {
                 this.layerList.push(subLayer);
@@ -150,6 +150,8 @@ function(declare,
         } else {
           this._noLayersDisplay();
         }
+      } else {
+        this._noLayersDisplay();
       }
     },
 

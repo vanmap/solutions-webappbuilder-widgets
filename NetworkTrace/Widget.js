@@ -178,7 +178,7 @@ define([
         },
 
         destroy: function () {
-            this._onClearButtonClick();
+            this._clearResults();
             this._removeAllGraphicLayers();
             this.inherited(arguments);
         },
@@ -224,40 +224,42 @@ define([
         *This function will execute when user clicked on flag button.
         **/
         _onFlagButtonClick: function () {
-            if (!this.flagBtnClicked) {
-                this.flagBtnClicked = true;
-                domClass.remove(this.btnFlag, "flagbutton");
-                domClass.add(this.btnFlag, "flagButtonselected");
-                //Checking the toolbar whether it is initialized or not
-                if (this.toolbar === null) {
-                    this.toolbar = new Draw(this.map);
-                    this.toolbar.activate(Draw.POINT);
-                }
-                //Checking the width of the device.
-                if (this.viewPortSize.w < 768) {
-                    if (this.panelManager && this.panelManager.getPanelById(this.id + '_panel') && this.panelManager.getPanelById(this.id + '_panel').onTitleClick) {
-                        this.panelManager.getPanelById(this.id + '_panel').onTitleClick();
+            if (!domClass.contains(this.btnFlag, "traceControlDisabledDiv")) {
+                if (!this.flagBtnClicked) {
+                    this.flagBtnClicked = true;
+                    domClass.remove(this.btnFlag, "flagbutton");
+                    domClass.add(this.btnFlag, "flagButtonselected");
+                    //Checking the toolbar whether it is initialized or not
+                    if (this.toolbar === null) {
+                        this.toolbar = new Draw(this.map);
+                        this.toolbar.activate(Draw.POINT);
                     }
-                    if (this.widgetManager && this.widgetManager.minimizeWidget) {
-                        this.widgetManager.minimizeWidget(this);
+                    //Checking the width of the device.
+                    if (this.viewPortSize.w < 768) {
+                        if (this.panelManager && this.panelManager.getPanelById(this.id + '_panel') && this.panelManager.getPanelById(this.id + '_panel').onTitleClick) {
+                            this.panelManager.getPanelById(this.id + '_panel').onTitleClick();
+                        }
+                        if (this.widgetManager && this.widgetManager.minimizeWidget) {
+                            this.widgetManager.minimizeWidget(this);
+                        }
                     }
-                }
-                //Checking whether barrier button was clicked or not.
-                if (this.barrierBtnClicked) {
-                    this.barrierBtnClicked = false;
-                    domClass.remove(this.btnBarrier, "barrierButtonselected");
-                    domClass.add(this.btnBarrier, "barrierButton");
-                }
-                this.disableWebMapPopup();
-            } else {
-                this.enableWebMapPopup();
-                this.flagBtnClicked = false;
-                domClass.remove(this.btnFlag, "flagButtonselected");
-                domClass.add(this.btnFlag, "flagbutton");
-                //Checking the toolbar whether it is initialized or not
-                if (this.toolbar !== null) {
-                    this.toolbar.deactivate();
-                    this.toolbar = null;
+                    //Checking whether barrier button was clicked or not.
+                    if (this.barrierBtnClicked) {
+                        this.barrierBtnClicked = false;
+                        domClass.remove(this.btnBarrier, "barrierButtonselected");
+                        domClass.add(this.btnBarrier, "barrierButton");
+                    }
+                    this.disableWebMapPopup();
+                } else {
+                    this.enableWebMapPopup();
+                    this.flagBtnClicked = false;
+                    domClass.remove(this.btnFlag, "flagButtonselected");
+                    domClass.add(this.btnFlag, "flagbutton");
+                    //Checking the toolbar whether it is initialized or not
+                    if (this.toolbar !== null) {
+                        this.toolbar.deactivate();
+                        this.toolbar = null;
+                    }
                 }
             }
         },
@@ -266,40 +268,42 @@ define([
         *This function will execute when user clicked on Barrier Button.
         **/
         _onBarrierButtonClick: function () {
-            if (!this.barrierBtnClicked) {
-                this.barrierBtnClicked = true;
-                domClass.remove(this.btnBarrier, "barrierButton");
-                domClass.add(this.btnBarrier, "barrierButtonselected");
-                //Checking the toolbar whether it is initialized or not
-                if (this.toolbar === null) {
-                    this.toolbar = new Draw(this.map);
-                    this.toolbar.activate(Draw.POINT);
-                }
-                //Checking the width of the device.
-                if (this.viewPortSize.w < 768) {
-                    if (this.panelManager && this.panelManager.getPanelById(this.id + '_panel') && this.panelManager.getPanelById(this.id + '_panel').onTitleClick) {
-                        this.panelManager.getPanelById(this.id + '_panel').onTitleClick();
+            if (!domClass.contains(this.btnBarrier, "traceControlDisabledDiv")) {
+                if (!this.barrierBtnClicked) {
+                    this.barrierBtnClicked = true;
+                    domClass.remove(this.btnBarrier, "barrierButton");
+                    domClass.add(this.btnBarrier, "barrierButtonselected");
+                    //Checking the toolbar whether it is initialized or not
+                    if (this.toolbar === null) {
+                        this.toolbar = new Draw(this.map);
+                        this.toolbar.activate(Draw.POINT);
                     }
-                    if (this.widgetManager && this.widgetManager.minimizeWidget) {
-                        this.widgetManager.minimizeWidget(this);
+                    //Checking the width of the device.
+                    if (this.viewPortSize.w < 768) {
+                        if (this.panelManager && this.panelManager.getPanelById(this.id + '_panel') && this.panelManager.getPanelById(this.id + '_panel').onTitleClick) {
+                            this.panelManager.getPanelById(this.id + '_panel').onTitleClick();
+                        }
+                        if (this.widgetManager && this.widgetManager.minimizeWidget) {
+                            this.widgetManager.minimizeWidget(this);
+                        }
                     }
-                }
-                //Checking whether flag button was clicked or not.
-                if (this.flagBtnClicked) {
-                    this.flagBtnClicked = false;
-                    domClass.remove(this.btnFlag, "flagButtonselected");
-                    domClass.add(this.btnFlag, "flagbutton");
-                }
-                this.disableWebMapPopup();
-            } else {
-                this.enableWebMapPopup();
-                this.barrierBtnClicked = false;
-                domClass.remove(this.btnBarrier, "barrierButtonselected");
-                domClass.add(this.btnBarrier, "barrierButton");
-                //Checking the toolbar whether it is initialized or not
-                if (this.toolbar !== null) {
-                    this.toolbar.deactivate();
-                    this.toolbar = null;
+                    //Checking whether flag button was clicked or not.
+                    if (this.flagBtnClicked) {
+                        this.flagBtnClicked = false;
+                        domClass.remove(this.btnFlag, "flagButtonselected");
+                        domClass.add(this.btnFlag, "flagbutton");
+                    }
+                    this.disableWebMapPopup();
+                } else {
+                    this.enableWebMapPopup();
+                    this.barrierBtnClicked = false;
+                    domClass.remove(this.btnBarrier, "barrierButtonselected");
+                    domClass.add(this.btnBarrier, "barrierButton");
+                    //Checking the toolbar whether it is initialized or not
+                    if (this.toolbar !== null) {
+                        this.toolbar.deactivate();
+                        this.toolbar = null;
+                    }
                 }
             }
         },
@@ -368,30 +372,34 @@ define([
         *This function will execute when user clicked on the 'Run Trace' button.
         **/
         _onTraceButtonClick: function () {
-            this.savedLayers.length = 0;
-            this.savedLayers = [];
-            this.overviewFeature = null;
-            this.savedFeatureObjectId = null;
-            domConstruct.empty(this.outageAreaSelectDiv);
-            this.enableWebMapPopup();
-            this._GPExecute();
-            this._showTracePanel(true);
-            this._showLoadingIcon(true);
-            this._showResultPanel(false);
+            if (!domClass.contains(this.btnTrace, "jimu-state-disabled")) {
+                this.savedLayers.length = 0;
+                this.savedLayers = [];
+                this.overviewFeature = null;
+                this.savedFeatureObjectId = null;
+                domConstruct.empty(this.outageAreaSelectDiv);
+                this.enableWebMapPopup();
+                this._GPExecute();
+                this._showTracePanel(true);
+                this._showLoadingIcon(true);
+                this._showResultPanel(false);
+            }
         },
 
         /**
         *This function will execute when user clicked on the 'Save To Layer' button.
         **/
         _onSaveToLayerButtonClick: function () {
-            this._checkTargetLayersAvailability();
-            this._showResultPanel(false);
-            this._showTracePanel(false);
-            this.SaveToLayerPanel.style.display = "block";
-            this.exportToCSVPanel.style.display = "none";
-            this._displaySaveLayerPanel();
-            this._overviewLayerSave();
-            this._displayOutageAreaDetail();
+            if (!domClass.contains(this.btnSaveToLayer, "jimu-state-disabled")) {
+                this._checkTargetLayersAvailability();
+                this._showResultPanel(false);
+                this._showTracePanel(false);
+                this.SaveToLayerPanel.style.display = "block";
+                this.exportToCSVPanel.style.display = "none";
+                this._displaySaveLayerPanel();
+                this._overviewLayerSave();
+                this._displayOutageAreaDetail();
+            }
         },
 
         /**
@@ -486,12 +494,14 @@ define([
         *This Function will display Runtrace panel when click on back button.
         **/
         _onExportToLayerButtonClick: function () {
-            this._showResultPanel(false);
-            this._showTracePanel(false);
-            this._showLoadingIcon(false);
-            this.SaveToLayerPanel.style.display = "none";
-            this.exportToCSVPanel.style.display = "block";
-            this._displayExportToCSVPanel();
+            if (!domClass.contains(this.btnExportToLayer, "jimu-state-disabled")) {
+                this._showResultPanel(false);
+                this._showTracePanel(false);
+                this._showLoadingIcon(false);
+                this.SaveToLayerPanel.style.display = "none";
+                this.exportToCSVPanel.style.display = "block";
+                this._displayExportToCSVPanel();
+            }
         },
 
         savedLayers: [],
@@ -1047,13 +1057,13 @@ define([
                     if (input.toolTip !== "" || input.toolTip !== null) {
                         this.btnBarrier.title = input.toolTip;
                     }
-                    this.barrierLabel.innerHTML = this.nls.barrierHeading + " " + input.paramName;
+                    this.barrierLabel.innerHTML = input.displayName;
                 }
                 if (input.type === "Flag") {
                     if (input.toolTip !== "" || input.toolTip !== null) {
                         this.btnFlag.title = input.toolTip;
                     }
-                    this.flagLabel.innerHTML = this.nls.flagHeading + " " + input.paramName;
+                    this.flagLabel.innerHTML = input.displayName;
                 }
             }, this);
             this.map.addLayers(this.gpInputDetails);
@@ -1194,6 +1204,15 @@ define([
         *This function will execute when User clicked on 'Clear' button.
         **/
         _onClearButtonClick: function () {
+            if (!domClass.contains(this.btnClear, "jimu-state-disabled")) {
+                this._clearResults();
+            }
+        },
+
+        /**
+        *This function will Clear all the results and resets all buttons.
+        **/
+        _clearResults: function () {
             if (this.overviewGraphicsLayer) {
                 this.overviewGraphicsLayer.clear();
             }
@@ -1339,7 +1358,7 @@ define([
                 this._showLoadingIcon(false);
                 console.log(message.jobInfo);
                 this._errorMessage(this.nls.GPExecutionFailed);
-                this._onClearButtonClick();
+                this._clearResults();
                 return;
             }
             try {
@@ -1356,7 +1375,7 @@ define([
                 this._showLoadingIcon(false);
                 this._errorMessage(ex.message);
                 console.log(ex.message);
-                this._onClearButtonClick();
+                this._clearResults();
             }
         },
 
@@ -1381,8 +1400,8 @@ define([
             domClass.remove(this.btnClear, "jimu-state-disabled");
             domClass.remove(this.btnFlag, "traceControlDisabledDiv");
             domClass.remove(this.btnBarrier, "traceControlDisabledDiv");
-            //            domClass.remove(this.btnExportToLayer, "jimu-state-disabled");
-            //            domClass.remove(this.btnSaveToLayer, "jimu-state-disabled");
+            domClass.remove(this.btnExportToLayer, "jimu-state-disabled");
+            domClass.remove(this.btnSaveToLayer, "jimu-state-disabled");
         },
 
         /**
@@ -1503,7 +1522,7 @@ define([
             if (this._showLoadingIcon) {
                 this._showLoadingIcon(false);
             }
-            this._onClearButtonClick();
+            this._clearResults();
         },
 
         /**

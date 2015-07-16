@@ -7,7 +7,7 @@
   "author": "Esri, Inc.",
   "description": "Widget for WebApp Builder to estimate costs for created features.",
   "copyright": "Copyright (c) 2015 Esri",
-  "license": "http://www.apache.org/licenses/LICENSE-2.0"
+  "license": "http://www.apache.org/licenses/LICENSE-2.0",
   "properties": {
     "inPanel": false,
     "keepConfigAfterMapSwithched": false,

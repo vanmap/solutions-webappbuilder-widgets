@@ -1,16 +1,13 @@
 {
-  "name": "CostAnalysis",
-  "type": "Widget",
+  "name": "Edit",
   "platform": "HTML",
-  "version": "1.0.0",
+  "version": "1.3",
   "wabVersion": "1.3",
-  "author": "Esri, Inc.",
-  "description": "Widget for WebApp Builder to estimate costs for created features.",
-  "copyright": "Copyright (c) 2015 Esri",
+  "author": "Esri R&D Center Beijing",
+  "description": "",
+  "copyright": "",
   "license": "http://www.apache.org/licenses/LICENSE-2.0",
   "properties": {
-    "inPanel": false,
-    "keepConfigAfterMapSwithched": false,
-    "supportMultiInstance": false
+  	"keepConfigAfterMapSwithched": false
   }
 }

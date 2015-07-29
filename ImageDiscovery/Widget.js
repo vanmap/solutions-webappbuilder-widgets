@@ -175,7 +175,7 @@ define([
                         hasDownloadService: this.hasDownloadService(),
                         useUTCDate: this.config.useUTCDate,
                         dateFormat: this.config.dateFormat,
-                        thumbnailLoadErrorImage: this.config.thumbnailLoadErrorImage,
+                        thumbnailLoadErrorImage: this.config.thumbnailLoadErrorImage
 
                     });
                     this.checkoutWidget.placeAt(window.body());

@@ -15,7 +15,7 @@ define([
         "dojo/dom-class",
         "esri/IdentityManager"
     ],
-    function (declare, template, topic, json, array, lang, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, ImageryDownloadListWidget, Button, Deferred, BaseDiscoveryMixin, domClass,IdentityManager) {
+    function (declare, template, topic, json, array, lang, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, ImageryDownloadListWidget, Button, Deferred, BaseDiscoveryMixin, domClass, IdentityManager) {
         return declare(
             [_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, BaseDiscoveryMixin],
             {
@@ -61,7 +61,7 @@ define([
                  * handles the bulk of the imagery export
                  */
                 handleGenerateDownloadLinks: function (features) {
-                    var def = new Deferred(), cred,params,downloadResponses = {}, objectIdArray, key, i, currentFeature, currentServiceLabel, currentServiceConfiguration, currentDownloadItemObj, serviceUrlToObjectIds = {}, pendingDownloadCount = 0, currentServiceObjIdField, currentObjectId;
+                    var def = new Deferred(), cred, params, downloadResponses = {}, objectIdArray, key, i, currentFeature, currentServiceLabel, currentServiceConfiguration, currentDownloadItemObj, serviceUrlToObjectIds = {}, pendingDownloadCount = 0, currentServiceObjIdField, currentObjectId;
                     domClass.add(this.downloadListWidgetContainer, "hidden");
                     domClass.remove(this.downloadListThrobber, "hidden");
                     //group by service
@@ -117,7 +117,6 @@ define([
                                 }
                             }));
                         }
-                    }
                     }
                     return def;
                 },

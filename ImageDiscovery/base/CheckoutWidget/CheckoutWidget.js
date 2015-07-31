@@ -101,6 +101,9 @@ define([
              */
             handleStartCheckout: function (archiveEntries) {
                 this.currentCheckoutDeferred = new Deferred();
+                if (this.downloadWidget) {
+                    this.downloadWidget.clearDownloadList();
+                }
                 this.show();
                 this._hideNode(this.checkoutStatusCloseButton);
                 domConstruct.empty(this.orderItemsContainer);

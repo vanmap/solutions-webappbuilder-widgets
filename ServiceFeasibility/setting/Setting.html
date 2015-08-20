@@ -43,7 +43,8 @@
             ${nls.hintText.bussinessListText}</div>
     </div>
     <fieldset class="fldSetServiceAreaParameters row">
-        <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.captionServiceAreaParameters}">${nls.captionServiceAreaParameters}</legend>
+        <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.captionServiceAreaParameters}">
+            ${nls.captionServiceAreaParameters}</legend>
         <div class="divServiceAreaParametersContainer">
             <div class="divBufferDistanceContainer row">
                 <div class="SFlabel" data-dojo-attach-point="BufferDistanceLabel" title="${nls.lblBufferDistanceToGenerateServiceArea}">
@@ -69,7 +70,8 @@
         </div>
     </fieldset>
     <fieldset class="fldSetServiceAreaParameters row">
-        <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.captiveAttributeLookup}">${nls.captiveAttributeLookup}</legend>
+        <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.captiveAttributeLookup}">
+            ${nls.captiveAttributeLookup}</legend>
         <div class="esriCTattributeParamLookup row">
             <div class="SFlabel" title="${nls.lblAttributeParamLookup}">
                 ${nls.lblAttributeParamLookup}
@@ -77,8 +79,8 @@
             <div>
                 <textarea class="esriCTAttributeTextArea" data-dojo-type="dijit/form/SimpleTextarea"
                     rows="4" cols="50" data-dojo-attach-point="txtAttributeParam" data-dojo-props='required:true,trim:true,disabled:false'>${nls.defaultDataDictionaryValue}</textarea>
-                <button class="jimu-popup-btn jimu-float-trailing jimu-leading-margin1 urlButton esriCTBtnEllipsis esriCTBtnRefresh" title="${nls.btnRefresh}"
-                    data-dojo-attach-point="_onRefreshBtnClick">
+                <button class="jimu-popup-btn jimu-float-trailing jimu-leading-margin1 urlButton esriCTBtnEllipsis esriCTBtnRefresh"
+                    title="${nls.btnRefresh}" data-dojo-attach-point="_onRefreshBtnClick">
                     ${nls.btnRefresh}</button></div>
             <div class="esriCTHint esriCTMargin esriCTMarginForLookupHint">
                 ${nls.hintText.lookupText}</div>
@@ -87,7 +89,8 @@
         </div>
     </fieldset>
     <fieldset class="fldSetClosestFacilityParameters row">
-        <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.captionClosestFacilityParameters}">${nls.captionClosestFacilityParameters}</legend>
+        <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.captionClosestFacilityParameters}">
+            ${nls.captionClosestFacilityParameters}</legend>
         <div class="divClosestFacilityParametersContainer">
             <div class="divClosestFacilityURLContainer row">
                 <div class="SFlabel" title="${nls.lblClosestFacilityServiceUrl}">
@@ -97,8 +100,8 @@
                     <div class="setClosestURL" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="closedFacilityServiceURL"
                         data-dojo-props='required:true,trim:true'>
                     </div>
-                    <button class="jimu-popup-btn jimu-float-trailing jimu-leading-margin1 urlButton esriCTBtnEllipsis" title="${nls.btnSet}"
-                        data-dojo-attach-point="onSetBtnClick">
+                    <button class="jimu-popup-btn jimu-float-trailing jimu-leading-margin1 urlButton esriCTBtnEllipsis"
+                        title="${nls.btnSet}" data-dojo-attach-point="onSetBtnClick">
                         ${nls.btnSet}</button>
                 </div>
                 <div class="esriCTHint esriCTMargin">
@@ -143,13 +146,15 @@
                             ${nls.hintText.AttributeParameterValueText2}</div>
                     </div>
                     <div class="esriCTAttrParamContainer" data-dojo-attach-point="esriCTAttrParamContainer">
-                    <div data-dojo-attach-point="attrParamValueContainer"></div>
+                        <div data-dojo-attach-point="attrParamValueContainer">
+                        </div>
                     </div>
                 </div>
             </div>
     </fieldset>
     <fieldset class="fldSetServiceAreaParameters row">
-        <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.captionSaveResults}">${nls.captionSaveResults}</legend>
+        <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.captionSaveResults}">
+            ${nls.captionSaveResults}</legend>
         <div class="esriCTattributeParamLookup row">
             <div class="esriCTBusinessLayerChecks" data-dojo-attach-point="businessLayerCheckbox">
             </div>
@@ -211,7 +216,8 @@
             </div>
             <div class="esriCTattributeParamLookup row esriCTHidden" data-dojo-attach-point="layerFieldMapping">
                 <div class="esriCTLeftAlign esriCTFieldMargin esriCTWidth">
-                    <div class="esriCTSaveRouteLengthLabel esriCTSaveTargetLabel " data-dojo-attach-point="saveRouteLengthLabelField" title="${nls.RoutLayerField}">
+                    <div class="esriCTSaveRouteLengthLabel esriCTSaveTargetLabel " data-dojo-attach-point="saveRouteLengthLabelField"
+                        title="${nls.RoutLayerField}">
                         ${nls.RoutLayerField}
                     </div>
                     <div class="inputbox  esriCTTargetLayerAlign " data-dojo-attach-point="selectRouteLengthField">
@@ -222,7 +228,8 @@
                     </div>
                 </div>
                 <div class="esriCTLeftAlign esriCTFieldMargin esriCTWidth">
-                    <div class="esriCTBusinessCountLabel esriCTSaveTargetLabel" data-dojo-attach-point="businessCountLabelField" title="${nls.BussinessLayerField}">
+                    <div class="esriCTBusinessCountLabel esriCTSaveTargetLabel" data-dojo-attach-point="businessCountLabelField"
+                        title="${nls.BussinessLayerField}">
                         ${nls.BussinessLayerField}
                     </div>
                     <div class="inputbox">
@@ -239,7 +246,8 @@
         </div>
     </fieldset>
     <fieldset class="fldSetServiceAreaParameters row">
-        <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.captionExportCSV}">${nls.captionExportCSV}</legend>
+        <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.captionExportCSV}">
+            ${nls.captionExportCSV}</legend>
         <div class="esriCTattributeParamLookup row">
             <div class="esriCTBusinessLayerChecks" data-dojo-attach-point="exportCsvCheck">
             </div>
@@ -250,7 +258,8 @@
             ${nls.hintText.exportToCSVText}</div>
     </fieldset>
     <fieldset class="fldSetClosestFacilityParameters row">
-        <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.symbol.barrier}">${nls.symbol.barrier}</legend>
+        <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.symbol.barrier}">
+            ${nls.symbol.barrier}</legend>
         <div class="divBusinessListContainer row">
             <div class="SFlabel" title="${nls.symbol.pointBarrierSymbol}">
                 ${nls.symbol.pointBarrierSymbol}
@@ -274,7 +283,8 @@
         </div>
     </fieldset>
     <fieldset class="fldSetClosestFacilityParameters row">
-        <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.symbol.location}">${nls.symbol.location}</legend>
+        <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.symbol.location}">
+            ${nls.symbol.location}</legend>
         <div class="divBusinessListContainer row">
             <div class="SFlabel" title="${nls.symbol.pointLocationSymbol}">
                 ${nls.symbol.pointLocationSymbol}
@@ -302,10 +312,11 @@
         </div>
     </fieldset>
     <fieldset class="fldSetClosestFacilityParameters row">
-        <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.highlighter.highlighterSection}">${nls.highlighter.highlighterSection}</legend>
+        <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.highlighter.highlighterSection}">
+            ${nls.highlighter.highlighterSection}</legend>
         <div class="divBusinessListContainer row">
             <div class="SFlabel" title="${nls.highlighter.imageUplaod}">
-                    ${nls.highlighter.imageUplaod}
+                ${nls.highlighter.imageUplaod}
             </div>
             <div>
                 <div class="image_chooser_base" data-dojo-attach-point="imageChooserBase">

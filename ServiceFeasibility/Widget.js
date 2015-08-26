@@ -178,6 +178,7 @@ define([
         this._initializeDrawTool();
         this._addLayer();
       }
+      this._enhancedStyling();
     },
 
     /**
@@ -308,7 +309,9 @@ define([
           domClass.add(this.divExportToLayerButtons,
             "esriCTHidePanel");
         }));
-        domStyle.set(this.ExportToLayer, "display", "none");
+        if (this.ExportToLayer) {
+          domStyle.set(this.ExportToLayer, "display", "none");
+        }
       }
       this.clearButton = domConstruct.create("div", {
         innerHTML: this.nls.ClearButton,
@@ -1262,6 +1265,7 @@ define([
     * @memberOf widgets/ServiceFeasibility/Widget
     **/
     _onClearButtonClicked: function () {
+      this._enhancedStyling();
       if (!this.clearButtonSearch.disabled || this.errorExist) {
         this._hideLoadingIndicator();
         this._enableWebMapPopup();
@@ -1274,7 +1278,9 @@ define([
         domStyle.set(this.businessTitleContainer, "display", "none");
         domStyle.set(this.resultContainer, "display", "none");
         domStyle.set(this.resultListContainer, "display", "none");
-        domStyle.set(this.ExportToLayer, "display", "none");
+        if (this.ExportToLayer) {
+          domStyle.set(this.ExportToLayer, "display", "none");
+        }
         domClass.add(this.divExportToLayerButtons, "esriCTHidePanel");
         this.locationPointGeometry = null;
         this._disableBarrierControls();
@@ -1973,10 +1979,15 @@ define([
         }, this.resultListContainer);
         domClass.add(this.resultListContainer.childNodes[0],
           "esriCTDefaultCursor");
-        domStyle.set(this.ExportToLayer, "display", "none");
+        if (this.ExportToLayer) {
+          domStyle.set(this.ExportToLayer, "display", "none");
+        }
         this.resultListContainer.disabled = true;
         this._switchToResultPanel();
         this._enableAllControls();
+        domClass.remove(this.businessPassedResultListLabel, "esriCTListLabelCSV");
+        domClass.remove(this.businessPassedResultListLabel, "esriCTListLabelArrow");
+        domClass.add(this.businessPassedResultListLabel, "esriCTListLabelFullWidth");
       }
     },
 
@@ -2221,11 +2232,15 @@ define([
       if (this.results.length > 0) {
         this._businesspassedAscOrder();
         domStyle.set(this.exportToCSVContainer, "display", "block");
-        domStyle.set(this.ExportToLayer, "display", "inline-block");
+        if (this.ExportToLayer) {
+          domStyle.set(this.ExportToLayer, "display", "inline-block");
+        }
       } else {
         domClass.add(this.sortIconDiv, "esriCTHidePanel");
         domStyle.set(this.exportToCSVContainer, "display", "none");
-        domStyle.set(this.ExportToLayer, "display", "none");
+        if (this.ExportToLayer) {
+          domStyle.set(this.ExportToLayer, "display", "none");
+        }
       }
     },
 
@@ -2774,8 +2789,9 @@ define([
 
         if (routeFieldInfo !== null) {
           array.forEach(routeFieldInfo, function (fieldInfo) {
-            if (fieldInfo.format !== null) {
-              if (fieldInfo.format.dateFormat !== null) {
+            if (fieldInfo.format && fieldInfo.format !== null) {
+              if (fieldInfo.format.dateFormat && fieldInfo.format
+                .dateFormat !== null) {
                 if (fieldInfo.format.dateFormat ===
                   "shortDateShortTime" ||
                   fieldInfo.format.dateFormat ===
@@ -3340,6 +3356,21 @@ define([
         }
       }
       return symbolData;
+    },
+
+    /**
+    * This function will modify styling for the business passed label
+    * @memberOf widgets/ServiceFeasibility/Widget
+    **/
+    _enhancedStyling: function () {
+      domClass.remove(this.businessPassedResultListLabel, "esriCTListLabelCSV");
+      domClass.remove(this.businessPassedResultListLabel, "esriCTListLabelArrow");
+      domClass.remove(this.businessPassedResultListLabel, "esriCTListLabelFullWidth");
+      if (this.config.exportToCSV) {
+        domClass.add(this.businessPassedResultListLabel, "esriCTListLabelCSV");
+      } else {
+        domClass.add(this.businessPassedResultListLabel, "esriCTListLabelArrow");
+      }
     }
   });
 });

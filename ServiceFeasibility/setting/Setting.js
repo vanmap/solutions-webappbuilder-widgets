@@ -740,7 +740,7 @@ define([
     * @memberOf widgets/serviceFeasibility/setting/settings
     **/
     _attachCheckBoxEvents: function () {
-      on(this.saveBusinessCheck, "click", lang.hitch(this, function (
+      on(this.saveBusinessCheck.domNode, "click", lang.hitch(this, function (
         event) {
         if (domClass.contains(event.target, "checked")) {
           domClass.remove(this.selectSaveBusinessLayerBlock,
@@ -759,7 +759,7 @@ define([
         this._ToggleFieldMapping();
 
       }));
-      on(this.saveRouteCheck, "click", lang.hitch(this, function (
+      on(this.saveRouteCheck.domNode, "click", lang.hitch(this, function (
         event) {
         if (domClass.contains(event.target, "checked")) {
           domClass.remove(this.routeLayerCheck, "esriCTHidden");
@@ -780,7 +780,7 @@ define([
         }
         this._ToggleFieldMapping();
       }));
-      on(this.saveRouteLength, "click", lang.hitch(this, function (
+      on(this.saveRouteLength.domNode, "click", lang.hitch(this, function (
         event) {
         if (domClass.contains(event.target, "checked")) {
           domClass.remove(this.selectSaveRouteLength,
@@ -795,7 +795,7 @@ define([
             "esriCTHidden");
         }
       }));
-      on(this.saveBusinessCount, "click", lang.hitch(this, function (
+      on(this.saveBusinessCount.domNode, "click", lang.hitch(this, function (
         event) {
         if (domClass.contains(event.target, "checked")) {
           domClass.remove(this.selectSaveBusinessCount,
@@ -809,7 +809,7 @@ define([
             "esriCTHidden");
         }
       }));
-      on(this.routeBussinessAttrTranferChkBox, "click", lang.hitch(
+      on(this.routeBussinessAttrTranferChkBox.domNode, "click", lang.hitch(
         this,
         function (event) {
           if (domClass.contains(event.target, "checked")) {

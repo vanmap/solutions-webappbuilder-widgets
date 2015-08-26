@@ -2,7 +2,7 @@ define({
     root: {
         page1:{
             selectToolHeader: "Select a method to select records to batch update.",
-            selectToolDesc:"This tool supports 4 different methods for generating a selected set of records to update.  Select one of the method and click next.  If you require more than one of these methods, please create another configuration of the widget.",
+            selectToolDesc:"This tool supports 4 different methods for generating a selected set of records to update.  Select one of the methods and click next.  If you require more than one of these methods, please create another configuration of the widget.",
             selectByShape: "Select by Area",
             selectBySpatQuery: "Select by Feature",
             selectByAttQuery: "Select by Feature & Related Features",
@@ -11,12 +11,12 @@ define({
         },
         page2:{
             layersToolHeader: "Select the layers to update and the selection tools options, if any.",
-            layersToolDesc: "The select method you picked on page one will be used to select and update a set of layers listed below.  If you check more than one layer, only the common editable fields will be available to update.  Depending on your choice of selection tool, additional option will be required.",
+            layersToolDesc: "The select method you picked on page one will be used to select and update a set of layers listed below.  If you check more than one layer, only the common editable fields will be available to update.  Depending on your choice of selection tool, additional options will be required.",
             layerTable: {
                 colUpdate: "Update",
                 colLabel: "Layer",
-                colSelectByLayer: "Select By Layer",       
-                colSelectByField: "Query field",
+                colSelectByLayer: "Select By Layer",
+                colSelectByField: "Query Field",
                 colhighlightSymbol:"Highlight Symbol"
             },
             toggleLayers: "Toggle layers visibility on open and close",

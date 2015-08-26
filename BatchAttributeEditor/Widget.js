@@ -1,6 +1,6 @@
 /// <reference path="../basemapgallery/widget.html" />
 ///////////////////////////////////////////////////////////////////////////
-// Copyright © 2014 Esri. All Rights Reserved.
+// Copyright ï¿½ 2014 Esri. All Rights Reserved.
 //
 // Licensed under the Apache License Version 2.0 (the 'License');
 // you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ define([
     'dojo/dom-construct',
     'dojo/_base/array',
     'dojo/dom-style',
+    'dojo/dom-class',
     'dojo/query',
     'dojo/promise/all',
     'dojo/dom-class',
@@ -41,6 +42,7 @@ define([
     'esri/dijit/AttributeInspector',
     'esri/tasks/query',
     'esri/symbols/jsonUtils',
+    'esri/toolbars/draw',
     'dojox/timing',
      'jimu/dijit/Message',
     './customDrawBox',
@@ -58,6 +60,7 @@ function (declare,
           domConstruct,
           array,
           domStyle,
+          domClass,
           query,
           all,
           domClass,
@@ -72,6 +75,7 @@ function (declare,
           AttributeInspector,
           EsriQuery,
           symbolJsonUtils,
+          draw,
           Timer,
           Message,
           DrawBox,
@@ -99,7 +103,6 @@ function (declare,
         },
         postCreate: function () {
             this.inherited(arguments);
-
             this._configureWidget();
             this._initSelectLayer();
             this.createLayerTable();
@@ -107,6 +110,7 @@ function (declare,
             this._addHelperLayer();
             this._createAttributeInspector();
             this._createQueryParams();
+            this._setTheme();
             this.timer = new Timer.Timer(20000);
             dojo.connect(this.timer, "onTick", this, this._timerComplete);
 
@@ -144,7 +148,23 @@ function (declare,
                 }
             }
         },
+
+      /*jshint unused:true */
+      _setTheme: function() {
+        if (this.appConfig.theme.name === "BoxTheme" || this.appConfig.theme.name === "DartTheme" ||
+          this.appConfig.theme.name === "LaunchpadTheme") {
+            var headText = query("head")[0].innerHTML;
+            query("head")[0].innerHTML = headText + "<link rel='stylesheet' href='"+this.folderUrl+"/css/dartTheme.css'>";
+            /* cannot use dom create to add link to head.  have to hard code link tag above
+            domConstruct.place(query("head")[0], domConstruct.create("link", {
+              rel:'stylesheet',
+              href:this.folderUrl + 'css/dartTheme.css'
+            }));
+            */
+        }
+      },
         _configureWidget: function () {
+/*
             this.existingText = {};
             this.existingText.addPoint = esri.bundle.toolbars.draw.addPoint;
             this.existingText.addShape = esri.bundle.toolbars.draw.addShape;
@@ -154,6 +174,16 @@ function (declare,
                   esri.bundle.toolbars.draw.addShape = "Draw a shape to select features";
                   esri.bundle.toolbars.draw.freehand = "Press and hold to draw a shape to select features";
                   esri.bundle.toolbars.draw.start = "Draw a shape to select features";
+ */
+            this.existingText = {};
+            this.existingText.addPoint = draw.addPoint;
+            this.existingText.addShape = draw.addShape;
+            this.existingText.freehand = draw.freehand;
+            this.existingText.start = draw.start;
+                  draw.addPoint = "Click to select in this area";
+                  draw.addShape = "Draw a shape to select features";
+                  draw.freehand = "Press and hold to draw a shape to select features";
+                  draw.start = "Draw a shape to select features";
             var types = null;
             if (this.config.selectByShape === true) {
                 this.toolType = "Area";
@@ -196,7 +226,7 @@ function (declare,
                 this.drawBox.setMap(this.map);
 
                 this.own(on(this.drawBox, 'DrawEnd', lang.hitch(this, this._onDrawEnd)));
-              
+
             } else {
 
                 this.searchTextBox = new dijit.form.TextBox({
@@ -235,7 +265,7 @@ function (declare,
                 q.geometry = shape;
             }
             var fields;
-            var selectedLayers = []
+            var selectedLayers = [];
             array.forEach(this.layersTable.getRows(), function (row) {
 
                 rowData = this.layersTable.getRowData(row);
@@ -527,7 +557,7 @@ function (declare,
                    title: "",
                    type: 'checkbox',
                    'class': 'editable',
-                   width: 25
+                   width: 40
                }, {
 
                    name: 'numSelected',
@@ -545,7 +575,7 @@ function (declare,
                    name: 'syncStatus',
                    type: 'text',
                    title: this.nls.layerTable.colSyncStatus,
-                   width: 80
+                   width: 25
                }, {
                    name: 'ID',
                    type: 'text',
@@ -796,7 +826,7 @@ function (declare,
 
             var rowData;
 
-            var selectedLayers = []
+            var selectedLayers = [];
             array.forEach(this.layersTable.getRows(), function (row) {
 
                 rowData = this.layersTable.getRowData(row);
@@ -1043,11 +1073,16 @@ function (declare,
         onOpen: function () {
 
             this.disableWebMapPopup();
-         
+/*
             esri.bundle.toolbars.draw.addPoint = this.nls.drawBox.addPointToolTip;
             esri.bundle.toolbars.draw.addShape  = this.nls.drawBox.addShapeToolTip;
             esri.bundle.toolbars.draw.freehand  = this.nls.drawBox.freehandToolTip;
             esri.bundle.toolbars.draw.start  = this.nls.drawBox.startToolTip;
+            */
+            draw.addPoint = this.nls.drawBox.addPointToolTip;
+            draw.addShape  = this.nls.drawBox.addShapeToolTip;
+            draw.freehand  = this.nls.drawBox.freehandToolTip;
+            draw.start  = this.nls.drawBox.startToolTip;
             if (this.config.toggleLayersOnOpen == true) {
                 array.forEach(this.updateLayers, function (layer) {
                     layer.layerObject.setVisibility(true);
@@ -1055,11 +1090,16 @@ function (declare,
             }
         },
         onClose: function () {
-            esri.bundle.toolbars.draw.addPoint =   this.existingText.addPoint ;
+          /*
+            esri.bundle.toolbars.draw.addPoint =   this.existingText.addPoint;
             esri.bundle.toolbars.draw.addShape = this.existingText.addShape;
             esri.bundle.toolbars.draw.freehand = this.existingText.freehand;
             esri.bundle.toolbars.draw.start = this.existingText.start;
-          
+*/
+            draw.addPoint =   this.existingText.addPoint;
+            draw.addShape = this.existingText.addShape;
+            draw.freehand = this.existingText.freehand;
+            draw.start = this.existingText.start;
             this.enableWebMapPopup();
             if (this.config.toggleLayersOnOpen == true) {
                 array.forEach(this.updateLayers, function (layer) {

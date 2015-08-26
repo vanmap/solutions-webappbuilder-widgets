@@ -99,10 +99,12 @@
 
 .jimu-widget-NetworkTrace .btnFlagStyle
 {
+    width: 50%;
 }
 
 .jimu-widget-NetworkTrace .btnBarrierStyle
 {
+    width: 50%;
     float: right;
 }
 
@@ -113,7 +115,7 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
-    width: 55px;
+    max-width: 60%;
 }
 
 .jimu-widget-NetworkTrace .barrierLabel
@@ -123,7 +125,7 @@
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
-    width: 68px;
+    max-width: 60%;
 }
 
 .jimu-widget-NetworkTrace .traceButtons
@@ -273,46 +275,35 @@
 
 .jimu-widget-NetworkTrace .jimu-btn
 {
-    background: none repeat scroll 0 0 #485566;
-    border: medium none;
-    border-radius: 2px;
-    cursor: pointer;
     font-size: 12px;
     min-width: 70px;
-    overflow: hidden;
-    padding: 8px;
     text-align: center;
     vertical-align: middle;
     white-space: nowrap;
     margin-right: 12px;
     overflow: hidden;
-    width: 35px;
+    max-width: 45%;
     text-overflow: ellipsis;
     white-space: nowrap;
+    line-height: 31px;
+    padding: 0 15px;
+    height: 31px;
+}
+
+.jimu-widget-NetworkTrace .jimu-btn.jimu-state-disabled
+{
+    pointer-events: none;
+}
+
+.jimu-widget-NetworkTrace .esriCTSaveButton .jimu-btn
+{
+    max-width: 95% !important;
 }
 
 .jimu-widget-NetworkTrace .esriCThiddenDIV
 {
     height: 30px;
     width: 100%;
-}
-
-.jimu-widget-NetworkTrace .jimu-btn:hover
-{
-    background: none repeat scroll 0 0 #485566;
-}
-
-.jimu-widget-NetworkTrace .jimu-btn.jimu-state-disabled:hover
-{
-    background: none repeat scroll 0 0 #ccc;
-    cursor: default;
-}
-
-.jimu-widget-NetworkTrace .jimu-btn.jimu-state-disabled
-{
-    background: none repeat scroll 0 0 #ccc;
-    box-shadow: 0 0 0 0px #d9dde0 inset;
-    cursor: default;
 }
 
 .jimu-widget-NetworkTrace .resultPanelContainer
@@ -382,23 +373,25 @@
     min-height: 17px;
 }
 
-.jimu-widget-NetworkTrace .esriCTHyperlink
-{
-    color: #485566;
-    text-decoration: none;
-    font-weight: bold;
-}
-
-.jimu-widget-NetworkTrace a:hover
-{
-    text-decoration: underline;
-}
-
 .jimu-widget-NetworkTrace .esriCThyperlinkDiv
 {
+    max-width: 30%;
+    font-weight: bold;
+    color: #485566;
+    font-size: 14px;
     float: left;
-    margin-top: 18px;
+    cursor: pointer;
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 50px;
     margin-left: 10px;
+}
+
+.jimu-widget-NetworkTrace .esriCThyperlinkDiv:hover
+{
+    text-decoration: underline;
 }
 
 .jimu-widget-NetworkTrace .resultsHeadText
@@ -448,6 +441,9 @@
 {
     height: 50px;
     border-bottom: 1px solid #000;
+    text-align: center;
+    float: left;
+    width: 100%;
 }
 
 .jimu-widget-NetworkTrace .esriCTBackButtonLinkLbl
@@ -459,17 +455,23 @@
 .jimu-widget-NetworkTrace .esriCTSaveButton
 {
     height: 30px;
-    width: 60px;
+    width: 100%;
     float: left;
     vertical-align: middle;
-    margin-left: 112px;
+    text-align: center;
 }
 
 .jimu-widget-NetworkTrace .esriCTTitleSaveToLayer
 {
-    margin-left: 40%;
-    padding-top: 18px;
-    font-size: small;
+    width: 65%;
+    font-size: 14px;
+    text-align: center;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 50px;
+    margin-left: 0px;
+    margin-right: 0px;
 }
 
 .jimu-widget-NetworkTrace .esriCTCommonDiv
@@ -643,7 +645,7 @@
 
 .jimu-widget-NetworkTrace .lastTitlePaneNodeBorder
 {
-     border-bottom: 1px solid #b5bcc7;
+    border-bottom: 1px solid #b5bcc7;
 }
 
 .resultItem:last-child

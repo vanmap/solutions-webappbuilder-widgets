@@ -13,7 +13,7 @@ Elevation Profile is a configurable widget that displays the elevation profile f
 * [Licensing](#licensing)
 
 ## Features
-Elevation Profile is a configurable widget that displays elevation profile for a selected feature or a digitized line in a web map. This template requires an elevation profile service (provided from [ArcGIS Online](http://elevation.arcgis.com/arcgis/rest/services/Tools/ElevationSync/GPServer/Profile) to generate the elevation values along the profile. It also uses a Line Of Sight service to generate line of sight features. Please see the associated Python script that generates the line of sight features located in the [scripts](https://github.com/Esri/solutions-webappbuilder-widgets/tree/master/ElevationProfileTable/scripts) directory.
+Elevation Profile is a configurable widget that displays elevation profile for a selected feature or a digitized line in a web map. This template requires an elevation profile service (provided from [ArcGIS Online](http://elevation.arcgis.com/arcgis/rest/services/Tools/ElevationSync/GPServer/Profile)) to generate the elevation values along the profile, and a Line Of Sight service to generate line-of-sight features. Please see the associated Python script that generates the line-of-sight features located in the [scripts](https://github.com/Esri/solutions-webappbuilder-widgets/tree/master/ElevationProfileTable/scripts) directory.
 
 This widget will allow:
 

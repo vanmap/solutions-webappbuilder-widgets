@@ -13,6 +13,7 @@
   z-index: 5000 !important;
 }
 
+
 .dijitTooltip, .dijitMenuPopup {
   //  need z-index to be higher than the cart review z-index
   z-index: 9999 !important;
@@ -22,7 +23,7 @@
   height: 98%;
   width: 100%;
   min-width: 332px;
-  max-width: 332px;
+  //max-width: 332px;
   .discoveryLogo {
     background: url(../images/discovery-logo.png);
     height: 62px;
@@ -38,6 +39,7 @@
     min-height: 45px;
     width: 100%;
   }
+
   .resultsWidgetContainer {
     height: 100%;
     overflow: auto;

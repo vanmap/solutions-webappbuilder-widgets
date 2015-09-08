@@ -41,7 +41,6 @@
   background: white;
   padding: 5px;
   margin: 5px 0;
-  max-width: 350px;
   position: relative; }
   .discoveryResultEntry.bordered {
     -webkit-border-radius: 5px 5px 5px 5px;
@@ -1022,7 +1021,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
   .imageDiscoveryResultsWidget .toggleFilterVisibilityContainer {
     cursor: pointer; }
   .imageDiscoveryResultsWidget .resultEntriesContainer {
-    height: 98%; }
+    height: 95%; }
     .imageDiscoveryResultsWidget .resultEntriesContainer .dgrid {
       border: 0;
       height: 95%;
@@ -2453,7 +2452,7 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
   .imageDiscoveryCheckoutContainer .orderDetailsContainer .orderDetailsEntry {
     margin: 2px 0; }
     .imageDiscoveryCheckoutContainer .orderDetailsContainer .orderDetailsEntry.cartItemCountLabel {
-      float: right;
+      text-align: right;
       margin-right: 10px; }
     .imageDiscoveryCheckoutContainer .orderDetailsContainer .orderDetailsEntry.cartItemTotalCostEntry {
       padding-top: 8px; }

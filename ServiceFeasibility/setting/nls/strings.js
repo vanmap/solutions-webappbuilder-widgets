@@ -18,7 +18,8 @@ define({
   root: {
     lblBusinessesLayer: "Businesses layer",
     lblAccessPointLayers: "Access point layers",
-    lblForRouteLengthUnits: "Label for route length units",
+    lblForRouteLengthUnits: "Route result unit label",
+    lblForExpression: "Route result expression",
     lblFieldTobeDisplayed: "Field to be displayed in business list",
     captionServiceAreaParameters: "Service area parameters",
     lblBufferDistanceToGenerateServiceArea: "Buffer distance to generate service area",
@@ -40,6 +41,9 @@ define({
     FieldmMappingText: "Route-Business attribute transfer",
     RoutLayerField: "Route layer field",
     BussinessLayerField: "Business layer field",
+    lblAllowBarriers: "Allow Barriers",
+    lblAllowAccessPointLayerSelect: "Allow user to select Access Point layer",
+    lblForBox: "Route result label",
     symbol: {
       barrier: "Barrier symbols",
       location: "Location symbol",
@@ -85,7 +89,10 @@ define({
       minValueErrorLabel: "minimum",
       maxValueErrorLabel: "maximum",
       defaultValueErrorLabel: "default",
-      NoFieldsInBusinessLayer: "No field to display as a title in result business list."
+      NoFieldsInBusinessLayer: "No field to display as a title in result business list.",
+      invalidExpression: "Invalid expression.",
+      emptyTextBoxForLabel: "Please specify ",
+      emptyExpressionTextBox: "Please specify "
     },
     esriUnit: {
       esriCTMeters: "Meters",
@@ -100,7 +107,7 @@ define({
     hintText: {
       bussinessesLayerText: "Hint: Select business layer.",
       accessPointLayerText: "Hint: Select minimum one access point layer.",
-      routeLengthUnitText: "Hint: Specify a label for route length unit. Please note this should be set to basemap's linear distance units.",
+      routeLengthUnitText: "Hint: Please provide a label for the result units. If displaying just the route length, please set this to basemap's linear distance unit (Meters or Feet).",
       bussinessListText: "Hint: Select desired business list field.",
       bufferDistanceText: "Hint: Specify a numeric value for buffer distance.",
       bufferUnitsText: "Hint: Select buffer unit.",
@@ -122,13 +129,18 @@ define({
       imageHeightText: "Hint: Specify numeric value for image height.",
       imageWidthText: "Hint: Specify numeric value for image width.",
       imageTimeoutText: "Hint: Specify numeric value for highlight animation timeout.",
-      selectImageHintText: "Hint: Please click on the image to select any other highlighter image."
+      selectImageHintText: "Hint: Please click on the image to select any other highlighter image.",
+      allowUserAccessPointLayerSelectText: "Hint: When left unchecked, the nearest asset will be found from all selected access point layers in the list",
+      hintExpressionText: "Hint: Please enter an equation including the {Length} keyword. Providing just the {Length} keyword, will display only the route length in results.",
+      hintLabelForBox: "Hint: Displayed on top in results panel."
     },
     invalidURL: " Please enter a valid ",
     allowToUserInput: "Allow user input",
     defaultToValue: "Default to value",
     valueText: "Value",
-    lblAttributeParameterValues: "Attribute parameter values",
-    defaultDataDictionaryValue: "Prohibited,Avoid_High,Avoid_Medium,Avoid_Low,Prefer_Low,Prefer_Medium,Prefer_High"
+    lblAttributeParameterValues: "Custom attribute parameter values",
+    defaultDataDictionaryValue: "Prohibited,Avoid_High,Avoid_Medium,Avoid_Low,Prefer_Low,Prefer_Medium,Prefer_High",
+    lblTravelMode: "Use TravelModes",
+    testExpressionValue: "{Length}"
   }
 });

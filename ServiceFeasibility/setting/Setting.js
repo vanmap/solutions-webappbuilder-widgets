@@ -22,6 +22,7 @@ define([
   "dijit/_WidgetsInTemplateMixin",
   "dojo/_base/lang",
   "dojo/dom-construct",
+  "dojo/dom-style",
   "dojo/dom-class",
   "dojo/query",
   "dojo/on",
@@ -38,6 +39,7 @@ define([
   "dojox/validate/regexp",
   "jimu/dijit/LoadingIndicator",
   "esri/request",
+  "jimu/portalUtils",
   "dojo/domReady!"
 ], function (
   declare,
@@ -47,6 +49,7 @@ define([
   _WidgetsInTemplateMixin,
   lang,
   domConstruct,
+  domStyle,
   domClass,
   query,
   on,
@@ -62,7 +65,8 @@ define([
   ImageChooser,
   regexp,
   LoadingIndicator,
-  esriRequest
+  esriRequest,
+  portalUtils
 ) {
   return declare([BaseWidgetSetting, _WidgetBase, _TemplatedMixin,
     _WidgetsInTemplateMixin
@@ -76,6 +80,10 @@ define([
     defaultParamValue: [],
     checkedAccessPointLayers: [],
     targetLayerFields: {},
+    _closestFacilityUrlResponse: null, // to  store response of closest facility url
+    _selectedTravelMode: null, // to store selected travel mode
+    _travelModesArr: null, // to store travel modes
+
     startup: function () {
       this.defaultParamValue = this.nls.defaultDataDictionaryValue;
       this.inherited(arguments);
@@ -85,13 +93,20 @@ define([
       this._addBufferUnits();
       this._addConfigParameters();
       this._onSetBtnClick();
+      this._onTravelModeChange();
+      this._onTravelModeRdbClick();
+      this._onCustomAttributeRdbClick();
       this._saveTargetLayerSelect();
       this._setClosestFacilityParams();
       this._createExportToCSV();
+      this._createAllowBarriers();
       this._createSymbol();
       this._createHighlighterImage();
       this.onRefreshBtnClick();
       this._ToggleFieldMapping();
+      this._createAllowAccessPointLayerCheckBox();
+      this._checkExpression();
+      this._checkAndSetExpression();
     },
     postCreate: function () {
       this._initLoading();
@@ -169,6 +184,100 @@ define([
     },
 
     /**
+    * This function is used to store selected travel mode
+    * @memberOf widgets/ServiceFeasibility/setting/Settings
+    **/
+    _onTravelModeChange: function () {
+      this.own(on(this.travelModesList, 'change', lang.hitch(this,
+        function (evt) {
+          var i;
+          for (i = 0; i < this._travelModesArr.length; i++) {
+            if (this._travelModesArr[i].attributes && this._travelModesArr[
+                i].attributes.TravelModeId) {
+              if (this._travelModesArr[i].attributes.TravelModeId ===
+                evt) {
+                this._selectedTravelMode = this._travelModesArr[
+                  i].attributes;
+              }
+            } else {
+              if (this._travelModesArr[i].itemId === evt) {
+                this._selectedTravelMode = this._travelModesArr[
+                  i];
+              }
+            }
+          }
+        })));
+    },
+
+    /**
+    * This function is used to display travel mode list on click of travel mode radio button
+    * @memberOf widgets/ServiceFeasibility/setting/Settings
+    **/
+    _onTravelModeRdbClick: function () {
+      this.own(on(this.travelModeRdb, 'click', lang.hitch(this,
+        function () {
+          domClass.remove(this.travelModesListParentContainer,
+            "esriCTHidden");
+          domClass.add(this.attributeParameterValues,
+            "esriCTHidden");
+        })));
+    },
+
+    /**
+    * This function is used to maintain state of travel mode radio button
+    * @memberOf widgets/ServiceFeasibility/setting/Settings
+    **/
+    _maintainTravelModeRdbState: function () {
+      if (this.config.travelModeSelection) {
+        this.travelModeRdb.set('checked', true);
+        this.customAttributeParameterRdb.set('checked', false);
+        domClass.remove(this.travelModesListParentContainer,
+          "esriCTHidden");
+        domClass.add(this.attributeParameterValues,
+          "esriCTHidden");
+      }
+    },
+
+    /**
+    * This function is used to maintain state of travel mode list selection
+    * @memberOf widgets/ServiceFeasibility/setting/Settings
+    **/
+    _maintainTravelModeListSelection: function () {
+      this.travelModesList.set("value", this.config.selectedTravelMode
+        .TravelModeId);
+    },
+
+    /**
+    * This function is used to maintain state of custom attribute radio button
+    * @memberOf widgets/ServiceFeasibility/setting/Settings
+    **/
+    _maintainCustomAttributeRdbState: function () {
+      if (this.config.customAttributeSelection) {
+        this.customAttributeParameterRdb.set('checked', true);
+        this.travelModeRdb.set('checked', false);
+        domClass.remove(this.attributeParameterValues,
+          "esriCTHidden");
+        domClass.add(this.travelModesListParentContainer,
+          "esriCTHidden");
+      }
+    },
+
+    /**
+    * This function is used to display custom attribute list on click of custom attribute radio button
+    * @memberOf widgets/ServiceFeasibility/setting/Settings
+    **/
+    _onCustomAttributeRdbClick: function () {
+      this.own(on(this.customAttributeParameterRdb, 'click', lang.hitch(
+        this,
+        function () {
+          domClass.remove(this.attributeParameterValues,
+            "esriCTHidden");
+          domClass.add(this.travelModesListParentContainer,
+            "esriCTHidden");
+        })));
+    },
+
+    /**
     * This function is used to validate closed facility service url.
     * @param {boolean}  setConfig.
     * @memberOf widgets/ServiceFeasibility/settings/Settings
@@ -196,11 +305,19 @@ define([
             this.serviceURL = url;
             this._setImpedanceAttributeOptions(response,
               setConfig);
+            this._closestFacilityUrlResponse = response;
+            if (!setConfig) {
+              this._resetAttributeParameterRdb();
+              this._selectTravelModeRdb();
+            } else {
+              this._maintainTravelModeRdbState();
+              this._maintainCustomAttributeRdbState();
+            }
+            this._populateTravelModeList(setConfig);
             this._displayAttributeParameter(response, this.defaultParamValue);
             this.loading.hide();
             domClass.remove(this.closestFacilityParamContainer,
               "esriCTHidden");
-
           } else {
             this._errorMessage(this.nls.validationErrorMessage.invalidClosestFacilityTask +
               "'" + this.nls.lblClosestFacilityServiceUrl +
@@ -208,7 +325,6 @@ define([
             this.loading.hide();
             domClass.add(this.closestFacilityParamContainer,
               "esriCTHidden");
-
           }
         }), lang.hitch(this, function () {
           if (this._initialLoad) {
@@ -219,7 +335,6 @@ define([
           this.loading.hide();
           domClass.add(this.closestFacilityParamContainer,
             "esriCTHidden");
-
         }));
       } else {
         this._errorMessage(this.nls.invalidURL + "'" + this.nls.lblClosestFacilityServiceUrl +
@@ -253,13 +368,206 @@ define([
     * @memberOf widgets/ServiceFeasibility/setting/Setting.
     **/
     _displayAttributeParameter: function (response, defaultParamValue) {
-      if (response.attributeParameterValues.length > 0) {
-        domClass.remove(this.attributeParameterValues, "esriCTHidden");
-      } else {
-        domClass.add(this.attributeParameterValues, "esriCTHidden");
-      }
       this._attributeParameterObj.createAttributeParameterDataset(
         response, defaultParamValue);
+    },
+
+    /**
+    * This function is used to populate travel mode list
+    * @param {boolean} to track whether state of configuration needs to be regain
+    * @memberOf widgets/ServiceFeasibility/setting/Setting.
+    **/
+    _populateTravelModeList: function (setConfig) {
+      this._portalUtilsObj = portalUtils.getPortal(this.appConfig.portalUrl);
+      this.travelModesList.removeOption(this.travelModesList.getOptions());
+      if (this._isClosestFacilityUrlAGOL()) {
+        if (this._isRoutingUtilityPresent()) {
+          this._getTravelModes(setConfig);
+        } else {
+          if (this._isSupportedTravelModePresent()) {
+            this._populateSupportedTravelMode(setConfig);
+          } else {
+            this._disableTravelModeRdb();
+          }
+        }
+      } else {
+        if (this._isSupportedTravelModePresent()) {
+          this._populateSupportedTravelMode(setConfig);
+        } else {
+          this._disableTravelModeRdb();
+        }
+      }
+    },
+
+    /**
+    * This function is used to reset attribute parameter rdb
+    * @memberOf widgets/ServiceFeasibility/setting/Setting.
+    **/
+    _resetAttributeParameterRdb: function () {
+      this.travelModeRdb.set('checked', false);
+      this.travelModeRdb.set('disabled', false);
+      this.customAttributeParameterRdb.set('checked', false);
+      this.customAttributeParameterRdb.set('disabled', false);
+      domClass.add(this.travelModesListParentContainer,
+        "esriCTHidden");
+      domClass.add(this.attributeParameterValues,
+        "esriCTHidden");
+    },
+
+    /**
+    * This function is used to select travel mode radio button
+    * @memberOf widgets/ServiceFeasibility/setting/Setting.
+    **/
+    _selectTravelModeRdb: function () {
+      this.travelModeRdb.set('checked', true);
+      domClass.remove(this.travelModesListParentContainer,
+        "esriCTHidden");
+    },
+
+    /**
+    * This function is used to check whether closest facility url is from AGOL or other server.
+    * @memberOf widgets/ServiceFeasibility/setting/Setting.
+    **/
+    _isClosestFacilityUrlAGOL: function () {
+      var domain;
+      // find & remove protocol (http, ftp, etc.) and get domain
+      if (this.serviceURL.indexOf("://") > -1) {
+        domain = this.serviceURL.split('/')[2];
+      } else {
+        domain = this.serviceURL.split('/')[0];
+      }
+      //find & remove port number
+      domain = domain.split(':')[0];
+      if (domain === "route.arcgis.com") {
+        return true;
+      }
+      return false;
+    },
+
+    /**
+    * This function is used to check whether routing utility is present or not.
+    * @memberOf widgets/ServiceFeasibility/setting/Setting.
+    **/
+    _isRoutingUtilityPresent: function () {
+      if ((this._portalUtilsObj) && (this._portalUtilsObj.helperServices) &&
+        (
+          this._portalUtilsObj.helperServices.routingUtilities) && (
+          this._portalUtilsObj.helperServices.routingUtilities.url) &&
+        (
+          this._portalUtilsObj.helperServices.routingUtilities.url !==
+          "") &&
+        (this._portalUtilsObj.helperServices.routingUtilities.url !==
+          null)
+      ) {
+        return true;
+      }
+      return false;
+    },
+
+    /**
+    * This function is used to get travel modes.
+    * @param {boolean} to track whether state of configuration needs to be regain
+    * @memberOf widgets/ServiceFeasibility/setting/Setting.
+    **/
+    _getTravelModes: function (setConfig) {
+      var requestArgs;
+      requestArgs = {
+        url: this._portalUtilsObj.helperServices.routingUtilities.url +
+          "/GetTravelModes/execute",
+        content: {
+          f: "json"
+        },
+        handleAs: "json",
+        callbackParamName: "callback",
+        timeout: 20000,
+        token: this._portalUtilsObj.credential.token
+      };
+      esriRequest(requestArgs).then(lang.hitch(this, function (evt) {
+        var i, selectedValue;
+        if ((evt.results) && (evt.results.length > 0) && (evt.results[
+            0].paramName === "supportedTravelModes")) {
+          if ((evt.results[0].value) && (evt.results[0].value.features) &&
+            (evt.results[0].value.features.length > 0)) {
+            this._travelModesArr = evt.results[0].value.features;
+            for (i = 0; i < evt.results[0].value.features.length; i++) {
+              selectedValue = false;
+              if ((evt.results[1]) && (evt.results[1].paramName ===
+                  "defaultTravelMode")) {
+                if (evt.results[1].value === evt.results[0].value
+                  .features[i].attributes.TravelModeId) {
+                  selectedValue = true;
+                  this._selectedTravelMode = evt.results[0].value
+                    .features[i].attributes;
+                }
+              }
+              this.travelModesList.addOption({
+                label: evt.results[0].value.features[i].attributes
+                  .Name,
+                value: evt.results[0].value.features[i].attributes
+                  .TravelModeId,
+                selected: selectedValue
+              });
+            }
+            if (setConfig && this.config && this.config.selectedTravelMode) {
+              this.travelModesList.set('value', this.config.selectedTravelMode
+                .TravelModeId);
+              this._selectedTravelMode = this.config.selectedTravelMode;
+            }
+          }
+        }
+      }), lang.hitch(this, function () {
+        this.loading.hide();
+      }));
+    },
+
+    /**
+    * This function is used to check whether supported travel mode is present or not.
+    * @memberOf widgets/ServiceFeasibility/setting/Setting.
+    **/
+    _isSupportedTravelModePresent: function () {
+      if ((this._closestFacilityUrlResponse) && (this._closestFacilityUrlResponse
+          .supportedTravelModes) && (this._closestFacilityUrlResponse
+          .supportedTravelModes.length > 0)) {
+        return true;
+      }
+      return false;
+    },
+
+    /**
+    * This function is used to populate supported travel mode is list
+    * @param {boolean} to track whether state of configuration needs to be regain
+    * @memberOf widgets/ServiceFeasibility/setting/Setting.
+    **/
+    _populateSupportedTravelMode: function (setConfig) {
+      var i;
+      this._travelModesArr = this._closestFacilityUrlResponse.supportedTravelModes;
+      for (i = 0; i < this._closestFacilityUrlResponse.supportedTravelModes
+        .length; i++) {
+        this._selectedTravelMode = this._closestFacilityUrlResponse.supportedTravelModes[
+          0];
+        this.travelModesList.addOption({
+          label: this._closestFacilityUrlResponse.supportedTravelModes[
+            i].name,
+          value: this._closestFacilityUrlResponse.supportedTravelModes[
+            i].itemId
+        });
+      }
+      if (setConfig && this.config && this.config.selectedTravelMode) {
+        this.travelModesList.set('value', this.config.selectedTravelMode
+          .itemId);
+        this._selectedTravelMode = this.config.selectedTravelMode;
+      }
+    },
+
+    /**
+    * This function is used to disable travel mode radio button if there are no travel mode to display
+    * @memberOf widgets/ServiceFeasibility/setting/Setting.
+    **/
+    _disableTravelModeRdb: function () {
+      this.travelModeRdb.set('checked', false);
+      this.travelModeRdb.set('disabled', true);
+      domClass.add(this.travelModesListParentContainer,
+        "esriCTHidden");
     },
 
     /**
@@ -310,16 +618,19 @@ define([
     * @memberOf widgets/ServiceFeasibility/setting/Settings
     **/
     _initializeBusinessLayerSelect: function () {
-      var i, k;
+      var i, k, l;
       if (this.operationalLayers.length > 0) {
+        this.selectBusinessLayer.addOption({
+          label: "",
+          value: "0",
+          selected: true
+        });
         // loop for creating Dropdown for business layer
         for (i = 0; i < this.operationalLayers.length; i++) {
-          if (i === 0) {
-            this.businessIndex = i;
-          }
+          l = i;
           this.selectBusinessLayer.addOption({
             label: this.operationalLayers[i].title,
-            value: i,
+            value: ++l,
             selected: false
           });
         }
@@ -327,29 +638,38 @@ define([
         if (this.config && this.config.businessesLayerName && this.selectBusinessLayer &&
           this.selectBusinessLayer.options && this.selectBusinessLayer
           .options.length > 0) {
-          // loop to set the selected option for business layer dropdown
           for (i = 0; i < this.selectBusinessLayer.options.length; i++) {
-            if (this.selectBusinessLayer.options[i].label === this.config
-              .businessesLayerName) {
-              this.selectBusinessLayer.set("value", i);
-              this.businessIndex = i;
+            if (this.selectBusinessLayer.options[i].value === this.config
+              .BusinessLayerValue) {
+              if (i === 0) {
+                this.selectBusinessLayer.set("value", "0");
+              } else {
+                this.selectBusinessLayer.set("value", i);
+              }
               break;
             }
           }
         }
-        if (this.operationalLayers[0] && this.operationalLayers[0].layerObject &&
-          this.operationalLayers[0].layerObject.fields && this.operationalLayers[
-            0].layerObject.fields.length > 0) {
-          // loop to populate the fields of selected business layer in dropdown when widget added first time
-          for (k = 0; k < this.operationalLayers[0].layerObject.fields
-            .length; k++) {
-            this.selectbusinessList.addOption({
-              label: this.operationalLayers[0].layerObject.fields[
-                k].name,
-              value: this.operationalLayers[0].layerObject.fields[
-                k].name
-            });
+        if (this.selectBusinessLayer.value !== "0") {
+          if (this.operationalLayers[0] && this.operationalLayers[0].layerObject &&
+            this.operationalLayers[0].layerObject.fields && this.operationalLayers[
+              0].layerObject.fields.length > 0) {
+            // loop to populate the fields of selected business layer in dropdown when widget added first time
+            for (k = 0; k < this.operationalLayers[0].layerObject.fields
+              .length; k++) {
+              this.selectbusinessList.addOption({
+                label: this.operationalLayers[0].layerObject.fields[
+                  k].name,
+                value: this.operationalLayers[0].layerObject.fields[
+                  k].name
+              });
+            }
           }
+        } else {
+          this.selectbusinessList.addOption({
+            label: "",
+            value: "0"
+          });
         }
         this._attachChangeEventToBussinessLayer();
       }
@@ -360,24 +680,34 @@ define([
     * @memberOf widgets/serviceFeasibility/setting/settings
     **/
     _attachChangeEventToBussinessLayer: function () {
-      var j, i;
+      var j, i, currentValue;
       this.selectBusinessLayer.on("change", lang.hitch(this, function () {
         this.selectbusinessList.options.length = 0;
-        var currentValue = this.selectBusinessLayer.value;
-        // loop to change the field names on changing the business layer
-        if (this.operationalLayers[currentValue] && this.operationalLayers[
-            currentValue].layerObject && this.operationalLayers[
-            currentValue].layerObject.fields && this.operationalLayers[
-            currentValue].layerObject.fields.length > 0) {
-          for (j = 0; j < this.operationalLayers[currentValue].layerObject
-            .fields.length; j++) {
-            this.selectbusinessList.addOption({
-              label: this.operationalLayers[currentValue].layerObject
-                .fields[j].name,
-              value: this.operationalLayers[currentValue].layerObject
-                .fields[j].name
-            });
+        if (this.selectBusinessLayer.value !== "0") {
+          currentValue = this.selectBusinessLayer.value - 1;
+          // loop to change the field names on changing the business layer
+          if (this.operationalLayers[currentValue] && this.operationalLayers[
+              currentValue].layerObject && this.operationalLayers[
+              currentValue].layerObject.fields && this.operationalLayers[
+              currentValue].layerObject.fields.length > 0) {
+            for (j = 0; j < this.operationalLayers[currentValue]
+              .layerObject
+              .fields.length; j++) {
+              this.selectbusinessList.addOption({
+                label: this.operationalLayers[currentValue]
+                  .layerObject
+                  .fields[j].name,
+                value: this.operationalLayers[currentValue]
+                  .layerObject
+                  .fields[j].name
+              });
+            }
           }
+        } else {
+          this.selectbusinessList.addOption({
+            label: "",
+            value: "0"
+          });
         }
         if (this.config && this.config.businessDisplayField &&
           this.selectbusinessList && this.selectbusinessList.options &&
@@ -552,6 +882,9 @@ define([
       }
       if (this.config && this.config.defaultCutoff) {
         this.txtdefaultCuttoff.set("value", this.config.defaultCutoff);
+      }
+      if (this.config && this.config.LabelForBox) {
+        this.txtLabelForBox.set("value", this.config.LabelForBox);
       }
       if (this.config && this.config.attributeValueLookup && this.config
         .attributeValueLookup !== "") {
@@ -740,75 +1073,79 @@ define([
     * @memberOf widgets/serviceFeasibility/setting/settings
     **/
     _attachCheckBoxEvents: function () {
-      on(this.saveBusinessCheck.domNode, "click", lang.hitch(this, function (
-        event) {
-        if (domClass.contains(event.target, "checked")) {
-          domClass.remove(this.selectSaveBusinessLayerBlock,
-            "esriCTHidden");
-          domClass.remove(this.routeBussinessAttrTranferMainContainer,
-            "esriCTHidden");
-          this._toggleFieldMappingCheck();
+      on(this.saveBusinessCheck.domNode, "click", lang.hitch(this,
+        function (
+          event) {
+          if (domClass.contains(event.target, "checked")) {
+            domClass.remove(this.selectSaveBusinessLayerBlock,
+              "esriCTHidden");
+            domClass.remove(this.routeBussinessAttrTranferMainContainer,
+              "esriCTHidden");
+            this._toggleFieldMappingCheck();
 
-        } else {
-          domClass.add(this.selectSaveBusinessLayerBlock,
-            "esriCTHidden");
-          domClass.add(this.routeBussinessAttrTranferMainContainer,
-            "esriCTHidden");
-          this._toggleFieldMappingCheck();
-        }
-        this._ToggleFieldMapping();
+          } else {
+            domClass.add(this.selectSaveBusinessLayerBlock,
+              "esriCTHidden");
+            domClass.add(this.routeBussinessAttrTranferMainContainer,
+              "esriCTHidden");
+            this._toggleFieldMappingCheck();
+          }
+          this._ToggleFieldMapping();
 
-      }));
-      on(this.saveRouteCheck.domNode, "click", lang.hitch(this, function (
-        event) {
-        if (domClass.contains(event.target, "checked")) {
-          domClass.remove(this.routeLayerCheck, "esriCTHidden");
-          domClass.remove(this.selectrouteLayerBlock,
-            "esriCTHidden");
-          domClass.remove(this.routeBussinessAttrTranferMainContainer,
-            "esriCTHidden");
-          this._toggleFieldMappingCheck();
+        }));
+      on(this.saveRouteCheck.domNode, "click", lang.hitch(this,
+        function (
+          event) {
+          if (domClass.contains(event.target, "checked")) {
+            domClass.remove(this.routeLayerCheck, "esriCTHidden");
+            domClass.remove(this.selectrouteLayerBlock,
+              "esriCTHidden");
+            domClass.remove(this.routeBussinessAttrTranferMainContainer,
+              "esriCTHidden");
+            this._toggleFieldMappingCheck();
 
-        } else {
-          domClass.add(this.routeLayerCheck, "esriCTHidden");
-          domClass.add(this.selectrouteLayerBlock,
-            "esriCTHidden");
-          domClass.add(this.routeBussinessAttrTranferMainContainer,
-            "esriCTHidden");
-          this._toggleFieldMappingCheck();
+          } else {
+            domClass.add(this.routeLayerCheck, "esriCTHidden");
+            domClass.add(this.selectrouteLayerBlock,
+              "esriCTHidden");
+            domClass.add(this.routeBussinessAttrTranferMainContainer,
+              "esriCTHidden");
+            this._toggleFieldMappingCheck();
 
-        }
-        this._ToggleFieldMapping();
-      }));
-      on(this.saveRouteLength.domNode, "click", lang.hitch(this, function (
-        event) {
-        if (domClass.contains(event.target, "checked")) {
-          domClass.remove(this.selectSaveRouteLength,
-            "esriCTHidden");
-          domClass.remove(this.selectRouteLengthBlock,
-            "esriCTHidden");
+          }
+          this._ToggleFieldMapping();
+        }));
+      on(this.saveRouteLength.domNode, "click", lang.hitch(this,
+        function (
+          event) {
+          if (domClass.contains(event.target, "checked")) {
+            domClass.remove(this.selectSaveRouteLength,
+              "esriCTHidden");
+            domClass.remove(this.selectRouteLengthBlock,
+              "esriCTHidden");
 
-        } else {
-          domClass.add(this.selectSaveRouteLength,
-            "esriCTHidden");
-          domClass.add(this.selectRouteLengthBlock,
-            "esriCTHidden");
-        }
-      }));
-      on(this.saveBusinessCount.domNode, "click", lang.hitch(this, function (
-        event) {
-        if (domClass.contains(event.target, "checked")) {
-          domClass.remove(this.selectSaveBusinessCount,
-            "esriCTHidden");
-          domClass.remove(this.selectBusinessCountBlock,
-            "esriCTHidden");
-        } else {
-          domClass.add(this.selectSaveBusinessCount,
-            "esriCTHidden");
-          domClass.add(this.selectBusinessCountBlock,
-            "esriCTHidden");
-        }
-      }));
+          } else {
+            domClass.add(this.selectSaveRouteLength,
+              "esriCTHidden");
+            domClass.add(this.selectRouteLengthBlock,
+              "esriCTHidden");
+          }
+        }));
+      on(this.saveBusinessCount.domNode, "click", lang.hitch(this,
+        function (
+          event) {
+          if (domClass.contains(event.target, "checked")) {
+            domClass.remove(this.selectSaveBusinessCount,
+              "esriCTHidden");
+            domClass.remove(this.selectBusinessCountBlock,
+              "esriCTHidden");
+          } else {
+            domClass.add(this.selectSaveBusinessCount,
+              "esriCTHidden");
+            domClass.add(this.selectBusinessCountBlock,
+              "esriCTHidden");
+          }
+        }));
       on(this.routeBussinessAttrTranferChkBox.domNode, "click", lang.hitch(
         this,
         function (event) {
@@ -1109,8 +1446,7 @@ define([
           .value : "";
         accessLayerName = this._getAccessLayerNames();
         this.config = {
-          "businessesLayerName": this.operationalLayers[this.selectBusinessLayer
-            .value].title,
+          "businessesLayerName": this.operationalLayers[0].title,
           "accessPointsLayersName": accessLayerName,
           "routeLengthLabelUnits": this.txtRouteLength.value,
           "bufferEsriUnits": this.selectBufferUnits.value,
@@ -1131,7 +1467,16 @@ define([
           "highlighterDetails": highlighterDetails,
           "FieldMappingData": this.targetLayerFields,
           "RouteBussinessAttribute": this.routeBussinessAttrTranferChkBox
-            .checked
+            .checked,
+          "AllowedBarriersCheckBoxChecked": this.isAllowBarriersCheckBoxChecked,
+          "BusinessLayerValue": this.selectBusinessLayer.value,
+          "AllowedAccessPointCheckBoxChecked": this.isAllowAccessPointCheckBox,
+          "selectedTravelMode": this._selectedTravelMode,
+          "travelModeSelection": this.travelModeRdb.checked,
+          "customAttributeSelection": this.customAttributeParameterRdb
+            .checked,
+          "ExpressionValue": this.txtCostExpression.value,
+          "LabelForBox": this.labelForBox
         };
       } else {
         return false;
@@ -1149,11 +1494,16 @@ define([
         validateTargateLayer, validateTargateLayerParameters,
         validateMinMaxValue, validateCheckPoint,
         validateBusinessLayerGeometry, validateOperationLayer,
-        parameterLookupValue;
+        parameterLookupValue, validateExpression,
+        validateLabelForBox;
       isValid = true;
       validateOperationLayer = this._validateOperationLayer();
       // Validation of Check point Layer
       validateCheckPoint = this._validateAccesspointCheck();
+      // Validate label text box
+      validateLabelForBox = this._validateLabelForBox();
+      // Validate expression
+      validateExpression = this._validateExpression();
       // Validation of 'Route length units' and 'Buffer distance '
       validateInputTask = this._validateInputTaskParameters();
       // Validation of 'closest Facility URL' , 'Facility Search Distance' and 'Default Cutoff distance'
@@ -1175,6 +1525,12 @@ define([
         isValid = false;
       } else if (validateCheckPoint.hasError) {
         this._errorMessage(validateCheckPoint.returnErr);
+        isValid = false;
+      } else if (validateLabelForBox.hasError) {
+        this._errorMessage(validateLabelForBox.returnErr);
+        isValid = false;
+      } else if (validateExpression.hasError) {
+        this._errorMessage(validateExpression.returnErr);
         isValid = false;
       } else if (validateInputTask.hasError) {
         this._errorMessage(validateInputTask.returnErr);
@@ -1271,13 +1627,23 @@ define([
     **/
     _validateAccesspointCheck: function () {
       var returnObj = {
-        returnErr: "",
-        hasError: false
+        returnErr: this.nls.validationErrorMessage.accessPointCheck,
+        hasError: true
       };
-      if (this.checkedAccessPointLayers && this.checkedAccessPointLayers
-        .length === 0) {
-        returnObj.returnErr = this.nls.validationErrorMessage.accessPointCheck;
-        returnObj.hasError = true;
+      if (this.divAccessPointLayer.childNodes) {
+        for (var i = 0; i < this.divAccessPointLayer.childNodes.length; i++) {
+          if (this.divAccessPointLayer.childNodes[i] && this.divAccessPointLayer
+            .childNodes[i].childNodes && this.divAccessPointLayer.childNodes[
+              i].childNodes[0]) {
+            if (domClass.contains(this.divAccessPointLayer.childNodes[
+                i].childNodes[0], "checked")) {
+              returnObj = {
+                returnErr: "",
+                hasError: false
+              };
+            }
+          }
+        }
       }
       return returnObj;
     },
@@ -1647,7 +2013,6 @@ define([
       } else if (this.thumbnailUrl) {
         this.imageDataObj = this.thumbnailUrl;
       }
-
       othersParam = {
         "imageData": this.imageDataObj,
         "height": ((this.imageHeight && this.imageHeight.value) ?
@@ -1658,6 +2023,242 @@ define([
           .value) ? this.highlighterImageTimeout.value : "")
       };
       return othersParam;
+    },
+
+    /**
+    * Function to create checkbox which will allow user to choose or not to choose barriers in config and widget UI
+    * @memberOf widgets/SearviceFeasibility/settings/settings
+    */
+    _createAllowBarriers: function () {
+      var allowBarrierCheckBox;
+      allowBarrierCheckBox = new CheckBox({}, this.allowBarriersCheckBox);
+      domConstruct.create("label", {
+        "innerHTML": this.nls.lblAllowBarriers,
+        "class": "esriCTCheckboxLabel"
+      }, this.allowBarriersLabel);
+      switch (this.config.AllowedBarriersCheckBoxChecked) {
+        case true:
+          domClass.add(allowBarrierCheckBox.checkNode, "checked");
+          domClass.add(allowBarrierCheckBox.domNode,
+            "esriCTcheckedPointLayer");
+          domStyle.set(this.barriersDiv, "display", "block");
+          allowBarrierCheckBox.checked = true;
+          this.isAllowBarriersCheckBoxChecked = allowBarrierCheckBox.checked;
+          break;
+        case false:
+          domClass.remove(allowBarrierCheckBox.checkNode, "checked");
+          domClass.remove(allowBarrierCheckBox.domNode,
+            "esriCTcheckedPointLayer");
+          domStyle.set(this.barriersDiv, "display", "none");
+          allowBarrierCheckBox.checked = false;
+          this.isAllowBarriersCheckBoxChecked = allowBarrierCheckBox.checked;
+          break;
+        default:
+          domClass.add(allowBarrierCheckBox.checkNode, "checked");
+          domClass.add(allowBarrierCheckBox.domNode,
+            "esriCTcheckedPointLayer");
+          domStyle.set(this.barriersDiv, "display", "block");
+          allowBarrierCheckBox.checked = true;
+          this.isAllowBarriersCheckBoxChecked = allowBarrierCheckBox.checked;
+      }
+      this._onClickAllowBarriersCheckBox(allowBarrierCheckBox);
+    },
+
+    /**
+    * Function for click event, which allow user to choose or not to choose barriers in config and widget UI
+    * @param {object} allowBarrierCheckBox object to identify click event
+    * @memberOf widgets/SearviceFeasibility/settings/settings
+    */
+    _onClickAllowBarriersCheckBox: function (allowBarrierCheckBox) {
+      this.own(on(allowBarrierCheckBox.domNode, "click", lang.hitch(
+        this,
+        function () {
+          this.isAllowBarriersCheckBoxChecked =
+            allowBarrierCheckBox.checked;
+          switch (allowBarrierCheckBox.checked) {
+            case true:
+              domStyle.set(this.barriersDiv, "display", "block");
+              break;
+            case false:
+              domStyle.set(this.barriersDiv, "display", "none");
+              break;
+          }
+        })));
+    },
+
+    /**
+    * Function for creating allow access point layer checkbox
+    * @memberOf widgets/SearviceFeasibility/settings/settings
+    */
+    _createAllowAccessPointLayerCheckBox: function () {
+      var allowAccessPointCheckBox;
+      allowAccessPointCheckBox = new CheckBox({}, this.divAllowAccessPointLayer);
+      domConstruct.create("label", {
+        innerHTML: this.nls.lblAllowAccessPointLayerSelect,
+        "class": "esriCTCheckboxLabel"
+      }, this.divAllowAccessPointLayer);
+      switch (this.config.AllowedAccessPointCheckBoxChecked) {
+        case true:
+          domClass.add(allowAccessPointCheckBox.checkNode, "checked");
+          domClass.add(allowAccessPointCheckBox.domNode,
+            "esriCTcheckedPointLayer");
+          allowAccessPointCheckBox.checked = true;
+          this.isAllowAccessPointCheckBox = allowAccessPointCheckBox.checked;
+          break;
+        case false:
+          domClass.remove(allowAccessPointCheckBox.checkNode,
+            "checked");
+          domClass.remove(allowAccessPointCheckBox.domNode,
+            "esriCTcheckedPointLayer");
+          allowAccessPointCheckBox.checked = false;
+          this.isAllowAccessPointCheckBox = allowAccessPointCheckBox.checked;
+          break;
+        default:
+          domClass.remove(allowAccessPointCheckBox.checkNode,
+            "checked");
+          domClass.remove(allowAccessPointCheckBox.domNode,
+            "esriCTcheckedPointLayer");
+          allowAccessPointCheckBox.checked = false;
+          this.isAllowAccessPointCheckBox = allowAccessPointCheckBox.checked;
+      }
+      this._addEventAllowAccessPointLayerCheckBox(
+        allowAccessPointCheckBox);
+    },
+
+    /**
+    * Function for click event of allow access point layer checkbox
+    * @param {object} allowAccessPointCheckBox object to identify click event
+    * @memberOf widgets/SearviceFeasibility/settings/settings
+    */
+    _addEventAllowAccessPointLayerCheckBox: function (
+      allowAccessPointCheckBox) {
+      this.own(on(allowAccessPointCheckBox.domNode, "click", lang.hitch(
+        this,
+        function () {
+          this.isAllowAccessPointCheckBox =
+            allowAccessPointCheckBox.checked;
+        })));
+    },
+
+    /**
+    * Function for validating cost expression on focus out from the text box
+    * @memberOf widgets/SearviceFeasibility/settings/settings
+    */
+    _checkExpression: function () {
+      var evalValue, textBoxValue, textBoxString, replaceValue;
+      on(this.txtCostExpression, "blur", lang.hitch(this, function () {
+        textBoxValue = domAttr.get(this.txtCostExpression,
+          "value");
+        textBoxString = this._getStringValue(textBoxValue);
+        try {
+          if (evalValue !== "") {
+            replaceValue = new RegExp(textBoxString, 'g');
+            evalValue = textBoxValue.replace(replaceValue, 1);
+            evalValue = eval(evalValue); // jshint ignore:line
+            if (isNaN(evalValue)) {
+              this._errorMessage(this.nls.validationErrorMessage
+                .invalidExpression);
+            }
+          }
+        } catch (err) {
+          this._errorMessage(this.nls.validationErrorMessage.invalidExpression);
+        }
+      }));
+    },
+
+    /**
+    * Function for validating expression on click of OK button for setting configuration
+    * @memberOf widgets/SearviceFeasibility/settings/settings
+    */
+    _validateExpression: function () {
+      var evalValue, returnObj, nlsExpression, nlsString,
+        textBoxValue, textBoxString, lowerNlsString,
+        lowerTextBoxString, replaceValue;
+      returnObj = {
+        returnErr: "",
+        hasError: false
+      };
+      nlsExpression = this.nls.testExpressionValue;
+      nlsString = this._getStringValue(nlsExpression);
+      textBoxValue = domAttr.get(this.txtCostExpression, "value");
+      textBoxString = this._getStringValue(textBoxValue);
+      lowerNlsString = nlsString.toLowerCase();
+      lowerTextBoxString = textBoxString.toLowerCase();
+      try {
+        if (textBoxValue === "" || textBoxValue === null) {
+          returnObj.returnErr = this.nls.validationErrorMessage.emptyExpressionTextBox +
+            "'" + this.nls.lblForExpression + "'.";
+          returnObj.hasError = true;
+        } else if (lowerNlsString !== lowerTextBoxString) {
+          returnObj.returnErr = this.nls.validationErrorMessage.invalidExpression;
+          returnObj.hasError = true;
+        } else {
+          replaceValue = new RegExp(textBoxString, 'g');
+          evalValue = textBoxValue.replace(replaceValue, 1);
+          evalValue = eval(evalValue); // jshint ignore:line
+          if (isNaN(evalValue)) {
+            returnObj.returnErr = this.nls.validationErrorMessage.invalidExpression;
+            returnObj.hasError = true;
+          }
+        }
+      } catch (err) {
+        returnObj.returnErr = this.nls.validationErrorMessage.invalidExpression;
+        returnObj.hasError = true;
+      }
+      return returnObj;
+    },
+
+    /**
+    * Function for validating label for route based result box container in widget
+    * @memberOf widgets/SearviceFeasibility/settings/settings
+    */
+    _validateLabelForBox: function () {
+      var returnObj, textBoxVal;
+      textBoxVal = domAttr.get(this.txtLabelForBox, "value");
+      returnObj = {
+        returnErr: "",
+        hasError: false
+      };
+      if (textBoxVal === "") {
+        returnObj.returnErr = this.nls.validationErrorMessage.emptyTextBoxForLabel +
+          "'" + this.nls.lblForBox + "'.";
+        returnObj.hasError = true;
+      } else {
+        this.labelForBox = textBoxVal;
+      }
+      return returnObj;
+    },
+
+    /**
+    * Function for getting string required to be replaced in expression
+    * @memberOf widgets/SearviceFeasibility/settings/settings
+    */
+    _getStringValue: function (value) {
+      var string, replaceStringStartPos, replaceStringEndPos;
+      if (value !== "") {
+        replaceStringStartPos = value.indexOf("{");
+        replaceStringEndPos = value.indexOf("}") + 1;
+        string = value.substring(replaceStringStartPos,
+          replaceStringEndPos);
+      } else {
+        string = "";
+      }
+      return string;
+    },
+
+    /**
+    * Function to check and set defaultExpression
+    * @memberOf widgets/SearviceFeasibility/settings/settings
+    */
+    _checkAndSetExpression: function () {
+      if (this.nls.testExpressionValue === "") {
+        this.nls.testExpressionValue = "{Length}";
+      }
+      if (this.config && this.config.ExpressionValue) {
+        this.txtCostExpression.set("value", this.config.ExpressionValue);
+      } else {
+        this.txtCostExpression.set("value", this.nls.testExpressionValue);
+      }
     }
   });
 });

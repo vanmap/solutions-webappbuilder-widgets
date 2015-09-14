@@ -1,5 +1,11 @@
 @import url('http://js.arcgis.com/3.12/dijit/themes/claro/claro.css');
 
+@media only screen and (min-device-width : 320px) and (max-device-width : 1024px) {
+     html {
+        -webkit-text-size-adjust: none !important;
+     }
+}
+
 .jimu-widget-frame > .jimu-container
 {
     height: 100%;
@@ -120,7 +126,7 @@
     padding-top: 5px;
     overflow: hidden;
     text-overflow: ellipsis;
-    width: 69%;
+    width: 65%;
     white-space: nowrap;
 }
 
@@ -141,6 +147,11 @@
 {
     clear: both;
     padding: 10px 0px 10px 0px;
+}
+
+.jimu-widget-ServiceFeasibility .esriCTBarriersContainer
+{
+    display: none;
 }
 
 .jimu-widget-ServiceFeasibility .esriCTLocationContainer, .esriCTBarriersContainer
@@ -192,18 +203,18 @@
     display: inline-block;
     text-align: center;
     font-size: 14px;
-    height: 50%;
+    height: 49%;
     width: 100%;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    text-overflow: initial;
+    white-space: initial;
 }
 
 .jimu-widget-ServiceFeasibility .esriCTBusinessPassedLabel
 {
     text-align: center;
     font-size: 14px;
-    height: 49%; /* width: 100%;*/
+    height: 49%;
     overflow: hidden;
     text-overflow: initial;
     white-space: initial;
@@ -238,6 +249,7 @@
     float: left;
     width: 100%;
     text-align: center;
+    margin-bottom: 15px;
 }
 
 .jimu-widget-ServiceFeasibility .esriCTExportLayerButtonsContainer
@@ -302,6 +314,7 @@
 .jimu-widget-ServiceFeasibility .esriCTRouteLengthCount
 {
     height: 50%;
+    padding-top: 3px;
     font-size: 16px;
     text-align: center;
     width: 100%;
@@ -313,6 +326,7 @@
 .jimu-widget-ServiceFeasibility .esriCTBusinessPassedCount
 {
     height: 50%;
+    padding-top: 4px;
     font-size: 16px;
     text-align: center;
     width: 100%;
@@ -418,6 +432,7 @@
 .jimu-container .jimu-widget-ServiceFeasibility
 {
     overflow: hidden;
+    min-width: 300px;
 }
 
 .jimu-widget-ServiceFeasibility .esriCTDefaultCursor
@@ -810,5 +825,42 @@
 .esriCTMarginL25
 {
     margin-left: 25px;
+}
+
+.jimu-widget-ServiceFeasibility .esriCTCostHeadingDivFullWidth
+{
+    width: 100%;    
+}
+
+.esriCTHideBusinessPassedDiv
+{
+    display: none;    
+}
+
+.jimu-widget-frame.jimu-container .jimu-widget-ServiceFeasibility .esriCTDartHoverFeatureList
+{
+    background-color: #ffffff !important;
+    color: #888888 !important;
+}
+
+.esriCTDartBackgroudColor
+{
+    background-color: #646464 !important;
+}
+
+.claro .dijitDateTextBox .dijitArrowButton:before
+{
+    content: none !important;
+}
+
+.jimu-widget-frame.jimu-container .jimu-widget-ServiceFeasibility .esriCTSelectedDartFeatureFieldList
+{
+    background-color: #ffffff !important;
+    color: #888888 !important;
+}
+
+.boxPanel
+{
+    top: 140px !important;    
 }
 /* sorting tooltip styles End*/

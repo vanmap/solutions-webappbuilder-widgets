@@ -73,8 +73,8 @@
     white-space: nowrap;
 }
 
-.jimu-widget-NetworkTrace-setting  .jimu-btn{
-    padding: 7px 12px;
+.jimu-widget-NetworkTrace-setting .jimu-btn
+{
     max-width: 110px;
 }
 
@@ -116,7 +116,7 @@
     padding: 3px;
 }
 
-.jimu-widget-NetworkTrace-setting .esriCTOutageFieldParams .esriCTFieldName 
+.jimu-widget-NetworkTrace-setting .esriCTOutageFieldParams .esriCTFieldName
 {
     width: 165px !important;
 }
@@ -133,7 +133,7 @@
 
 .jimu-widget-NetworkTrace-setting .esriCTtaskDataContainer .field .jimu-checkbox
 {
-    width: 14px;
+    width: 16px;
     margin-top: 7px;
 }
 

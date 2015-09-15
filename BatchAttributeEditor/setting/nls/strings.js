@@ -34,10 +34,17 @@ define({
                 colAction: "Action"
             },
         },
+        tabs: {
+          selection: "Define Selection Type",
+          layers: "Define Layer(s) to Update",
+          fields: "Define Field(s) to Update"
+        },
         errorOnOk:"Please fill out all parameters before saving config",
         next: "Next",
         back: "Back",
         save: "Save Symbol",
-        cancel: "Cancel Symbol"
+        cancel: "Cancel",
+        ok: "OK",
+        symbolPopup: "Symbol Chooser"
     }
 });

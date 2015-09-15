@@ -4,6 +4,124 @@
   font-size: 15px;
 }
 
+.solutions-widget-batcheditor-setting .leftPanel{
+	width: 25%;
+}
+
+.solutions-widget-batcheditor-setting .rightPanel{
+	width: 100%;
+}
+
+/*left panel CSS */
+.solutions-widget-batcheditor-setting .TaskData
+{
+    float: left;
+    width: 90%;
+    overflow-y: auto;
+    height: calc(100% - 50px);
+}
+
+.solutions-widget-batcheditor-setting .InputTitlepaneHolder .dijitTitlePaneTitleClosed, .OutputTitlepaneHolder .dijitTitlePaneTitleClosed
+{
+    margin-top: 10px;
+    height: 35px;
+    background-color: #518dca;
+    border: 1px solid #518dca;
+    border-radius: 4px;
+    padding: 7px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.solutions-widget-batcheditor-setting .InputTitlepaneHolder .dijitTitlePaneTitleOpen, .OutputTitlepaneHolder .dijitTitlePaneTitleOpen
+{
+    background-color: #518dca;
+    color: #fff;
+    border: 1px solid #518dca;
+    border-radius: 4px 4px 0 0;
+    background-image: linear-gradient(#518dca 0%, #518dca 100%);
+    margin-top: 10px;
+    height: 35px;
+    padding: 7px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.solutions-widget-batcheditor-setting .InputTitlepaneHolder
+{
+    background-color: #518dca;
+    color: #fff;
+    border: 1px solid #0000FF;
+    border-radius: 4px 4px 0 0;
+    background-image: linear-gradient(#518dca 0%, #518dca 100%);
+    margin-top: 10px;
+    height: 35px;
+    padding: 7px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.solutions-widget-batcheditor-setting .InputTitleWait
+{
+    background-color: #f1f1f1;
+    color: #666666;
+    border: 1px solid #0000FF;
+    border-radius: 4px 4px 0 0;
+    background-image: linear-gradient(#f1f1f1 0%, #f1f1f1 100%);
+    margin-top: 10px;
+    height: 35px;
+    padding: 7px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.solutions-widget-batcheditor-setting .InputField, .solutions-widget-batcheditor-setting .OutputField
+{
+    cursor: pointer;
+    padding: 5px 5px 5px 15px;
+    border-top: 1px solid #d2dae2;
+    font-size: 14px;
+}
+
+.solutions-widget-batcheditor-setting .Selected, .solutions-widget-batcheditor-setting .SelectedOutput
+{
+    background-color: #e3ecf2 !important;
+    border-left: 3px solid #15A4FA !important;
+    padding-left: 12px;
+}
+
+.solutions-widget-batcheditor-setting .SelectedOutageHolder
+{
+    background-color: #fafafc;
+    border: 1px solid #d2dae2;
+    border-radius: 4px;
+    float: left;
+    width: 100%;
+    padding: 7px;
+    vertical-align: middle;
+    margin-top: 10px;
+    height: 35px;
+    cursor: pointer;
+    padding-left: 12px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.solutions-widget-batcheditor-setting .selectedOutage
+{
+    background-color: #e3ecf2 !important;
+    border-left: 3px solid #15A4FA !important;
+}
+
+
+
+
+
 .solutions-widget-batcheditor-setting .dijitArrowButtonContainer{
   width: 17px;
 }
@@ -40,14 +158,14 @@
   width:100%;
 }
 .solutions-widget-batcheditor-setting .settings-navigation-table > tbody > tr > td{
- 
+
   vertical-align:middle;
   font-size: 1em;
 }
 
 /*Page 1*/
 .solutions-widget-batcheditor-setting .setting-tool-table{
-  margin:15px; 
+  margin:15px;
   padding-right:15px;
   outline: #000000 solid thin;
 }
@@ -70,9 +188,9 @@
 
 /*Page 2*/
 .solutions-widget-batcheditor-setting .setting-layer-table{
-  margin:15px; 
+  margin:15px;
   padding-right:15px;
- 
+
 }
 .solutions-widget-batcheditor-setting .setting-layer-toggle-checkbox {
      margin-right: 10px;
@@ -81,7 +199,16 @@
 
 /*Page 3*/
 .solutions-widget-batcheditor-setting .setting-common-fields-table{
-  margin:15px; 
+  margin:15px;
   padding-right:15px;
 }
 
+.solutions-widget-batcheditor-setting .footer {
+  text-align: right;
+}
+
+.footer {
+  padding-top: 5px;
+  width: 100%;
+  height: 30px;
+}

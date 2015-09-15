@@ -21,6 +21,7 @@ define([
     'dijit/form/RadioButton',
     'jimu/BaseWidgetSetting',
     'jimu/dijit/SimpleTable',
+    'jimu/dijit/TabContainer',
     'dojo',
     'dojo/query',
     'dojo/_base/html',
@@ -32,7 +33,9 @@ define([
     'dijit/form/Select',
     'dojo/dom-construct',
     'jimu/dijit/SymbolChooser',
-    'esri/symbols/jsonUtils'
+    'jimu/dijit/Popup',
+    'esri/symbols/jsonUtils',
+    './SymChooser'
 ],
   function (
     declare,
@@ -41,6 +44,7 @@ define([
     Button,
     BaseWidgetSetting,
     SimpleTable,
+    TabContainer,
     dojo,
     query,
     html,
@@ -52,7 +56,9 @@ define([
     Select,
     domConstruct,
     SymbolChooser,
-    symbolJsonUtils
+    Popup,
+    symbolJsonUtils,
+    SymChooser
 
         ) {
       return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
@@ -71,8 +77,58 @@ define([
               FeatureQuery: { value: 2 },
               Query: { value: 3 }
           },
+          tabContainer: null,
+          popup: null,
+
           startup: function () {
               this.inherited(arguments);
+
+              this.tabContainer = new TabContainer({
+                tabs: [{
+                  title: this.nls.tabs.selection,
+                  content: this.firstPageDiv
+                }, {
+                  title: this.nls.tabs.layers,
+                  content: ''
+                }, {
+                  title: this.nls.tabs.fields,
+                  content: ''
+                }],
+                isNested: true
+              }, this.controlNode);
+              this.tabContainer.startup();
+
+              this.own(on(this.tabContainer, 'tabChanged', lang.hitch(this, function(tab) {
+                var oldPage = this.currentPage;
+                if(tab === this.nls.tabs.selection) {
+                  if(oldPage > 1) {
+                    while (oldPage > 1) {
+                      this.btnBackClick();
+                      oldPage--;
+                    }
+                  }
+                } else if(tab === this.nls.tabs.layers) {
+                  if(oldPage < 2) {
+                    while (oldPage < 2) {
+                      this.btnNextClick();
+                      oldPage++;
+                    }
+                  } else {
+                     while (oldPage > 2) {
+                      this.btnBackClick();
+                      oldPage--;
+                    }
+                  }
+                } else {
+                  if(oldPage < 3) {
+                    while (oldPage < 3) {
+                      this.btnNextClick();
+                      oldPage++;
+                    }
+                  }
+                }
+              })));
+
               if (this.config === null) {
                   this.config = {};
 
@@ -88,8 +144,9 @@ define([
               this.setConfig(this.config);
 
               try {
-                  var btnBar =
-                      (this.domNode.parentNode.parentNode.parentNode.parentNode.lastChild.lastChild);
+
+                  var btnBar = (this.domNode.parentNode.parentNode.parentNode.parentNode.lastChild.lastChild);
+                  /*
                   this.btnNext = domConstruct.toDom(
                       "<div class='jimu-btn jimu-float-trailing jimu-leading-margin1'>" +
                       this.nls.next + "</div>");
@@ -109,21 +166,23 @@ define([
                       "<div class='jimu-btn jimu-float-trailing jimu-leading-margin1 hide'>" +
                       this.nls.cancel + "</div>");
                   dojo.connect(this.btnCancel, "onclick", lang.hitch(this, this.cancelSymbol));
+                  */
 
                   this.btnErrorMsg = domConstruct.toDom("<div class='settings-error hide'></div>");
+                  /*
                   domConstruct.place(this.btnNext, btnBar, "after");
                   domConstruct.place(this.btnBack, this.btnNext, "after");
                   domConstruct.place(this.btnSave, this.btnBack, "after");
                   domConstruct.place(this.btnCancel, this.btnSave, "after");
-
-                  domConstruct.place(this.btnErrorMsg, this.btnCancel, "after");
+                  */
+                  domConstruct.place(this.btnErrorMsg, btnBar, "after");
                   html.addClass(this.pageOneControls, 'hide');
                   html.addClass(this.pageTwoControls, 'hide');
                   html.addClass(this.pageThreeControls, 'hide');
                   html.addClass(this.settingsFirstPageSaveError, 'hide');
                   html.addClass(this.settingsSecondPageSaveError, 'hide');
                   html.addClass(this.settingsThirdPageSaveError, 'hide');
-                  html.addClass(this.symgolSelectorControls, 'hide');
+                  //html.addClass(this.symgolSelectorControls, 'hide');
 
                   this.controlsAddedToWidgetFrame = true;
 
@@ -189,9 +248,9 @@ define([
               }, this);
               if (!result) {
                   if (this.controlsAddedToWidgetFrame) {
-                      this.btnErrorMsg.innerHTML = this.config.nls.page2.noLayersSelected;
+                      this.btnErrorMsg.innerHTML = this.nls.page2.noLayersSelected;
                       html.removeClass(this.btnErrorMsg, 'hide');
-
+                      this.tabContainer.onSelect(this.nls.tabs.layers);
                   }else {
                       domStyle.set(this.settingsSecondPageError, 'display', '');
                   }
@@ -244,17 +303,18 @@ define([
 
                           var rowData = this.layersTable.getRowData(row);
                           var symbol = null;
+                          var defaultSym = new SymbolChooser;
                           if (this.selectionSymbols[rowData.id] === undefined) {
                               if (rowData.geometryType === "esriGeometryPolygon") {
-                                  this.symbolSelector.showByType('fill');
+                                  defaultSym.showByType('fill');
                               } else if (rowData.geometryType === "esriGeometryPoint") {
-                                  this.symbolSelector.showByType('marker');
+                                  defaultSym.showByType('marker');
                               } else if (rowData.geometryType === "esriGeometryPolyline") {
-                                  this.symbolSelector.showByType('line');
+                                  defaultSym.showByType('line');
 
                               }
                               this.selectionSymbols[rowData.id] =
-                                  this.symbolSelector.getSymbol().toJson();
+                                  defaultSym.getSymbol().toJson();
                           }
                           symbol = this.selectionSymbols[rowData.id];
 
@@ -323,6 +383,13 @@ define([
               this.selectByFeatureQuery.set('checked', this.config.selectByFeatureQuery);
               this.selectByQuery.set('checked', this.config.selectByQuery);
 
+              if(typeof(this.config.selectByShape) === 'undefined' &&
+                  typeof(this.config.selectByFeature) === 'undefined' &&
+                  typeof(this.config.selectByFeatureQuery) === 'undefined' &&
+                  typeof(this.config.selectByQuery) === 'undefined') {
+                this.selectByShape.set('checked', true);
+              }
+
               domStyle.set(this.firstPageDiv, 'display', '');
               domStyle.set(this.secondPageDiv, 'display', 'none');
 
@@ -330,8 +397,8 @@ define([
               this.hideOkError();
               if (this.controlsAddedToWidgetFrame) {
 
-                  html.addClass(this.btnBack, "hide");
-                  html.removeClass(this.btnNext, "hide");
+                  //html.addClass(this.btnBack, "hide");
+                  //html.removeClass(this.btnNext, "hide");
                   this.currentPage = 1;
               }
           },
@@ -371,8 +438,8 @@ define([
               domStyle.set(this.settingsSecondPageError, 'display', 'none');
               if (this.controlsAddedToWidgetFrame) {
 
-                  html.removeClass(this.btnBack, "hide");
-                  html.removeClass(this.btnNext, "hide");
+                  //html.removeClass(this.btnBack, "hide");
+                  //html.removeClass(this.btnNext, "hide");
                   this.currentPage = 2;
               }
               this.hideOkError();
@@ -385,8 +452,8 @@ define([
               domStyle.set(this.thirdPageDiv, 'display', '');
               if (this.controlsAddedToWidgetFrame) {
 
-                  html.addClass(this.btnNext, "hide");
-                  html.removeClass(this.btnBack, "hide");
+                  //html.addClass(this.btnNext, "hide");
+                  //html.removeClass(this.btnBack, "hide");
                   this.currentPage = 3;
               }
               this.hideOkError();
@@ -795,61 +862,38 @@ define([
           showSymbolSelector: function (tr) {
               var tds = query('.action-item-parent', tr);
               if (tds && tds.length) {
-                  var sym = null;
                   var data = this.layersTable.getRowData(tr);
 
-                  if (this.selectionSymbols[data.id]) {
-                      sym = symbolJsonUtils.fromJson(this.selectionSymbols[data.id]);
-
-                  }
-                  if (sym === null) {
-
-                      if (data.geometryType === "esriGeometryPolygon") {
-
-                          this.symbolSelector.showByType('fill');
-                      }else if (data.geometryType === "esriGeometryPoint") {
-                          this.symbolSelector.showByType('marker');
-                      }else if (data.geometryType === "esriGeometryPolyline") {
-                          this.symbolSelector.showByType('line');
-                      }
-                  }else {
-                      this.symbolSelector.showBySymbol(sym);
-                  }
-
                   this.currentLayer = data.id;
-                  domStyle.set(this.secondPageDiv, 'display', 'none');
-                  domStyle.set(this.symbolPage, 'display', '');
-                  html.removeClass(this.btnSave, 'hide');
-                  html.removeClass(this.btnCancel, 'hide');
+                  var args = {};
+                  args.data = data;
+                  args.selectionSymbols = this.selectionSymbols;
+                  args.nls = this.nls;
+                  var sourceDijit = new SymChooser(args);
 
-                  html.addClass(this.btnNext, 'hide');
-                  html.addClass(this.btnBack, 'hide');
+                  var popup = new Popup({
+                    width: 425,
+                    height: 475,
+                    content: sourceDijit,
+                    titleLabel: this.nls.symbolPopup,
+                    onClose: lang.hitch(this, function(){
+                      sourceDijit.destroy();
+                    }),
+                    buttons: [{
+                      label: this.nls.ok,
+                      onClick: lang.hitch(this, function(){
+                        this.selectionSymbols[this.currentLayer] = (sourceDijit.okPress()).getSymbol().toJson();
+                        popup.close();
+                      })
+                    }, {
+                      label: this.nls.cancel,
+                      onClick: lang.hitch(this, function(){
+                        popup.close();
+                      })
+                    }]
+                  });
+
               }
-          },
-          saveSymbol: function () {
-
-              this.selectionSymbols[this.currentLayer] = this.symbolSelector.getSymbol().toJson();
-              domStyle.set(this.secondPageDiv, 'display', '');
-              domStyle.set(this.symbolPage, 'display', 'none');
-
-              this.currentLayer = null;
-              html.addClass(this.btnSave, 'hide');
-              html.addClass(this.btnCancel, 'hide');
-
-              html.removeClass(this.btnNext, 'hide');
-              html.removeClass(this.btnBack, 'hide');
-
-          },
-          cancelSymbol: function () {
-              domStyle.set(this.secondPageDiv, 'display', '');
-              domStyle.set(this.symbolPage, 'display', 'none');
-              this.currentLayer = null;
-              html.addClass(this.btnSave, 'hide');
-              html.addClass(this.btnCancel, 'hide');
-
-              html.removeClass(this.btnNext, 'hide');
-              html.removeClass(this.btnBack, 'hide');
-
           }
 
       });

@@ -19,7 +19,31 @@
             </div>
             <div class="esriCTHint esriCTMargin">
                 ${nls.hintText.accessPointLayerText}</div>
+            <div class="esriCTAllowAccessPointLayer" data-dojo-attach-point="divAllowAccessPointLayer">
+            </div>
+            <div class="esriCTHint esriCTMargin">
+                ${nls.hintText.allowUserAccessPointLayerSelectText}</div>
         </div>
+    </div>
+    <div class="divCostEquationContainer row" title="${nls.lblForBox}">
+        <div class="SFlabel" data-dojo-attach-point="LabelforBoxDiv">
+            ${nls.lblForBox}
+        </div>
+        <div class="esriCTInputTextbox" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="txtLabelForBox"
+            data-dojo-props='required:true,disabled:false'">
+        </div>
+        <div class="esriCTHint esriCTMargin">
+            ${nls.hintText.hintLabelForBox}</div>
+    </div>
+    <div class="divCostEquationContainer row" title="${nls.lblForExpression}">
+        <div class="SFlabel" data-dojo-attach-point="costExpressionLabel">
+            ${nls.lblForExpression}
+        </div>
+        <div class="esriCTInputTextbox" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="txtCostExpression"
+            data-dojo-props='required:true,disabled:false'">
+        </div>
+        <div class="esriCTHint esriCTMargin">
+            ${nls.hintText.hintExpressionText}</div>
     </div>
     <div class="divRouteLengthUnitsContainer row" title="${nls.lblForRouteLengthUnits}">
         <div class="SFlabel" data-dojo-attach-point="RouteLengthUnitLabel">
@@ -136,10 +160,26 @@
                     <div class="esriCTHint esriCTMargin">
                         ${nls.hintText.cuttOffDistanceText}</div>
                 </div>
+                <div class="row travelModeContainer">
+                    <div class="SFlabel" title="${nls.lblTravelMode}">
+                        <input type="radio" name="attributeParameterSelection" data-dojo-type="dijit/form/RadioButton"
+                            data-dojo-attach-point="travelModeRdb" />
+                        ${nls.lblTravelMode}
+                    </div>
+                    <div class="inputbox esriCTHidden" data-dojo-attach-point="travelModesListParentContainer">
+                        <select data-dojo-type="dijit/form/Select" data-dojo-attach-point="travelModesList">
+                        </select>
+                    </div>
+                </div>
+                <div class="row customAttributeContainer">
+                    <div class="SFlabel" title="${nls.lblAttributeParameterValues}">
+                        <input type="radio" name="attributeParameterSelection" data-dojo-type="dijit/form/RadioButton"
+                            data-dojo-attach-point="customAttributeParameterRdb" />
+                        ${nls.lblAttributeParameterValues}
+                    </div>
+                </div>
                 <div class="row esriCTHidden" data-dojo-attach-point="attributeParameterValues">
                     <div class="esriCTMainAttrPos">
-                        <div class="SFlabel" style="float: left; width: 100%" title="${nls.lblAttributeParameterValues}">
-                            ${nls.lblAttributeParameterValues}</div>
                         <div class="esriCTHint esriCTMargin esriCTAttrPos esriCTLayoutLeft">
                             ${nls.hintText.AttributeParameterValueText1}</div>
                         <div class="esriCTHint esriCTMargin esriCTAttrPos esriCTLayoutLeft">
@@ -151,6 +191,7 @@
                     </div>
                 </div>
             </div>
+        </div>
     </fieldset>
     <fieldset class="fldSetServiceAreaParameters row">
         <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.captionSaveResults}">
@@ -260,25 +301,33 @@
     <fieldset class="fldSetClosestFacilityParameters row">
         <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.symbol.barrier}">
             ${nls.symbol.barrier}</legend>
-        <div class="divBusinessListContainer row">
-            <div class="SFlabel" title="${nls.symbol.pointBarrierSymbol}">
-                ${nls.symbol.pointBarrierSymbol}
+        <div class="esriCTattributeParamLookup row">
+            <div class="esriCTBusinessLayerChecks" data-dojo-attach-point="allowBarriersCheckBox">
             </div>
-            <div data-dojo-attach-point="pointBarrierSymbol" class="common-input esriCTSymbolData">
-            </div>
-        </div>
-        <div class="divBusinessListContainer row">
-            <div class="SFlabel" title="${nls.symbol.lineBarrierSymbol}">
-                ${nls.symbol.lineBarrierSymbol}
-            </div>
-            <div data-dojo-attach-point="lineBarrierSymbol" class="common-input esriCTSymbolData">
+            <div class="esriCTExportCsvLabel esriCTSaveTargetLabel" data-dojo-attach-point="allowBarriersLabel">
             </div>
         </div>
-        <div class="divBusinessListContainer row">
-            <div class="SFlabel" title="${nls.symbol.polygonBarrierSymbol}">
-                ${nls.symbol.polygonBarrierSymbol}
+        <div class="esriCTBarriersDiv" data-dojo-attach-point="barriersDiv">
+            <div class="divBusinessListContainer row">
+                <div class="SFlabel" title="${nls.symbol.pointBarrierSymbol}">
+                    ${nls.symbol.pointBarrierSymbol}
+                </div>
+                <div data-dojo-attach-point="pointBarrierSymbol" class="common-input esriCTSymbolData">
+                </div>
             </div>
-            <div data-dojo-attach-point="polygonBarrierSymbol" class="common-input esriCTSymbolData">
+            <div class="divBusinessListContainer row">
+                <div class="SFlabel" title="${nls.symbol.lineBarrierSymbol}">
+                    ${nls.symbol.lineBarrierSymbol}
+                </div>
+                <div data-dojo-attach-point="lineBarrierSymbol" class="common-input esriCTSymbolData">
+                </div>
+            </div>
+            <div class="divBusinessListContainer row">
+                <div class="SFlabel" title="${nls.symbol.polygonBarrierSymbol}">
+                    ${nls.symbol.polygonBarrierSymbol}
+                </div>
+                <div data-dojo-attach-point="polygonBarrierSymbol" class="common-input esriCTSymbolData">
+                </div>
             </div>
         </div>
     </fieldset>

@@ -61,7 +61,9 @@
       selectImage: "Image",
       height: "Image height",
       width: "Image width",
-      timeout: "Timeout"
+      timeout: "Timeout",
+      autoZoomAfterTrace: "Zoom options",
+      zoomText: "Auto zoom after trace"
     },
     // validation messages
     validationErrorMessage: {

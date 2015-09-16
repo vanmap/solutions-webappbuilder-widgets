@@ -4,6 +4,7 @@
   font-size: 15px;
 }
 
+
 .solutions-widget-batcheditor-setting .dijitArrowButtonContainer{
   width: 17px;
 }
@@ -40,14 +41,14 @@
   width:100%;
 }
 .solutions-widget-batcheditor-setting .settings-navigation-table > tbody > tr > td{
- 
+
   vertical-align:middle;
   font-size: 1em;
 }
 
 /*Page 1*/
 .solutions-widget-batcheditor-setting .setting-tool-table{
-  margin:15px; 
+  margin:15px;
   padding-right:15px;
   outline: #000000 solid thin;
 }
@@ -70,9 +71,9 @@
 
 /*Page 2*/
 .solutions-widget-batcheditor-setting .setting-layer-table{
-  margin:15px; 
+  margin:15px;
   padding-right:15px;
- 
+
 }
 .solutions-widget-batcheditor-setting .setting-layer-toggle-checkbox {
      margin-right: 10px;
@@ -81,7 +82,16 @@
 
 /*Page 3*/
 .solutions-widget-batcheditor-setting .setting-common-fields-table{
-  margin:15px; 
+  margin:15px;
   padding-right:15px;
 }
 
+.solutions-widget-batcheditor-setting .footer {
+  text-align: right;
+}
+
+.footer {
+  padding-top: 5px;
+  width: 100%;
+  height: 30px;
+}

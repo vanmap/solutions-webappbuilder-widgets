@@ -35,6 +35,8 @@ define([
     'jimu/BaseWidget',
     'jimu/dijit/SimpleTable',
     'jimu/dijit/LoadingIndicator',
+    'jimu/dijit/Filter',
+    'jimu/dijit/Popup',
     'esri/graphic',
     'esri/InfoTemplate',
     'esri/layers/FeatureLayer',
@@ -68,6 +70,8 @@ function (declare,
           BaseWidget,
           SimpleTable,
           LoadingIndicator,
+          Filter,
+          Popup,
           Graphic,
           InfoTemplate,
           FeatureLayer,
@@ -97,6 +101,7 @@ function (declare,
         selectQuery: null,
         timer: null,
         syncLayers: null,
+        expressionLayers: [],
         startup: function () {
             this.inherited(arguments);
 
@@ -581,7 +586,12 @@ function (declare,
                    type: 'text',
                    hidden: true,
                    width: 0
-               }
+               }, {
+                  name: 'actions',
+                  title: 'Filter',
+                  type: 'actions',
+                  actions: ['edit']
+              }
             ];
             var args = {
                 fields: layerTableFields,
@@ -591,6 +601,9 @@ function (declare,
             this.layersTable = new SimpleTable(args);
             this.layersTable.placeAt(this.tableLayerInfos);
             this.layersTable.startup();
+            this.own(on(this.layersTable, 'actions-edit', lang.hitch(this, function(tr) {
+              this._showFilter(tr);
+            })));
         },
         disableWebMapPopup: function () {
             if (this.map) {
@@ -1070,6 +1083,81 @@ function (declare,
             }
             this.timer.stop();
         },
+
+       _showFilter: function(pTR) {
+
+            //var table = this.featureTables[this.layersIndex];
+
+            //var cFields = this.config.layerInfos[this.layersIndex].layer.fields;
+            //var fFields = this._getFilterableFields(definition.fields, cFields);
+            //definition.fields = fFields;
+            var rowData = this.layersTable.getRowData(pTR);
+            var url;
+            var definition;
+            var workLayer;
+            var defaultDef;
+            var expression;
+            array.forEach(this.updateLayers, lang.hitch(this, function(layer){
+              if (layer.id === rowData.ID) {
+                workLayer = layer;
+                definition = layer.resourceInfo;
+                url = layer.url;
+              }
+            }));
+            if(this.expressionLayers.length > 0) {
+              array.forEach(this.expressionLayers, lang.hitch(this, function(expLyr){
+                if (expLyr.id === rowData.ID) {
+                  expression = expLyr;
+                }
+              }));
+            } else {
+              this.expressionLayers.push({'id':rowData.ID, 'expr':''});
+              expression = this.expressionLayers[0];
+            }
+
+            var filter = new Filter({
+              noFilterTip: 'Without filter expression defined, this query task will list all features in the specified data source.',
+              style: "width:100%;margin-top:22px;"
+            });
+            var filterPopup = new Popup({
+              titleLabel: 'filter layer',
+              width: 680,
+              height: 485,
+              content: filter,
+              buttons: [{
+                label: 'OK',
+                onClick: lang.hitch(this, function() {
+                  var partsObj = filter.toJson();
+                  if (partsObj && partsObj.expr) {
+                    //table.setFilterObj(partsObj);
+                    //table.startQuery();
+                    console.log(partsObj);
+                    console.log(workLayer);
+                    workLayer.layerObject.setDefinitionExpression(partsObj.expr);
+                    expression.expr = partsObj;
+                    filterPopup.close();
+                    filterPopup = null;
+                  } else {
+                    new Message({
+                      message: 'filter tip'
+                    });
+                  }
+                })
+              }, {
+                label: 'Cancel'
+              }]
+            });
+            //var filterObj = workLayer.layerObject.getDefinitionExpression();
+            if (expression) {
+              filter.buildByFilterObj(url, expression.expr, definition);
+            } else {
+              filter.buildByExpr(url, null, definition);
+            }
+
+        },
+
+
+
         onOpen: function () {
 
             this.disableWebMapPopup();

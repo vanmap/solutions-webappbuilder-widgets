@@ -1148,7 +1148,7 @@ function (declare,
               }]
             });
             //var filterObj = workLayer.layerObject.getDefinitionExpression();
-            if (expression.expr !== '') {
+            if (expression) {
               filter.buildByFilterObj(url, expression.expr, definition);
             } else {
               filter.buildByExpr(url, null, definition);

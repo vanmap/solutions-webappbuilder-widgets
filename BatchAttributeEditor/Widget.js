@@ -1129,14 +1129,20 @@ function (declare,
                   if (partsObj && partsObj.expr) {
                     //console.log(workLayer);
                     workLayer.layerObject.setDefinitionExpression(partsObj.expr);
+                    on(workLayer.layerObject, "update-end", lang.hitch(this, function(){
+                      if(workLayer.layerObject.getSelectedFeatures().length > 0) {
+                        this._clearResults(true);
+                        lang.hitch(this, this._onDrawEnd(this.drawnGrph));
+                      }
+                    }));
                     expression.expr = partsObj;
-
+/*
                     if(workLayer.layerObject.getSelectedFeatures().length > 0) {
                       //workLayer.layerObject.clearSelection();
                       this._clearResults(true);
                       lang.hitch(this, this._onDrawEnd(this.drawnGrph));
                     }
-
+*/
 
                     filterPopup.close();
                     filterPopup = null;

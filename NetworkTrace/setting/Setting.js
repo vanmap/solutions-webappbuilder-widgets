@@ -748,7 +748,7 @@ define([
     **/
     _createOthersTaskParameters: function () {
       var m, othersConfig, othersSettingInstance, OthersHolderDiv,
-        selectedItems, param, displayTextForRunButton;
+        selectedItems, param, displayTextForRunButton, autoZoomAfterTraceCheckedState;
       OthersHolderDiv = domConstruct.create("div", {
         "id": "esriCTOtherHolder",
         "class": "esriCTOtherHolder",
@@ -777,12 +777,16 @@ define([
       if (this.config && this.config.displayTextForRunButton) {
         displayTextForRunButton = this.config.displayTextForRunButton;
       }
-
+      autoZoomAfterTraceCheckedState = false;
+      if (this.config && this.config.autoZoomAfterTrace) {
+        autoZoomAfterTraceCheckedState = this.config.autoZoomAfterTrace;
+      }
       param = {
         "nls": this.nls,
         "folderUrl": this.folderUrl,
         "othersConfig": othersConfig,
-        "displayTextForRunButton": displayTextForRunButton
+        "displayTextForRunButton": displayTextForRunButton,
+        "autoZoomAfterTraceCheckedState": autoZoomAfterTraceCheckedState
       };
       othersSettingInstance = new OthersSetting(param, domConstruct.create(
         "div", {}, this.othersData));
@@ -951,6 +955,7 @@ define([
               this.config.displayTextForRunButton = othersParam.displayTextForRunButton;
               //delete othersParam.displayTextforRunButton;
               this.config.highlighterDetails = othersParam.highlighterDetails;
+              this.config.autoZoomAfterTrace = othersParam.autoZoomAfterTrace;
             }
           }));
       }

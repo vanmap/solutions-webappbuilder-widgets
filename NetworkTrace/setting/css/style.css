@@ -472,3 +472,8 @@
     margin-left: 2px;
     padding: 3px 0px 3px 0px;
 }
+
+.jimu-widget-NetworkTrace-setting .esriCTAutoZoomText
+{
+    width: 155px !important;
+}

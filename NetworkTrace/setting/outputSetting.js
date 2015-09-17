@@ -137,12 +137,15 @@ define([
         helpTextData += "(";
         // Loop for populating the options in dropdown list
         for (j = 0; j < skippableFieldSelectArr.length; j++) {
+          if (skippableFieldSelectArr[j].type === "esriFieldTypeOID") {
+            continue;
+          }
           this.inputTypeData.addOption({
             value: skippableFieldSelectArr[j].name,
             label: skippableFieldSelectArr[j].name,
             selected: false
           });
-          this.helpTextDataArray[j] = skippableFieldSelectArr[j].name;
+          this.helpTextDataArray.push(skippableFieldSelectArr[j].name);
           helpTextData += "{" + skippableFieldSelectArr[j].name;
           // if loop index is second last then
           if (j !== (skippableFieldSelectArr.length - 1)) {
@@ -165,7 +168,8 @@ define([
       this._addSaveToLayerOptions();
       this._createSymbolInput();
       this.outageArea.isChecked = this.outputLayer.checked;
-      this.own(on(this.outputLayer.domNode, "click", lang.hitch(this, this._onLayerChange)));
+      this.own(on(this.outputLayer.domNode, "click", lang.hitch(this,
+        this._onLayerChange)));
       on(this.outputLayer.domNode, "click", lang.hitch(this, function () {
         this.layerChangeHandler(this);
       }));
@@ -300,7 +304,8 @@ define([
           domClass.remove(this.selectOutputLayerType, "esriCTHidden");
         }
       }
-      this.own(on(this.skippable.domNode, "click", lang.hitch(this, this._onSkipChange)));
+      this.own(on(this.skippable.domNode, "click", lang.hitch(this,
+        this._onSkipChange)));
     },
 
 

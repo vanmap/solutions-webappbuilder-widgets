@@ -1,4 +1,4 @@
-/*global define,dijit */
+/*global define */
 ///////////////////////////////////////////////////////////////////////////
 // Copyright © 2014 Esri. All Rights Reserved.
 //
@@ -29,7 +29,6 @@ define([
   "esri/toolbars/draw",
   "dojo/dom-class",
   "esri/tasks/FeatureSet",
-  "dijit/TitlePane",
   "dojo/dom-construct",
   "dojox/timing",
   "dojo/query",
@@ -49,7 +48,9 @@ define([
   "esri/geometry/geometryEngine",
   "esri/layers/FeatureLayer",
   "esri/request",
-  "esri/tasks/query"
+  "esri/tasks/query",
+  "jimu/dijit/TabContainer",
+  "dojo/dom"
 ], function (
   declare,
   BaseWidget,
@@ -65,7 +66,6 @@ define([
   Draw,
   domClass,
   FeatureSet,
-  TitlePane,
   domConstruct,
   Timing,
   query,
@@ -85,7 +85,9 @@ define([
   geometryEngine,
   FeatureLayer,
   esriRequest,
-  Query
+  Query,
+  JimuTabContainer,
+  dom
 ) {
   return declare([BaseWidget], {
     baseClass: 'jimu-widget-NetworkTrace',
@@ -112,12 +114,21 @@ define([
     attInspector: null,
     overviewGraphicsLayer: null,
     _inputGeomConvexHull: [],
+    _flagID: null, // flag ObjId counter
+    _barrierID: null, //block ObjId counter
+    _inputFlag: null, //input Loc Label counter
+    _inputBlock: null, //block Loc Label counter
+    _flagCount: null, // input feature count
+    _barrierCount: null, //block feature count
+    _tabContainer: null, // to store object of tab container
+
     /**
     *This is a startup function of a network trace widget.
     **/
     startup: function () {
       this.inherited(arguments);
       if (this._validateConfigParams()) {
+        this._initializingJimuTabContainer();
         this._getFieldAliasFromGPService();
         this.IsOpera = !!window.opera || navigator.userAgent.indexOf(
           ' OPR/') >= 0;
@@ -136,6 +147,25 @@ define([
         this.viewPortSize = dojoWindowClass.getBox();
         this.panelManager = PanelManager.getInstance();
       }
+    },
+
+    /**
+    * This function will initialize jimu tab container.
+    * @memberOf widgets/ServiceFeasibility/Widget
+    **/
+    _initializingJimuTabContainer: function () {
+      this._tabContainer = new JimuTabContainer({
+        tabs: [{
+          title: this.nls.inputTabTitle,
+          content: this.inputTabPanel,
+          selected: true
+        }, {
+          title: this.nls.outputTabTitle,
+          content: this.outputTab,
+          selected: false
+        }]
+      }, this.tabContainerNetworkTrace);
+      this._tabContainer.startup();
     },
 
     destroy: function () {
@@ -287,6 +317,9 @@ define([
       featureLength) {
       var exportToCSVArray;
       exportToCSVArray = [];
+      if (isShowResultPanel) {
+        this._tabContainer.selectTab(this.nls.outputTabTitle);
+      }
       this.resultPanel.style.display = isShowResultPanel ? "block" :
         "none";
       array.forEach(this.config.geoprocessing.outputs, function (
@@ -317,6 +350,7 @@ define([
           }));
       }
     },
+
     /**
     *This function will enable or disable  panel.
     *@param{boolean} isShowTracePanel: Boolean to check whether result panel should display or not.
@@ -325,6 +359,7 @@ define([
       this.tracePanel.style.display = isShowTracePanel ? "block" :
         "none";
     },
+
     /**
     *This function will enable or disable 'Save To Layer' and 'Export To CSV' buttons  panel.
     *@param{boolean} isShowButtons: Boolean to check whether result panel should display or not.
@@ -333,6 +368,7 @@ define([
       this.divForButtons.style.display = isShowButtons ? "block" :
         "none";
     },
+
     /**
     *This function will enable loading icon
     *@param{boolean} isShowLoadingIcon: Boolean to check whether loading icon should display or not.
@@ -351,17 +387,26 @@ define([
     *This function will execute when user clicked on the 'Run Trace' button.
     **/
     _onTraceButtonClick: function () {
+      var resultMainDiv, i;
       if (!domClass.contains(this.btnTrace, "jimu-state-disabled")) {
         this.savedLayers.length = 0;
         this.savedLayers = [];
         this.overviewFeature = null;
         this.savedFeatureObjectId = null;
         domConstruct.empty(this.outageAreaSelectDiv);
+        domConstruct.empty(this.resultLayersInformationContainer);
+        resultMainDiv = query(".esriCTResultContainerData");
+        for (i = 0; i < resultMainDiv.length; i++) {
+          domConstruct.empty(resultMainDiv[i]);
+        }
         this.enableWebMapPopup();
         this._GPExecute();
         this._showTracePanel(true);
         this._showLoadingIcon(true);
         this._showResultPanel(false);
+        style.set(this.resultLayersInformationContainer, "display",
+          "block");
+        style.set(this.resultsLayerNamesContainer, "display", "block");
       }
     },
 
@@ -373,8 +418,13 @@ define([
           "jimu-state-disabled")) {
         this._checkTargetLayersAvailability();
         this._showResultPanel(false);
-        this._showTracePanel(false);
+        style.set(this.resultLayersInformationContainer, "display",
+          "none");
+        style.set(this.resultsLayerNamesContainer, "display", "none");
+        this._tabContainer.controlNode.style.display = "none";
+        style.set(this.resultPanel, "display", "none");
         this.SaveToLayerPanel.style.display = "block";
+        this.saveToLayerDiv.style.display = "block";
         this.exportToCSVPanel.style.display = "none";
         this._displaySaveLayerPanel();
         this._overviewLayerSave();
@@ -467,7 +517,6 @@ define([
       console.log(evt);
     },
 
-
     /**
     *This Function will display Runtrace panel when click on back button .
     **/
@@ -478,10 +527,14 @@ define([
       domClass.add(this.outageAreaVisibiltyDiv, "esriCTHidden");
       this._showLoadingIcon(true);
       this._showResultPanel(true);
-      this._showTracePanel(true);
       this._showLoadingIcon(false);
       this.SaveToLayerPanel.style.display = "none";
       this.exportToCSVPanel.style.display = "none";
+      style.set(this.resultLayersInformationContainer, "display",
+        "block");
+      style.set(this.resultsLayerNamesContainer, "display", "block");
+      this._tabContainer.controlNode.style.display = "block";
+      style.set(this.resultPanel, "display", "block");
     },
 
     /**
@@ -491,10 +544,15 @@ define([
       if (!domClass.contains(this.btnExportToLayer,
           "jimu-state-disabled")) {
         this._showResultPanel(false);
-        this._showTracePanel(false);
         this._showLoadingIcon(false);
         this.SaveToLayerPanel.style.display = "none";
         this.exportToCSVPanel.style.display = "block";
+        style.set(this.resultLayersInformationContainer, "display",
+          "none");
+        style.set(this.resultsLayerNamesContainer, "display", "none");
+        this._tabContainer.controlNode.style.display = "none";
+        style.set(this.resultPanel, "display", "none");
+        style.set(this.exportToCSVDiv, "display", "block");
         this._displayExportToCSVPanel();
       }
     },
@@ -1057,7 +1115,7 @@ define([
     *@param{object} evt: object containing information regarding the map point.
     **/
     _onMapClick: function (evt) {
-      var addType;
+      var addType, objID;
       //This is will check whether Flag or Barrier has been selected or not, to place the pushpin on the map.
       if (this.flagBtnClicked || this.barrierBtnClicked) {
         //Checking whether flag button is clicked or not.
@@ -1067,18 +1125,30 @@ define([
           domClass.remove(this.btnClear, "jimu-state-disabled");
           this.btnTrace.disabled = false;
           this.btnClear.disabled = false;
+          this._flagID++;
+          objID = this._flagID;
+          this._addInputLocation(new Graphic(evt.mapPoint, null, {
+            "ObjID": objID
+          }, null), addType);
         }
         //checking whether barrier button is clicked or not.
         if (this.barrierBtnClicked) {
           addType = "Barrier";
           domClass.remove(this.btnClear, "jimu-state-disabled");
           this.btnClear.disabled = false;
+          this._barrierID++;
+          objID = this._barrierID;
+          this._addBarrierLocation(new Graphic(evt.mapPoint, null, {
+            "ObjID": objID
+          }, null), addType);
         }
         //Looping thorugh the Input Layers to add the Graphic.
         array.some(this.gpInputDetails, function (layer) {
           //Checking the Layer type
           if (layer.type === addType) {
-            layer.add(new Graphic(evt.mapPoint, null, null, null));
+            layer.add(new Graphic(evt.mapPoint, null, {
+              "ObjID": objID
+            }, null));
             return true;
           }
         });
@@ -1140,9 +1210,7 @@ define([
     **/
     _createResultPanels: function () {
       var rendererObj, symbolObj, featureCollection = {},
-        outFields, overviewLayer, sym, ren, layer, tp, parentTp,
-        otherTp = [],
-        i;
+        outFields, overviewLayer, sym, ren, layer;
       symbolObj = this._createGraphicFromJSON(this.config.overview.symbol);
       rendererObj = new SimpleRenderer(symbolObj);
       if (this.config.overview.saveToLayer !== "") {
@@ -1155,7 +1223,7 @@ define([
       }
       featureCollection.layerDefinition = {
         "id": 0,
-        "name": "OverviewGraphicLayer",
+        "name": this.name + " Overview",
         "type": "Feature Layer",
         "displayField": overviewLayer ? overviewLayer.displayField : "",
         "description": "",
@@ -1188,6 +1256,7 @@ define([
       this.map.addLayer(this.overviewGraphicsLayer);
 
       this.resultLayers = [];
+      domConstruct.empty(this.resultLayersInformationContainer);
       array.forEach(this.config.geoprocessing.outputs, function (
         output) {
         sym = null;
@@ -1222,60 +1291,8 @@ define([
         }
         this.map.addLayer(layer);
         output.layer = layer;
-        if (parentTp === undefined) {
-          parentTp = new TitlePane({
-            title: this.nls.summaryPanel,
-            //id: output.paramName + "CP",
-            id: "overview" + "CP",
-            open: true
-          });
-          if (this.appConfig.theme.name === "DartTheme") {
-            if (parentTp && parentTp.titleBarNode && parentTp.titleBarNode
-              .childNodes[1] && parentTp.titleBarNode.childNodes[
-                1].childNodes[3]) {
-              domAttr.set(parentTp.titleBarNode.childNodes[1].childNodes[
-                  3], "style",
-                "color:black !important;");
-            }
-          }
-        }
-        if (parentTp !== undefined) {
-          this.titlePaneHolder.appendChild(parentTp.domNode);
-          this.summaryTp = parentTp;
-          domAttr.set(parentTp.titleBarNode, "title", this.nls.summaryPanel);
-          parentTp.startup();
-        }
-        if (output.type === "Result") {
-          tp = new TitlePane({
-            id: output.paramName + "CP",
-            open: false
-          });
-          if (this.appConfig.theme.name === "DartTheme") {
-            if (tp && tp.titleBarNode && tp.titleBarNode.childNodes[
-                1] && tp.titleBarNode.childNodes[1].childNodes[3]) {
-              domAttr.set(tp.titleBarNode.childNodes[1].childNodes[
-                  3], "style",
-                "color:black !important;");
-            }
-          }
-          if (output.toolTip !== "" && output.toolTip !== null) {
-            domAttr.set(tp.titleBarNode, "title", output.toolTip);
-          }
-          otherTp.push(tp);
-        }
-
-        if (tp !== undefined) {
-          output.resultsPane = tp;
-          tp.startup();
-        }
-        if (otherTp.length === this.config.geoprocessing.outputs.length) {
-          for (i = 0; i < otherTp.length; i++) {
-            this.titlePaneHolder.appendChild(otherTp[i].domNode);
-            if (i === otherTp.length - 1) {
-              domClass.add(otherTp[i].domNode,
-                "lastTitlePaneNodeBorder");
-            }
-          }
+        if (this.config.geoprocessing.outputs.length > 0) {
+          this._createLayerResultPanel(output);
         }
         //To check whether output type is overview.
         if (output.type === "Result") {
@@ -1284,6 +1301,98 @@ define([
           this.overviewInfo = output;
         }
       }, this);
+    },
+
+    _createLayerResultPanel: function (output) {
+      var layerNameContainer, layerName, rightCaretIcon,
+        resultContainer,
+        resultContainerHeader, resultContainerBack,
+        resultContainerLbl, resultContainerData;
+      layerNameContainer = domConstruct.create("div", {
+        "class": "esriCTLayerNameContainer",
+        "LayerName": output.paramName
+      });
+      layerName = domConstruct.create("div", {
+        "class": "esriCTLayerName",
+        "style": "color:#000 !important",
+        "innerHTML": output.panelText,
+        "id": output.paramName + "_LN"
+      }, layerNameContainer);
+      rightCaretIcon = domConstruct.create("div", {
+        "class": "esriCTRightCaretIcon",
+        "style": "color:#000 !important"
+      }, layerNameContainer);
+      this.resultsLayerNamesContainer.appendChild(
+        layerNameContainer);
+
+      resultContainer = domConstruct.create("div", {
+        "class": "esriCTResultContainer",
+        "id": output.paramName + "RC",
+        "title": ""
+      });
+      resultContainerHeader = domConstruct.create("div", {
+        "class": "esriCTResultContainerHeader",
+        "resultType": output.paramName,
+        "title": ""
+      }, resultContainer);
+      resultContainerBack = domConstruct.create("div", {
+        "class": "esriCTResultContainerBack",
+        "resultType": output.paramName,
+        "innerHTML": "&lt" + this.nls.backButtonValue,
+        "style": "color:#000 !important",
+        "title": ""
+      }, resultContainerHeader);
+      resultContainerLbl = domConstruct.create("div", {
+        "class": "esriCTResultContainerLbl",
+        "style": "color:#000 !important",
+        "id": output.paramName + "_RCL",
+        "title": ""
+      }, resultContainerHeader);
+      resultContainerData = domConstruct.create("div", {
+        "class": "esriCTResultContainerData",
+        "id": output.paramName + "RCD",
+        "title": ""
+      }, resultContainer);
+      this.layerFeaturesContainer.appendChild(
+        resultContainer);
+      this._displayFeatureOnLayerClick(layerNameContainer,
+        resultContainerBack);
+    },
+
+    _displayFeatureOnLayerClick: function (layerNameContainer,
+      resultContainerBack) {
+      var paramName, resultMainDiv, resultDataDiv;
+      this.own(on(layerNameContainer, "click", lang.hitch(this,
+        function (evt) {
+          paramName = domAttr.get(evt.currentTarget,
+            "LayerName");
+          resultDataDiv = dom.byId(paramName + "RCD");
+          if (resultDataDiv.children.length !== 0) {
+            resultMainDiv = dom.byId(paramName + "RC");
+            style.set(resultMainDiv, "display", "block");
+            style.set(this.resultLayersInformationContainer,
+              "display", "none");
+            style.set(this.resultsLayerNamesContainer,
+              "display", "none");
+            this._tabContainer.controlNode.style.display =
+              "none";
+            style.set(this.resultPanel, "display", "none");
+          }
+        })));
+      this.own(on(resultContainerBack, "click", lang.hitch(this,
+        function (evt) {
+          paramName = domAttr.get(evt.currentTarget,
+            "resultType");
+          resultMainDiv = dom.byId(paramName + "RC");
+          style.set(resultMainDiv, "display", "none");
+          this._tabContainer.controlNode.style.display =
+            "block";
+          style.set(this.resultLayersInformationContainer,
+            "display", "block");
+          style.set(this.resultsLayerNamesContainer, "display",
+            "block");
+          style.set(this.resultPanel, "display", "block");
+        })));
     },
 
     /**
@@ -1299,8 +1408,25 @@ define([
     *This function will Clear all the results and resets all buttons.
     **/
     _clearResults: function () {
+      var resultMainDiv, i;
       if (this.overviewGraphicsLayer) {
         this.overviewGraphicsLayer.clear();
+      }
+      style.set(this.barrierLocTab, "display", "none");
+      style.set(this.inputLocTab, "display", "none");
+      domConstruct.empty(this.flagLocContent);
+      domConstruct.empty(this.barrierLocContent);
+      this._flagID = this._barrierID = this._flagCount = this._barrierCount =
+        0;
+      this._inputFlag = this._inputBlock = 0;
+
+      style.set(this.resultLayersInformationContainer, "display",
+        "none");
+      style.set(this.resultsLayerNamesContainer, "display", "none");
+      domConstruct.empty(this.resultLayersInformationContainer);
+      resultMainDiv = query(".esriCTResultContainerData");
+      for (i = 0; i < resultMainDiv.length; i++) {
+        domConstruct.empty(resultMainDiv[i]);
       }
       this._showResultPanel(false);
       this._resetInputs();
@@ -1387,10 +1513,8 @@ define([
     *This function will start the asynchronous call as well as check and create the Parameter for the GP call.
     **/
     _GPExecute: function () {
-      var outputSummaryCP, params = {},
+      var params = {},
         featureset, noFlags;
-      outputSummaryCP = dijit.byId("overview" + "CP");
-      outputSummaryCP.set("content", "");
       if (this.toolbar !== null) {
         this.toolbar.deactivate();
         this.toolbar = null;
@@ -1561,8 +1685,10 @@ define([
                     "esriCTHidden");
                   bufferGeometryGraphic = new Graphic(
                     bufferGeometry, null, {});
-                  this.map.setExtent((bufferGeometry.getExtent())
-                    .expand(1.8));
+                  if (this.config.autoZoomAfterTrace) {
+                    this.map.setExtent((bufferGeometry.getExtent())
+                      .expand(1.8));
+                  }
                   if (this.overviewGraphicsLayer) {
                     this.overviewGraphicsLayer.clear();
                   }
@@ -1667,17 +1793,18 @@ define([
     *@param{object} selectedGPParam: object containing information regarding the output features.
     **/
     _populateResultsToggle: function (selectedGPParam) {
-      var cp, skipBtnTitle = "",
+      var skipBtnTitle = "",
         zoomToText = "",
         objectIDValue, bypassBtnClass, objectIDKey, resultCount,
         process, skipedLocation, selectedGraphic, div, btnControlDiv,
-        btnBypassDiv, zoomToHyperLink, summaryTextDiv;
+        btnBypassDiv, zoomToHyperLink, summaryTextDiv,
+        resultContainerDataDiv;
       resultCount = {
         "Count": 0,
         "SkipCount": 0
       };
-      cp = dijit.byId(selectedGPParam.paramName + "CP");
-      cp.set("content", "");
+      resultContainerDataDiv = dom.byId(selectedGPParam.paramName +
+        "RCD");
       if (this.config && this.config.geoprocessing && this.config.geoprocessing
         .inputs && this.config.geoprocessing.inputs.length > 0) {
         array.forEach(this.config.geoprocessing.inputs, function (
@@ -1730,7 +1857,7 @@ define([
             "id": selectedGPParam.paramName + ":" +
               objectIDValue + "div",
             "class": "resultItem"
-          }, cp.containerNode);
+          }, resultContainerDataDiv);
           resultItem.controlDetails = {
             "skipGraphic": skipedLocation,
             "bypassDetails": selectedGPParam.bypassDetails,
@@ -1783,13 +1910,11 @@ define([
             zoomToHyperLink.innerText;
           zoomToHyperLink.innerText = zoomToHyperLink.innerHTML =
             zoomToText;
-
           if (zoomToHyperLink.innerText.trim() === "") {
             zoomToHyperLink.innerText = "null";
           } else {
             zoomToHyperLink.innerText.trim();
           }
-
           if (zoomToHyperLink.innerHTML.trim() === "") {
             zoomToHyperLink.innerHTML = "null";
           } else {
@@ -1803,7 +1928,6 @@ define([
               zoomToHyperLink.textContent.trim();
             }
           }
-
           zoomToHyperLink.onclick = lang.hitch(this, this._zoomToBtn(
             resultItem));
           resultItem.controlDetails.selectionGraphic.resultItem =
@@ -1812,22 +1936,23 @@ define([
             selectedGPParam, skipBtnTitle, resultItem);
         }));
       summaryTextDiv = null;
-      if (this.appConfig.theme.name === "DartTheme") {
-        summaryTextDiv =
-          "<div class='resultItemClass' style='color: black !important;'>";
-      } else {
-        summaryTextDiv = "<div class='resultItemClass'>";
-      }
+      summaryTextDiv = "<div class='resultItemClass'>";
       domConstruct.place(
         summaryTextDiv +
         lang.replace(
           selectedGPParam.summaryText, {
             "Count": resultCount.Count + resultCount.SkipCount,
             "SkipCount": resultCount.SkipCount
-          }) + "</div>", this.summaryTp.containerNode);
+          }) + "</div>", this.resultLayersInformationContainer);
       if (selectedGPParam.type === "Result") {
-        domAttr.set(cp, "title", selectedGPParam.panelText + " (" + (
-          resultCount.Count + resultCount.SkipCount) + ")");
+        var layerName = dom.byId(selectedGPParam.paramName + "_LN");
+        domAttr.set(layerName, "innerHTML", selectedGPParam.panelText +
+          " (" + resultCount.Count + ")");
+        domAttr.set(layerName, "title", selectedGPParam.panelText +
+          " (" + resultCount.Count + ")");
+        var countLabel = dom.byId(selectedGPParam.paramName + "_RCL");
+        domAttr.set(countLabel, "innerHTML", selectedGPParam.panelText +
+          " (" + resultCount.Count + ")");
       }
     },
 
@@ -2073,7 +2198,6 @@ define([
     * This function will provide the centroid of the polygon.
     * @param{object} polygon: object containing information regarding the polygon geometry.
     **/
-
     _getPolygonCentroid: function (polygon) {
       var ring, centroid, i, point;
       ring = polygon.rings[Math.round(polygon.rings.length / 2) - 1];
@@ -2181,6 +2305,7 @@ define([
     _changeDomNodeColor: function (color, domNode) {
       style.set(domNode, "backgroundColor", color);
     },
+
     /**
     *This function will popup jimu popup with error message
     *param {string}err: string containing error message
@@ -2190,6 +2315,207 @@ define([
         message: err
       });
       errorMessage.message = err;
+    },
+
+    /**
+    * This function will show and hide Input Locations List
+    */
+    _onInputLocTabClick: function () {
+      style.set(this.inputLocDiv, "display", "block");
+      this._tabContainer.controlNode.style.display = "none";
+      style.set(this.tracePanel, "display", "none");
+      style.set(this.InputBarrierTabContent, "display", "none");
+      on(this.inputBackClick, "click", lang.hitch(this, function () {
+        style.set(this.inputLocDiv, "display", "none");
+        this._tabContainer.controlNode.style.display = "block";
+        style.set(this.tracePanel, "display", "block");
+        style.set(this.InputBarrierTabContent, "display",
+          "block");
+      }));
+    },
+
+    /**
+    * This function will show and hide barrier locations List
+    */
+    _onBarrierLocTabClick: function () {
+      style.set(this.barrierLocDiv, "display", "block");
+      this._tabContainer.controlNode.style.display = "none";
+      style.set(this.tracePanel, "display", "none");
+      style.set(this.InputBarrierTabContent, "display", "none");
+      on(this.barrierBackClick, "click", lang.hitch(this, function () {
+        style.set(this.barrierLocDiv, "display", "none");
+        this._tabContainer.controlNode.style.display = "block";
+        style.set(this.tracePanel, "display", "block");
+        style.set(this.InputBarrierTabContent, "display",
+          "block");
+      }));
+    },
+
+    /**
+    * This function will add feature to input location list
+    * param{object} feature that will be added in input location list
+    * param{string} information of layer type
+    */
+    _addInputLocation: function (graphic, type) {
+      var inputFlagDiv, inputFlagAnchor, inputFlagCloseDiv;
+      this._flagCount++;
+      this._inputFlag++;
+      style.set(this.inputLocTab, "display", "block");
+      domAttr.set(this.lblInputLoc, "innerHTML", this.nls.lblInputLocTab +
+        " (" + this._flagCount + ")");
+      domAttr.set(this.flagCountLabel, "innerHTML", this.nls.lblInputLocTab +
+        " (" + this._flagCount + ")");
+
+      inputFlagDiv = domConstruct.create("div", {
+        "class": "esriCTInputFlagDiv"
+      });
+      domAttr.set(inputFlagDiv, "Graphic", JSON.stringify(graphic));
+      domAttr.set(inputFlagDiv, "LayerType", type);
+      inputFlagAnchor = domConstruct.create("a", {
+        "class": "esriCTInputLocAnchor",
+        "style": "color:blue !important",
+        "innerHTML": this.nls.lblInputLocation + this._inputFlag
+      }, inputFlagDiv);
+      inputFlagCloseDiv = domConstruct.create("div", {
+        "class": "esriCTInputFlagCloseDiv"
+      }, inputFlagDiv);
+      domConstruct.place(inputFlagDiv, this.flagLocContent);
+
+      this.own(on(inputFlagCloseDiv, "click", lang.hitch(this,
+        function (evt) {
+          if (this.flagLocContent.children.length > 1) {
+            this._onClickCloseRemoveGraphics(evt);
+            this._flagCount--;
+            domAttr.set(this.lblInputLoc, "innerHTML", this.nls
+              .lblInputLocTab + " (" + this._flagCount + ")");
+            domAttr.set(this.flagCountLabel, "innerHTML", this.nls
+              .lblInputLocTab + " (" + this._flagCount + ")");
+          } else {
+            this._errorMessage(this.nls.atLeastOneInputLoc);
+          }
+        })));
+
+      this.own(on(inputFlagAnchor, "click", lang.hitch(this, function (
+        evt) {
+        this._onClickHighlightLocations(evt);
+      })));
+    },
+
+    /**
+    * This function will add feature in barrier list
+    * param{object} feature that will be added in barrier list
+    * param{string} information of layer type
+    */
+    _addBarrierLocation: function (graphic, type) {
+      var blockDiv, blockAnchor, blockCloseDiv;
+      this._barrierCount++;
+      this._inputBlock++;
+      if (this.flagLocContent.children.length === 0) {
+        domClass.add(this.barrierLocTab, "esriCTBodrerTopVisible");
+      } else if (domClass.contains(this.barrierLocTab,
+          "esriCTBodrerTopVisible")) {
+        domClass.remove(this.barrierLocTab, "esriCTBodrerTopVisible");
+      }
+      style.set(this.barrierLocTab, "display", "block");
+      domAttr.set(this.lblBlockLoc, "innerHTML", this.nls.lblBlockLocTab +
+        " (" + this._barrierCount + ")");
+      domAttr.set(this.barrierCountLabel, "innerHTML", this.nls.lblBlockLocTab +
+        " (" + this._barrierCount + ")");
+      blockDiv = domConstruct.create("div", {
+        "class": "esriCTInputFlagDiv"
+      });
+      domAttr.set(blockDiv, "Graphic", JSON.stringify(graphic));
+      domAttr.set(blockDiv, "LayerType", type);
+      blockAnchor = domConstruct.create("a", {
+        "class": "esriCTInputLocAnchor",
+        "style": "color:blue !important",
+        "innerHTML": this.nls.lblBlockLocation + this._inputBlock
+      }, blockDiv);
+      blockCloseDiv = domConstruct.create("div", {
+        "class": "esriCTInputFlagCloseDiv"
+      }, blockDiv);
+      domConstruct.place(blockDiv, this.barrierLocContent);
+
+      this.own(on(blockCloseDiv, "click", lang.hitch(this, function (
+        evt) {
+        this._onClickCloseRemoveGraphics(evt);
+        this._barrierCount--;
+        domAttr.set(this.lblBlockLoc, "innerHTML", this.nls.lblBlockLocTab +
+          " (" + this._barrierCount + ")");
+        domAttr.set(this.barrierCountLabel, "innerHTML", this
+          .nls.lblBlockLocTab + " (" + this._barrierCount +
+          ")");
+        if (this.barrierLocContent.children.length === 0) {
+          style.set(this.barrierLocTab, "display", "none");
+          style.set(this.barrierLocDiv, "display", "none");
+          style.set(this.InputBarrierTabContent, "display",
+            "block");
+          this._tabContainer.controlNode.style.display =
+            "block";
+          style.set(this.tracePanel, "display", "block");
+          if (this.flagLocContent.children.length === 0) {
+            domClass.add(this.btnClear, "jimu-state-disabled");
+            this.btnClear.disabled = true;
+          }
+        }
+      })));
+
+      this.own(on(blockAnchor, "click", lang.hitch(this, function (evt) {
+        this._onClickHighlightLocations(evt);
+      })));
+    },
+
+    /**
+    * This function will remove selected feature from map
+    * param{object} feature that needs to be removed
+    */
+    _onClickCloseRemoveGraphics: function (evt) {
+      var graphic, layerType;
+      graphic = JSON.parse(domAttr.get(evt.currentTarget.parentNode,
+        "Graphic"));
+      layerType = domAttr.get(evt.currentTarget.parentNode,
+        "LayerType");
+      array.some(this.gpInputDetails, function (layer) {
+        if (layer.type === layerType) {
+          array.some(layer.graphics, function (graphics) {
+            if (graphics.attributes.ObjID === graphic.attributes
+              .ObjID) {
+              layer.remove(graphics);
+              return true;
+            }
+          });
+        }
+      });
+      domConstruct.destroy(evt.currentTarget.parentNode);
+    },
+
+    /**
+    * This function will highlight selected feature on map
+    * param{object} feature on map which needs to be highlighted
+    */
+    _onClickHighlightLocations: function (evt) {
+      var graphic, locGeometry, layerType;
+      graphic = JSON.parse(domAttr.get(evt.currentTarget.parentNode,
+        "Graphic"));
+      layerType = domAttr.get(evt.currentTarget.parentNode,
+        "LayerType");
+      if (graphic) {
+        array.some(this.gpInputDetails, lang.hitch(this, function (
+          layer) {
+          if (layer.type === layerType) {
+            array.some(layer.graphics, lang.hitch(this,
+              function (graphics) {
+                if (graphics.attributes.ObjID === graphic.attributes
+                  .ObjID) {
+                  locGeometry = graphics.geometry;
+                  this.map.centerAt(locGeometry);
+                  this._showHighlightedFeature(locGeometry);
+                  return true;
+                }
+              }));
+          }
+        }));
+      }
     }
   });
 });

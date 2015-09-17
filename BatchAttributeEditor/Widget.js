@@ -102,6 +102,7 @@ function (declare,
         timer: null,
         syncLayers: null,
         expressionLayers: [],
+        drawnGrph: null,
         startup: function () {
             this.inherited(arguments);
 
@@ -300,6 +301,7 @@ function (declare,
                         }
                     }
                     var def = layer.layerObject.selectFeatures(q, FeatureLayer.SELECTION_NEW);
+                    console.log(def);
                     //var sym = layer.layerObject.getSelectionSymbol();
                     defs[layer.id] = def;
                 }
@@ -432,6 +434,7 @@ function (declare,
         _onDrawEnd: function (graphic) {
             this.loading.show();
             //this._togglePanelLoadingIcon();
+            this.drawnGrph = graphic;
 
             this._hideInfoWindow();
 
@@ -1086,11 +1089,6 @@ function (declare,
 
        _showFilter: function(pTR) {
 
-            //var table = this.featureTables[this.layersIndex];
-
-            //var cFields = this.config.layerInfos[this.layersIndex].layer.fields;
-            //var fFields = this._getFilterableFields(definition.fields, cFields);
-            //definition.fields = fFields;
             var rowData = this.layersTable.getRowData(pTR);
             var url;
             var definition;
@@ -1129,12 +1127,23 @@ function (declare,
                 onClick: lang.hitch(this, function() {
                   var partsObj = filter.toJson();
                   if (partsObj && partsObj.expr) {
-                    //table.setFilterObj(partsObj);
-                    //table.startQuery();
-                    console.log(partsObj);
-                    console.log(workLayer);
+                    //console.log(workLayer);
                     workLayer.layerObject.setDefinitionExpression(partsObj.expr);
+                    on(workLayer.layerObject, "update-end", lang.hitch(this, function(){
+                      if(workLayer.layerObject.getSelectedFeatures().length > 0) {
+                        this._clearResults(true);
+                        lang.hitch(this, this._onDrawEnd(this.drawnGrph));
+                      }
+                    }));
                     expression.expr = partsObj;
+/*
+                    if(workLayer.layerObject.getSelectedFeatures().length > 0) {
+                      //workLayer.layerObject.clearSelection();
+                      this._clearResults(true);
+                      lang.hitch(this, this._onDrawEnd(this.drawnGrph));
+                    }
+*/
+
                     filterPopup.close();
                     filterPopup = null;
                   } else {
@@ -1148,7 +1157,7 @@ function (declare,
               }]
             });
             //var filterObj = workLayer.layerObject.getDefinitionExpression();
-            if (expression) {
+            if (expression.expr !== '') {
               filter.buildByFilterObj(url, expression.expr, definition);
             } else {
               filter.buildByExpr(url, null, definition);

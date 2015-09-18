@@ -212,16 +212,16 @@ define([
                   return this.toolOption.FeatureSpatial;
               } else if (this.selectByFeatureQuery.checked) {
                   return this.toolOption.FeatureQuery;
-              } else if (this.selectByQuery.checked) {
-                  return this.toolOption.Query;
               }
+              //else if (this.selectByQuery.checked) {
+              //    return this.toolOption.Query;
+              //}
           },
           page1ToPage2: function () {
 
               if (this.selectByShape.checked === false &&
                   this.selectByFeature.checked === false &&
-                  this.selectByFeatureQuery.checked === false &&
-                  this.selectByQuery.checked === false) {
+                  this.selectByFeatureQuery.checked === false) {
                   if (this.controlsAddedToWidgetFrame) {
                       this.btnErrorMsg.innerHTML = this.config.nls.page1.toolNotSelected;
                       html.removeClass(this.btnErrorMsg, 'hide');
@@ -285,11 +285,11 @@ define([
                       this.config.selectByFeatureQuery = false;
                   }
 
-                  if (this.selectByQuery.checked === true) {
-                      this.config.selectByQuery = this.selectByQuery.checked;
-                  } else {
-                      this.config.selectByQuery = false;
-                  }
+                  //if (this.selectByQuery.checked === true) {
+                  //    this.config.selectByQuery = this.selectByQuery.checked;
+                  //} else {
+                  //    this.config.selectByQuery = false;
+                  //}
               }else if (page === "2") {
 
                   var selectVal;
@@ -320,8 +320,7 @@ define([
 
                           if (rowData.update === true) {
 
-                              if (this.selectByFeatureQuery.checked === true ||
-                                  this.selectByQuery.checked === true) {
+                              if (this.selectByFeatureQuery.checked === true) {
                                   selectVal = query('input[name="queryFldSelect"]', row).shift().value;
                                   if (selectVal !== "NOTSET1") {
                                       rowData.queryField = selectVal;
@@ -381,12 +380,11 @@ define([
               this.selectByShape.set('checked', this.config.selectByShape);
               this.selectByFeature.set('checked', this.config.selectByFeature);
               this.selectByFeatureQuery.set('checked', this.config.selectByFeatureQuery);
-              this.selectByQuery.set('checked', this.config.selectByQuery);
+              //this.selectByQuery.set('checked', this.config.selectByQuery);
 
               if(typeof(this.config.selectByShape) === 'undefined' &&
                   typeof(this.config.selectByFeature) === 'undefined' &&
-                  typeof(this.config.selectByFeatureQuery) === 'undefined' &&
-                  typeof(this.config.selectByQuery) === 'undefined') {
+                  typeof(this.config.selectByFeatureQuery) === 'undefined') {
                 this.selectByShape.set('checked', true);
               }
 
@@ -501,8 +499,7 @@ define([
 
               if (this.selectByShape.checked === false &&
                   this.selectByFeature.checked === false &&
-                  this.selectByFeatureQuery.checked === false &&
-                  this.selectByQuery.checked === false) {
+                  this.selectByFeatureQuery.checked === false) {
                   this.showOKError();
                   return false;
               }

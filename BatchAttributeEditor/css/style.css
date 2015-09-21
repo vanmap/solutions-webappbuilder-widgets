@@ -1,33 +1,33 @@
 @import url("customDrawBox.css");
 /*form*/
-.widget-draw-control {
+.solutions-widget-batcheditor .widget-draw-control {
     margin: 0 15px 5px 15px;
     padding-right: 15px;
 }
 
 
-.hide {
+.solutions-widget-batcheditor .hide {
     display: none;
 }
 
-.widget-intro {
+.solutions-widget-batcheditor .widget-intro {
     margin: 0 10px 0 10px;
     font-size: 14px;
     line-height: 150%;
 }
 
 /*shared*/
-.widget-error {
+.solutions-widget-batcheditor .widget-error {
     font-size: 1.1em;
     color: orangered;
 }
-td.simple-table-td.normal-text-td.syncProcessing {
+.solutions-widget-batcheditor td.simple-table-td.normal-text-td.syncProcessing {
   color:mediumorchid;
 }
-td.simple-table-td.normal-text-td.syncComplete {
+.solutions-widget-batcheditor td.simple-table-td.normal-text-td.syncComplete {
     color: blue;
 }
-td.simple-table-td.normal-text-td.syncSkipped {
+.solutions-widget-batcheditor td.simple-table-td.normal-text-td.syncSkipped {
     color: orange;
 }
 
@@ -42,21 +42,21 @@ td.simple-table-td.normal-text-td.syncSkipped {
     width: 60px;
 }
 
-td.simple-table-td.normal-text-td.maxRecordCount {
+.solutions-widget-batcheditor td.simple-table-td.normal-text-td.maxRecordCount {
     color: orangered;
 }
 
-.layerInIntro {
+.solutions-widget-batcheditor .layerInIntro {
     font-weight: bold;
         color: blue;
 }
 
-.maxRecordInIntro {
+.solutions-widget-batcheditor .maxRecordInIntro {
     color: orangered;
     font-weight: bold;
 }
 /*Loading Message*/
-.loading-indicator {
+.solutions-widget-batcheditor .loading-indicator {
     /* Loading status */
     height: 100%;
     width: 100%;
@@ -72,12 +72,12 @@ td.simple-table-td.normal-text-td.maxRecordCount {
 }
 
 /*Controls*/
-.widget-controls {
+.solutions-widget-batcheditor .widget-controls {
     width: 100%;
     margin-top: 15px;
 }
 
-.clearBtn {
+.solutions-widget-batcheditor .clearBtn {
     margin-right: 25px;
     float: right !important;
     display: inline-block !important;

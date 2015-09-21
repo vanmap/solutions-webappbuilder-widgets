@@ -19,11 +19,11 @@ define([
     'dijit/_WidgetsInTemplateMixin',
     'dijit/form/Button',
     'dijit/form/TextBox',
-    'dojo',
-    'dijit',
+    'dojo/dom',
     'dojo/_base/lang',
     'dojo/_base/html',
     'dojo/on',
+    'dojo/aspect',
     'dojo/dom-construct',
     'dojo/_base/array',
     'dojo/dom-style',
@@ -37,6 +37,7 @@ define([
     'jimu/dijit/LoadingIndicator',
     'jimu/dijit/Filter',
     'jimu/dijit/Popup',
+    'jimu/utils',
     'esri/graphic',
     'esri/InfoTemplate',
     'esri/layers/FeatureLayer',
@@ -54,11 +55,11 @@ function (declare,
           _WidgetsInTemplateMixin,
           Button,
           TextBox,
-          dojo,
-          dijit,
+          dom,
           lang,
           html,
           on,
+          aspect,
           domConstruct,
           array,
           domStyle,
@@ -72,6 +73,7 @@ function (declare,
           LoadingIndicator,
           Filter,
           Popup,
+          utils,
           Graphic,
           InfoTemplate,
           FeatureLayer,
@@ -100,7 +102,7 @@ function (declare,
     selectQuery : null,
     timer : null,
     syncLayers : null,
-    expressionLayers : [],
+    expressionLayers : null,
     drawnGrph : null,
     startup : function() {
       this.inherited(arguments);
@@ -108,6 +110,7 @@ function (declare,
     },
     postCreate : function() {
       this.inherited(arguments);
+      this.expressionLayers = [],
       this._configureWidget();
       this._initSelectLayer();
       this.createLayerTable();
@@ -117,7 +120,8 @@ function (declare,
       this._createQueryParams();
       this._setTheme();
       this.timer = new Timer.Timer(20000);
-      dojo.connect(this.timer, "onTick", this, this._timerComplete);
+      //dojo.connect(this.timer, "onTick", this, this._timerComplete);
+      this.own(aspect.after(this.timer, "onTick", lang.hitch(this,this._timerComplete), this));
 
     },
     _initSelectLayer : function() {
@@ -156,14 +160,9 @@ function (declare,
     /*jshint unused:true */
     _setTheme : function() {
       if (this.appConfig.theme.name === "BoxTheme" || this.appConfig.theme.name === "DartTheme" || this.appConfig.theme.name === "LaunchpadTheme") {
-        var headText = query("head")[0].innerHTML;
-        query("head")[0].innerHTML = headText + "<link rel='stylesheet' href='" + this.folderUrl + "/css/dartTheme.css'>";
-        /* cannot use dom create to add link to head.  have to hard code link tag above
-         domConstruct.place(query("head")[0], domConstruct.create("link", {
-         rel:'stylesheet',
-         href:this.folderUrl + 'css/dartTheme.css'
-         }));
-         */
+        utils.loadStyleLink('dartOverrideCSS', this.folderUrl + "/css/dartTheme.css", null);
+        //var headText = query("head")[0].innerHTML;
+        //query("head")[0].innerHTML = headText + "<link rel='stylesheet' href='" + this.folderUrl + "/css/dartTheme.css'>";
       }
     },
     _configureWidget : function() {
@@ -183,10 +182,10 @@ function (declare,
       this.existingText.addShape = draw.addShape;
       this.existingText.freehand = draw.freehand;
       this.existingText.start = draw.start;
-      draw.addPoint = "Click to select in this area";
-      draw.addShape = "Draw a shape to select features";
-      draw.freehand = "Press and hold to draw a shape to select features";
-      draw.start = "Draw a shape to select features";
+      draw.addPoint = this.nls.drawBox.addPointToolTip;
+      draw.addShape = this.nls.drawBox.addShapeToolTip;
+      draw.freehand = this.nls.drawBox.freehandToolTip;
+      draw.start = this.nls.drawBox.startToolTip;
       var types = null;
       if (this.config.selectByShape === true) {
         this.toolType = "Area";
@@ -229,7 +228,7 @@ function (declare,
 
       } else {
 
-        this.searchTextBox = new dijit.form.TextBox({
+        this.searchTextBox = new TextBox({
           name : "queryText",
           value : ""/* no or empty value! */,
           placeHolder : this.nls.queryInput
@@ -271,7 +270,7 @@ function (declare,
       array.forEach(this.layersTable.getRows(), function(row) {
 
         rowData = this.layersTable.getRowData(row);
-        if (rowData.isSelectable == true) {
+        if (rowData.isSelectable === true) {
           selectedLayers.push(rowData.label);
         }
       }, this);
@@ -295,7 +294,6 @@ function (declare,
             }
           }
           var def = layer.layerObject.selectFeatures(q, FeatureLayer.SELECTION_NEW);
-          console.log(def);
           //var sym = layer.layerObject.getSelectionSymbol();
           defs[layer.id] = def;
         }
@@ -330,7 +328,7 @@ function (declare,
         if (this.toolType === "FeatureQuery") {
           var searchValue = results[0].attributes[this.config.selectByLayer.queryField];
           if (searchValue === null) {
-            Message({
+            new Message({
               message : string.substitute(this.nls.errors.queryNullID, {
                 0 : this.selectByLayer.title
               })
@@ -512,7 +510,7 @@ function (declare,
         if (layer.layerObject !== null && layer.layerObject !== undefined) {
           if (layer.layerObject.type === 'Feature Layer' && layer.url && layer.layerObject.isEditable() === true) {
 
-            var filteredArr = dojo.filter(this.config.updateLayers, function(layerInfo) {
+            var filteredArr = array.filter(this.config.updateLayers, function(layerInfo) {
               return layerInfo.name === layer.title;
             });
             if (filteredArr.length > 0) {
@@ -559,8 +557,7 @@ function (declare,
       }, {
         name : 'label',
         title : this.nls.layerTable.colLabel,
-        type : 'text',
-
+        type : 'text'
       }, {
         name : 'syncStatus',
         type : 'text',
@@ -749,7 +746,7 @@ function (declare,
 
       domConstruct.place(loadingIcon, attrInspector.deleteBtn.domNode, 'after');
 
-      on(saveButton, 'click', lang.hitch(this, this._attrInspectorOnSave));
+      this.own(on(saveButton, 'click', lang.hitch(this, this._attrInspectorOnSave)));
 
       attrInspector.on('attribute-change', lang.hitch(this, this._attrInspectorAttrChange));
 
@@ -760,7 +757,7 @@ function (declare,
     // inspector.
     // returns: nothing
     _attrInspectorAttrChange : function(evt) {
-      var saveBtn = dojo.byId('attrInspectorSaveBtn');
+      var saveBtn = dom.byId('attrInspectorSaveBtn');
 
       //hacky way to check if fields arent validated.
       if (this.attrInspector.domNode.innerHTML.indexOf('Error') < 0) {
@@ -839,13 +836,13 @@ function (declare,
         }
       }, this);
 
+      var validUpdate = false;
       array.forEach(this.updateLayers, function(layer) {
         if (selectedLayers.indexOf(layer.title) >= 0 || selectedLayers.indexOf(layer.layerObject.name) >= 0) {
-
           var selectFeat = layer.layerObject.getSelectedFeatures();
           if (selectFeat) {
-
             if (selectFeat.length > 0) {
+              validUpdate = true;
               array.some(this.layersTable.getRows(), function(row) {
                 rowData = this.layersTable.getRowData(row);
 
@@ -907,6 +904,13 @@ function (declare,
           }
         }
       }, this);
+
+      if(validUpdate === false) {
+        this.loading.hide();
+        new Message({
+          message : this.nls.errors.noSelectedLayers
+        });
+      }
 
     },
     applyCallback : function(chunks, idx, layer, syncDet) {
@@ -1068,13 +1072,16 @@ function (declare,
       var url;
       var definition;
       var workLayer;
-      var defaultDef;
+      var defaultDef = '';
       var expression;
       array.forEach(this.updateLayers, lang.hitch(this, function(layer) {
         if (layer.id === rowData.ID) {
           workLayer = layer;
           definition = layer.resourceInfo;
           url = layer.url;
+          if(workLayer.layerObject.getDefinitionExpression()) {
+            defaultDef = workLayer.layerObject.getDefinitionExpression();
+          }
         }
       }));
       if (this.expressionLayers.length > 0) {
@@ -1088,14 +1095,16 @@ function (declare,
         if (exprExist === false) {
           this.expressionLayers.push({
             'id' : rowData.ID,
-            'expr' : ''
+            'expr' : '',
+            'defaultExp' : workLayer.layerObject.getDefinitionExpression()
           });
           expression = this.expressionLayers[this.expressionLayers.length - 1];
         }
       } else {
         this.expressionLayers.push({
           'id' : rowData.ID,
-          'expr' : ''
+          'expr' : '',
+          'defaultExp' : workLayer.layerObject.getDefinitionExpression()
         });
         expression = this.expressionLayers[0];
       }
@@ -1114,8 +1123,20 @@ function (declare,
           onClick : lang.hitch(this, function() {
             var partsObj = filter.toJson();
             if (partsObj && partsObj.expr) {
-              //console.log(workLayer);
-              workLayer.layerObject.setDefinitionExpression(partsObj.expr);
+              if(partsObj.expr === '1=1') {
+                if (expression.defaultExp) {
+                  workLayer.layerObject.setDefinitionExpression(expression.defaultExp + ' AND (' + partsObj.expr + ')');
+                } else {
+                  workLayer.layerObject.setDefinitionExpression(partsObj.expr);
+                }
+              } else {
+                if (expression.defaultExp) {
+                  workLayer.layerObject.setDefinitionExpression(expression.defaultExp + ' AND (' + partsObj.expr + ')');
+                } else {
+                  workLayer.layerObject.setDefinitionExpression(partsObj.expr);
+                }
+              }
+              //console.log(workLayer.layerObject.getDefinitionExpression());
               on(workLayer.layerObject, "update-end", lang.hitch(this, function() {
                 if (workLayer.layerObject.getSelectedFeatures().length > 0) {
                   this._clearResults(true);
@@ -1164,7 +1185,7 @@ function (declare,
       draw.addShape = this.nls.drawBox.addShapeToolTip;
       draw.freehand = this.nls.drawBox.freehandToolTip;
       draw.start = this.nls.drawBox.startToolTip;
-      if (this.config.toggleLayersOnOpen == true) {
+      if (this.config.toggleLayersOnOpen === true) {
         array.forEach(this.updateLayers, function(layer) {
           layer.layerObject.setVisibility(true);
         });
@@ -1177,16 +1198,27 @@ function (declare,
        esri.bundle.toolbars.draw.freehand = this.existingText.freehand;
        esri.bundle.toolbars.draw.start = this.existingText.start;
        */
+      this._clearResults(true);
       draw.addPoint = this.existingText.addPoint;
       draw.addShape = this.existingText.addShape;
       draw.freehand = this.existingText.freehand;
       draw.start = this.existingText.start;
       this.enableWebMapPopup();
-      if (this.config.toggleLayersOnOpen == true) {
+      if (this.config.toggleLayersOnOpen === true) {
         array.forEach(this.updateLayers, function(layer) {
           layer.layerObject.setVisibility(false);
         });
       }
+      array.forEach(this.updateLayers, lang.hitch(this, function(layer) {
+        array.forEach(this.expressionLayers, lang.hitch(this, function(expLyr) {
+          if (expLyr.id === layer.id) {
+            if (layer.layerObject.getDefinitionExpression() !== expLyr.defaultExp) {
+              layer.layerObject.setDefinitionExpression(expLyr.defaultExp);
+            }
+          }
+        }));
+      }));
+      this.expressionLayers = [];
     },
     destroy : function() {
       this._clearGraphics();
@@ -1207,7 +1239,8 @@ function (declare,
       this.searchTextBox = null;
       this.mouseClickPos = null;
       this.selectQuery = null;
-
+      this.expressionLayers = null,
+      this.drawnGrph = null,
       this.timer = null;
 
       this.inherited(arguments);

@@ -6,6 +6,7 @@ Usage examples:
 * gas company wants to assign a set of meters in an area to be inspected by a particular work crew.
 * water company wants to assign a set of hydrants in an area to be serviced by a particular work crew.
 
+Important Note: These widgets are only tested with the Decemeber 2014 release of ArcGIS WebApp Builder Developers Editions.
 ## Sections
 
 * [Features](#features)
@@ -26,7 +27,7 @@ Usage examples:
 
 
 ## Requirements
-* ArcGIS WebApp Builder Developer Edition 1.2.
+* ArcGIS WebApp Builder decemember 2014 Developer Edition.
 
 ## Instructions
 Deploying Widget

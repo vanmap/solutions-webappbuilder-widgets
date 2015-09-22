@@ -14,23 +14,18 @@ The ArcGIS Solutions Builder Widgets is a set of widgets for use with the Web Ap
 ## Features
 The Widget Reposistory currently includes:
 
-Utilities Widgets
-
-* [Batch Editor](./BatchEditor/README.md)
-* [Cost Analysis](https://github.com/Esri/solutions-webappbuilder-widgets/blob/CostAnalysis/CostAnalysis/README.md)
-* [GeoEnrich](./GeoEnrich/README.md)
-
-Emergency Management & Domestic Operations Widgets
-
-* [Bomb Threat Tool](./BombThreat/README.md)
-* [Emergency Response Guide](./ERG/README.md)
-* [Directions with Barriers](./DirectionsWithBarriers/README.md)
-* [Critical Infrastructure Chart](./CI_KR_Chart/README.md)
-* [MissionEditor](./MissionEditor/README.md)
-* [Swipe](./Swipe/README.md)
+* [Batch Attribute Editor](./BatchEditor/README.md) | WAB 1.2 | 1.0
+* [Bomb Threat Tool](./BombThreat/README.md) | WAB 1.2 | 1.0
+* [Critical Infrastructure and Key Resources](./CI_KR_Chart/README.md) | WAB 1.2 | 1.0
+* [Directions with Barriers](./DirectionsWithBarriers/README.md) | WAB 1.2 | 1.0
+* [Elevation Profile Widget](./ElevationProfileTable/README.md) | WAB 1.2 | 1.0
+* [Image Discovery](./ImageDiscovery/README.md) | WAB 1.2 | 1.0
+* [Network Trace](./NetworkTrace/README.md) | WAB 1.2 | 1.0
+* [Service Feasibility](.//ServiceFeasibility/README.md) | WAB 1.2 | 1.0
+* [Swipe](./Swipe/README.md) | WAB 1.2 | 1.0
 
 ## Requirements
-Requires Web AppBuilder for ArcGIS version 1.1
+Requires Web AppBuilder for ArcGIS version 1.2
 
 ## Instructions
 Deploying Widgets.
@@ -54,10 +49,10 @@ For more resources on developing modifying widgets please visit
 
 ## Contributing
 
-Please see our [guidelines for contributing](/contributing).
+Please see our [guidelines for contributing](./contributing.md).
 
+## Branching and Releases
 
-### Branching and Releases
 #### Branches ####
 New widgets and development should always be created in a separate branch from master. One or more widgets can be contained in a branch. A widget should only be merged with the Master branch if it has been tested is ready to be used with the current released version of Web App Builder and ready for release. 
 #### Releases ####

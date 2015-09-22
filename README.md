@@ -54,23 +54,21 @@ For more resources on developing modifying widgets please visit
 
 ## Contributing
 
-Esri welcomes contributions from anyone and everyone. Please see our [guidelines for contributing](https://github.com/esri/contributing).
+Please see our [guidelines for contributing](/contributing).
 
-If you are using [JS Hint](http://http://www.jshint.com/) there is a .jshintrc file included in the root folder which enforces this style.
-We allow for 120 characters per line instead of the highly restrictive 80.
 
 ### Branching and Releases
 #### Branches ####
-New widgets should always be created in a separate branch from master. One or more widgets can be contained in a branch. A widget should only be merged with the Master branch if it has been tested is ready to be used with the current released version of Web App Builder - Developer Edition. 
+New widgets and development should always be created in a separate branch from master. One or more widgets can be contained in a branch. A widget should only be merged with the Master branch if it has been tested is ready to be used with the current released version of Web App Builder and ready for release. 
 #### Releases ####
 Releases are created for the following reasons:
-- A new version of Web App Builder has been released. The release is used to tag widgets compatible with that release
-- A widget (or set of widgets) has been released on the solutions website
+- A new version of Web App Builder has been released. 
+- A widget (or set of widgets) has been released or updated on the solutions website
 
 
 ## Licensing
 
-Copyright 2013 Esri
+Copyright 2015 Esri
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.

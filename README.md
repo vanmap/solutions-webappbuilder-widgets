@@ -21,7 +21,7 @@ The Widget Reposistory currently includes:
 * [Elevation Profile Widget](./ElevationProfileTable/README.md) | WAB 1.2 | 1.0
 * [Image Discovery](./ImageDiscovery/README.md) | WAB 1.2 | 1.0
 * [Network Trace](./NetworkTrace/README.md) | WAB 1.2 | 1.0
-* [Service Feasibility](.//ServiceFeasibility/README.md) | WAB 1.2 | 1.0
+* [Service Feasibility](./ServiceFeasibility/README.md) | WAB 1.2 | 1.0
 * [Swipe](./Swipe/README.md) | WAB 1.2 | 1.0
 
 ## Requirements
@@ -49,7 +49,7 @@ For more resources on developing modifying widgets please visit
 
 ## Contributing
 
-Please see our [guidelines for contributing](http://github.com/Esri/solutions-webappbuilder-widgets/contributing.md).
+Please see our [guidelines for contributing](http://github.com/Esri/solutions-webappbuilder-widgets/blob/master/CONTRIBUTING.md).
 
 ## Branching and Releases
 

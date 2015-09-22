@@ -14,7 +14,7 @@ The ArcGIS Solutions Builder Widgets is a set of widgets for use with the Web Ap
 ## Features
 The Widget Reposistory currently includes:
 
-* [Batch Attribute Editor](./BatchEditor/README.md) | WAB 1.2 | 1.0
+* [Batch Attribute Editor](./BatchAttributeEditor/README.md) | WAB 1.2 | 1.0
 * [Bomb Threat Tool](./BombThreat/README.md) | WAB 1.2 | 1.0
 * [Critical Infrastructure and Key Resources](./CI_KR_Chart/README.md) | WAB 1.2 | 1.0
 * [Directions with Barriers](./DirectionsWithBarriers/README.md) | WAB 1.2 | 1.0
@@ -49,7 +49,7 @@ For more resources on developing modifying widgets please visit
 
 ## Contributing
 
-Please see our [guidelines for contributing](./contributing.md).
+Please see our [guidelines for contributing](http://github.com/Esri/solutions-webappbuilder-widgets/contributing.md).
 
 ## Branching and Releases
 

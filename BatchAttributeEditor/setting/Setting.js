@@ -86,27 +86,27 @@ define([
 
               }
               this.setConfig(this.config);
-             
+
               try {
                   var btnBar =
                       (this.domNode.parentNode.parentNode.parentNode.parentNode.lastChild.lastChild);
                   this.btnNext = domConstruct.toDom(
-                      "<div class='jimu-popup-btn jimu-float-trailing jimu-leading-margin1'>" +
+                      "<div class='jimu-btn jimu-float-trailing jimu-leading-margin1'>" +
                       this.nls.next + "</div>");
 
                   dojo.connect(this.btnNext, "onclick", lang.hitch(this, this.btnNextClick));
                   this.btnBack = domConstruct.toDom(
-                      "<div class='jimu-popup-btn jimu-float-trailing jimu-leading-margin1 hide'>" +
+                      "<div class='jimu-btn jimu-float-trailing jimu-leading-margin1 hide'>" +
                       this.nls.back + "</div>");
                   dojo.connect(this.btnBack, "onclick", lang.hitch(this, this.btnBackClick));
 
                   this.btnSave = domConstruct.toDom(
-                      "<div class='jimu-popup-btn jimu-float-trailing jimu-leading-margin1 hide'>" +
+                      "<div class='jimu-btn jimu-float-trailing jimu-leading-margin1 hide'>" +
                       this.nls.save + "</div>");
                   dojo.connect(this.btnSave, "onclick", lang.hitch(this, this.saveSymbol));
 
                   this.btnCancel = domConstruct.toDom(
-                      "<div class='jimu-popup-btn jimu-float-trailing jimu-leading-margin1 hide'>" +
+                      "<div class='jimu-btn jimu-float-trailing jimu-leading-margin1 hide'>" +
                       this.nls.cancel + "</div>");
                   dojo.connect(this.btnCancel, "onclick", lang.hitch(this, this.cancelSymbol));
 
@@ -232,9 +232,9 @@ define([
                       this.config.selectByQuery = false;
                   }
               }else if (page === "2") {
-                  
+
                   var selectVal;
-                
+
                   if (this.layersTable !== null) {
                       this.config.toggleLayersOnOpen = this.toggleLayers.checked;
 
@@ -259,7 +259,7 @@ define([
                           symbol = this.selectionSymbols[rowData.id];
 
                           if (rowData.update === true) {
-                             
+
                               if (this.selectByFeatureQuery.checked === true ||
                                   this.selectByQuery.checked === true) {
                                   selectVal = query('input[name="queryFldSelect"]', row).shift().value;
@@ -339,7 +339,7 @@ define([
               if (this.config.toggleLayersOnOpen != null) {
                   this.toggleLayers.setChecked(this.config.toggleLayersOnOpen);
               }
-             
+
               var selectedTool = this.getSelectedTool();
               var selectByLayerVisible, queryFieldVisible;
               var showOnlyEditable;
@@ -451,7 +451,7 @@ define([
                   this.showOKError();
                   return false;
               }
-           
+
               if (this.selectByFeature.checked === true ||
                   this.selectByFeatureQuery.checked === true) {
                   if (this.config.selectByLayer) {
@@ -680,7 +680,7 @@ define([
               var label = '';
               var tableValid = false;
               var update = false;
-           
+
               var queryField;
               var selectByLayer;
               array.forEach(this.map.itemInfo.itemData.operationalLayers, function (layer) {
@@ -851,6 +851,6 @@ define([
               html.removeClass(this.btnBack, 'hide');
 
           }
-         
+
       });
   });

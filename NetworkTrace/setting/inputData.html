@@ -1,0 +1,26 @@
+﻿<div class="ParameterDiv esriCTHidden">
+    <div class="field" title="${nls.inputTooltip}">
+        <label title="${nls.inputTooltip}">
+            ${nls.inputTooltip}</label>
+        <input data-dojo-attach-point="inputTooltipData" data-dojo-type="dijit/form/ValidationTextBox"
+            title="${nls.inputTooltip}" class="common-input esriCTTooltipDataClass" value="${data.description}">
+    </div>
+    <div class="field" title="${nls.inputPanel.inputType}">
+        <label title="${nls.inputPanel.inputType}">
+            ${nls.inputPanel.inputType}</label>
+        <select data-dojo-attach-point="inputTypeData" id="${ObjId}" data-dojo-type="dijit/form/Select"
+            class="common-input" style="width: 80%; height: 30px;">
+            <option value="Flag">${nls.inputPanel.inputTypeFlag}</option>
+            <option value="Barrier">${nls.inputPanel.inputTypeBarriers}</option>
+            <option value="Skip">${nls.inputPanel.inputTypeSkip}</option>
+        </select>
+    </div>
+    <div class="esriCTHintField">
+        ${nls.hintText.inputTypeHint}</div>
+    <div class="field" title="${nls.symbol}">
+        <label title="${nls.symbol}">
+            ${nls.symbol}</label>
+    </div>
+    <div data-dojo-attach-point="symbolData" title="${nls.symbol}" class="common-input esriCTSymbolData">
+    </div>
+</div>

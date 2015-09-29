@@ -88,3 +88,7 @@
     color: blue;
     margin-left:15px;
 }
+
+.solutions-widget-batcheditor .filtered {
+  background-color: #D1D0CE !important;
+}

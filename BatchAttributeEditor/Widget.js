@@ -104,6 +104,7 @@ function (declare,
     syncLayers : null,
     expressionLayers : null,
     drawnGrph : null,
+    clickList: null,
     startup : function() {
       this.inherited(arguments);
 
@@ -111,6 +112,7 @@ function (declare,
     postCreate : function() {
       this.inherited(arguments);
       this.expressionLayers = [],
+      this.clickList = [],
       this._configureWidget();
       this._initSelectLayer();
       this.createLayerTable();
@@ -295,6 +297,7 @@ function (declare,
           }
           var def = layer.layerObject.selectFeatures(q, FeatureLayer.SELECTION_NEW);
           //var sym = layer.layerObject.getSelectionSymbol();
+
           defs[layer.id] = def;
         }
       }, this);
@@ -404,6 +407,13 @@ function (declare,
             html.removeClass(labelCell, 'maxRecordCount');
             html.removeClass(countCell, 'maxRecordCount');
           }
+
+          if (layerRes.length > 0) {
+            this.clickList.push(on(layer, 'click', lang.hitch(this, function() {
+              this.map.infoWindow.show(this.mouseClickPos, this.map.getInfoWindowAnchor(this.mouseClickPos));
+            })));
+          }
+
         }
       }, this);
       this._updateSelectionCount(features.length);
@@ -412,6 +422,7 @@ function (declare,
         this._createAttributeInspector();
 
         this.helperLayer.selectFeatures(this.selectQuery, FeatureLayer.SELECTION_NEW, lang.hitch(this, this._helperLayerSelectCallback), lang.hitch(this, this._errorCallback));
+
       } else {
         this._hideInfoWindow();
         this.loading.hide();
@@ -448,6 +459,7 @@ function (declare,
       } else if (this.toolType === "FeatureQuery") {
         this._selectSearchLayer(graphic.geometry);
       }
+
     },
     _errorCallback : function(evt) {
       console.log(evt);
@@ -458,7 +470,6 @@ function (declare,
     // returns: nothing
     _helperLayerSelectCallback : function(features) {
       if (features.length > 0) {
-
         this.map.infoWindow.setTitle(this.label);
 
         this.map.infoWindow.setContent(this.attrInspector.domNode);
@@ -467,6 +478,7 @@ function (declare,
         this._hideInfoWindow();
       }
       this.loading.hide();
+
       //this._togglePanelLoadingIcon();
     },
 
@@ -548,7 +560,12 @@ function (declare,
         'class' : 'editable',
         width : 30
       }, {
-
+        name : 'actions',
+        title : '<img src="'+ this.folderUrl +'css/images/filter.png" width=16 height=16>',
+        type : 'actions',
+        actions : ['edit'],
+        width : 25
+      }, {
         name : 'numSelected',
         title : this.nls.layerTable.numSelected,
         type : 'text',
@@ -568,12 +585,6 @@ function (declare,
         type : 'text',
         hidden : true,
         width : 0
-      }, {
-        name : 'actions',
-        title : 'Filter',
-        type : 'actions',
-        actions : ['edit'],
-        width : 55
       }];
       var args = {
         fields : layerTableFields,
@@ -1024,8 +1035,11 @@ function (declare,
       }
       array.forEach(this.updateLayers, function(layer) {
         layer.layerObject.clearSelection();
-
       }, this);
+      array.forEach(this.clickList, function(evt) {
+          evt.remove();
+      });
+      this.clickList = [];
 
       array.forEach(this.layersTable.getRows(), function(row) {
 
@@ -1137,20 +1151,21 @@ function (declare,
                 }
               }
               //console.log(workLayer.layerObject.getDefinitionExpression());
-              on(workLayer.layerObject, "update-end", lang.hitch(this, function() {
+              var regEvent = on(workLayer.layerObject, "update-end", lang.hitch(this, function() {
                 if (workLayer.layerObject.getSelectedFeatures().length > 0) {
                   this._clearResults(true);
                   lang.hitch(this, this._onDrawEnd(this.drawnGrph));
+                  regEvent.remove();
                 }
               }));
               expression.expr = partsObj;
-              /*
+
               if(expression.expr.expr !== '1=1') {
-                this.layersTable.editRow(pTR, { 'label': rowData.label });
+                domClass.add(pTR,'filtered');
               } else {
-                this.layersTable.editRow(pTR, { 'label': workLayer.title });
+                domClass.remove(pTR,'filtered');
               }
-              */
+
               filterPopup.close();
               filterPopup = null;
             } else {
@@ -1220,7 +1235,19 @@ function (declare,
       }));
       this.expressionLayers = [];
     },
+
+    onDeActive:function(){
+      this.enableWebMapPopup();
+    },
+
+    onActive: function(){
+      this.disableWebMapPopup();
+    },
+
     destroy : function() {
+      array.forEach(this.clickList, function(evt) {
+          evt.remove();
+      });
       this._clearGraphics();
 
       if (this.drawBox) {
@@ -1229,6 +1256,7 @@ function (declare,
       if (this.attrInspector) {
         this.attrInspector.destroy();
       }
+      this.clickList = null;
       this.layersTable = null;
       this.updateLayers = null;
       this.helperLayer = null;

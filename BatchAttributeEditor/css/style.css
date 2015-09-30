@@ -90,5 +90,6 @@
 }
 
 .solutions-widget-batcheditor .filtered {
-  background-color: #D1D0CE !important;
+  color: #000000;
+  font-weight: bold;
 }

@@ -579,7 +579,7 @@ function (declare,
         name : 'syncStatus',
         type : 'text',
         title : this.nls.layerTable.colSyncStatus,
-        width : 25
+        width : 65
       }, {
         name : 'ID',
         type : 'text',
@@ -814,7 +814,16 @@ function (declare,
     // Event handler for when the Save button is clicked in the attribute inspector.
     // returns: nothing
     _attrInspectorOnSave : function(evt) {
+      if (this.attrInspector.domNode.innerHTML.indexOf('Error') < 0) {
+        html.removeClass(evt.target, 'jimu-state-disabled');
+      } else {
+        html.addClass(evt.target, 'jimu-state-disabled');
+      }
       if (domClass.contains(evt.target, 'jimu-state-disabled')) {
+        new Message({
+          message : this.nls.errors.inputValueError
+        });
+        html.removeClass(evt.target, 'jimu-state-disabled');
         return;
       }
       this.loading.show();
@@ -1160,10 +1169,11 @@ function (declare,
               }));
               expression.expr = partsObj;
 
+              var labelCell = query('.label', pTR).shift();
               if(expression.expr.expr !== '1=1') {
-                domClass.add(pTR,'filtered');
+                domClass.add(labelCell,'filtered');
               } else {
-                domClass.remove(pTR,'filtered');
+                domClass.remove(labelCell,'filtered');
               }
 
               filterPopup.close();
@@ -1235,7 +1245,8 @@ function (declare,
       }));
       this.expressionLayers = [];
       array.forEach(this.layersTable.getRows(), lang.hitch(this,function(row) {
-        domClass.remove(row,'filtered');
+        var labelCell = query('.label', row).shift();
+        domClass.remove(labelCell,'filtered');
       }));
 
     },

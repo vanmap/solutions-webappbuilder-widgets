@@ -41,13 +41,13 @@ define([
   return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
     templateString: othersSetting,
     ImageChooser: null,
+
     startup: function () {
       this.inherited(arguments);
     },
 
     postCreate: function () {
       this._createOthersPanel();
-
     },
 
     /**

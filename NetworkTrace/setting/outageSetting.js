@@ -23,12 +23,14 @@ define([
   "dojo/query",
   "dojo/on",
   "dojo/dom-attr",
+  "dojo/_base/html",
   "dijit/form/Select",
   "dojo/_base/array",
   "dojo/text!./outageSetting.html",
-  "jimu/dijit/SymbolChooser",
-  "jimu/utils",
   "esri/symbols/jsonUtils",
+  "jimu/dijit/Popup",
+  "./outputSymbolChooser",
+  "jimu/symbolUtils",
   "dijit/_WidgetBase",
   "dijit/_TemplatedMixin",
   "dijit/_WidgetsInTemplateMixin"
@@ -40,12 +42,14 @@ define([
   query,
   on,
   domAttr,
+  html,
   Select,
   array,
   outageSetting,
-  SymbolChooser,
-  utils,
   jsonUtils,
+  Popup,
+  OverviewSymbolChooser,
+  jimuSymUtils,
   _WidgetBase,
   _TemplatedMixin,
   _WidgetsInTemplateMixin
@@ -55,6 +59,7 @@ define([
     paramNameArray: [],
     paramNameValue: [],
     outageAreaLayerSaveOption: false,
+    popup: null,
     startup: function () {
       this.inherited(arguments);
     },
@@ -83,10 +88,11 @@ define([
       this._createEsriUnitDropdown();
       this._addSaveToLayerOptions();
       this._setConfigParameters();
-      this._createSymbolInput();
-      this.own(on(this.outputLayer.domNode, "click", lang.hitch(this, this._onLayerChange)));
-      on(this.outputLayerType, "change", lang.hitch(this, function (
-        ) {
+      //this._createSymbolInput();
+      this._showSymbolChooser();
+      this.own(on(this.outputLayer.domNode, "click", lang.hitch(this,
+        this._onLayerChange)));
+      on(this.outputLayerType, "change", lang.hitch(this, function () {
         if (!domClass.contains(this.selectOutputLayerType,
             "esriCTHidden")) {
           this.displayOutageData();
@@ -118,7 +124,7 @@ define([
         "MaxScale": this.outputMaxScaleData.value,
         "saveToLayer": this.outputLayer.checked ? this.outputLayerType
           .value : "",
-        "symbol": this.symbolChooser.getSymbol().toJson(),
+        "symbol": this.symbolJson,
         "fieldMap": cloneFieldMapArray
       };
       return overviewParam;
@@ -191,31 +197,127 @@ define([
         }
       }
     },
-    _createSymbolInput: function () {
-      var objSymbol, geometryType;
-      geometryType = "esriGeometryPolygon";
-      //if symbol geometry exist
-      if (geometryType) {
-        this.data.featureSetMode = 'draw';
-        objSymbol = {};
-        // if symbols parameter available in input parameters then takes symbol details
-        // otherwise using geometry type for fetching the symbol details
-        if (this.overviewConfig && this.overviewConfig.symbol) {
-          objSymbol.symbol = jsonUtils.fromJson(this.overviewConfig.symbol);
-        } else {
-          // if symbols parameter is available in input parameters then set the symbol details
-          // otherwise using geometry type for fetching the symbol details
-          if (this.data.symbol) {
-            objSymbol.symbol = jsonUtils.fromJson(this.data.symbol);
-          } else {
-            objSymbol.type = utils.getSymbolTypeByGeometryType(
-              geometryType);
-          }
-        }
-        this.symbolChooser = new SymbolChooser(objSymbol,
-          domConstruct.create("div", {}, this.symbolData));
-        this.symbolChooser.startup();
+
+    /**
+    * This method creates and sets symbol for Symbol preview.
+    * @memberOf widgets/network-trace/settings/inputsetting
+    */
+    _showSymbolChooser: function () {
+      var param, selectedSymbol, addSymbol;
+      param = {
+        "nls": this.nls,
+        "data": this.data,
+        "overviewConfig": this.overviewConfig,
+        "overviewParameterFlag": true
+      };
+
+      this.overviewSymbolChooser = new OverviewSymbolChooser(param);
+      this.own(on(this.symbolDataPreview, 'click', lang.hitch(this,
+        this._chooseSymbolFromPopup)));
+      // if input parameters configuration is available else set fall back symbol as Symbol
+      if (this.overviewConfig && this.overviewConfig.symbol) {
+        this.popup = new Popup({
+          titleLabel: this.nls.symbolSelecter.selectSymbolLabel,
+          width: 530,
+          height: 400,
+          content: this.overviewSymbolChooser
+        });
+
+        this.symbolJson = selectedSymbol = this.overviewSymbolChooser
+          .symbolChooser.getSymbol().toJson();
+        addSymbol = this._createGraphicFromJSON(selectedSymbol);
+      } else {
+        this.symbolJson = this._getFallbackSymbol();
+        addSymbol = this._createGraphicFromJSON(this._getFallbackSymbol());
       }
+      this._updatePreview(this.symbolDataPreview, addSymbol);
+      // if pop up instance is created
+      if (this.popup) {
+        this.popup.close();
+      }
+      this._bindPopupOkEvent();
+    },
+
+    /**
+    * This method creates fall back symbol for Symbol preview.
+    * @memberOf widgets/network-trace/settings/inputsetting
+    */
+    _getFallbackSymbol: function () {
+      var jsonObj = {
+        "color": [155, 187, 89, 129],
+        "outline": {
+          "color": [115, 140, 61, 255],
+          "width": 1.5,
+          "type": "esriSLS",
+          "style": "esriSLSSolid"
+        },
+        "type": "esriSFS",
+        "style": "esriSFSSolid"
+      };
+      return jsonObj;
+    },
+
+    /**
+    * This method binds ok and click events on symbolChooser popup.
+    * @memberOf widgets/network-trace/settings/inputsetting
+    */
+    _bindPopupOkEvent: function () {
+      var selectedSymbol, addSymbol;
+      this.overviewSymbolChooser.onOkClick = lang.hitch(this,
+        function () {
+          this.symbolJson = selectedSymbol = this.overviewSymbolChooser
+            .symbolChooser.getSymbol().toJson();
+          addSymbol = this._createGraphicFromJSON(selectedSymbol);
+          this._updatePreview(this.symbolDataPreview, addSymbol);
+          this.popup.close();
+        });
+    },
+
+    /**
+    *This function will return the symbol as per the provided JSON.
+    *@param{object} json: The JSON object from which symbol will be returned.
+    *@return{object} symbol:Symbol can be simplefillsymbol, simplemarkersymbol, simplelinesymbol or picturemarkersymbol.
+    **/
+    _createGraphicFromJSON: function (json) {
+      var symbol;
+      symbol = jsonUtils.fromJson(json);
+      return symbol;
+    },
+
+    /**
+    * This method renders the selected symbol on symbol preview area.
+    * @memberOf widgets/network-trace/settings/inputsetting
+    */
+    _updatePreview: function (previewNode, addSymbol) {
+      var node = previewNode;
+      html.empty(node);
+      var symbolNode = jimuSymUtils.createSymbolNode(addSymbol);
+      // if symbol node is not created
+      if (!symbolNode) {
+        symbolNode = html.create('div');
+      }
+      html.place(symbolNode, previewNode);
+    },
+
+    /**
+    * This method creates symbolChooser and symbolChooser pop up instance.
+    * @memberOf widgets/network-trace/settings/inputsetting
+    */
+    _chooseSymbolFromPopup: function () {
+      var param = {
+        "nls": this.nls,
+        "data": this.data,
+        "overviewConfig": this.overviewConfig,
+        "overviewParameterFlag": true
+      };
+      this.overviewSymbolChooser = new OverviewSymbolChooser(param);
+      this.popup = new Popup({
+        titleLabel: this.nls.symbolSelecter.selectSymbolLabel,
+        width: 530,
+        height: 400,
+        content: this.overviewSymbolChooser
+      });
+      this._bindPopupOkEvent();
     },
 
     _addSaveToLayerOptions: function () {
@@ -347,7 +449,7 @@ define([
         }
         //Create a dropdown control for Field Name and Parameter Name
         this.divParamvalue = domConstruct.create("div", {
-          "class": "esriCTOutageField field"
+          "class": "esriCTOutageField"
         }, this.outageData);
         self = this;
         fieldsetDiv = domConstruct.create("fieldset", {

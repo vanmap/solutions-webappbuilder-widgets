@@ -23,10 +23,12 @@ define([
   "dojo/query",
   "dojo/on",
   "dojo/dom-attr",
+  "dojo/_base/html",
   "dojo/string",
-  "jimu/dijit/SymbolChooser",
-  "jimu/utils",
   "esri/symbols/jsonUtils",
+  "jimu/dijit/Popup",
+  "./outputSymbolChooser",
+  "jimu/symbolUtils",
   "dojo/text!./outputSetting.html",
   "dojo/text!./outputData.html",
   "dijit/_WidgetBase",
@@ -40,10 +42,12 @@ define([
   query,
   on,
   domAttr,
+  html,
   string,
-  SymbolChooser,
-  utils,
   jsonUtils,
+  Popup,
+  OutputSymbolChooser,
+  jimuSymUtils,
   outputSetting,
   outputDataString,
   _WidgetBase,
@@ -53,9 +57,13 @@ define([
   return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
     templateString: outputDataString,
     outputSettingString: outputSetting,
+    outputSymbolChooser: null,
+    popup: null,
+
     startup: function () {
       this.inherited(arguments);
     },
+
     postCreate: function () {
       this._createOutputPanel();
     },
@@ -67,8 +75,6 @@ define([
     _createOutputPanel: function () {
       var nlsTemp = string.substitute(this.outputSettingString, this);
       this.outputDataNode = domConstruct.toDom(nlsTemp).childNodes[0];
-      this.outputSummaryHint.innerHTML = this.nls.hintText.summaryTextHint +
-        " {Count}, {SkipCount}.";
       on(this.outputDataNode, "click", lang.hitch(this, function () {
         this.outputFieldClicked(this);
       }));
@@ -99,14 +105,13 @@ define([
         "type": "Result",
         "panelText": this.outputLabelData.value,
         "toolTip": this.outputTooltipData.value,
-        "summaryText": this.outputSummaryText.value,
         "displayText": this.outputDisplayText.value,
         "MinScale": this.outputMinScaleData.value,
         "MaxScale": this.outputMaxScaleData.value,
         "exportToCSV": this.outputExport.checked,
         "saveToLayer": this.outputLayer.checked ? this.outputLayerType
           .value : "",
-        "symbol": this.symbolChooser.getSymbol().toJson()
+        "symbol": this.symbolJson
       };
       if (bypassDetails) {
         outputParam.bypassDetails = bypassDetails;
@@ -159,14 +164,14 @@ define([
         this.outputDisplayHelpText.innerHTML = helpTextData;
       }
       this.outputTooltipData.id = "tooltipText_" + this.ObjId;
-      this.outputSummaryText.id = "summaryText_" + this.ObjId;
       this.outputDisplayText.id = "displayText_" + this.ObjId;
       this.outputMinScaleData.id = "minScale_" + this.ObjId;
       this.outputMaxScaleData.id = "maxScale_" + this.ObjId;
       this.outputExport.id = "exportCSV_" + this.ObjId;
       this.outputLayer.id = "saveToLayer_" + this.ObjId;
       this._addSaveToLayerOptions();
-      this._createSymbolInput();
+      //this._createSymbolInput();
+      this._showSymbolChooser();
       this.outageArea.isChecked = this.outputLayer.checked;
       this.own(on(this.outputLayer.domNode, "click", lang.hitch(this,
         this._onLayerChange)));
@@ -232,31 +237,141 @@ define([
       return false;
     },
 
-    _createSymbolInput: function () {
-      var objSymbol;
-      //if symbol geometry exist
-      if (this.data.defaultValue.geometryType) {
-        this.data.featureSetMode = 'draw';
+    /**
+    * This method creates and sets symbol for Symbol preview.
+    * @memberOf widgets/network-trace/settings/inputsetting
+    */
+    _showSymbolChooser: function () {
+      var param, selectedSymbol, addSymbol;
+      param = {
+        "nls": this.nls,
+        "data": this.data,
+        "outputConfig": this.outputConfig,
+        "outputParameterFlag": true
+      };
 
-        objSymbol = {};
-        // if symbols parameter available in input parameters then takes symbol details
-        // otherwise using geometry type for fetching the symbol details
-        if (this.outputConfig && this.outputConfig.symbol) {
-          objSymbol.symbol = jsonUtils.fromJson(this.outputConfig.symbol);
-        } else {
-          // if symbols parameter is available in input parameters then set the symbol details
-          // otherwise using geometry type for fetching the symbol details
-          if (this.data.symbol) {
-            objSymbol.symbol = jsonUtils.fromJson(this.data.symbol);
-          } else {
-            objSymbol.type = utils.getSymbolTypeByGeometryType(this.data
-              .defaultValue.geometryType);
-          }
-        }
-        this.symbolChooser = new SymbolChooser(objSymbol,
-          domConstruct.create("div", {}, this.symbolData));
-        this.symbolChooser.startup();
+      this.outputSymbolChooser = new OutputSymbolChooser(param);
+      this.own(on(this.symbolDataPreview, 'click', lang.hitch(this,
+        this._chooseSymbolFromPopup)));
+      // if input parameters configuration is available else set fall back symbol as Symbol
+      if (this.outputConfig && this.outputConfig.symbol) {
+        this.popup = new Popup({
+          titleLabel: this.nls.symbolSelecter.selectSymbolLabel,
+          width: 530,
+          height: 400,
+          content: this.outputSymbolChooser
+        });
+
+        this.symbolJson = selectedSymbol = this.outputSymbolChooser.symbolChooser
+          .getSymbol().toJson();
+        addSymbol = this._createGraphicFromJSON(selectedSymbol);
+      } else {
+        this.symbolJson = this._getFallbackSymbol();
+        addSymbol = this._createGraphicFromJSON(this._getFallbackSymbol());
       }
+      this._updatePreview(this.symbolDataPreview, addSymbol);
+      // if pop up instance is created
+      if (this.popup) {
+        this.popup.close();
+      }
+      this._bindPopupOkEvent();
+    },
+
+    /**
+    * This method creates fall back symbol for Symbol preview.
+    * @memberOf widgets/network-trace/settings/inputsetting
+    */
+    _getFallbackSymbol: function () {
+      var jsonObj;
+      if (this.data.defaultValue.geometryType === "esriGeometryPoint") {
+        jsonObj = {
+          "color": [0, 0, 128, 128],
+          "outline": {
+            "color": [0, 0, 128, 255],
+            "width": 0.75,
+            "type": "esriSLS",
+            "style": "esriSLSSolid"
+          },
+          "size": 18,
+          "type": "esriSMS",
+          "style": "esriSMSCircle"
+        };
+      } else {
+        jsonObj = {
+          "color": [155, 187, 89, 129],
+          "outline": {
+            "color": [115, 140, 61, 255],
+            "width": 1.5,
+            "type": "esriSLS",
+            "style": "esriSLSSolid"
+          },
+          "type": "esriSFS",
+          "style": "esriSFSSolid"
+        };
+      }
+      return jsonObj;
+    },
+
+    /**
+    * This method binds ok and click events on symbolChooser popup.
+    * @memberOf widgets/network-trace/settings/inputsetting
+    */
+    _bindPopupOkEvent: function () {
+      var selectedSymbol, addSymbol;
+      this.outputSymbolChooser.onOkClick = lang.hitch(this, function () {
+        this.symbolJson = selectedSymbol = this.outputSymbolChooser
+          .symbolChooser.getSymbol().toJson();
+        addSymbol = this._createGraphicFromJSON(selectedSymbol);
+        this._updatePreview(this.symbolDataPreview, addSymbol);
+        this.popup.close();
+      });
+    },
+
+    /**
+    *This function will return the symbol as per the provided JSON.
+    *@param{object} json: The JSON object from which symbol will be returned.
+    *@return{object} symbol:Symbol can be simplefillsymbol, simplemarkersymbol, simplelinesymbol or picturemarkersymbol.
+    **/
+    _createGraphicFromJSON: function (json) {
+      var symbol;
+      symbol = jsonUtils.fromJson(json);
+      return symbol;
+    },
+
+    /**
+    * This method renders the selected symbol on symbol preview area.
+    * @memberOf widgets/network-trace/settings/inputsetting
+    */
+    _updatePreview: function (previewNode, addSymbol) {
+      var node = previewNode;
+      html.empty(node);
+      var symbolNode = jimuSymUtils.createSymbolNode(addSymbol);
+      // if symbol node is not created
+      if (!symbolNode) {
+        symbolNode = html.create('div');
+      }
+      html.place(symbolNode, previewNode);
+    },
+
+    /**
+    * This method creates symbolChooser and symbolChooser pop up instance.
+    * @memberOf widgets/network-trace/settings/inputsetting
+    */
+    _chooseSymbolFromPopup: function () {
+      var param = {
+        "nls": this.nls,
+        "data": this.data,
+        "outputConfig": this.outputConfig,
+        "outputParameterFlag": true
+      };
+      this.outputSymbolChooser = new OutputSymbolChooser(param);
+      this.popup = new Popup({
+        titleLabel: this.nls.symbolSelecter.selectSymbolLabel,
+        width: 530,
+        height: 400,
+        content: this.outputSymbolChooser
+      });
+      this._bindPopupOkEvent();
     },
 
     _setConfigParameters: function () {
@@ -275,7 +390,6 @@ define([
         }
 
         this.outputTooltipData.set("value", this.outputConfig.toolTip);
-        this.outputSummaryText.set("value", this.outputConfig.summaryText);
         this.outputDisplayText.set("value", this.outputConfig.displayText);
         this.outputMinScaleData.set("value", ((this.outputConfig &&
             this.outputConfig.MinScale) ? this.outputConfig.MinScale :
@@ -307,7 +421,6 @@ define([
       this.own(on(this.skippable.domNode, "click", lang.hitch(this,
         this._onSkipChange)));
     },
-
 
     /**
     * This function handles the on change and click events on skippable checkbox and dropdown.

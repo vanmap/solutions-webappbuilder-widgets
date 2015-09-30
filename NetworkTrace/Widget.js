@@ -50,7 +50,9 @@ define([
   "esri/request",
   "esri/tasks/query",
   "jimu/dijit/TabContainer",
-  "dojo/dom"
+  "dojo/dom",
+  "dojo/has",
+  "dojo/sniff"
 ], function (
   declare,
   BaseWidget,
@@ -87,7 +89,8 @@ define([
   esriRequest,
   Query,
   JimuTabContainer,
-  dom
+  dom,
+  has
 ) {
   return declare([BaseWidget], {
     baseClass: 'jimu-widget-NetworkTrace',
@@ -121,6 +124,10 @@ define([
     _flagCount: null, // input feature count
     _barrierCount: null, //block feature count
     _tabContainer: null, // to store object of tab container
+    _outputResultCount: 0, // to track count of output service execution
+    _outputResultArr: [], // to store output response
+    savedLayers: [],
+    savedFeatureObjectId: null,
 
     /**
     *This is a startup function of a network trace widget.
@@ -146,6 +153,8 @@ define([
         this._createTimer();
         this.viewPortSize = dojoWindowClass.getBox();
         this.panelManager = PanelManager.getInstance();
+        this._enhanceTabThemeStyle();
+        this._enhanceDartThemeStyle();
       }
     },
 
@@ -349,6 +358,11 @@ define([
             }
           }));
       }
+      if ((this.btnExportToLayer.style.display === "none" || this.btnExportToLayer
+          .style.display === "") && (this.btnSaveToLayer.style.display ===
+          "none" || this.btnSaveToLayer.style.display === "")) {
+        style.set(this.resultPanel, "display", "none");
+      }
     },
 
     /**
@@ -389,6 +403,8 @@ define([
     _onTraceButtonClick: function () {
       var resultMainDiv, i;
       if (!domClass.contains(this.btnTrace, "jimu-state-disabled")) {
+        this._outputResultArr = [];
+        this._outputResultCount = 0;
         this.savedLayers.length = 0;
         this.savedLayers = [];
         this.overviewFeature = null;
@@ -414,6 +430,7 @@ define([
     *This function will execute when user clicked on the 'Save To Layer' button.
     **/
     _onSaveToLayerButtonClick: function () {
+      var classInputArray;
       if (!domClass.contains(this.btnSaveToLayer,
           "jimu-state-disabled")) {
         this._checkTargetLayersAvailability();
@@ -429,6 +446,13 @@ define([
         this._displaySaveLayerPanel();
         this._overviewLayerSave();
         this._displayOutageAreaDetail();
+        if (this.appConfig.theme.name === "DartTheme" && has("ie") === 9) {
+          classInputArray = query(".dijitInputInner");
+          if (classInputArray) {
+            this._setInlineFontColor(classInputArray);
+          }
+        }
+
       }
     },
 
@@ -513,10 +537,6 @@ define([
       }
     },
 
-    _overviewEditErrorCallback: function (evt) {
-      console.log(evt);
-    },
-
     /**
     *This Function will display Runtrace panel when click on back button .
     **/
@@ -556,9 +576,6 @@ define([
         this._displayExportToCSVPanel();
       }
     },
-
-    savedLayers: [],
-    savedFeatureObjectId: null,
 
     /**
     *This Function is used to save layer which type is result.
@@ -619,10 +636,9 @@ define([
             this.savedFeatureObjectId;
           deferredArray.push(layerObject.applyEdits(null, [
             overviewGraphic
-          ], null, lang.hitch(this, function (evt) {
+          ], null, lang.hitch(this, function () {
             isOverViewAreaEdited = true;
             layerObject.refresh();
-            console.log(evt);
           }), this._applyEditsErrorCallback));
         }
       }
@@ -715,7 +731,7 @@ define([
         output) {
         if (output.exportToCSV) {
           checkboxDiv = domConstruct.create("div", {
-            "class": "esriCTParamCheckBox"
+            "class": "esriCTParamCheckBox esriCTCommonDiv"
           });
           exportToLayerCheckBox = new Checkbox({
             "name": output.paramName,
@@ -936,13 +952,14 @@ define([
         }, this.outageDetailDiv);
         this.CheckBoxOutageArea = new Checkbox({
           "name": this.config.overview.type,
-          "class": "clearInstance saveToLayerData"
+          "class": "clearInstance saveToLayerData",
+          "style": "float: left;"
         }, this.outageAreaDiv);
         this.CheckBoxOutageArea.title = this.nls.outageAreaLabel;
         domConstruct.create("label", {
           "innerHTML": this.nls.outageAreaLabel,
           "class": "esriCTLabelMargin"
-        }, this.outageAreaDiv);
+        }, this.outageDetailDiv);
         this.own(on(this.CheckBoxOutageArea.domNode, "click", lang.hitch(
           this,
           this._displayOutageAreaDetail)));
@@ -981,12 +998,13 @@ define([
           if (output.results.features.length > 0 && output.saveToLayer !==
             "") {
             checkboxDiv = domConstruct.create("div", {
-              "class": "esriCTParamCheckBox"
+              "class": "esriCTParamCheckBox esriCTCommonDiv"
             });
 
             otherLayercheckBox = new Checkbox({
               "name": output.paramName,
-              "class": "saveToLayerData"
+              "class": "saveToLayerData",
+              "style": "float: left;"
             }, domConstruct.create("div", {}, checkboxDiv));
 
             domConstruct.create("label", {
@@ -1087,6 +1105,7 @@ define([
     _displayOutageAreaDetail: function () {
       if (this.CheckBoxOutageArea && this.CheckBoxOutageArea.checked) {
         domClass.remove(this.outageAreaVisibiltyDiv, "esriCTHidden");
+        this._enhanceLaunchpadThemeStyle();
       } else {
         domClass.add(this.outageAreaVisibiltyDiv, "esriCTHidden");
       }
@@ -1314,13 +1333,12 @@ define([
       });
       layerName = domConstruct.create("div", {
         "class": "esriCTLayerName",
-        "style": "color:#000 !important",
         "innerHTML": output.panelText,
         "id": output.paramName + "_LN"
       }, layerNameContainer);
       rightCaretIcon = domConstruct.create("div", {
         "class": "esriCTRightCaretIcon",
-        "style": "color:#000 !important"
+        "innerHTML": "&gt;"
       }, layerNameContainer);
       this.resultsLayerNamesContainer.appendChild(
         layerNameContainer);
@@ -1338,13 +1356,11 @@ define([
       resultContainerBack = domConstruct.create("div", {
         "class": "esriCTResultContainerBack",
         "resultType": output.paramName,
-        "innerHTML": "&lt" + this.nls.backButtonValue,
-        "style": "color:#000 !important",
+        "innerHTML": "&lt;" + this.nls.backButtonValue,
         "title": ""
       }, resultContainerHeader);
       resultContainerLbl = domConstruct.create("div", {
         "class": "esriCTResultContainerLbl",
-        "style": "color:#000 !important",
         "id": output.paramName + "_RCL",
         "title": ""
       }, resultContainerHeader);
@@ -1401,6 +1417,9 @@ define([
     _onClearButtonClick: function () {
       if (!domClass.contains(this.btnClear, "jimu-state-disabled")) {
         this._clearResults();
+        if (this.appConfig.theme.name === "DartTheme") {
+          style.set(this.InputBarrierTabContent, "display", "none");
+        }
       }
     },
 
@@ -1414,6 +1433,7 @@ define([
       }
       style.set(this.barrierLocTab, "display", "none");
       style.set(this.inputLocTab, "display", "none");
+      style.set(this.InputBarrierTabContent, "display", "none");
       domConstruct.empty(this.flagLocContent);
       domConstruct.empty(this.barrierLocContent);
       this._flagID = this._barrierID = this._flagCount = this._barrierCount =
@@ -1568,7 +1588,6 @@ define([
     _onSubmitJobComplete: function (message) {
       if (message.jobInfo.jobStatus === "esriJobFailed") {
         this._showLoadingIcon(false);
-        console.log(message.jobInfo);
         this._errorMessage(this.nls.GPExecutionFailed);
         this._clearResults();
         return;
@@ -1587,7 +1606,6 @@ define([
       } catch (ex) {
         this._showLoadingIcon(false);
         this._errorMessage(ex.message);
-        console.log(ex.message);
         this._clearResults();
       }
     },
@@ -1765,7 +1783,6 @@ define([
     **/
     _onSubmitJobError: function (err) {
       this._errorMessage(err.error.message);
-      console.log(err.error);
       if (this._showLoadingIcon) {
         this._showLoadingIcon(false);
       }
@@ -1797,8 +1814,8 @@ define([
         zoomToText = "",
         objectIDValue, bypassBtnClass, objectIDKey, resultCount,
         process, skipedLocation, selectedGraphic, div, btnControlDiv,
-        btnBypassDiv, zoomToHyperLink, summaryTextDiv,
-        resultContainerDataDiv;
+        btnBypassDiv, zoomToHyperLink, resultContainerDataDiv,
+        layerName, countLabel, outputLayerObj;
       resultCount = {
         "Count": 0,
         "SkipCount": 0
@@ -1904,7 +1921,7 @@ define([
           }, btnControlDiv);
           if (this.appConfig.theme.name === "DartTheme") {
             domAttr.set(zoomToHyperLink, "style",
-              "color:blue !important;");
+              "color : #494949 !important");
           }
           zoomToText = zoomToHyperLink.textContent ||
             zoomToHyperLink.innerText;
@@ -1935,25 +1952,280 @@ define([
           this._setResultInfoTemplate(selectedGraphic,
             selectedGPParam, skipBtnTitle, resultItem);
         }));
-      summaryTextDiv = null;
-      summaryTextDiv = "<div class='resultItemClass'>";
-      domConstruct.place(
-        summaryTextDiv +
-        lang.replace(
-          selectedGPParam.summaryText, {
-            "Count": resultCount.Count + resultCount.SkipCount,
-            "SkipCount": resultCount.SkipCount
-          }) + "</div>", this.resultLayersInformationContainer);
+
       if (selectedGPParam.type === "Result") {
-        var layerName = dom.byId(selectedGPParam.paramName + "_LN");
+        layerName = dom.byId(selectedGPParam.paramName + "_LN");
         domAttr.set(layerName, "innerHTML", selectedGPParam.panelText +
-          " (" + resultCount.Count + ")");
+          " (" + (resultCount.Count + resultCount.SkipCount) + ")");
         domAttr.set(layerName, "title", selectedGPParam.panelText +
-          " (" + resultCount.Count + ")");
-        var countLabel = dom.byId(selectedGPParam.paramName + "_RCL");
+          " (" + (resultCount.Count + resultCount.SkipCount) + ")");
+        countLabel = dom.byId(selectedGPParam.paramName + "_RCL");
         domAttr.set(countLabel, "innerHTML", selectedGPParam.panelText +
-          " (" + resultCount.Count + ")");
+          " (" + (resultCount.Count + resultCount.SkipCount) + ")");
       }
+      outputLayerObj = {};
+      outputLayerObj.outputLayer = selectedGPParam;
+      outputLayerObj.outputLayerResultCount = resultCount;
+      this._outputResultArr.push(outputLayerObj);
+      this._outputResultCount++;
+      if (this._outputResultCount === this.config.geoprocessing.outputs
+        .length) {
+        this._convertSummaryExpressionIntoValue();
+      }
+    },
+
+    /**
+    * This function is used convert expression into value
+    * @memberOf widgets/NetworkTrace/widgets
+    **/
+    _convertSummaryExpressionIntoValue: function () {
+      var summaryExpressionValueResultText;
+      summaryExpressionValueResultText = null;
+      summaryExpressionValueResultText = this.config.summaryExpression
+        .summaryExpressionTrimmedValue;
+      summaryExpressionValueResultText = this._convertExpressionRelatedToInputParameter(
+        summaryExpressionValueResultText);
+      summaryExpressionValueResultText = this._convertExpressionRelatedToOutputParameter(
+        summaryExpressionValueResultText);
+      this.resultLayersInformationContainer.innerHTML =
+        summaryExpressionValueResultText;
+    },
+
+    /**
+    * This function is used convert expression into value related to input parameter
+    * @memberOf widgets/NetworkTrace/widgets
+    **/
+    _convertExpressionRelatedToInputParameter: function (
+      summaryExpressionValueResultText) {
+      var i, expressionArr, j, regExp, replaceValue;
+      for (i = 0; i < this.config.summaryExpression.summaryExpressionValueArr
+        .length; i++) {
+        expressionArr = this.config.summaryExpression.summaryExpressionValueArr[
+          i].trimmedValue.split(":");
+        for (j = 0; j < this.gpInputDetails.length; j++) {
+          if (expressionArr[0] === this.gpInputDetails[j].paramName) {
+            regExp = new RegExp("{" + this.config.summaryExpression.summaryExpressionValueArr[
+              i].trimmedValue + "}", 'g');
+            replaceValue = this.gpInputDetails[j].graphics.length;
+            summaryExpressionValueResultText =
+              summaryExpressionValueResultText.replace(regExp,
+                replaceValue);
+          }
+        }
+      }
+      return summaryExpressionValueResultText;
+    },
+
+    /**
+    * This function is used convert expression into value related to output parameter
+    * @memberOf widgets/NetworkTrace/widgets
+    **/
+    _convertExpressionRelatedToOutputParameter: function (
+      summaryExpressionValueResultText) {
+      var i, expressionArr, j, regExp, replaceValue;
+      for (i = 0; i < this.config.summaryExpression.summaryExpressionValueArr
+        .length; i++) {
+        expressionArr = this.config.summaryExpression.summaryExpressionValueArr[
+          i].trimmedValue.split(":");
+        if (expressionArr.length === 2) {
+          for (j = 0; j < this._outputResultArr.length; j++) {
+            if (expressionArr[0] === this._outputResultArr[j].outputLayer
+              .paramName) {
+              regExp = new RegExp("{" + this.config.summaryExpression
+                .summaryExpressionValueArr[i].trimmedValue + "}",
+                'g');
+              if (expressionArr[1] === this.config.summaryExpression.summaryExpressionNLS
+                .outputOperatorCountOption) {
+                replaceValue = this._outputResultArr[j].outputLayerResultCount
+                  .Count;
+              } else if (expressionArr[1] === this.config.summaryExpression
+                .summaryExpressionNLS.outputOperatorSkipCountOption) {
+                replaceValue = this._outputResultArr[j].outputLayerResultCount
+                  .SkipCount;
+              }
+              summaryExpressionValueResultText =
+                summaryExpressionValueResultText.replace(regExp,
+                  replaceValue);
+            }
+          }
+        } else if (expressionArr.length === 3) {
+          for (j = 0; j < this._outputResultArr.length; j++) {
+            if (expressionArr[0] === this._outputResultArr[j].outputLayer
+              .paramName) {
+              regExp = new RegExp("{" + this.config.summaryExpression
+                .summaryExpressionValueArr[i].trimmedValue + "}",
+                'g');
+              if (expressionArr[2] === this.config.summaryExpression
+                .summaryExpressionNLS.fieldOperatorSumOption) {
+                replaceValue = this._getSumValueOfField(this._outputResultArr[
+                    j].outputLayer.results.features, expressionArr[
+                    1], expressionArr[0], this._outputResultArr[j].outputLayer
+                  .bypassDetails.IDField);
+              }
+              if (expressionArr[2] === this.config.summaryExpression
+                .summaryExpressionNLS.fieldOperatorMinOption) {
+                replaceValue = this._getMinValueOfField(this._outputResultArr[
+                    j].outputLayer.results.features, expressionArr[
+                    1], expressionArr[0], this._outputResultArr[j].outputLayer
+                  .bypassDetails.IDField);
+              }
+              if (expressionArr[2] === this.config.summaryExpression
+                .summaryExpressionNLS.fieldOperatorMaxOption) {
+                replaceValue = this._getMaxValueOfField(this._outputResultArr[
+                    j].outputLayer.results.features, expressionArr[
+                    1], expressionArr[0], this._outputResultArr[j].outputLayer
+                  .bypassDetails.IDField);
+              }
+              if (expressionArr[2] === this.config.summaryExpression
+                .summaryExpressionNLS.fieldOperatorMeanOption) {
+                replaceValue = this._getMeanValueOfField(this._outputResultArr[
+                    j].outputLayer.results.features, expressionArr[
+                    1], expressionArr[0], this._outputResultArr[j].outputLayer
+                  .bypassDetails.IDField);
+              }
+              summaryExpressionValueResultText =
+                summaryExpressionValueResultText.replace(regExp,
+                  replaceValue);
+            }
+          }
+        }
+      }
+      return summaryExpressionValueResultText;
+    },
+
+    /**
+    * This function is used to get summation of field values
+    * @memberOf widgets/NetworkTrace/widgets
+    **/
+    _getSumValueOfField: function (features, field, outputLayerName,
+      skipField) {
+      var sumArr, i, total, isFeatureSkipped, j;
+      sumArr = [];
+      for (i = 0; i < features.length; i++) {
+        if (features[i].attributes[field] !== null && features[i].attributes[
+            field] !== "") {
+          isFeatureSkipped = false;
+          for (j = 0; j < this.skipLayer.graphics.length; j++) {
+            if ((outputLayerName === this.skipLayer.graphics[j].GPParam) &&
+              (features[i].attributes[skipField] === this.skipLayer.graphics[
+                j].attributes[skipField])) {
+              isFeatureSkipped = true;
+            }
+          }
+          if (!isFeatureSkipped) {
+            sumArr.push(features[i].attributes[field]);
+          }
+        }
+      }
+      if (sumArr.length > 0) {
+        total = this._getSummationOfArr(sumArr);
+        return total;
+      }
+      return 0;
+    },
+
+    /**
+    * This function is used to get summation of field values
+    * @memberOf widgets/NetworkTrace/widgets
+    **/
+    _getSummationOfArr: function (sumArr) {
+      var total = 0;
+      for (var i in sumArr) {
+        total += sumArr[i];
+      }
+      return total;
+    },
+
+    /**
+    * This function is used to get minimum of field values
+    * @memberOf widgets/NetworkTrace/widgets
+    **/
+    _getMinValueOfField: function (features, field, outputLayerName,
+      skipField) {
+      var minArr, i, isFeatureSkipped, j;
+      minArr = [];
+      for (i = 0; i < features.length; i++) {
+        if (features[i].attributes[field] !== null && features[i].attributes[
+            field] !== "") {
+          isFeatureSkipped = false;
+          for (j = 0; j < this.skipLayer.graphics.length; j++) {
+            if ((outputLayerName === this.skipLayer.graphics[j].GPParam) &&
+              (features[i].attributes[skipField] === this.skipLayer.graphics[
+                j].attributes[skipField])) {
+              isFeatureSkipped = true;
+            }
+          }
+          if (!isFeatureSkipped) {
+            minArr.push(features[i].attributes[field]);
+          }
+        }
+      }
+      if (minArr.length > 0) {
+        return Math.min.apply(Math, minArr);
+      }
+      return 0;
+    },
+
+    /**
+    * This function is used to get maximum of field values
+    * @memberOf widgets/NetworkTrace/widgets
+    **/
+    _getMaxValueOfField: function (features, field, outputLayerName,
+      skipField) {
+      var maxArr, i, isFeatureSkipped, j;
+      maxArr = [];
+      for (i = 0; i < features.length; i++) {
+        if (features[i].attributes[field] !== null && features[i].attributes[
+            field] !== "") {
+          isFeatureSkipped = false;
+          for (j = 0; j < this.skipLayer.graphics.length; j++) {
+            if ((outputLayerName === this.skipLayer.graphics[j].GPParam) &&
+              (features[i].attributes[skipField] === this.skipLayer.graphics[
+                j].attributes[skipField])) {
+              isFeatureSkipped = true;
+            }
+          }
+          if (!isFeatureSkipped) {
+            maxArr.push(features[i].attributes[field]);
+          }
+        }
+      }
+      if (maxArr.length > 0) {
+        return Math.max.apply(Math, maxArr);
+      }
+      return 0;
+    },
+
+    /**
+    * This function is used to get minimum of field values
+    * @memberOf widgets/NetworkTrace/widgets
+    **/
+    _getMeanValueOfField: function (features, field, outputLayerName,
+      skipField) {
+      var meanArr, i, total, meanValue, isFeatureSkipped, j;
+      meanArr = [];
+      for (i = 0; i < features.length; i++) {
+        if (features[i].attributes[field] !== null && features[i].attributes[
+            field] !== "") {
+          isFeatureSkipped = false;
+          for (j = 0; j < this.skipLayer.graphics.length; j++) {
+            if ((outputLayerName === this.skipLayer.graphics[j].GPParam) &&
+              (features[i].attributes[skipField] === this.skipLayer.graphics[
+                j].attributes[skipField])) {
+              isFeatureSkipped = true;
+            }
+          }
+          if (!isFeatureSkipped) {
+            meanArr.push(features[i].attributes[field]);
+          }
+        }
+      }
+      if (meanArr.length > 0) {
+        total = this._getSummationOfArr(meanArr);
+        meanValue = total / meanArr.length;
+        return meanValue;
+      }
+      return 0;
     },
 
     _formatDateAttributes: function (selectedGPParam, resultItem) {
@@ -1962,14 +2234,10 @@ define([
         for (i = 0; i < selectedGPParam.results.fields.length; i++) {
           if (selectedGPParam.results.fields[i].type ===
             "esriFieldTypeDate") {
-            try {
-              resultItem.attributes[selectedGPParam.results.fields[i]
-                .name] = resultItem.attributes[selectedGPParam.results
-                .fields[i].name] ? this._formatDate(resultItem.attributes[
-                selectedGPParam.results.fields[i].name]) : "";
-            } catch (ex) {
-              console.log(ex.message);
-            }
+            resultItem.attributes[selectedGPParam.results.fields[i]
+              .name] = resultItem.attributes[selectedGPParam.results
+              .fields[i].name] ? this._formatDate(resultItem.attributes[
+              selectedGPParam.results.fields[i].name]) : "";
           }
         }
 
@@ -2018,7 +2286,6 @@ define([
         }
         this.GpServiceoutputParameter =
           gpServiceOutputParameters;
-        console.log(gpServiceOutputParameters);
       }), lang.hitch(this, function (err) {
         this._errorMessage(err);
       }));
@@ -2156,10 +2423,6 @@ define([
     **/
     _zoomToBtn: function (resultItem) {
       return function () {
-        //This will check the viewport size of the device.
-        if (this.viewPortSize.w < 768) {
-          this.panelManager.getPanelById(this.id + '_panel').onTitleClick();
-        }
         var geometry;
         if (resultItem.controlDetails.selectionGraphic.geometry.type ===
           "polyline") {
@@ -2220,15 +2483,11 @@ define([
     *@param{object} geometery: object containing information regarding the Feature which to be high light.
     **/
     _showHighlightedFeature: function (geometry) {
-      try {
-        this.animatedLayer.clear();
-        this.timer.stop();
-        var highightGraphic = new Graphic(geometry, null, null, null);
-        this.animatedLayer.add(highightGraphic);
-        this.timer.start();
-      } catch (err) {
-        console.log(err.message);
-      }
+      this.animatedLayer.clear();
+      this.timer.stop();
+      var highightGraphic = new Graphic(geometry, null, null, null);
+      this.animatedLayer.add(highightGraphic);
+      this.timer.start();
     },
 
     /**
@@ -2360,6 +2619,7 @@ define([
       var inputFlagDiv, inputFlagAnchor, inputFlagCloseDiv;
       this._flagCount++;
       this._inputFlag++;
+      style.set(this.InputBarrierTabContent, "display", "block");
       style.set(this.inputLocTab, "display", "block");
       domAttr.set(this.lblInputLoc, "innerHTML", this.nls.lblInputLocTab +
         " (" + this._flagCount + ")");
@@ -2373,25 +2633,42 @@ define([
       domAttr.set(inputFlagDiv, "LayerType", type);
       inputFlagAnchor = domConstruct.create("a", {
         "class": "esriCTInputLocAnchor",
-        "style": "color:blue !important",
         "innerHTML": this.nls.lblInputLocation + this._inputFlag
       }, inputFlagDiv);
+      if (this.appConfig.theme.name === "DartTheme") {
+        domAttr.set(inputFlagAnchor, "style",
+          "color : #494949 !important");
+      }
       inputFlagCloseDiv = domConstruct.create("div", {
         "class": "esriCTInputFlagCloseDiv"
       }, inputFlagDiv);
       domConstruct.place(inputFlagDiv, this.flagLocContent);
-
+      // delete input location tabs on click of close icon
       this.own(on(inputFlagCloseDiv, "click", lang.hitch(this,
         function (evt) {
-          if (this.flagLocContent.children.length > 1) {
-            this._onClickCloseRemoveGraphics(evt);
-            this._flagCount--;
-            domAttr.set(this.lblInputLoc, "innerHTML", this.nls
-              .lblInputLocTab + " (" + this._flagCount + ")");
-            domAttr.set(this.flagCountLabel, "innerHTML", this.nls
-              .lblInputLocTab + " (" + this._flagCount + ")");
-          } else {
-            this._errorMessage(this.nls.atLeastOneInputLoc);
+          this._onClickCloseRemoveGraphics(evt);
+          this._flagCount--;
+          domAttr.set(this.lblInputLoc, "innerHTML", this.nls
+            .lblInputLocTab + " (" + this._flagCount + ")");
+          domAttr.set(this.flagCountLabel, "innerHTML", this.nls
+            .lblInputLocTab + " (" + this._flagCount + ")");
+          // if flagLocContent children is 0 then go to input tab
+          if (this.flagLocContent.children.length === 0) {
+            domClass.add(this.btnTrace, "jimu-state-disabled");
+            this.btnTrace.disabled = true;
+            style.set(this.inputLocTab, "display", "none");
+            style.set(this.inputLocDiv, "display", "none");
+            this._tabContainer.controlNode.style.display =
+              "block";
+            style.set(this.InputBarrierTabContent, "display",
+              "block");
+            style.set(this.tracePanel, "display", "block");
+            if (this.barrierLocContent.children.length === 0) {
+              domClass.add(this.btnClear, "jimu-state-disabled");
+              this.btnClear.disabled = true;
+              style.set(this.InputBarrierTabContent, "display",
+                "none");
+            }
           }
         })));
 
@@ -2410,12 +2687,7 @@ define([
       var blockDiv, blockAnchor, blockCloseDiv;
       this._barrierCount++;
       this._inputBlock++;
-      if (this.flagLocContent.children.length === 0) {
-        domClass.add(this.barrierLocTab, "esriCTBodrerTopVisible");
-      } else if (domClass.contains(this.barrierLocTab,
-          "esriCTBodrerTopVisible")) {
-        domClass.remove(this.barrierLocTab, "esriCTBodrerTopVisible");
-      }
+      style.set(this.InputBarrierTabContent, "display", "block");
       style.set(this.barrierLocTab, "display", "block");
       domAttr.set(this.lblBlockLoc, "innerHTML", this.nls.lblBlockLocTab +
         " (" + this._barrierCount + ")");
@@ -2428,9 +2700,12 @@ define([
       domAttr.set(blockDiv, "LayerType", type);
       blockAnchor = domConstruct.create("a", {
         "class": "esriCTInputLocAnchor",
-        "style": "color:blue !important",
         "innerHTML": this.nls.lblBlockLocation + this._inputBlock
       }, blockDiv);
+      if (this.appConfig.theme.name === "DartTheme") {
+        domAttr.set(blockAnchor, "style",
+          "color : #494949 !important");
+      }
       blockCloseDiv = domConstruct.create("div", {
         "class": "esriCTInputFlagCloseDiv"
       }, blockDiv);
@@ -2456,6 +2731,8 @@ define([
           if (this.flagLocContent.children.length === 0) {
             domClass.add(this.btnClear, "jimu-state-disabled");
             this.btnClear.disabled = true;
+            style.set(this.InputBarrierTabContent, "display",
+              "none");
           }
         }
       })));
@@ -2515,6 +2792,95 @@ define([
               }));
           }
         }));
+      }
+    },
+
+    /**
+    * This function will handle the styling of tab theme's trace panel div for mobile view
+    * @memberOf widgets/NetworkTrace/Widget
+    */
+    _enhanceTabThemeStyle: function () {
+      var tracePanelDiv;
+      tracePanelDiv = query(".jimu-widget-NetworkTrace .tracePanel")[
+        0];
+      if (tracePanelDiv) {
+        if (this.appConfig.theme.name === "TabTheme") {
+          domClass.add(tracePanelDiv, "esriCTTabThemePaddding");
+        } else {
+          domClass.remove(tracePanelDiv, "esriCTTabThemePaddding");
+        }
+      }
+    },
+
+    /**
+    * This function will handle the styling of Dart theme on IE9
+    * @memberOf widgets/NetworkTrace/Widget
+    */
+    _enhanceDartThemeStyle: function () {
+      var mainDivContainer;
+      if (this.appConfig.theme.name === "DartTheme") {
+        this._setDartInlineStyle();
+        domAttr.set(this.resultPanel, "style",
+          "padding : 0px !important");
+        style.set(this.InputBarrierTabContent, "display", "none");
+        if (has("ie") === 9) {
+          mainDivContainer = query(
+            ".jimu-widget-frame.jimu-container")[
+            0];
+          domClass.add(mainDivContainer, "esriCTDartBackgroudColor");
+        }
+      }
+    },
+
+    /**
+    * This function will fetch and process classes whose font color to be override
+    * @memberOf widgets/NetworkTrace/Widget
+    */
+    _setDartInlineStyle: function () {
+      var i, classContainerObject = [];
+      classContainerObject.push(query(
+        ".jimu-widget-NetworkTrace .esriCTTabRightimg"));
+      classContainerObject.push(query(
+        ".jimu-widget-NetworkTrace .esriCTlblLoc"));
+      classContainerObject.push(query(".esriCTLayerName"));
+      classContainerObject.push(query(".esriCTRightCaretIcon"));
+      classContainerObject.push(query(".esriCTResultContainerBack"));
+      classContainerObject.push(query(".esriCTResultContainerLbl"));
+      classContainerObject.push(query(".esriCTBackButtonLink"));
+      classContainerObject.push(query(".esriCTCountLabel"));
+      // looping for setting grey font color for dart theme
+      for (i = 0; i < classContainerObject.length; i++) {
+        this._setInlineFontColor(classContainerObject[i]);
+      }
+    },
+
+    /**
+    * This function setting inline styling of Dart theme font color
+    * @memberOf widgets/NetworkTrace/Widget
+    */
+    _setInlineFontColor: function (classNode) {
+      var i;
+      // setting inline font color styling for every node contains the specific class
+      for (i = 0; i < classNode.length; i++) {
+        domAttr.set(classNode[i], "style",
+          "color: #494949 !important");
+      }
+    },
+
+    /**
+    * This function override styling of Launchpad theme
+    * @memberOf widgets/NetworkTrace/Widget
+    */
+    _enhanceLaunchpadThemeStyle: function () {
+      var i, comboBoxButtonNode;
+      if (this.appConfig.theme.name === "LaunchpadTheme") {
+        // quering combobox button node
+        comboBoxButtonNode = query(
+          ".claro .dijitComboBox .dijitButtonNode");
+        for (i = 0; i < comboBoxButtonNode.length; i++) {
+          domAttr.set(comboBoxButtonNode[i], "style",
+            "padding: 5px !important");
+        }
       }
     }
   });

@@ -21,9 +21,11 @@ define([
   "dojo/dom-construct",
   "dojo/on",
   "dojo/string",
-  "jimu/dijit/SymbolChooser",
-  "jimu/utils",
   "esri/symbols/jsonUtils",
+  "jimu/dijit/Popup",
+  "./inputSymbolChooser",
+  "dojo/_base/html",
+  "jimu/symbolUtils",
   "dojo/text!./inputSetting.html",
   "dojo/text!./inputData.html",
   "dijit/_WidgetBase",
@@ -35,9 +37,11 @@ define([
   domConstruct,
   on,
   string,
-  SymbolChooser,
-  utils,
   jsonUtils,
+  Popup,
+  InputSymbolChooser,
+  html,
+  jimuSymUtils,
   inputSetting,
   inputDataString,
   _WidgetBase,
@@ -47,6 +51,8 @@ define([
   return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
     templateString: inputDataString,
     inputSettingString: inputSetting,
+    popup: null,
+
     startup: function () {
       this.inherited(arguments);
     },
@@ -57,7 +63,7 @@ define([
 
     /**
     * This function creates left title pane menu and binds the respective click events.
-    * @memberOf widgets/isolation-trace/settings/inputsetting
+    * @memberOf widgets/network-trace/settings/inputSetting
     */
     _createInputPanel: function () {
       var nlsTemp = string.substitute(this.inputSettingString, this);
@@ -71,7 +77,7 @@ define([
 
     /**
     * This function handles input left menu panel click event.
-    * @memberOf widgets/isolation-trace/settings/inputsetting
+    * @memberOf widgets/network-trace/settings/inputSetting
     */
     inputFieldClicked: function (widgetNode) { // jshint ignore:line
       return true;
@@ -79,7 +85,7 @@ define([
 
     /**
     * This function handles input Type change event
-    * @memberOf widgets/isolation-trace/settings/inputsetting
+    * @memberOf widgets/network-trace/settings/inputSetting
     */
     inputTypeChange: function (inputNode) { // jshint ignore:line
       return;
@@ -87,7 +93,7 @@ define([
 
     /**
     * This function creates input config parameters.
-    * @memberOf widgets/isolation-trace/settings/inputsetting
+    * @memberOf widgets/network-trace/settings/inputSetting
     */
     getInputForm: function () {
       var inputParam = {
@@ -95,14 +101,14 @@ define([
         "displayName": this.data.displayName,
         "toolTip": this.inputTooltipData.value,
         "type": this.inputTypeData.value,
-        "symbol": this.symbolChooser.getSymbol().toJson()
+        "symbol": this.symbolJson
       };
       return inputParam;
     },
 
     /**
     * This function is called to display input task details.
-    * @memberOf widgets/isolation-trace/settings/inputsetting
+    * @memberOf widgets/network-trace/settings/inputSetting
     */
     _createInputDataPanel: function () {
       var i;
@@ -131,38 +137,130 @@ define([
       on(this.inputTypeData, "Change", lang.hitch(this, function () {
         this.inputTypeChange(this);
       }));
-      this._createSymbolInput();
+      this._showSymbolChooser();
     },
 
     /**
-    * This method creates symbol input settings.
-    * @memberOf widgets/isolation-trace/settings/inputsetting
+    * This method creates and sets symbol for Symbol preview.
+    * @memberOf widgets/network-trace/settings/inputSetting
     */
-    _createSymbolInput: function () {
-      var objSymbol;
-      //if symbol geometry exist
-      if (this.data.defaultValue.geometryType) {
-        this.data.featureSetMode = 'draw';
+    _showSymbolChooser: function () {
+      var param, selectedSymbol, addSymbol;
+      param = {
+        "nls": this.nls,
+        "data": this.data,
+        "inputConfig": this.inputConfig
+      };
 
-        objSymbol = {};
-        // if symbols parameter available in input parameters then takes symbol details
-        // otherwise using geometry type for fetching the symbol details
-        if (this.inputConfig && this.inputConfig.symbol) {
-          objSymbol.symbol = jsonUtils.fromJson(this.inputConfig.symbol);
-        } else {
-          // if symbols parameter available in input parameters then takes symbol details
-          // otherwise using geometry type for fetching the symbol details
-          if (this.data.symbol) {
-            objSymbol.symbol = jsonUtils.fromJson(this.data.symbol);
-          } else {
-            objSymbol.type = utils.getSymbolTypeByGeometryType(this.data
-              .defaultValue.geometryType);
-          }
-        }
-        this.symbolChooser = new SymbolChooser(objSymbol,
-          domConstruct.create("div", {}, this.symbolData));
-        this.symbolChooser.startup();
+      this.inputSymbolChooser = new InputSymbolChooser(param);
+      this.own(on(this.symbolDataPreview, 'click', lang.hitch(this,
+        this._chooseSymbolFromPopup)));
+      // if input parameters configuration is available else set fall back symbol as Symbol
+      if (this.inputConfig && this.inputConfig.symbol) {
+        this.popup = new Popup({
+          titleLabel: this.nls.symbolSelecter.selectSymbolLabel,
+          width: 530,
+          height: 400,
+          content: this.inputSymbolChooser
+        });
+
+        this.symbolJson = selectedSymbol = this.inputSymbolChooser.symbolChooser
+                  .getSymbol().toJson();
+        addSymbol = this._createGraphicFromJSON(selectedSymbol);
+      } else {
+        this.symbolJson = this._getFallbackSymbol();
+        addSymbol = this._createGraphicFromJSON(this._getFallbackSymbol());
       }
+      this._updatePreview(this.symbolDataPreview, addSymbol);
+      // if pop up instance is created
+      if (this.popup) {
+        this.popup.close();
+      }
+      this._bindPopupOkEvent();
+    },
+
+    /**
+    * This method creates fall back symbol for Symbol preview.
+    * @memberOf widgets/network-trace/settings/inputSetting
+    */
+    _getFallbackSymbol: function () {
+      var jsonObj;
+      jsonObj = {
+        "color": [0, 0, 128, 128],
+        "outline": {
+          "color": [0, 0, 128, 255],
+          "width": 0.75,
+          "type": "esriSLS",
+          "style": "esriSLSSolid"
+        },
+        "size": 18,
+        "type": "esriSMS",
+        "style": "esriSMSCircle"
+      };
+      return jsonObj;
+    },
+
+    /**
+    * This method binds ok and click events on symbolChooser popup.
+    * @memberOf widgets/network-trace/settings/inputSetting
+    */
+    _bindPopupOkEvent: function () {
+      var selectedSymbol, addSymbol;
+      this.inputSymbolChooser.onOkClick = lang.hitch(this, function () {
+        this.symbolJson = selectedSymbol = this.inputSymbolChooser
+          .symbolChooser.getSymbol().toJson();
+        addSymbol = this._createGraphicFromJSON(selectedSymbol);
+        this._updatePreview(this.symbolDataPreview, addSymbol);
+        this.popup.close();
+      });
+    },
+
+    /**
+    * This function will return the symbol as per the provided JSON.
+    * @param{object} json: The JSON object from which symbol will be returned.
+    * @return{object} symbol:Symbol can be simplefillsymbol, simplemarkersymbol, simplelinesymbol or picturemarkersymbol.
+    * @memberOf widgets/network-trace/settings/inputSetting
+    */
+    _createGraphicFromJSON: function (json) {
+      var symbol;
+      symbol = jsonUtils.fromJson(json);
+      return symbol;
+    },
+
+    /**
+    * This method renders the selected symbol on symbol preview area.
+    * @memberOf widgets/network-trace/settings/inputSetting
+    */
+    _updatePreview: function (previewNode, addSymbol) {
+      var node = previewNode;
+      html.empty(node);
+      var symbolNode = jimuSymUtils.createSymbolNode(addSymbol);
+      // if symbol node is not created
+      if (!symbolNode) {
+        symbolNode = html.create('div');
+      }
+      html.place(symbolNode, previewNode);
+    },
+
+    /**
+    * This method creates symbolChooser and symbolChooser pop up instance.
+    * @memberOf widgets/network-trace/settings/inputSetting
+    */
+    _chooseSymbolFromPopup: function () {
+      var param = {
+        "nls": this.nls,
+        "data": this.data,
+        "inputConfig": this.inputConfig
+      };
+      this.inputSymbolChooser = new InputSymbolChooser(param);
+      this.popup = new Popup({
+        titleLabel: this.nls.symbolSelecter.selectSymbolLabel,
+        width: 530,
+        height: 400,
+        content: this.inputSymbolChooser
+      });
+      this._bindPopupOkEvent();
     }
+
   });
 });

@@ -25,15 +25,16 @@
 
 /*Shared Page*/
 .settings-heading{
-  font-size: 1.35em;
+  font-weight: bold;
+  font-size: 14px;
   margin-top: 15px;
 }
 .settings-description {
-  font-size: 1.1em;
+  font-size: 12px;
   margin-top: 15px;
 }
 .settings-error {
-  font-size: 1.1em;
+  font-size: 12px;
   color: orangered;
 }
 /*Navigation Buttons*/

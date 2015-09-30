@@ -1,7 +1,7 @@
 ﻿
 /* css for dijit DrawBox */
 .custom-draw-box{
-  overflow-y:hidden; 
+  overflow-y:hidden;
 }
 
 .custom-draw-box .draw-items{
@@ -21,8 +21,16 @@
   float: right;
 }
 
-.custom-draw-box .draw-item.selected,.custom-draw-box .draw-item:hover{
-  background-color: #C0C0C0;
+.custom-draw-box .draw-item,.custom-draw-box .draw-item:hover{
+  background-color: rgba(255, 255, 255, 0.5) !important;
+}
+
+.custom-draw-box .draw-item:hover{
+  background-color: #CFCFCF !important;
+}
+
+.custom-draw-box .selected{
+  background-color: #CFCFCF !important;
 }
 
 .custom-draw-box .point-icon{

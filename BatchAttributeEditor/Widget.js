@@ -1234,6 +1234,10 @@ function (declare,
         }));
       }));
       this.expressionLayers = [];
+      array.forEach(this.layersTable.getRows(), lang.hitch(this,function(row) {
+        domClass.remove(row,'filtered');
+      }));
+
     },
 
     onDeActive:function(){

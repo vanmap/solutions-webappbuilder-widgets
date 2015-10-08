@@ -1,10 +1,12 @@
 define([
-    'dojo/_base/declare',
-    'dijit/_WidgetsInTemplateMixin',
-    'jimu/BaseWidget',
-    'jimu/dijit/TabContainer',
-    './List',
-    'jimu/utils',
+    "dojo/_base/declare",
+    "dijit/_WidgetsInTemplateMixin",
+    "jimu/BaseWidget",
+    "jimu/dijit/TabContainer",
+    "./List",
+    "jimu/utils",
+    "esri/config",
+    "esri/urlUtils",
     "esri/tasks/query",
     "esri/tasks/QueryTask",
     "esri/tasks/Geoprocessor",
@@ -27,9 +29,9 @@ define([
     "dijit/Dialog",
     "dijit/ProgressBar",
     "dijit/form/NumberSpinner",
-    'dojo/_base/lang',
-    'dojo/on',
-    'dojo/dom',
+    "dojo/_base/lang",
+    "dojo/on",
+    "dojo/dom",
     "dojo/dom-style",
     "dijit/form/Select",
     "dijit/form/TextBox",
@@ -37,16 +39,16 @@ define([
     "dojox/charting/Chart", "dojox/charting/axis2d/Default", "dojox/charting/plot2d/Lines", "dojox/charting/plot2d/Bars", "dojox/charting/plot2d/Pie",
     "dojox/charting/plot2d/Columns", "dojox/charting/action2d/Tooltip", "dojo/fx/easing", "dojox/charting/action2d/MouseIndicator", "dojox/charting/action2d/Highlight",
     "dojox/charting/action2d/MoveSlice", "dojox/charting/themes/MiamiNice", "dojox/charting/action2d/Magnify",
-    'dojo/_base/array',
-    'dojo/_base/html',
+    "dojo/_base/array",
+    "dojo/_base/html",
     "esri/tasks/RelationParameters",
     "esri/layers/FeatureLayer",
-    'jimu/dijit/DrawBox',
-    'dojo/query',
-    'dojo/dom-construct',
-    './FacilitiesPane'
+    "jimu/dijit/DrawBox",
+    "dojo/query",
+    "dojo/dom-construct",
+    "./FacilitiesPane"
 ],
-    function (declare, _WidgetsInTemplateMixin, BaseWidget, TabContainer, List, utils, Query, QueryTask, Geoprocessor, FeatureSet, GraphicsLayer, Graphic, Point, SimpleMarkerSymbol, PictureMarkerSymbol, Polyline, SimpleLineSymbol, Polygon, SimpleFillSymbol, Draw, InfoTemplate, esriRequest, graphicsUtils, webMercatorUtils, Color, Dialog, ProgressBar, NumberSpinner, lang, on, dom, domStyle, Select, TextBox, jsonUtils, Chart, Default, Lines, Bars, Pie, Columns, Tooltip, easing, MouseIndicator, Highlight, MoveSlice, MiamiNice, Magnify, array, html, RelationParameters, FeatureLayer, DrawBox, query, domConstruct, FacilitiesPane) {
+    function (declare, _WidgetsInTemplateMixin, BaseWidget, TabContainer, List, utils, esriConfig, urlUtils, Query, QueryTask, Geoprocessor, FeatureSet, GraphicsLayer, Graphic, Point, SimpleMarkerSymbol, PictureMarkerSymbol, Polyline, SimpleLineSymbol, Polygon, SimpleFillSymbol, Draw, InfoTemplate, esriRequest, graphicsUtils, webMercatorUtils, Color, Dialog, ProgressBar, NumberSpinner, lang, on, dom, domStyle, Select, TextBox, jsonUtils, Chart, Default, Lines, Bars, Pie, Columns, Tooltip, easing, MouseIndicator, Highlight, MoveSlice, MiamiNice, Magnify, array, html, RelationParameters, FeatureLayer, DrawBox, query, domConstruct, FacilitiesPane) {
         return declare([BaseWidget, _WidgetsInTemplateMixin], {
             // DemoWidget code goes here
 
@@ -372,6 +374,7 @@ define([
 
             onLookupWindInfo: function () {
                 if (this.spillGraphicsLayer.graphics.length > 0) {
+                    this.btnWindDirection.setAttribute("disabled", true);
                     var geoPt = webMercatorUtils.webMercatorToGeographic(this.spillGraphicsLayer.graphics[0].geometry);
                     var pointSymbol = new SimpleMarkerSymbol();
                     pointSymbol.setSize(14);
@@ -391,12 +394,15 @@ define([
 
                     this.findNearestWSService.outSpatialReference = this.map.spatialReference;
                     this.findNearestWSService.execute(params, lang.hitch(this, this.onFindWSExecuteComplete));
+                } else {
+                    alert("Please add a spill location first");
                 }
             },
 
             windDirectionQTCompleted: function (results) {
                 console.log("wind direction:");
                 console.log(results);
+                this.btnWindDirection.disabled = false;
 
                 var weatherStationName = null;
                 var windTo = -999;
@@ -572,6 +578,22 @@ define([
             startup: function () {
                 this.inherited(arguments);
                 console.log('startup');
+
+                //add CORS servers
+                for (var key in this.config) {
+                    if (this.config.hasOwnProperty(key)) {
+                        if (this._isValidUrl(this.config[key])) {
+                            var url = this._parseUrl(this.config[key]);
+                            if (!this._itemExists(url.hostname, esri.config.defaults.io.corsEnabledServers)) {
+                                esri.config.defaults.io.corsEnabledServers.push(url.hostname);
+                                urlUtils.addProxyRule({
+                                    urlPrefix: url.hostname,
+                                    proxyUrl: "/dotNetProxy/proxy.ashx"
+                                })                                
+                            }   
+                        }
+                    }
+                }
 
                 this.tabContainer = new TabContainer({
                     tabs: [
@@ -777,7 +799,7 @@ define([
 
             _onFacilitiesQueryError: function (error) {
                 console.error("Facilities list query failed", error);
-                this._showError("Error");
+                //this._showError("Error");
             },
 
             _initChartLayer:function(){
@@ -857,7 +879,7 @@ define([
                 html.setStyle(this.progressBar.domNode, 'display', 'none');
                 this._clear();
                 console.error("ChartWidget query failed", error);
-                this._showError("Error");
+                //this._showError("Error");
                 html.setStyle(this.resultsSection, 'display', 'none');
                 html.setStyle(this.noresultsSection, 'display', 'block');
             },
@@ -1058,6 +1080,7 @@ define([
                 if(chart&&chart.media){
                     this.chartTitle.innerHTML = chart.media.title;
                     this.description.innerHTML = chart.media.description||"";
+                    this.totalSum.innerHTML = chart.totalSum.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
                 }
                 var li = lis[index];
                 if(li){
@@ -1124,15 +1147,17 @@ define([
                 var series = [];
 
                 //init series
+                var totalSum = 0;
                 for (var i = 0; i < features.length; i++) {
                     var attributes = features[i].attributes;
-                    var name = attributes[labelField];
+                    var name = attributes[labelField] || "Total";
                     var num = attributes[media.chartField];
                     var ele = {
                         y: num,
-                        tooltip: "<div style='color:green;margin-right:10px;'><span style='white-space:nowrap;'>" + name + "</span><br/><span>" + num + "</span></div>"
+                        tooltip: "<div style='color:green;margin-right:10px;'><span style='white-space:nowrap;'>" + name + "</span><br/><span>" + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "</span></div>"
                     };
                     series.push(ele);
+                    totalSum += num;
                 }
 
                 //construct chart
@@ -1181,6 +1206,7 @@ define([
                     }
                 }));
                 barsChart.render();
+                barsChart.totalSum = totalSum;
 
                 return barsChart;
             },
@@ -1189,15 +1215,17 @@ define([
                 var series = [];
 
                 //collect series
+                var totalSum = 0;
                 for (var i = 0; i < features.length; i++) {
                     var attributes = features[i].attributes;
-                    var name = attributes[labelField];
+                    var name = attributes[labelField] || "Total";
                     var num = attributes[media.chartField];
                     var ele = {
                         y: num,
-                        tooltip: "<div style='color:green;margin-right:10px;'><span style='white-space:nowrap;'>" + name + "</span><br/><span>" + num + "</span></div>"
+                        tooltip: "<div style='color:green;margin-right:10px;'><span style='white-space:nowrap;'>" + name + "</span><br/><span>" + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "</span></div>"
                     };
                     series.push(ele);
+                    totalSum += num;
                 }
 
                 //construct chart
@@ -1246,6 +1274,7 @@ define([
                 }));
 
                 columnsChart.render();
+                columnsChart.totalSum = totalSum;
 
                 return columnsChart;
             },
@@ -1254,15 +1283,17 @@ define([
                 var series = [];
 
                 //init series
+                var totalSum = 0;
                 for (var i = 0; i < features.length; i++) {
                     var attributes = features[i].attributes;
-                    var name = attributes[labelField];
+                    var name = attributes[labelField] || "Total";
                     var num = attributes[media.chartField];
                     var ele = {
                         y: num,
-                        tooltip: "<div style='color:green;margin-right:10px;'><span style='white-space:nowrap;'>" + name + "</span><br/><span>" + num + "</span></div>"
+                        tooltip: "<div style='color:green;margin-right:10px;'><span style='white-space:nowrap;'>" + name + "</span><br/><span>" + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + "</span></div>"
                     };
                     series.push(ele);
+                    totalSum += num;
                 }
 
                 //construct chart
@@ -1310,8 +1341,29 @@ define([
                 }));
 
                 lineChart.render();
+                lineChart.totalSum = totalSum;
 
                 return lineChart;
+            },
+
+            _parseUrl: function (url) {
+                var location = document.createElement("a");
+                location.href = url;
+                return location;                    
+            },
+
+            _isValidUrl: function (url) {
+                var regexp = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-\/]))?/
+                return regexp.test(url);                       
+            },
+
+            _itemExists: function (searchItem, list) {
+                for (var i = 0; i < list.length; i++) {
+                    if (list[i] === searchItem) {
+                        return true;                            
+                    }                            
+                }                   
+                return false; 
             },
 
             _createPieChart: function (chartNode, media, features, labelField) {
@@ -1326,13 +1378,13 @@ define([
 
                 for (i = 0; i < features.length; i++) {
                     var attributes = features[i].attributes;
-                    var name = attributes[labelField];
+                    var name = attributes[labelField] || "Total";
                     var num = attributes[media.chartField];
                     var percent = (num / sum * 100).toFixed(1) + "%";
                     var ele = {
                         y: num,
                         text: "",
-                        tooltip: "<div style='color:green;margin-right:10px;'><span style='white-space:nowrap;'>" + name + ":" + percent + "</span><br/><span>(" + num + ")</span></div>"
+                        tooltip: "<div style='color:green;margin-right:10px;'><span style='white-space:nowrap;'>" + name + ":" + percent + "</span><br/><span>(" + num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + ")</span></div>"
                     };
                     series.push(ele);
                 }
@@ -1368,6 +1420,7 @@ define([
                 }));
 
                 pieChart.render();
+                pieChart.totalSum = sum;
 
                 return pieChart;
             }

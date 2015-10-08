@@ -50,7 +50,7 @@ define([
 
             if (withFldValue.slice(0, 5) === 'http:' || withFldValue.slice(0, 4) === 'ftp:' || withFldValue.slice(0, 6) === 'https:') {
                 return dojoLang.replace(
-                    "<div class='jimu-widget-bombThreat att'><a href='{v}' target='_blank' class='jimu-widget-bombThreat linkValue'>{f}</a></div>", {
+                    "<div class='jimu-widget-erg att'><a href='{v}' target='_blank' class='jimu-widget-erg linkValue'>{f}</a></div>", {
                         f: forFldName,
                         v: withFldValue
                     }
@@ -58,7 +58,7 @@ define([
             }
 
             return dojoLang.replace(
-                "<div class='jimu-widget-bombThreat att'><label class='jimu-widget-bombThreat fieldName'>{f} : </label> <label class='jimu-widget-bombThreat fieldValue'> {v}</label></div>", {
+                "<div><label class='jimu-widget-erg fieldName'>{f} : </label> <label class='jimu-widget-erg fieldValue'> {v}</label></div>", {
                     f: forFldName,
                     v: withFldValue
                 }

@@ -19,7 +19,7 @@ define({
   root: ({
     ascendingOrderLabel: "Ascending",
     descendingOrderLabel: "Descending",
-    ExportToLayer: "Export to layer",
+    ExportToLayer: "Export",
     configError: "Widget is not configured properly.",
     searchContainerHeading: "Search",
     resultsContainerHeading: "Results",

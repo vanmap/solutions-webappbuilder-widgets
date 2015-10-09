@@ -1,9 +1,11 @@
 @import url('http://js.arcgis.com/3.12/dijit/themes/claro/claro.css');
 
-@media only screen and (min-device-width : 320px) and (max-device-width : 1024px) {
-     html {
+@media only screen and (min-device-width : 320px) and (max-device-width : 1024px)
+{
+    html
+    {
         -webkit-text-size-adjust: none !important;
-     }
+    }
 }
 
 .jimu-widget-frame > .jimu-container
@@ -184,7 +186,7 @@
     border: 1px solid #485566;
     width: 44%;
     float: left;
-    padding: 12px 5px 0px 5px;
+    padding: 6px 5px 6px 5px;
     box-shadow: 0px 1px 8px 0px rgba(0, 0, 0, 0.1);
 }
 
@@ -194,7 +196,7 @@
     width: 44%;
     border: 1px solid #485566;
     float: right;
-    padding: 12px 5px 0px 5px;
+    padding: 6px 5px 6px 5px;
     box-shadow: 0px 1px 8px 0px rgba(0, 0, 0, 0.1);
 }
 
@@ -208,6 +210,18 @@
     overflow: hidden;
     text-overflow: initial;
     white-space: initial;
+}
+
+.jimu-widget-ServiceFeasibility .esriCTRouteAndCostLabel
+{
+    height: 100%;
+    line-height: 18px;
+}
+
+.jimu-widget-ServiceFeasibility .esriCTBusinessPassedLabelText
+{
+    height: 100%;
+    line-height: 18px;
 }
 
 .jimu-widget-ServiceFeasibility .esriCTBusinessPassedLabel
@@ -313,26 +327,24 @@
 
 .jimu-widget-ServiceFeasibility .esriCTRouteLengthCount
 {
-    height: 50%;
-    padding-top: 3px;
-    font-size: 16px;
+    height: 49%;
+    font-size: 14px;
     text-align: center;
     width: 100%;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    word-wrap: break-word;
+    line-height: 18px;
 }
 
 .jimu-widget-ServiceFeasibility .esriCTBusinessPassedCount
 {
-    height: 50%;
-    padding-top: 4px;
-    font-size: 16px;
+    height: 49%;
+    font-size: 14px;
     text-align: center;
     width: 100%;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    word-wrap: break-word;
+    line-height: 18px;
 }
 
 .jimu-widget-ServiceFeasibility .esriCTBusinessDropdownContainer
@@ -795,7 +807,7 @@
     white-space: nowrap;
 }
 
-/* sorting tooltip styles Start */
+/* Sorting tooltip styles end */
 
 .esriCTSortOrderTooltipHide
 {
@@ -829,12 +841,12 @@
 
 .jimu-widget-ServiceFeasibility .esriCTCostHeadingDivFullWidth
 {
-    width: 100%;    
+    width: 100%;
 }
 
 .esriCTHideBusinessPassedDiv
 {
-    display: none;    
+    display: none;
 }
 
 .jimu-widget-frame.jimu-container .jimu-widget-ServiceFeasibility .esriCTDartHoverFeatureList
@@ -845,12 +857,7 @@
 
 .esriCTDartBackgroudColor
 {
-    background-color: #646464 !important;
-}
-
-.claro .dijitDateTextBox .dijitArrowButton:before
-{
-    content: none !important;
+    background-color: Transparent !important;
 }
 
 .jimu-widget-frame.jimu-container .jimu-widget-ServiceFeasibility .esriCTSelectedDartFeatureFieldList
@@ -861,6 +868,75 @@
 
 .boxPanel
 {
-    top: 140px !important;    
+    top: 140px !important;
 }
-/* sorting tooltip styles End*/
+
+/* Sorting tooltip styles End*/
+
+.jimu-panel.jimu-launchpad-panel .claro .dijitSliderImageHandle
+{
+    background: #fff;
+    -webkit-box-shadow: 0 1px 0.5px rgba(0, 0, 0, 0.3), 0 2px 2px rgba(0, 0, 0, 0.2);
+    box-shadow: 0px 1px 0.5px rgba(0,0,0,0.3), 0px 2px 2px rgba(0,0,0,0.2);
+    -webkit-border-radius: 50%;
+    border-radius: 50%;
+    border: 1px solid #3b8fc4;
+    width: 16px;
+    height: 16px;
+    margin-top: -2px;
+    position: absolute;
+}
+
+.jimu-panel.jimu-launchpad-panel .claro .dijitSliderDecrementIconH, .jimu-panel.jimu-launchpad-panel .claro .dijitSliderIncrementIconH, .jimu-panel.jimu-launchpad-panel .claro .dijitSliderDecrementIconV, .jimu-panel.jimu-launchpad-panel .claro .dijitSliderIncrementIconV
+{
+    height: 20px;
+    width: 20px;
+    cursor: pointer;
+    background: #fff;
+    border: 1px solid #ddd;
+    color: #3b8fc4;
+    -webkit-border-radius: 2px;
+    border-radius: 2px;
+    padding: 0;
+}
+
+.jimu-panel.jimu-launchpad-panel .claro .dijitSlider .dijitSliderRemainingBarH, .jimu-panel.jimu-launchpad-panel .claro .dijitSlider .dijitSliderRightBumper
+{
+    border: 0 none;
+    background-color: #ddd;
+}
+
+/* IE9 CSS for Dart Theme */
+.claro .dijitTextBoxIE9
+{
+    background-color: rgba(0, 0, 0, 0.25) !important;
+}
+
+.claro .dijitDateTextBox .dijitArrowButtonIE9::before
+{
+    content: inherit !important;
+}
+
+.claro .dijitComboBox .dijitButtonNodeIE9
+{
+    background-image: none !important;
+    background-repeat: no-repeat;
+    background-color: rgba(0, 0, 0, 0.25) !important;
+}
+
+.claro .dijitTextBoxFocusedIE9 .dijitInputContainer
+{
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.claro .dijitComboBox .dijitArrowButtonInner
+{
+    border: none !important;
+}
+
+.claro .dijitTextBox .dijitInputField
+{
+    padding: 2px 8px !importatnt;
+}
+
+/* IE9 CSS for Dart Theme */

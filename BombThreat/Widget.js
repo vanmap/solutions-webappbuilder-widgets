@@ -280,6 +280,8 @@ define([
             this.map.disableMapNavigation();
             //Activate the draw tool for adding points
             this.drawToolbar.activate("point");
+            //Disable popups on map
+            this.map.setInfoWindowOnClick(false);
         },
 
         /**
@@ -311,6 +313,8 @@ define([
                 this.drawToolbar.deactivate();
                 //Enable map navigation
                 this.map.enableMapNavigation();
+                //Enable popups
+                this.map.setInfoWindowOnClick(true);
 
                 //Switch to results tab
                 this._setTab({target: this.resultsTab});
@@ -874,6 +878,9 @@ define([
          */
         _clearResults: function () {
             try {
+                //deactivate the toolbar
+                this.drawToolbar.deactivate();
+
                 //Clear graphics layers
                 var gLayers = [this.facilitiesGraphicsLayer, this.bombBufferGraphicsLayer, this.bombLocationGraphicsLayer];
                 array.forEach(gLayers, lang.hitch(this, function (gLayer) {

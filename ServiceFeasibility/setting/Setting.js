@@ -40,6 +40,10 @@ define([
   "jimu/dijit/LoadingIndicator",
   "esri/request",
   "jimu/portalUtils",
+  "dojo/store/Memory",
+  "dijit/tree/ObjectStoreModel",
+  "dijit/Tree",
+  "jimu/dijit/Popup",
   "dojo/domReady!"
 ], function (
   declare,
@@ -66,7 +70,11 @@ define([
   regexp,
   LoadingIndicator,
   esriRequest,
-  portalUtils
+  portalUtils,
+  Memory,
+  ObjectStoreModel,
+  Tree,
+  Popup
 ) {
   return declare([BaseWidgetSetting, _WidgetBase, _TemplatedMixin,
     _WidgetsInTemplateMixin
@@ -83,6 +91,7 @@ define([
     _closestFacilityUrlResponse: null, // to  store response of closest facility url
     _selectedTravelMode: null, // to store selected travel mode
     _travelModesArr: null, // to store travel modes
+    _popupObj: null, // to store object of popup
 
     startup: function () {
       this.defaultParamValue = this.nls.defaultDataDictionaryValue;
@@ -108,8 +117,10 @@ define([
       this._checkExpression();
       this._checkAndSetExpression();
     },
+
     postCreate: function () {
       this._initLoading();
+      this._regainAfterOrBeforeState();
     },
 
     /**
@@ -130,7 +141,6 @@ define([
     * This function is used to add parameters from config file
     * @memberOf widgets/ServiceFeasibility/setting/Setting.js
     **/
-
     _addConfigParameters: function () {
       domConstruct.empty(query(".esriCTAttrParamContainer")[0]);
       var parameters, i;
@@ -284,7 +294,7 @@ define([
     **/
     _validateClosestFacilityServiceURL: function (setConfig) {
       this._clickedRows = [];
-      var isURLcorrect, url, requestArgs;
+      var isURLcorrect, url, requestArgs, popupTreeNode;
       url = this.closedFacilityServiceURL.value;
       isURLcorrect = this._urlValidator(url);
       // if the task URL is valid
@@ -300,31 +310,50 @@ define([
         };
         esriRequest(requestArgs).then(lang.hitch(this, function (
           response) {
-          if (response.layerType ===
-            "esriNAServerClosestFacilityLayer") {
-            this.serviceURL = url;
-            this._setImpedanceAttributeOptions(response,
-              setConfig);
-            this._closestFacilityUrlResponse = response;
-            if (!setConfig) {
-              this._resetAttributeParameterRdb();
-              this._selectTravelModeRdb();
+          if (response.hasOwnProperty("closestFacilityLayers")) {
+            if ((response.closestFacilityLayers !== null) && (
+                response.closestFacilityLayers.length > 0)) {
+              // create tree to display closest facility URL options
+              popupTreeNode = this._createPopup();
+              this._createTree(url, response.closestFacilityLayers,
+                popupTreeNode);
             } else {
-              this._maintainTravelModeRdbState();
-              this._maintainCustomAttributeRdbState();
+              this._errorMessage(this.nls.validationErrorMessage
+                .invalidClosestFacilityTask +
+                "'" + this.nls.lblClosestFacilityServiceUrl +
+                "'.");
+              this.loading.hide();
+              domClass.add(this.closestFacilityParamContainer,
+                "esriCTHidden");
             }
-            this._populateTravelModeList(setConfig);
-            this._displayAttributeParameter(response, this.defaultParamValue);
-            this.loading.hide();
-            domClass.remove(this.closestFacilityParamContainer,
-              "esriCTHidden");
           } else {
-            this._errorMessage(this.nls.validationErrorMessage.invalidClosestFacilityTask +
-              "'" + this.nls.lblClosestFacilityServiceUrl +
-              "'.");
-            this.loading.hide();
-            domClass.add(this.closestFacilityParamContainer,
-              "esriCTHidden");
+            if (response.layerType ===
+              "esriNAServerClosestFacilityLayer") {
+              this.serviceURL = url;
+              this._setImpedanceAttributeOptions(response,
+                setConfig);
+              this._closestFacilityUrlResponse = response;
+              if (!setConfig) {
+                this._resetAttributeParameterRdb();
+                this._selectTravelModeRdb();
+              } else {
+                this._maintainTravelModeRdbState();
+                this._maintainCustomAttributeRdbState();
+              }
+              this._populateTravelModeList(setConfig);
+              this._displayAttributeParameter(response, this.defaultParamValue);
+              this.loading.hide();
+              domClass.remove(this.closestFacilityParamContainer,
+                "esriCTHidden");
+            } else {
+              this._errorMessage(this.nls.validationErrorMessage
+                .invalidClosestFacilityTask +
+                "'" + this.nls.lblClosestFacilityServiceUrl +
+                "'.");
+              this.loading.hide();
+              domClass.add(this.closestFacilityParamContainer,
+                "esriCTHidden");
+            }
           }
         }), lang.hitch(this, function () {
           if (this._initialLoad) {
@@ -342,7 +371,115 @@ define([
         this.loading.hide();
         domClass.add(this.closestFacilityParamContainer,
           "esriCTHidden");
+      }
+    },
 
+    /**
+    * This function is used to create Jimmu Popup
+    * @memberOf widgets/ServiceFeasibility/settings/Settings
+    **/
+    _createPopup: function () {
+      var popupDiv;
+      popupDiv = domConstruct.create("div", {
+        "class": "esriCTPopupDiv"
+      });
+      this._popupObj = new Popup({
+        titleLabel: this.nls.closestFacilityLayerPopupTitle,
+        width: 830,
+        height: 560,
+        content: popupDiv
+      });
+      return popupDiv;
+    },
+
+    /**
+    * This function is used to create tree to display Closest Facility URL options
+    * @memberOf widgets/ServiceFeasibility/settings/Settings
+    **/
+    _createTree: function (itemURL, data, node) {
+      var tree, memoryData, i, myStore, myModel;
+      domConstruct.empty(node);
+      // Create test store, adding the getChildren() method required by ObjectStoreModel
+      memoryData = {
+        data: [{
+          id: 1,
+          name: this.nls.closestFacilityLayerTitle,
+          url: itemURL,
+          root: true
+        }],
+        getChildren: function (object) {
+          return this.query({
+            parent: object.id
+          });
+        }
+      };
+      for (i = 0; i < data.length; i++) {
+        memoryData.data.push({
+          id: data[i],
+          name: data[i],
+          url: itemURL + "/" + data[i],
+          parent: 1
+        });
+      }
+      myStore = new Memory(memoryData);
+      // Create the model
+      myModel = new ObjectStoreModel({
+        store: myStore,
+        query: {
+          root: true
+        }
+      });
+      // Create the Tree, specifying an onClick method
+      tree = new Tree({
+        model: myModel,
+        onClick: lang.hitch(this, function (item) {
+          this._onClosestFacilityLayerSelection(item);
+        }),
+        getIconStyle: lang.hitch(this, function (item) {
+          var iconStyle = null,
+            imageName, styles;
+          if (!item || item.id === 'root') {
+            return null;
+          }
+          styles = {
+            width: "20px",
+            height: "20px",
+            backgroundRepeat: 'no-repeat',
+            backgroundPosition: 'center center',
+            backgroundImage: ''
+          };
+          if (item.id === 1) {
+            imageName = "group-layer.png";
+          } else {
+            imageName = "closestFacility-layer.png";
+          }
+          if (imageName) {
+            styles.backgroundImage = "url(" + this.folderUrl +
+              "images/" + imageName + ")";
+            iconStyle = styles;
+          }
+          return iconStyle;
+        })
+      });
+      tree.placeAt(node).startup();
+      this.loading.hide();
+    },
+
+    /**
+    * This function is used to set the selected closest facility layer and perform further execution
+    * @memberOf widgets/ServiceFeasibility/settings/Settings
+    **/
+    _onClosestFacilityLayerSelection: function (item) {
+      var selectedClosestFacilityLayer = item;
+      if ((selectedClosestFacilityLayer.id !== 1) && (
+          selectedClosestFacilityLayer.name !== this.nls.closestFacilityLayerTitle
+        )) {
+        setTimeout(lang.hitch(this, function () {
+          this._popupObj.close();
+          this.closedFacilityServiceURL.set("value",
+            selectedClosestFacilityLayer.url);
+          this._validateClosestFacilityServiceURL(false);
+        }), 5);
       }
     },
 
@@ -618,19 +755,17 @@ define([
     * @memberOf widgets/ServiceFeasibility/setting/Settings
     **/
     _initializeBusinessLayerSelect: function () {
-      var i, k, l;
+      var i, k;
+      this._createMakeBusinessOptionalChkBx();
       if (this.operationalLayers.length > 0) {
-        this.selectBusinessLayer.addOption({
-          label: "",
-          value: "0",
-          selected: true
-        });
         // loop for creating Dropdown for business layer
         for (i = 0; i < this.operationalLayers.length; i++) {
-          l = i;
+          if (i === 0) {
+            this.businessIndex = i;
+          }
           this.selectBusinessLayer.addOption({
             label: this.operationalLayers[i].title,
-            value: ++l,
+            value: i,
             selected: false
           });
         }
@@ -638,41 +773,34 @@ define([
         if (this.config && this.config.businessesLayerName && this.selectBusinessLayer &&
           this.selectBusinessLayer.options && this.selectBusinessLayer
           .options.length > 0) {
+          // loop to set the selected option for business layer dropdown
           for (i = 0; i < this.selectBusinessLayer.options.length; i++) {
-            if (this.selectBusinessLayer.options[i].value === this.config
-              .BusinessLayerValue) {
-              if (i === 0) {
-                this.selectBusinessLayer.set("value", "0");
-              } else {
-                this.selectBusinessLayer.set("value", i);
-              }
+            if (this.selectBusinessLayer.options[i].label === this.config
+              .businessesLayerName) {
+              this.selectBusinessLayer.set("value", i);
+              this.businessIndex = i;
               break;
             }
           }
         }
-        if (this.selectBusinessLayer.value !== "0") {
-          if (this.operationalLayers[0] && this.operationalLayers[0].layerObject &&
-            this.operationalLayers[0].layerObject.fields && this.operationalLayers[
-              0].layerObject.fields.length > 0) {
-            // loop to populate the fields of selected business layer in dropdown when widget added first time
-            for (k = 0; k < this.operationalLayers[0].layerObject.fields
-              .length; k++) {
-              this.selectbusinessList.addOption({
-                label: this.operationalLayers[0].layerObject.fields[
-                  k].name,
-                value: this.operationalLayers[0].layerObject.fields[
-                  k].name
-              });
-            }
+        if (this.operationalLayers[0] && this.operationalLayers[0].layerObject &&
+          this.operationalLayers[0].layerObject.fields && this.operationalLayers[
+            0].layerObject.fields.length > 0) {
+          // loop to populate the fields of selected business layer in dropdown when widget added first time
+          for (k = 0; k < this.operationalLayers[0].layerObject.fields
+            .length; k++) {
+            this.selectbusinessList.addOption({
+              label: this.operationalLayers[0].layerObject.fields[
+                k].name,
+              value: this.operationalLayers[0].layerObject.fields[
+                k].name
+            });
           }
-        } else {
-          this.selectbusinessList.addOption({
-            label: "",
-            value: "0"
-          });
         }
         this._attachChangeEventToBussinessLayer();
       }
+
+      this.selectRoundingOption.set("value", this.config.routeUnitsRoundingOption);
     },
 
     /**
@@ -680,34 +808,24 @@ define([
     * @memberOf widgets/serviceFeasibility/setting/settings
     **/
     _attachChangeEventToBussinessLayer: function () {
-      var j, i, currentValue;
+      var j, i;
       this.selectBusinessLayer.on("change", lang.hitch(this, function () {
         this.selectbusinessList.options.length = 0;
-        if (this.selectBusinessLayer.value !== "0") {
-          currentValue = this.selectBusinessLayer.value - 1;
-          // loop to change the field names on changing the business layer
-          if (this.operationalLayers[currentValue] && this.operationalLayers[
-              currentValue].layerObject && this.operationalLayers[
-              currentValue].layerObject.fields && this.operationalLayers[
-              currentValue].layerObject.fields.length > 0) {
-            for (j = 0; j < this.operationalLayers[currentValue]
-              .layerObject
-              .fields.length; j++) {
-              this.selectbusinessList.addOption({
-                label: this.operationalLayers[currentValue]
-                  .layerObject
-                  .fields[j].name,
-                value: this.operationalLayers[currentValue]
-                  .layerObject
-                  .fields[j].name
-              });
-            }
+        var currentValue = this.selectBusinessLayer.value;
+        // loop to change the field names on changing the business layer
+        if (this.operationalLayers[currentValue] && this.operationalLayers[
+            currentValue].layerObject && this.operationalLayers[
+            currentValue].layerObject.fields && this.operationalLayers[
+            currentValue].layerObject.fields.length > 0) {
+          for (j = 0; j < this.operationalLayers[currentValue].layerObject
+            .fields.length; j++) {
+            this.selectbusinessList.addOption({
+              label: this.operationalLayers[currentValue].layerObject
+                .fields[j].name,
+              value: this.operationalLayers[currentValue].layerObject
+                .fields[j].name
+            });
           }
-        } else {
-          this.selectbusinessList.addOption({
-            label: "",
-            value: "0"
-          });
         }
         if (this.config && this.config.businessDisplayField &&
           this.selectbusinessList && this.selectbusinessList.options &&
@@ -993,6 +1111,14 @@ define([
         "title": this.nls.lblBusinessCount,
         "class": "esriCTTargetLayerLabel esriCTEllipsis"
       }, this.businessCountLabel);
+      this.saveRouteCost = new CheckBox({
+        "title": this.nls.lblRouteCost
+      }, this.routeCostCheckbox);
+      domConstruct.create("label", {
+        innerHTML: this.nls.lblRouteCost,
+        "title": this.nls.lblRouteCost,
+        "class": "esriCTTargetLayerLabel esriCTEllipsis"
+      }, this.saveRouteCostLabel);
       if (this.config && this.config.saveRoutelengthField) {
         this.saveRouteLength.checked = true;
         domClass.add(this.saveRouteLength.checkNode, "checked");
@@ -1005,7 +1131,14 @@ define([
         domClass.remove(this.selectSaveBusinessCount, "esriCTHidden");
         domClass.remove(this.selectBusinessCountBlock, "esriCTHidden");
       }
+      if (this.config && this.config.saveRouteCostField) {
+        this.saveRouteCost.checked = true;
+        domClass.add(this.saveRouteCost.checkNode, "checked");
+        domClass.remove(this.selectSaveRouteCost, "esriCTHidden");
+        domClass.remove(this.selectRouteCostBlock, "esriCTHidden");
+      }
     },
+
     /**
     * This function is used to create  checkbox for fieldmapping
     * @memberOf widgets/serviceFeasibility/setting/settings
@@ -1146,6 +1279,21 @@ define([
               "esriCTHidden");
           }
         }));
+      on(this.saveRouteCost.domNode, "click", lang.hitch(this,
+        function (
+          event) {
+          if (domClass.contains(event.target, "checked")) {
+            domClass.remove(this.selectSaveRouteCost,
+              "esriCTHidden");
+            domClass.remove(this.selectRouteCostBlock,
+              "esriCTHidden");
+          } else {
+            domClass.add(this.selectSaveRouteCost,
+              "esriCTHidden");
+            domClass.add(this.selectRouteCostBlock,
+              "esriCTHidden");
+          }
+        }));
       on(this.routeBussinessAttrTranferChkBox.domNode, "click", lang.hitch(
         this,
         function (event) {
@@ -1157,6 +1305,7 @@ define([
           }
         }));
     },
+
     /**
     * This function is used to uncheck "route-bussiness attribute Transfer" checkbox.
     * @memberOf widgets/ServiceFeasibility/setting/Settings
@@ -1251,6 +1400,7 @@ define([
       var j, optionValue;
       this.selectSaveRouteLength.options.length = 0;
       this.selectSaveBusinessCount.options.length = 0;
+      this.selectSaveRouteCost.options.length = 0;
       this.selectSaveRouteLayerField.options.length = 0;
       for (j = 0; j < this.operationalLayers[layerIndex].layerObject.fields
         .length; j++) {
@@ -1276,6 +1426,11 @@ define([
             label: optionValue,
             value: optionValue
           });
+          this.selectSaveRouteCost.addOption({
+            label: optionValue,
+            value: optionValue,
+            selected: false
+          });
           this.selectSaveRouteLayerField.addOption({
             label: optionValue,
             value: optionValue
@@ -1290,6 +1445,10 @@ define([
             this.config.saveBusinessCountField) {
             this.selectSaveBusinessCount.set("value", optionValue);
           }
+          if (this.config.saveRouteCostField && optionValue ===
+            this.config.saveRouteCostField) {
+            this.selectSaveRouteCost.set("value", optionValue);
+          }
           if (this.config.FieldMappingData.routeLayerField &&
             optionValue === this.config.FieldMappingData.routeLayerField
           ) {
@@ -1298,6 +1457,7 @@ define([
         }
       }
     },
+
     /**
     * This function adds bussiness layer attributes for field mapping options.
     * @param {string} layerIndex
@@ -1385,7 +1545,11 @@ define([
         routeLayerCheck = false,
         routelengthCheck = false,
         businessCountCheck = false,
-        queryLayer, highlighterDetails;
+        bussinessLayerIndex, businessLayerName,
+        queryLayer, highlighterDetails, bufferUnit,
+        bufferDistance, businessListFieldName,
+        routeCostCheck = false,
+        routeCostLayer = "";
       // Setting object for highlighted details
       highlighterDetails = {
         "imageData": "",
@@ -1435,9 +1599,13 @@ define([
               .selectSaveBusinessCount.value ? this.selectSaveBusinessCount
               .value : "";
           }
-
+          routeCostCheck = this.saveRouteCost && this.saveRouteCost
+            .checked ? this.saveRouteCost.checked : false;
+          if (routeLayerCheck && routeCostCheck) {
+            routeCostLayer = this.selectSaveRouteCost && this.selectSaveRouteCost
+              .value ? this.selectSaveRouteCost.value : "";
+          }
         }
-
         this.targetLayerFields.routeLayerField = this.selectSaveRouteLayerField &&
           this.selectSaveRouteLayerField.value !== "" ? this.selectSaveRouteLayerField
           .value : "";
@@ -1445,19 +1613,35 @@ define([
           this.selectSaveBusinessLayerField.value !== "" ? this.selectSaveBusinessLayerField
           .value : "";
         accessLayerName = this._getAccessLayerNames();
+        bussinessLayerIndex = this.selectBusinessLayer.value;
+        bufferUnit = this.selectBufferUnits.value;
+        bufferDistance = this.txtBufferDistance.value;
+        businessListFieldName = this.selectbusinessList.value;
+        if (!this.isAllowBusinessOptional) {
+          bussinessLayerIndex = "";
+          bufferUnit = "";
+          bufferDistance = "";
+          businessListFieldName = "";
+          businessLayer = "";
+          businessCountLayer = "";
+          this.routeBussinessAttrTranferChkBox.checked = false;
+        }
+        businessLayerName = bussinessLayerIndex !== "" ? this.operationalLayers[
+          bussinessLayerIndex].title : "";
         this.config = {
-          "businessesLayerName": this.operationalLayers[0].title,
+          "businessesLayerName": businessLayerName,
           "accessPointsLayersName": accessLayerName,
           "routeLengthLabelUnits": this.txtRouteLength.value,
-          "bufferEsriUnits": this.selectBufferUnits.value,
-          "bufferDistance": this.txtBufferDistance.value,
+          "routeUnitsRoundingOption": this.selectRoundingOption.value,
+          "bufferEsriUnits": bufferUnit,
+          "bufferDistance": bufferDistance,
           "facilitySearchDistance": this.txtFacilityDistance.value,
           "closestFacilityURL": this.closedFacilityServiceURL.value,
           "impedanceAttribute": this.selectInpedanceAttribute.value,
           "attributeName": this._attributeParameterObj.getAttributeParameterConfiguration(),
           "defaultCutoff": this.txtdefaultCuttoff.value,
           "attributeValueLookup": this.defaultParamValue || "",
-          "businessDisplayField": this.selectbusinessList.value,
+          "businessDisplayField": businessListFieldName,
           "targetBusinessLayer": businessLayer,
           "targetRouteLayer": routeLayerValue,
           "saveRoutelengthField": routelengthLayer,
@@ -1476,13 +1660,19 @@ define([
           "customAttributeSelection": this.customAttributeParameterRdb
             .checked,
           "ExpressionValue": this.txtCostExpression.value,
-          "LabelForBox": this.labelForBox
+          "LabelForBox": this.labelForBox,
+          "AllowBusinessOptional": this.isAllowBusinessOptional,
+          "saveRouteCostField": routeCostLayer,
+          "Before": this.inputRadioBefore.checked,
+          "After": this.inputRadioAfter.checked,
+          "settingNLS": this.nls.routeLengthroundingOption
         };
       } else {
         return false;
       }
       return this.config;
     },
+
     /**
     * This function validates config data
     * @param {return} flag value for validation
@@ -1505,7 +1695,13 @@ define([
       // Validate expression
       validateExpression = this._validateExpression();
       // Validation of 'Route length units' and 'Buffer distance '
-      validateInputTask = this._validateInputTaskParameters();
+      if (this.isAllowBusinessOptional) {
+        validateInputTask = this._validateInputTaskParameters();
+      } else {
+        validateInputTask = {
+          hasError: false
+        };
+      }
       // Validation of 'closest Facility URL' , 'Facility Search Distance' and 'Default Cutoff distance'
       validateClosestFacilityParameters = this.validateClosestFacilityParameters();
       if (!validateClosestFacilityParameters.hasError) {
@@ -1514,11 +1710,23 @@ define([
       // Validation of Image Parameter
       validateImageParameters = this._validateImageParameters();
       // Validation of 'Businesses Layer' and 'Route Layer'
-      validateTargateLayer = this._validateTargetLayer();
       //Check Bussiness layer Geometry
-      validateBusinessLayerGeometry = this._getGeometryFromBussinessLayer();
+      if (this.isAllowBusinessOptional) {
+        validateTargateLayer = this._validateTargetLayer();
+        validateBusinessLayerGeometry = this._getGeometryFromBussinessLayer();
+        parameterLookupValue = this._checkParameterLookupValue();
+      } else {
+        validateTargateLayer = {
+          hasError: false
+        };
+        validateBusinessLayerGeometry = {
+          hasError: false
+        };
+        parameterLookupValue = {
+          hasError: false
+        };
+      }
       validateTargateLayerParameters = this._validateTargetLayerParameters();
-      parameterLookupValue = this._checkParameterLookupValue();
       // validateInputTask is set to true, ie. validation error found then
       if (validateOperationLayer.hasError) {
         this._errorMessage(validateOperationLayer.returnErr);
@@ -1626,12 +1834,13 @@ define([
     * @memberOf widgets/ServiceFeasibility/settings/settings
     **/
     _validateAccesspointCheck: function () {
-      var returnObj = {
+      var i, returnObj;
+      returnObj = {
         returnErr: this.nls.validationErrorMessage.accessPointCheck,
         hasError: true
       };
       if (this.divAccessPointLayer.childNodes) {
-        for (var i = 0; i < this.divAccessPointLayer.childNodes.length; i++) {
+        for (i = 0; i < this.divAccessPointLayer.childNodes.length; i++) {
           if (this.divAccessPointLayer.childNodes[i] && this.divAccessPointLayer
             .childNodes[i].childNodes && this.divAccessPointLayer.childNodes[
               i].childNodes[0]) {
@@ -1661,6 +1870,26 @@ define([
       if (this.saveRouteCheck.checked && this.saveRouteLength.checked &&
         this.saveBusinessCount.checked) {
         if (this.selectSaveRouteLength.value === this.selectSaveBusinessCount
+          .value) {
+          returnObj.returnErr = "'" + this.nls.lblRouteLength + "'" +
+            this.nls.validationErrorMessage.andText + "'" + this.nls.lblBusinessCount +
+            "'" + this.nls.validationErrorMessage.diffText + ".";
+          returnObj.hasError = true;
+        }
+      }
+      if (this.saveRouteCheck.checked && this.saveRouteCost.checked &&
+        this.saveRouteLength.checked) {
+        if (this.selectSaveRouteLength.value === this.selectSaveRouteCost
+          .value) {
+          returnObj.returnErr = "'" + this.nls.lblRouteLength + "'" +
+            this.nls.validationErrorMessage.andText + "'" + this.nls.lblRouteCost +
+            "'" + this.nls.validationErrorMessage.diffText + ".";
+          returnObj.hasError = true;
+        }
+      }
+      if (this.saveRouteCheck.checked && this.saveRouteCost.checked &&
+        this.saveBusinessCount.checked) {
+        if (this.selectSaveRouteCost.value === this.selectSaveBusinessCount
           .value) {
           returnObj.returnErr = "'" + this.nls.lblRouteLength + "'" +
             this.nls.validationErrorMessage.andText + "'" + this.nls.lblBusinessCount +
@@ -2097,30 +2326,9 @@ define([
         innerHTML: this.nls.lblAllowAccessPointLayerSelect,
         "class": "esriCTCheckboxLabel"
       }, this.divAllowAccessPointLayer);
-      switch (this.config.AllowedAccessPointCheckBoxChecked) {
-        case true:
-          domClass.add(allowAccessPointCheckBox.checkNode, "checked");
-          domClass.add(allowAccessPointCheckBox.domNode,
-            "esriCTcheckedPointLayer");
-          allowAccessPointCheckBox.checked = true;
-          this.isAllowAccessPointCheckBox = allowAccessPointCheckBox.checked;
-          break;
-        case false:
-          domClass.remove(allowAccessPointCheckBox.checkNode,
-            "checked");
-          domClass.remove(allowAccessPointCheckBox.domNode,
-            "esriCTcheckedPointLayer");
-          allowAccessPointCheckBox.checked = false;
-          this.isAllowAccessPointCheckBox = allowAccessPointCheckBox.checked;
-          break;
-        default:
-          domClass.remove(allowAccessPointCheckBox.checkNode,
-            "checked");
-          domClass.remove(allowAccessPointCheckBox.domNode,
-            "esriCTcheckedPointLayer");
-          allowAccessPointCheckBox.checked = false;
-          this.isAllowAccessPointCheckBox = allowAccessPointCheckBox.checked;
-      }
+      this.isAllowAccessPointCheckBox = this._checkUncheckCheckBox(
+        allowAccessPointCheckBox, this.config.AllowedAccessPointCheckBoxChecked
+      );
       this._addEventAllowAccessPointLayerCheckBox(
         allowAccessPointCheckBox);
     },
@@ -2258,6 +2466,121 @@ define([
         this.txtCostExpression.set("value", this.config.ExpressionValue);
       } else {
         this.txtCostExpression.set("value", this.nls.testExpressionValue);
+      }
+    },
+
+    /**
+    * Function to create checkbox for enabling selection layer
+    * @memberOf widgets/SearviceFeasibility/settings/settings
+    */
+    _createMakeBusinessOptionalChkBx: function () {
+      var makeBusinessOptionalChkBx;
+      makeBusinessOptionalChkBx = new CheckBox({}, this.businessOptionalChkBx);
+      domConstruct.create("label", {
+        "innerHTML": this.nls.lblEnableSelectionLayer,
+        "class": "esriCTCheckboxLabel"
+      }, this.businessOptionalLabel);
+      this.isAllowBusinessOptional = this._checkUncheckCheckBox(
+        makeBusinessOptionalChkBx, this.config.AllowBusinessOptional
+      );
+      switch (this.config.AllowBusinessOptional) {
+        case true:
+          this._displayOnCheckBoxChecked();
+          break;
+        case false:
+          this._hideOnCheckBoxUnchecked();
+          break;
+        default:
+          this._hideOnCheckBoxUnchecked();
+      }
+      this._onClickMakeBusinessOptionalChkBx(
+        makeBusinessOptionalChkBx);
+    },
+
+    /**
+    * Function to handle event on check and uncheck of selection layer checkbox
+    * @memberOf widgets/SearviceFeasibility/settings/settings
+    */
+    _onClickMakeBusinessOptionalChkBx: function (checkbox) {
+      this.own(on(checkbox.domNode, "click", lang.hitch(this,
+        function () {
+          this.isAllowBusinessOptional =
+            checkbox.checked;
+          switch (checkbox.checked) {
+            case true:
+              this._displayOnCheckBoxChecked();
+              break;
+            case false:
+              this._hideOnCheckBoxUnchecked();
+              break;
+          }
+        })));
+    },
+
+    /**
+    * Function to display components of 'selection layer settings' fieldset
+    * @memberOf widgets/SearviceFeasibility/settings/settings
+    */
+    _displayOnCheckBoxChecked: function () {
+      domStyle.set(this.selectionLayerDiv, "display", "block");
+      domStyle.set(this.targetBusinessLayerDiv, "display", "block");
+      domStyle.set(this.businessCountDiv, "display", "block");
+      domStyle.set(this.routeBussinessAttrTranferMainContainer,
+        "display", "block");
+    },
+
+    /**
+    * Function to hide components of 'selection layer settings' fieldset
+    * @memberOf widgets/SearviceFeasibility/settings/settings
+    */
+    _hideOnCheckBoxUnchecked: function () {
+      domStyle.set(this.selectionLayerDiv, "display", "none");
+      domStyle.set(this.targetBusinessLayerDiv, "display", "none");
+      domStyle.set(this.businessCountDiv, "display", "none");
+      domStyle.set(this.routeBussinessAttrTranferMainContainer,
+        "display", "none");
+    },
+
+    /**
+    * Function to check and set values according to checkbox checks
+    * @memberOf widgets/SearviceFeasibility/settings/settings
+    */
+    _checkUncheckCheckBox: function (checkbox, isChecked) {
+      switch (isChecked) {
+        case true:
+          domClass.add(checkbox.checkNode, "checked");
+          domClass.add(checkbox.domNode,
+            "esriCTcheckedPointLayer");
+          checkbox.checked = true;
+          break;
+        case false:
+          domClass.remove(checkbox.checkNode,
+            "checked");
+          domClass.remove(checkbox.domNode,
+            "esriCTcheckedPointLayer");
+          checkbox.checked = false;
+          break;
+        default:
+          domClass.remove(checkbox.checkNode,
+            "checked");
+          domClass.remove(checkbox.domNode,
+            "esriCTcheckedPointLayer");
+          checkbox.checked = false;
+      }
+      return checkbox.checked;
+    },
+
+    /**
+    * Function to regain state of radio buttons
+    * @memberOf widgets/SearviceFeasibility/settings/settings
+    */
+    _regainAfterOrBeforeState: function () {
+      if (this.config.Before) {
+        this.inputRadioBefore.set('checked', true);
+        this.inputRadioAfter.set('checked', false);
+      } else {
+        this.inputRadioAfter.set('checked', true);
+        this.inputRadioBefore.set('checked', false);
       }
     }
   });

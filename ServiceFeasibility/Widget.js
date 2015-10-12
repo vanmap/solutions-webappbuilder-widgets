@@ -175,7 +175,8 @@ define([
           "geometryService")) && (this.appConfig.geometryService ===
           null || this.appConfig.geometryService === "")) {
         this._showAlertMessage(this.nls.invalidGeometryService);
-      } else if (!this._checkLayerAvailability(this.config.businessesLayerName)) {
+      } else if (!this._checkLayerAvailability(this.config.businessesLayerName) &&
+        this.config.AllowBusinessOptional) {
         this._showAlertMessage(this.nls.businessLayerUnavailable);
       } else {
         this._initializeDrawTool();
@@ -209,6 +210,7 @@ define([
             "esriCTHidePanel");
           this._routeLength = 0;
           this._businessPassed = 0;
+          this._routeCost = 0;
           this.resultDisplayAttributes = [];
           domConstruct.empty(this.exportToCSVContainer);
           this._isDescending = false;
@@ -619,6 +621,21 @@ define([
           this.routeLayer.layerObject.templates : "",
         "capabilities": "Query,Editing"
       };
+      //In case of range domain API requires range array to be available in domain,
+      //so check if range array is not available add it to domain
+      array.forEach(featureCollection.layerDefinition.fields, lang.hitch(this, function (field) {
+        if (field && field.domain && field.domain.type === "range") {
+          if (!field.domain.range) {
+            field.domain.range = [];
+            if (field.domain.minValue) {
+              field.domain.range.push(field.domain.minValue);
+            }
+            if (field.domain.maxValue) {
+              field.domain.range.push(field.domain.maxValue);
+            }
+          }
+        }
+      }));
       this.routeFeatureLayer = new FeatureLayer(featureCollection, {
         outFields: outFields,
         id: "routeFeatureLayer"
@@ -1018,14 +1035,6 @@ define([
     **/
     _onPointBarrierClicked: function () {
       if (!this.pointBarrierClicked) {
-        //Checking the width of the device.
-        if (this.viewWindowSize.w < 768) {
-          if (this.panelManager.getPanelById(this.id + '_panel').titleNode &&
-            this.panelManager.getPanelById(this.id + '_panel').onTitleClick
-          ) {
-            this.panelManager.getPanelById(this.id + '_panel').onTitleClick();
-          }
-        }
         this.pointBarrierClicked = true;
         this.polylineBarrierClicked = false;
         this.polygonBarrierClicked = false;
@@ -1052,14 +1061,6 @@ define([
     **/
     _onPolylineBarrierClicked: function () {
       if (!this.polylineBarrierClicked) {
-        //Checking the width of the device.
-        if (this.viewWindowSize.w < 768) {
-          if (this.panelManager.getPanelById(this.id + '_panel').titleNode &&
-            this.panelManager.getPanelById(this.id + '_panel').onTitleClick
-          ) {
-            this.panelManager.getPanelById(this.id + '_panel').onTitleClick();
-          }
-        }
         this.polylineBarrierClicked = true;
         // set other barriers flags and location flag to false
         this.polygonBarrierClicked = false;
@@ -1087,14 +1088,6 @@ define([
     **/
     _onPolygonBarrierClicked: function () {
       if (!this.polygonBarrierClicked) {
-        //Checking the width of the device.
-        if (this.viewWindowSize.w < 768) {
-          if (this.panelManager.getPanelById(this.id + '_panel').titleNode &&
-            this.panelManager.getPanelById(this.id + '_panel').onTitleClick
-          ) {
-            this.panelManager.getPanelById(this.id + '_panel').onTitleClick();
-          }
-        }
         this.polygonBarrierClicked = true;
         // set other barriers flags and location flag to false
         this.polylineBarrierClicked = false;
@@ -1122,14 +1115,6 @@ define([
     **/
     _onSelectLocationClicked: function () {
       if (!this.selectLocationClicked) {
-        //Checking the width of the device.
-        if (this.viewWindowSize.w < 768) {
-          if (this.panelManager.getPanelById(this.id + '_panel').titleNode &&
-            this.panelManager.getPanelById(this.id + '_panel').onTitleClick
-          ) {
-            this.panelManager.getPanelById(this.id + '_panel').onTitleClick();
-          }
-        }
         this.selectLocationClicked = true;
         // set barriers flags to false
         this.polylineBarrierClicked = false;
@@ -1322,6 +1307,7 @@ define([
         domConstruct.empty(this.exportToCSVContainer);
         this._routeLength = 0;
         this._businessPassed = 0;
+        this._routeCost = 0;
         this._resetBusinessInfluenceValues();
       }
     },
@@ -1512,7 +1498,7 @@ define([
     * @memberOf widgets/ServiceFeasibility/Widget
     **/
     _addBufferGeometryOnMap: function (response, geometry) {
-      var bufferResultGeometry, bufferGraphic, bufferSymbol,
+      var i, bufferResultGeometry, bufferGraphic, bufferSymbol,
         bufferSymbolData, arrayAccessPointsLayers = [],
         deferredArray = [],
         featuresList = [];
@@ -1525,7 +1511,7 @@ define([
         } else {
           arrayAccessPointsLayers = this.config.accessPointsLayersName
             .split(",");
-          for (var i = 0; i < arrayAccessPointsLayers.length; i++) {
+          for (i = 0; i < arrayAccessPointsLayers.length; i++) {
             if (arrayAccessPointsLayers.hasOwnProperty(i) &&
               arrayAccessPointsLayers[i] !== "") {
               this._setLayerForDropdown(arrayAccessPointsLayers[i]);
@@ -1694,7 +1680,12 @@ define([
           (error.details && error.details.length > 0 ? "\n" +
             error.details[0] : "");
           errorMsg = (errorMsg !== "") ? errorMsg : this.nls.unableToFindClosestFacility;
-          this._showAlertMessage(errorMsg);
+          if (errorMsg.length > 500) {
+            errorMsg = errorMsg.substring(0, 500) + "...";
+            this._showAlertMessage(errorMsg);
+          } else {
+            this._showAlertMessage(errorMsg);
+          }
           this._enableAllControls();
           this._hideLoadingIndicator();
         }));
@@ -1804,6 +1795,29 @@ define([
       return facilityParams;
     },
 
+    /**
+    * This function will round of the value route length or cost
+    * @params{string}result: string contains route length or cost
+    * @memberOf widgets/ServiceFeasibility/Widget
+    **/
+    _calculateRouteUnit: function (result) {
+      var routeUnitVal;
+      if (this.config.routeUnitsRoundingOption === this.config.settingNLS
+        .twoDecimalValue) {
+        routeUnitVal = result.toFixed(2);
+      } else if (this.config.routeUnitsRoundingOption === this.config
+        .settingNLS.noDecimalValue) {
+        routeUnitVal = result.toFixed();
+      } else if (this.config.routeUnitsRoundingOption === this.config
+        .settingNLS.tenDecimalValue || this.config.routeUnitsRoundingOption ===
+        this.config.settingNLS.hunderedDecimalValue || this.config.routeUnitsRoundingOption ===
+        this.config.settingNLS.thousandDecimalValue) {
+        routeUnitVal = Math.floor(result / parseInt(this.config.routeUnitsRoundingOption,
+          10)) * parseInt(this.config.routeUnitsRoundingOption,
+          10);
+      }
+      return routeUnitVal;
+    },
 
     /**
     * This function will draw the closest route path and show it on map
@@ -1812,9 +1826,10 @@ define([
     **/
     _showFinalRoute: function (routes) {
       var lineSymbol, finalRoute, pathLine, routeSymbolData,
+        routeUnitVal,
         routeLayerInfos = [],
         routeFieldInfo = [],
-        variable, resultVariable, result;
+        variable, resultVariable, result, routeGeometry;
       variable = routes.attributes.Shape_Length.toFixed(0).toString();
       if (this.config && this.config.LabelForBox) {
         this.lblForBox.innerHTML = this.config.LabelForBox;
@@ -1822,10 +1837,17 @@ define([
       if (this.config && this.config.ExpressionValue) {
         resultVariable = this._getStringValue(variable);
         result = eval(resultVariable); // jshint ignore:line
-        this.routeLengthCountValue.innerHTML = result.toFixed(2) +
-          " " + this.config.routeLengthLabelUnits;
+        routeUnitVal = this._calculateRouteUnit(result);
+        if (this.config.Before) {
+          this.routeLengthCountValue.innerHTML = this.config.routeLengthLabelUnits +
+            " " + routeUnitVal;
+        } else {
+          this.routeLengthCountValue.innerHTML = routeUnitVal +
+            " " + this.config.routeLengthLabelUnits;
+        }
+        this._routeCost = routeUnitVal;
       }
-      this._routeLength = routes.attributes.Shape_Length.toFixed(0);
+      this._routeLength = this._calculateRouteUnit(routes.attributes.Shape_Length);
       if (this.config && this.config.symbol && this.config.symbol.length &&
         this.config.symbol.length > 0) {
         routeSymbolData = this._getSymbolJson("routeSymbol");
@@ -1880,11 +1902,31 @@ define([
                 }
               }));
           }
-          // Call function to draw buffer around the closest route path
-          this._createBufferGeometry([routes.geometry], [this.config.bufferDistance],
-            this.config.bufferEsriUnits, [this.map.extent.spatialReference
-              .wkid
-            ]);
+          if (this.config.AllowBusinessOptional) {
+            // Call function to draw buffer around the closest route path
+            this._createBufferGeometry([routes.geometry], [this.config
+                .bufferDistance
+              ],
+              this.config.bufferEsriUnits, [this.map.extent.spatialReference
+                .wkid
+              ]);
+          } else {
+            if (this.clearButtonSearch) {
+              this.clearButtonSearch.disabled = false;
+              domClass.remove(this.clearButtonSearch,
+                "jimu-state-disabled");
+            }
+            routeGeometry = routes.geometry;
+            this.map.setExtent(routeGeometry.getExtent(), true);
+            if (this.ExportToLayer) {
+              domStyle.set(this.ExportToLayer, "display",
+                "inline-block");
+            }
+            this._setRouteAttributes();
+            this.isResultExist = true;
+            this._switchToResultPanel();
+            this._enableAllControls();
+          }
         } else {
           this.errorExist = true;
           this._onClearButtonClicked();
@@ -2104,6 +2146,11 @@ define([
           this.routeFeatureLayer.graphics[0].attributes[this.config.saveBusinessCountField] =
             this._businessPassed;
         }
+        if (this.config.saveRouteCostField && lang.trim(this.config
+            .saveRouteCostField) !== "") {
+          this.routeFeatureLayer.graphics[0].attributes[this.config.saveRouteCostField] =
+            this._routeCost;
+        }
       }
     },
 
@@ -2126,7 +2173,7 @@ define([
             domStyle.set(this.tabContainer.tabs[j].content, "display",
               "block");
             domStyle.set(this.resultContainer, "display", "block");
-            if (this.config.BusinessLayerValue !== "0") {
+            if (this.config.AllowBusinessOptional) {
               domStyle.set(this.resultListContainer, "display",
                 "block");
               domStyle.set(this.businessTitleContainer, "display",
@@ -2313,7 +2360,7 @@ define([
     * @memberOf widgets/ServiceFeasibility/Widget
     **/
     _setContentForResultGrid: function (result) {
-      var l, j, businessDisplayField;
+      var l, j;
       // loop to get the attributes of each feature for the given field in config and push it in array
       if (result) {
         for (j = 0; j < result.length; j++) {
@@ -2323,21 +2370,15 @@ define([
             this.results.concat(result[j].features);
           }
         }
-        if (this.config.businessDisplayField === "0") {
-          businessDisplayField = this.businessLayer
-            .layerObject.fields[0].name;
-        } else {
-          businessDisplayField = this.config.businessDisplayField;
-        }
         this.resultDisplayAttributes.length = 0;
         this.resultDisplayField.length = 0;
         for (l = 0; l < this.results.length; l++) {
           if (this.results[l].attributes.hasOwnProperty(
-              businessDisplayField)) {
+              this.config.businessDisplayField)) {
             this.resultDisplayAttributes.push(this.results[l]);
             this.resultDisplayField.push({
               "name": this.results[l].attributes[
-                businessDisplayField],
+                this.config.businessDisplayField],
               "objectId": this.results[l].attributes[this.businessLayer
                 .layerObject.fields[0].name]
             });
@@ -2354,9 +2395,7 @@ define([
       } else {
         domClass.add(this.sortIconDiv, "esriCTHidePanel");
         domStyle.set(this.exportToCSVContainer, "display", "none");
-        if (this.ExportToLayer) {
-          domStyle.set(this.ExportToLayer, "display", "none");
-        }
+        domStyle.set(this.ExportToLayer, "display", "none");
       }
     },
 
@@ -2453,7 +2492,7 @@ define([
     * @memberOf widgets/ServiceFeasibility/Widget
     **/
     _attachEventsToResultListContainer: function (resultFeatures, list) {
-      var selectedFeature, featureId,
+      var i, selectedFeature, featureId,
         featureList = [];
       this.own(on(list, "click", lang.hitch(this, function (evt) {
         selectedFeature = lang.trim(evt.target.innerHTML.replace(
@@ -2461,27 +2500,23 @@ define([
         featureId = list.id;
         featureList = query(".esriCTFeatureFieldContainer");
         if (featureList && featureList.length > 0) {
-          for (var i = 0; i < featureList.length; i++) {
-            domClass.remove(featureList[i], "esriCTSelectedFeatureFieldList");
-            domClass.remove(featureList[i], "esriCTSelectedDartFeatureFieldList");
-            domClass.remove(featureList[i], "esriCTHoverFeatureList");
-            domClass.remove(featureList[i], "esriCTDartHoverFeatureList");
+          for (i = 0; i < featureList.length; i++) {
+            domClass.remove(featureList[i],
+              "esriCTSelectedFeatureFieldList");
+            domClass.remove(featureList[i],
+              "esriCTSelectedDartFeatureFieldList");
+            domClass.remove(featureList[i],
+              "esriCTHoverFeatureList");
+            domClass.remove(featureList[i],
+              "esriCTDartHoverFeatureList");
           }
         }
         if (this.appConfig.theme.name !== "DartTheme") {
           domClass.add(evt.target,
-          "esriCTSelectedFeatureFieldList");
+            "esriCTSelectedFeatureFieldList");
         } else {
           domClass.add(evt.target,
-          "esriCTSelectedDartFeatureFieldList");
-        }
-        if (this.viewWindowSize.w < 768) {
-          if (this.panelManager.getPanelById(this.id +
-              '_panel').titleNode && this.panelManager.getPanelById(
-              this.id + '_panel').onTitleClick) {
-            this.panelManager.getPanelById(this.id + '_panel')
-              .onTitleClick();
-          }
+            "esriCTSelectedDartFeatureFieldList");
         }
         this._highlightFeatureOnMap(selectedFeature,
           resultFeatures, featureId);
@@ -2861,6 +2896,12 @@ define([
               }
             }));
         this.attInspector.refresh();
+        // if applied Theme is for widget is dart Theme and browser is IE9
+        if (this.appConfig.theme.name === "DartTheme" && has("ie") ===
+          9) {
+          this._setDartBackgroudColorForIE9();
+        }
+
       }
     },
 
@@ -2890,7 +2931,6 @@ define([
 
       return fieldInfoArr;
     },
-
 
     layerFieldsToFieldInfos: function () {
       var fieldInfo = null,
@@ -3015,7 +3055,7 @@ define([
           }
         }
         domStyle.set(this.resultContainer, "display", "block");
-        if (this.config.BusinessLayerValue !== "0") {
+        if (this.config.AllowBusinessOptional) {
           domStyle.set(this.resultListContainer, "display",
             "block");
           domStyle.set(this.businessTitleContainer, "display",
@@ -3249,6 +3289,7 @@ define([
         }
       }
     },
+
     /**
     * This function will save the route graphic on layer
     * @params{object}routeLayer:Route feature layer on map
@@ -3493,18 +3534,20 @@ define([
     * @memberOf widgets/ServiceFeasibility/Widget
     **/
     _enhancedStyling: function () {
-      domClass.remove(this.businessPassedResultListLabel,
-        "esriCTListLabelCSV");
-      domClass.remove(this.businessPassedResultListLabel,
-        "esriCTListLabelArrow");
-      domClass.remove(this.businessPassedResultListLabel,
-        "esriCTListLabelFullWidth");
-      if (this.config.exportToCSV) {
-        domClass.add(this.businessPassedResultListLabel,
+      if (this.businessPassedResultListLabel) {
+        domClass.remove(this.businessPassedResultListLabel,
           "esriCTListLabelCSV");
-      } else {
-        domClass.add(this.businessPassedResultListLabel,
+        domClass.remove(this.businessPassedResultListLabel,
           "esriCTListLabelArrow");
+        domClass.remove(this.businessPassedResultListLabel,
+          "esriCTListLabelFullWidth");
+        if (this.config.exportToCSV) {
+          domClass.add(this.businessPassedResultListLabel,
+            "esriCTListLabelCSV");
+        } else {
+          domClass.add(this.businessPassedResultListLabel,
+            "esriCTListLabelArrow");
+        }
       }
     },
 
@@ -3526,7 +3569,7 @@ define([
     },
 
     /**
-    * Function for setting dart theme backgroud color on IE 9
+    * Function for setting dart theme background color on IE 9
     * @memberOf widgets/ServiceFeasibility/Widget
     */
     _setDartBackgroudColor: function () {
@@ -3537,6 +3580,113 @@ define([
           0];
         domClass.add(mainDivContainer, "esriCTDartBackgroudColor");
       }
+    },
+
+    /**
+    * This function is used to add focus class on text box click for IE9
+    * @param{object} Element node to which class needs to be added
+    * @memberOf widgets/ServiceFeasibility/Widget
+    */
+    _addFocusClassOnTextBoxClick: function (textBoxNode) {
+      var dijitTextBoxFocusedIE9div, dijitTextBoxFocuseddiv, j;
+      domClass.add(textBoxNode, "dijitTextBoxIE9");
+      // binding events for changing CSS on click of input Div
+      // in dart theme and in case of  IE9
+      on(textBoxNode, "click", lang.hitch(this, function () {
+        dijitTextBoxFocusedIE9div = query(
+          ".dijitTextBoxFocusedIE9");
+        dijitTextBoxFocuseddiv = query(".dijitTextBoxFocused")[
+          0];
+        // loop for removing classes of focused node from all dijitTextBox
+        for (j = 0; j < dijitTextBoxFocusedIE9div.length; j++) {
+          domClass.remove(dijitTextBoxFocusedIE9div[j],
+            "dijitTextBoxFocusedIE9");
+        }
+        domClass.add(dijitTextBoxFocuseddiv,
+          "dijitTextBoxFocusedIE9");
+      }));
+    },
+
+    /**
+    * This function is used to add focus class on date change for IE9
+    * @param{object} Element node to which class needs to be added
+    * @memberOf widgets/ServiceFeasibility/Widget
+    */
+    _addFocusClassOnDateChange: function (inputNode) {
+      var dijitTextBoxFocusedIE9div, dijitTextBoxFocuseddiv, j;
+      // binding events for changing CSS on change of input Div
+      // in dart theme and in case of  IE9
+      on(inputNode, "change", lang.hitch(this, function () {
+        dijitTextBoxFocusedIE9div = query(
+          ".dijitTextBoxFocusedIE9");
+        dijitTextBoxFocuseddiv = query(".dijitTextBoxFocused")[
+          0];
+        // loop for removing classes of focused node from all dijitTextBox
+        for (j = 0; j < dijitTextBoxFocusedIE9div.length; j++) {
+          domClass.remove(dijitTextBoxFocusedIE9div[j],
+            "dijitTextBoxFocusedIE9");
+        }
+        domClass.add(dijitTextBoxFocuseddiv,
+          "dijitTextBoxFocusedIE9");
+      }));
+    },
+
+    /**
+    * This function is used to add class on focus of dijit input for IE9
+    * @param{object} Element node to which class needs to be added
+    * @memberOf widgets/ServiceFeasibility/Widget
+    */
+    _addClassOnFocus: function (inputNode) {
+      var dijitTextBoxFocusedIE9div, dijitTextBoxFocuseddiv, j;
+      // binding events for changing CSS on focus of input Div
+      // in dart theme and in case of  IE9
+      on(inputNode, "focus", lang.hitch(this, function () {
+        dijitTextBoxFocusedIE9div = query(
+          ".dijitTextBoxFocusedIE9");
+        dijitTextBoxFocuseddiv = query(".dijitTextBoxFocused")[
+          0];
+        // loop for removing classes of focused node from all dijitTextBox
+        for (j = 0; j < dijitTextBoxFocusedIE9div.length; j++) {
+          domClass.remove(dijitTextBoxFocusedIE9div[j],
+            "dijitTextBoxFocusedIE9");
+        }
+        domClass.add(dijitTextBoxFocuseddiv,
+          "dijitTextBoxFocusedIE9");
+      }));
+    },
+
+    /**
+    * Function for setting dart theme background color on IE 9
+    * @memberOf widgets/ServiceFeasibility/Widget
+    */
+    _setDartBackgroudColorForIE9: function () {
+      var dijitTextBoxdiv, dijitButtonNodediv, i, dijitInputInnerdiv,
+        dijitArrowButtondiv;
+      dijitTextBoxdiv = query(".dijitTextBox");
+      dijitButtonNodediv = query(".dijitButtonNode");
+      dijitInputInnerdiv = query(".dijitInputInner");
+      dijitArrowButtondiv = query(".dijitArrowButton");
+
+      for (i = 0; i < dijitArrowButtondiv.length; i++) {
+        domClass.add(dijitArrowButtondiv[i], "dijitArrowButtonIE9");
+      }
+      // loop for adding class for applying CSS on input field of div text box div
+      // in dart theme in case of  IE9
+      for (i = 0; i < dijitTextBoxdiv.length; i++) {
+        this._addFocusClassOnTextBoxClick(dijitTextBoxdiv[i]);
+      }
+      // loop for adding class for applying CSS on input field of div text box div
+      // in dart theme in case of  IE9
+      for (i = 0; i < dijitInputInnerdiv.length; i++) {
+        this._addFocusClassOnDateChange(dijitInputInnerdiv[i]);
+        this._addClassOnFocus(dijitInputInnerdiv[i]);
+      }
+      // loop for adding class for applying CSS on button div of select div
+      //in dart theme in case of  IE9
+      for (i = 0; i < dijitButtonNodediv.length; i++) {
+        domClass.add(dijitButtonNodediv[i], "dijitButtonNodeIE9");
+      }
     }
+
   });
 });

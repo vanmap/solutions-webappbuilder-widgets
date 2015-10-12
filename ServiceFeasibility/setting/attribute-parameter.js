@@ -495,7 +495,6 @@ define([
       }
     },
 
-
     /**
     * This function is used to add options in drop downwhose selected value needs to be set
     * @param {object} drop down in which value needs to be added
@@ -507,7 +506,6 @@ define([
         selectList.set("value", this.nls.allowToUserInput);
       }
     },
-
 
     /**
     * This function is used to add options in drop down
@@ -976,5 +974,6 @@ define([
         returnObj.hasError = true;
       }
     }
+
   });
 });

@@ -16,12 +16,13 @@
 ///////////////////////////////////////////////////////////////////////////
 define({
   root: {
-    lblBusinessesLayer: "Businesses layer",
+    lblBusinessesLayer: "Selection layer",
     lblAccessPointLayers: "Access point layers",
     lblForRouteLengthUnits: "Route result unit label",
+    lblForRouteRoundingOption: "Rounding Option",
     lblForExpression: "Route result expression",
-    lblFieldTobeDisplayed: "Field to be displayed in business list",
-    captionServiceAreaParameters: "Service area parameters",
+    lblFieldTobeDisplayed: "Field to be displayed in result list",
+    captionServiceAreaParameters: "Selection Layer Settings",
     lblBufferDistanceToGenerateServiceArea: "Buffer distance to generate service area",
     lblBufferUnits: "Buffer units",
     captionClosestFacilityParameters: "Closest facility parameters",
@@ -44,6 +45,11 @@ define({
     lblAllowBarriers: "Allow Barriers",
     lblAllowAccessPointLayerSelect: "Allow user to select Access Point layer",
     lblForBox: "Route result label",
+    lblEnableSelectionLayer: "Enable Selection Layer",
+    lblRouteCost: "Field to save Route result expression",
+    lblForRouteUnitLblPosition: "Result unit label position",
+    lblForRadioBtnAfter: "After",
+    lblForRadioBtnBefore: "Before",
     symbol: {
       barrier: "Barrier symbols",
       location: "Location symbol",
@@ -100,6 +106,18 @@ define({
       esriCTFeets: "Feet",
       esriCTKilometers: "Kilometers"
     },
+    routeLengthroundingOption: {
+      twoDecimalName: "two decimal",
+      noDecimalName: "no decimal",
+      tenDecimalName: "nearest 10",
+      hunderedDecimalName: "nearest 100",
+      thousandDecimalName: "nearest 1000",
+      twoDecimalValue: "2",
+      noDecimalValue: "0",
+      tenDecimalValue: "10",
+      hunderedDecimalValue: "100",
+      thousandDecimalValue: "1000"
+    },
     attributeParameter: {
       minText: "Min",
       maxText: "Max"
@@ -108,6 +126,7 @@ define({
       bussinessesLayerText: "Hint: Select business layer.",
       accessPointLayerText: "Hint: Select minimum one access point layer.",
       routeLengthUnitText: "Hint: Please provide a label for the result units. If displaying just the route length, please set this to basemap's linear distance unit (Meters or Feet).",
+      roundingOptionHintText: "Hint: for rounding option.",
       bussinessListText: "Hint: Select desired business list field.",
       bufferDistanceText: "Hint: Specify a numeric value for buffer distance.",
       bufferUnitsText: "Hint: Select buffer unit.",
@@ -132,7 +151,9 @@ define({
       selectImageHintText: "Hint: Please click on the image to select any other highlighter image.",
       allowUserAccessPointLayerSelectText: "Hint: When left unchecked, the nearest asset will be found from all selected access point layers in the list",
       hintExpressionText: "Hint: Please enter an equation including the {Length} keyword. Providing just the {Length} keyword, will display only the route length in results.",
-      hintLabelForBox: "Hint: Displayed on top in results panel."
+      hintLabelForBox: "Hint: Displayed on top in results panel.",
+      routeCostText: "Hint: Select field of Route Layer to save result of expression.",
+      resulUnitLabelPosition: "Please provide an option to show the label before or after the values"
     },
     invalidURL: " Please enter a valid ",
     allowToUserInput: "Allow user input",
@@ -141,6 +162,8 @@ define({
     lblAttributeParameterValues: "Custom attribute parameter values",
     defaultDataDictionaryValue: "Prohibited,Avoid_High,Avoid_Medium,Avoid_Low,Prefer_Low,Prefer_Medium,Prefer_High",
     lblTravelMode: "Use TravelModes",
-    testExpressionValue: "{Length}"
+    testExpressionValue: "{Length}",
+    closestFacilityLayerTitle: "Closest Facility Layer",
+    closestFacilityLayerPopupTitle: "Select closest facility layer"
   }
 });

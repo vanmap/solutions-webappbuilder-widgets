@@ -1,6 +1,6 @@
 {
-  "name": "IncidentAnalysis",
-  "label": "Incident Analysis",
+  "name": "SituationAwareness",
+  "label": "Situation Awareness",
   "2D": true,
   "3D": true,
   "platform": "HTML",

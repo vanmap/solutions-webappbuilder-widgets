@@ -1,6 +1,6 @@
 define({
   root: ({
-    _widgetLabel: "Incident Analysis",
+    _widgetLabel: "Situation Awareness",
     locate_incident: "Locate Incident",
     clear_incidents: "Clear Incidents",
     reverse_geocoded_address: "Closest address",

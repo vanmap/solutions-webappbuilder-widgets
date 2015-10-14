@@ -6,16 +6,16 @@
                     <div class="tracePanel" data-dojo-attach-point="tracePanel">
                         <div class="traceControls">
                             <div class="btnFlagStyle">
-                                <label class="flagLabel" data-dojo-attach-point="flagLabel" for="btnFlag">
-                                </label>
                                 <div class="flagbutton" data-dojo-attach-point="btnFlag" data-dojo-attach-event="onclick:_onFlagButtonClick">
                                 </div>
+                                <label class="flagLabel" data-dojo-attach-point="flagLabel" for="btnFlag">
+                                </label>
                             </div>
                             <div class="btnBarrierStyle esriCTHidden">
-                                <label class="barrierLabel" data-dojo-attach-point="barrierLabel" for="btnBarrier">
-                                </label>
                                 <div class="barrierButton" data-dojo-attach-point="btnBarrier" data-dojo-attach-event="onclick:_onBarrierButtonClick">
                                 </div>
+                                <label class="barrierLabel" data-dojo-attach-point="barrierLabel" for="btnBarrier">
+                                </label>
                             </div>
                         </div>
                         <div class="traceButtons">
@@ -33,14 +33,12 @@
                             <div class="esriCTlblLoc" data-dojo-attach-point="lblInputLoc">
                                 ${nls.lblInputLocHeader}</div>
                             <div class="esriCTTabRightimg" data-dojo-attach-point="inputLocRightCaretIcon">
-                                &gt;
                             </div>
                         </div>
                         <div class="esriCTBarrierLocationTab" data-dojo-attach-point="barrierLocTab" data-dojo-attach-event="onclick:_onBarrierLocTabClick">
                             <div class="esriCTlblLoc" data-dojo-attach-point="lblBlockLoc">
                                 ${nls.lblBlockLocHeader}</div>
                             <div class="esriCTTabRightimg">
-                                &gt;
                             </div>
                         </div>
                     </div>
@@ -49,7 +47,7 @@
                     <div class="esriCTLayerInformationContainer" data-dojo-attach-point="resultLayersInformationContainer">
                     </div>
                     <div class="resultPanelStyle" data-dojo-attach-point="resultPanel">
-                        <div class="dijitheadPaneTitle">
+                        <div class="dijitheadPaneTitle esriCTBorderNone" data-dojo-attach-point="headPaneTitle">
                             <div class="resultsHeadText">
                                 <div class="esriCTImageDiv">
                                     <div class="esriCTSaveToLayerButton esriCTHidden" data-dojo-attach-point="btnSaveToLayer"

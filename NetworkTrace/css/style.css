@@ -125,21 +125,21 @@
 .jimu-widget-NetworkTrace .flagLabel
 {
     float: left;
-    margin: 0px 0px 10px 0;
+    padding: 13px 0px 13px 10px;
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
-    width: 100%;
+    max-width: 85%;
 }
 
 .jimu-widget-NetworkTrace .barrierLabel
 {
     float: left;
-    margin: 0px 0px 10px 0;
+    padding: 13px 0px 13px 10px;
     white-space: nowrap;
     text-overflow: ellipsis;
     overflow: hidden;
-    width: 100%;
+    max-width: 85%;
 }
 
 .jimu-widget-NetworkTrace .traceButtons
@@ -222,10 +222,14 @@
     display: none;
 }
 
+.boxPanel
+{
+    top: 140px !important;
+}
+
 .jimu-widget-NetworkTrace .runIconProcessing
 {
     position: absolute;
-    height: 500px !important;
     width: 100% !important;
     top: 0px;
     right: 0px;
@@ -689,6 +693,9 @@
     float: right;
     width: 14px;
     height: 14px;
+    background-repeat: no-repeat;
+    background-image: url("../images/right-arrow.png");
+    background-size: 14px 14px;
 }
 
 .jimu-widget-NetworkTrace .esriCTBarrierLocationTab
@@ -702,7 +709,6 @@
     position: relative;
     float: left;
     width: 100%;
-    margin-bottom: 15px;
     padding: 6px 20px 10px 20px;
     background-color: #FFFFFF;
     border-top: 1px solid #e5e5e5;
@@ -712,7 +718,7 @@
 {
     position: absolute;
     background-color: #FFFFFF;
-    width: 100%;
+    width: calc(100%  - 20px);
     z-index: 999;
     display: none;
     top: 0px;
@@ -750,7 +756,7 @@
 {
     position: relative;
     float: right;
-    margin: 10px 0px 10px 0px;
+    margin: 10px 10px 10px 0px;
     max-width: 75%;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -831,7 +837,7 @@
 {
     float: left;
     width: 100%;
-    padding: 20px 20px 0px 20px;
+    padding: 10px 20px;
     color: #3e3e3e;
     font-size: 14px;
     font-family: Avenir LT 35 Light;
@@ -865,6 +871,9 @@
     color: #3e3e3e;
     font-size: 14px;
     font-family: Avenir LT 35 Light;
+    background-repeat: no-repeat;
+    background-image: url("../images/right-arrow.png");
+    background-size: 14px 14px;
 }
 
 .jimu-widget-NetworkTrace .esriCTlayerInformationDiv
@@ -897,11 +906,24 @@
 
 .esriCTDartBackgroudColor
 {
-    background-color: #646464 !important;
+    background-color: transparent !important;
+}
+
+@media screen and (max-width : 414px)
+{
+    .boxPanel
+    {
+        top: 130px !important;
+    }
 }
 
 @media screen and (max-width : 375px)
 {
+    .jimu-widget-NetworkTrace .tracePanel
+    {
+        padding: 20px 5px 0 5px;
+    }
+
     .jimu-widget-NetworkTrace .esriCTResultContainerBack
     {
         margin: 10px 0px !important;
@@ -968,4 +990,45 @@
     padding: 0 20px;
 }
 
+.jimu-widget-NetworkTrace .esriCTBorderNone
+{
+    border: 0px;
+}
+
+.esriCTDisableScroll
+{
+    overflow-y: hidden !important;
+}
+
 /* Updated UI ends */
+
+/* Save to layer section starts */
+
+.claro .dijitTextBoxIE9
+{
+    background-color: rgba(0, 0, 0, 0.25) !important;
+}
+
+.claro .dijitDateTextBox .dijitArrowButtonIE9::before
+{
+    content: inherit !important;
+}
+
+.claro .dijitComboBox .dijitButtonNodeIE9
+{
+    background-image: none !important;
+    background-repeat: no-repeat;
+    background-color: rgba(0, 0, 0, 0.25) !important;
+}
+
+.claro .dijitTextBoxFocusedIE9 .dijitInputContainer
+{
+    background-color: rgba(0, 0, 0, 0.5) !important;
+}
+
+.claro .dijitDateTextBox .dijitArrowButtonBlankContent::before
+{
+    content: none !important;
+}
+
+/* Save to layer section ends */

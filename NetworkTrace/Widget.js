@@ -133,6 +133,7 @@ define([
     *This is a startup function of a network trace widget.
     **/
     startup: function () {
+      var widgetPanel;
       this.inherited(arguments);
       if (this._validateConfigParams()) {
         this._initializingJimuTabContainer();
@@ -155,6 +156,13 @@ define([
         this.panelManager = PanelManager.getInstance();
         this._enhanceTabThemeStyle();
         this._enhanceDartThemeStyle();
+        widgetPanel = query(".jimu-widget-NetworkTrace")[0];
+        if (widgetPanel) {
+          style.set(widgetPanel, {
+            "z-index": 101,
+            "position": "static"
+          });
+        }
       }
     },
 
@@ -239,17 +247,6 @@ define([
             this.toolbar = new Draw(this.map);
             this.toolbar.activate(Draw.POINT);
           }
-          //Checking the width of the device.
-          if (this.viewPortSize.w < 768) {
-            if (this.panelManager && this.panelManager.getPanelById(
-                this.id + '_panel') && this.panelManager.getPanelById(
-                this.id + '_panel').onTitleClick) {
-              this.panelManager.getPanelById(this.id + '_panel').onTitleClick();
-            }
-            if (this.widgetManager && this.widgetManager.minimizeWidget) {
-              this.widgetManager.minimizeWidget(this);
-            }
-          }
           //Checking whether barrier button was clicked or not.
           if (this.barrierBtnClicked) {
             this.barrierBtnClicked = false;
@@ -285,17 +282,6 @@ define([
           if (this.toolbar === null) {
             this.toolbar = new Draw(this.map);
             this.toolbar.activate(Draw.POINT);
-          }
-          //Checking the width of the device.
-          if (this.viewPortSize.w < 768) {
-            if (this.panelManager && this.panelManager.getPanelById(
-                this.id + '_panel') && this.panelManager.getPanelById(
-                this.id + '_panel').onTitleClick) {
-              this.panelManager.getPanelById(this.id + '_panel').onTitleClick();
-            }
-            if (this.widgetManager && this.widgetManager.minimizeWidget) {
-              this.widgetManager.minimizeWidget(this);
-            }
           }
           //Checking whether flag button was clicked or not.
           if (this.flagBtnClicked) {
@@ -388,12 +374,19 @@ define([
     *@param{boolean} isShowLoadingIcon: Boolean to check whether loading icon should display or not.
     **/
     _showLoadingIcon: function (isShowLoadingIcon) {
+      var widgetPanel;
+      widgetPanel = query(".jimu-widget-frame.jimu-container")[0];
+      if (!widgetPanel) {
+        widgetPanel = query(".jimu-container")[0];
+      }
       if (isShowLoadingIcon) {
         domClass.remove(this.loadingIcon, "runIconidle");
         domClass.add(this.loadingIcon, "runIconProcessing");
+        domClass.add(widgetPanel, "esriCTDisableScroll");
       } else {
         domClass.remove(this.loadingIcon, "runIconProcessing");
         domClass.add(this.loadingIcon, "runIconidle");
+        domClass.remove(widgetPanel, "esriCTDisableScroll");
       }
     },
 
@@ -401,7 +394,18 @@ define([
     *This function will execute when user clicked on the 'Run Trace' button.
     **/
     _onTraceButtonClick: function () {
-      var resultMainDiv, i;
+      var resultMainDiv, i, tracePanelHeight, inputBarrierTabContentHeight, loadingIconHeight;
+      style.set(this.loadingIcon, "height", "0px");
+      tracePanelHeight = style.get(this.tracePanel, "height");
+      inputBarrierTabContentHeight = style.get(this.InputBarrierTabContent, "height");
+      loadingIconHeight = tracePanelHeight + inputBarrierTabContentHeight + 35;
+      if (has("ie")) {
+        loadingIconHeight = loadingIconHeight + 40;
+      } else if (document && document.documentMode) {
+        loadingIconHeight = loadingIconHeight + 40;
+      }
+      loadingIconHeight = loadingIconHeight.toString() + "px";
+      style.set(this.loadingIcon, "height", loadingIconHeight);
       if (!domClass.contains(this.btnTrace, "jimu-state-disabled")) {
         this._outputResultArr = [];
         this._outputResultCount = 0;
@@ -430,7 +434,6 @@ define([
     *This function will execute when user clicked on the 'Save To Layer' button.
     **/
     _onSaveToLayerButtonClick: function () {
-      var classInputArray;
       if (!domClass.contains(this.btnSaveToLayer,
           "jimu-state-disabled")) {
         this._checkTargetLayersAvailability();
@@ -446,13 +449,13 @@ define([
         this._displaySaveLayerPanel();
         this._overviewLayerSave();
         this._displayOutageAreaDetail();
+        // if selected theme is Dart Theme and browser is IE9
         if (this.appConfig.theme.name === "DartTheme" && has("ie") === 9) {
-          classInputArray = query(".dijitInputInner");
-          if (classInputArray) {
-            this._setInlineFontColor(classInputArray);
-          }
+          this._setDartBackgroudColorForIE9();
         }
-
+        if (this.appConfig.theme.name === "DartTheme") {
+          this._modifyDatePickerButtonNodeContent();
+        }
       }
     },
 
@@ -554,7 +557,13 @@ define([
         "block");
       style.set(this.resultsLayerNamesContainer, "display", "block");
       this._tabContainer.controlNode.style.display = "block";
-      style.set(this.resultPanel, "display", "block");
+      if ((this.btnExportToLayer.style.display === "none" || this.btnExportToLayer
+          .style.display === "") && (this.btnSaveToLayer.style.display ===
+          "none" || this.btnSaveToLayer.style.display === "")) {
+        style.set(this.resultPanel, "display", "none");
+      } else {
+        style.set(this.resultPanel, "display", "block");
+      }
     },
 
     /**
@@ -1039,6 +1048,8 @@ define([
               if (fieldInfo.format.dateFormat ===
                 "shortDateShortTime" ||
                 fieldInfo.format.dateFormat ===
+                "shortDateLongTime" ||
+                fieldInfo.format.dateFormat ===
                 "shortDateShortTime24" ||
                 fieldInfo.format.dateFormat ===
                 "shortDateLEShortTime" ||
@@ -1337,8 +1348,7 @@ define([
         "id": output.paramName + "_LN"
       }, layerNameContainer);
       rightCaretIcon = domConstruct.create("div", {
-        "class": "esriCTRightCaretIcon",
-        "innerHTML": "&gt;"
+        "class": "esriCTRightCaretIcon"
       }, layerNameContainer);
       this.resultsLayerNamesContainer.appendChild(
         layerNameContainer);
@@ -1408,6 +1418,9 @@ define([
           style.set(this.resultsLayerNamesContainer, "display",
             "block");
           style.set(this.resultPanel, "display", "block");
+          if (this.resultLayersInformationContainer.innerHTML !== "") {
+            domClass.remove(this.headPaneTitle, "esriCTBorderNone");
+          }
         })));
     },
 
@@ -1920,8 +1933,8 @@ define([
               resultItem.attributes)
           }, btnControlDiv);
           if (this.appConfig.theme.name === "DartTheme") {
-            domAttr.set(zoomToHyperLink, "style",
-              "color : #494949 !important");
+            domAttr.set(btnControlDiv, "style",
+              "background-color : transparent !important");
           }
           zoomToText = zoomToHyperLink.textContent ||
             zoomToHyperLink.innerText;
@@ -1987,8 +2000,11 @@ define([
         summaryExpressionValueResultText);
       summaryExpressionValueResultText = this._convertExpressionRelatedToOutputParameter(
         summaryExpressionValueResultText);
-      this.resultLayersInformationContainer.innerHTML =
+      if (summaryExpressionValueResultText && summaryExpressionValueResultText !== "") {
+        this.resultLayersInformationContainer.innerHTML =
         summaryExpressionValueResultText;
+        domClass.remove(this.headPaneTitle, "esriCTBorderNone");
+      }
     },
 
     /**
@@ -2119,6 +2135,7 @@ define([
       }
       if (sumArr.length > 0) {
         total = this._getSummationOfArr(sumArr);
+        total = total.toFixed(2);
         return total;
       }
       return 0;
@@ -2142,7 +2159,7 @@ define([
     **/
     _getMinValueOfField: function (features, field, outputLayerName,
       skipField) {
-      var minArr, i, isFeatureSkipped, j;
+      var minArr, i, isFeatureSkipped, j, minimumValue;
       minArr = [];
       for (i = 0; i < features.length; i++) {
         if (features[i].attributes[field] !== null && features[i].attributes[
@@ -2161,7 +2178,9 @@ define([
         }
       }
       if (minArr.length > 0) {
-        return Math.min.apply(Math, minArr);
+        minimumValue = Math.min.apply(Math, minArr);
+        minimumValue = minimumValue.toFixed(2);
+        return minimumValue;
       }
       return 0;
     },
@@ -2172,7 +2191,7 @@ define([
     **/
     _getMaxValueOfField: function (features, field, outputLayerName,
       skipField) {
-      var maxArr, i, isFeatureSkipped, j;
+      var maxArr, i, isFeatureSkipped, j, maximumValue;
       maxArr = [];
       for (i = 0; i < features.length; i++) {
         if (features[i].attributes[field] !== null && features[i].attributes[
@@ -2191,7 +2210,9 @@ define([
         }
       }
       if (maxArr.length > 0) {
-        return Math.max.apply(Math, maxArr);
+        maximumValue = Math.max.apply(Math, maxArr);
+        maximumValue = maximumValue.toFixed(2);
+        return maximumValue;
       }
       return 0;
     },
@@ -2223,6 +2244,7 @@ define([
       if (meanArr.length > 0) {
         total = this._getSummationOfArr(meanArr);
         meanValue = total / meanArr.length;
+        meanValue = meanValue.toFixed(2);
         return meanValue;
       }
       return 0;
@@ -2636,8 +2658,8 @@ define([
         "innerHTML": this.nls.lblInputLocation + this._inputFlag
       }, inputFlagDiv);
       if (this.appConfig.theme.name === "DartTheme") {
-        domAttr.set(inputFlagAnchor, "style",
-          "color : #494949 !important");
+        domAttr.set(inputFlagDiv, "style",
+          "background-color : transparent !important");
       }
       inputFlagCloseDiv = domConstruct.create("div", {
         "class": "esriCTInputFlagCloseDiv"
@@ -2703,8 +2725,8 @@ define([
         "innerHTML": this.nls.lblBlockLocation + this._inputBlock
       }, blockDiv);
       if (this.appConfig.theme.name === "DartTheme") {
-        domAttr.set(blockAnchor, "style",
-          "color : #494949 !important");
+        domAttr.set(blockDiv, "style",
+          "background-color : transparent !important");
       }
       blockCloseDiv = domConstruct.create("div", {
         "class": "esriCTInputFlagCloseDiv"
@@ -2833,37 +2855,35 @@ define([
     },
 
     /**
-    * This function will fetch and process classes whose font color to be override
+    * This function will fetch and process classes whose Background color to be override
     * @memberOf widgets/NetworkTrace/Widget
     */
     _setDartInlineStyle: function () {
       var i, classContainerObject = [];
-      classContainerObject.push(query(
-        ".jimu-widget-NetworkTrace .esriCTTabRightimg"));
-      classContainerObject.push(query(
-        ".jimu-widget-NetworkTrace .esriCTlblLoc"));
-      classContainerObject.push(query(".esriCTLayerName"));
-      classContainerObject.push(query(".esriCTRightCaretIcon"));
-      classContainerObject.push(query(".esriCTResultContainerBack"));
-      classContainerObject.push(query(".esriCTResultContainerLbl"));
-      classContainerObject.push(query(".esriCTBackButtonLink"));
-      classContainerObject.push(query(".esriCTCountLabel"));
-      // looping for setting grey font color for dart theme
+      classContainerObject.push(query(".esriCTInputBarrierTabContainer"));
+      classContainerObject.push(query(".esriCTInputBarrierLoc"));
+      classContainerObject.push(query(".tracePanel"));
+      classContainerObject.push(query(".resultsHeadText"));
+      classContainerObject.push(query(".esriCTResultsLayerNamesContainer"));
+      classContainerObject.push(query(".esriCTResultContainer"));
+      classContainerObject.push(query(".esriCTLayerInformationContainer"));
+      // looping for setting grey Background color for dart theme
       for (i = 0; i < classContainerObject.length; i++) {
-        this._setInlineFontColor(classContainerObject[i]);
+        this._setInlineStyle(classContainerObject[i]);
       }
     },
 
     /**
-    * This function setting inline styling of Dart theme font color
+    * This function setting inline styling of Dart theme Background color
     * @memberOf widgets/NetworkTrace/Widget
     */
-    _setInlineFontColor: function (classNode) {
+    _setInlineStyle: function (classNode) {
       var i;
       // setting inline font color styling for every node contains the specific class
       for (i = 0; i < classNode.length; i++) {
         domAttr.set(classNode[i], "style",
-          "color: #494949 !important");
+          "background-color: transparent !important; padding-right: 0px; padding-left: 0px;"
+          );
       }
     },
 
@@ -2880,6 +2900,122 @@ define([
         for (i = 0; i < comboBoxButtonNode.length; i++) {
           domAttr.set(comboBoxButtonNode[i], "style",
             "padding: 5px !important");
+        }
+      }
+    },
+
+    /**
+    * This function is used to add focus class on text box click for IE9
+    * @param{object} Element node to which class needs to be added
+    * @memberOf widgets/NetworkTrace/Widget
+    */
+    _addFocusClassOnTextBoxClick: function (textBoxNode) {
+      var dijitTextBoxFocusedIE9div, dijitTextBoxFocuseddiv, j;
+      domClass.add(textBoxNode, "dijitTextBoxIE9");
+      // binding events for changing CSS on click of input Div
+      // in dart theme and in case of  IE9
+      on(textBoxNode, "click", lang.hitch(this, function () {
+        dijitTextBoxFocusedIE9div = query(".dijitTextBoxFocusedIE9");
+        dijitTextBoxFocuseddiv = query(".dijitTextBoxFocused")[0];
+        // loop for removing classes of focused node from all dijitTextBox
+        for (j = 0; j < dijitTextBoxFocusedIE9div.length; j++) {
+          domClass.remove(dijitTextBoxFocusedIE9div[j], "dijitTextBoxFocusedIE9");
+        }
+        domClass.add(dijitTextBoxFocuseddiv, "dijitTextBoxFocusedIE9");
+      }));
+    },
+
+    /**
+    * This function is used to add focus class on date change for IE9
+    * @param{object} Element node to which class needs to be added
+    * @memberOf widgets/NetworkTrace/Widget
+    */
+    _addFocusClassOnDateChange: function (inputNode) {
+      var dijitTextBoxFocusedIE9div, dijitTextBoxFocuseddiv, j;
+      // binding events for changing CSS on change of input Div
+      // in dart theme and in case of  IE9
+      on(inputNode, "change", lang.hitch(this, function () {
+        dijitTextBoxFocusedIE9div = query(".dijitTextBoxFocusedIE9");
+        dijitTextBoxFocuseddiv = query(".dijitTextBoxFocused")[0];
+        // loop for removing classes of focused node from all dijitTextBox
+        for (j = 0; j < dijitTextBoxFocusedIE9div.length; j++) {
+          domClass.remove(dijitTextBoxFocusedIE9div[j], "dijitTextBoxFocusedIE9");
+        }
+        domClass.add(dijitTextBoxFocuseddiv, "dijitTextBoxFocusedIE9");
+      }));
+    },
+
+    /**
+    * This function is used to add class on focus of dijit input for IE9
+    * @param{object} Element node to which class needs to be added
+    * @memberOf widgets/NetworkTrace/Widget
+    */
+    _addClassOnFocus: function (inputNode) {
+      var dijitTextBoxFocusedIE9div, dijitTextBoxFocuseddiv, j;
+      // binding events for changing CSS on focus of input Div
+      // in dart theme and in case of  IE9
+      on(inputNode, "focus", lang.hitch(this, function () {
+        dijitTextBoxFocusedIE9div = query(".dijitTextBoxFocusedIE9");
+        dijitTextBoxFocuseddiv = query(".dijitTextBoxFocused")[0];
+        // loop for removing classes of focused node from all dijitTextBox
+        for (j = 0; j < dijitTextBoxFocusedIE9div.length; j++) {
+          domClass.remove(dijitTextBoxFocusedIE9div[j], "dijitTextBoxFocusedIE9");
+        }
+        domClass.add(dijitTextBoxFocuseddiv, "dijitTextBoxFocusedIE9");
+      }));
+    },
+
+    /**
+    * This function is used to modify content value of date picker button node in dart theme
+    * @memberOf widgets/NetworkTrace/Widget
+    */
+    _modifyDatePickerButtonNodeContent: function () {
+      var dijitArrowButtondiv, i;
+      dijitArrowButtondiv = query(".dijitArrowButton");
+      if (dijitArrowButtondiv) {
+        for (i = 0; i < dijitArrowButtondiv.length; i++) {
+          domClass.add(dijitArrowButtondiv[i], "dijitArrowButtonBlankContent");
+        }
+      }
+    },
+
+    /**
+    * Function for setting dart theme background color on IE 9
+    * @memberOf widgets/NetworkTrace/Widget
+    */
+    _setDartBackgroudColorForIE9: function () {
+      var dijitTextBoxdiv, dijitButtonNodediv, i, dijitInputInnerdiv, dijitArrowButtondiv;
+      dijitTextBoxdiv = query(".dijitTextBox");
+      dijitButtonNodediv = query(".dijitButtonNode");
+      dijitInputInnerdiv = query(".dijitInputInner");
+      dijitArrowButtondiv = query(".dijitArrowButton");
+
+      if (dijitArrowButtondiv) {
+        for (i = 0; i < dijitArrowButtondiv.length; i++) {
+          domClass.add(dijitArrowButtondiv[i], "dijitArrowButtonIE9");
+        }
+      }
+
+      // loop for adding class for applying CSS on input field of div text box div
+      // in dart theme in case of  IE9
+      if (dijitTextBoxdiv) {
+        for (i = 0; i < dijitTextBoxdiv.length; i++) {
+          this._addFocusClassOnTextBoxClick(dijitTextBoxdiv[i]);
+        }
+      }
+      // loop for adding class for applying CSS on input field of div text box div
+      // in dart theme in case of  IE9
+      if (dijitInputInnerdiv) {
+        for (i = 0; i < dijitInputInnerdiv.length; i++) {
+          this._addFocusClassOnDateChange(dijitInputInnerdiv[i]);
+          this._addClassOnFocus(dijitInputInnerdiv[i]);
+        }
+      }
+      // loop for adding class for applying CSS on button div of select div
+      //in dart theme in case of  IE9
+      if (dijitButtonNodediv) {
+        for (i = 0; i < dijitButtonNodediv.length; i++) {
+          domClass.add(dijitButtonNodediv[i], "dijitButtonNodeIE9");
         }
       }
     }

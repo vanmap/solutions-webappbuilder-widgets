@@ -16,7 +16,7 @@ The Critical Infrastructure and Key Resources (CI/KR) widget allows users to det
 * Displays affected location, demography and facilities
 
 ## Requirements
-* ArcGIS WebApp Builder v.1.0
+* ArcGIS WebApp Builder v.1.2
 
 ## Instructions
 In order to develop and test widgets you need to deploy the CI/KR directory to the stemapp/widgets directory in your WebApp Builder installation.

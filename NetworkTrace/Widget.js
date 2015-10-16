@@ -2121,11 +2121,15 @@ define([
         if (features[i].attributes[field] !== null && features[i].attributes[
             field] !== "") {
           isFeatureSkipped = false;
-          for (j = 0; j < this.skipLayer.graphics.length; j++) {
-            if ((outputLayerName === this.skipLayer.graphics[j].GPParam) &&
-              (features[i].attributes[skipField] === this.skipLayer.graphics[
-                j].attributes[skipField])) {
-              isFeatureSkipped = true;
+          if (this.skipLayer){
+            if (this.skipLayer.graphics){
+              for (j = 0; j < this.skipLayer.graphics.length; j++) {
+                if ((outputLayerName === this.skipLayer.graphics[j].GPParam) &&
+                  (features[i].attributes[skipField] === this.skipLayer.graphics[
+                    j].attributes[skipField])) {
+                  isFeatureSkipped = true;
+                }
+              }
             }
           }
           if (!isFeatureSkipped) {
@@ -2135,12 +2139,23 @@ define([
       }
       if (sumArr.length > 0) {
         total = this._getSummationOfArr(sumArr);
-        total = total.toFixed(2);
+        if (this._decimalPlaces(total) > 2){
+          total = total.toFixed(2);
+        }
         return total;
       }
       return 0;
     },
-
+    _decimalPlaces: function(num) {
+      var match = (''+num).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
+      if (!match) { return 0; }
+      return Math.max(
+           0,
+           // Number of digits right of decimal point.
+           (match[1] ? match[1].length : 0)
+           // Adjust for scientific notation.
+           - (match[2] ? +match[2] : 0));
+    },
     /**
     * This function is used to get summation of field values
     * @memberOf widgets/NetworkTrace/widgets
@@ -2165,11 +2180,15 @@ define([
         if (features[i].attributes[field] !== null && features[i].attributes[
             field] !== "") {
           isFeatureSkipped = false;
-          for (j = 0; j < this.skipLayer.graphics.length; j++) {
-            if ((outputLayerName === this.skipLayer.graphics[j].GPParam) &&
-              (features[i].attributes[skipField] === this.skipLayer.graphics[
-                j].attributes[skipField])) {
-              isFeatureSkipped = true;
+          if (this.skipLayer){
+            if (this.skipLayer.graphics){
+              for (j = 0; j < this.skipLayer.graphics.length; j++) {
+                if ((outputLayerName === this.skipLayer.graphics[j].GPParam) &&
+                  (features[i].attributes[skipField] === this.skipLayer.graphics[
+                    j].attributes[skipField])) {
+                  isFeatureSkipped = true;
+                }
+              }
             }
           }
           if (!isFeatureSkipped) {
@@ -2179,7 +2198,9 @@ define([
       }
       if (minArr.length > 0) {
         minimumValue = Math.min.apply(Math, minArr);
-        minimumValue = minimumValue.toFixed(2);
+        if (this._decimalPlaces(minimumValue) > 2) {
+          minimumValue = minimumValue.toFixed(2);
+        }
         return minimumValue;
       }
       return 0;
@@ -2197,11 +2218,15 @@ define([
         if (features[i].attributes[field] !== null && features[i].attributes[
             field] !== "") {
           isFeatureSkipped = false;
-          for (j = 0; j < this.skipLayer.graphics.length; j++) {
-            if ((outputLayerName === this.skipLayer.graphics[j].GPParam) &&
-              (features[i].attributes[skipField] === this.skipLayer.graphics[
-                j].attributes[skipField])) {
-              isFeatureSkipped = true;
+          if (this.skipLayer){
+            if (this.skipLayer.graphics){
+              for (j = 0; j < this.skipLayer.graphics.length; j++) {
+                if ((outputLayerName === this.skipLayer.graphics[j].GPParam) &&
+                  (features[i].attributes[skipField] === this.skipLayer.graphics[
+                    j].attributes[skipField])) {
+                  isFeatureSkipped = true;
+                }
+              }
             }
           }
           if (!isFeatureSkipped) {
@@ -2211,7 +2236,9 @@ define([
       }
       if (maxArr.length > 0) {
         maximumValue = Math.max.apply(Math, maxArr);
-        maximumValue = maximumValue.toFixed(2);
+        if (this._decimalPlaces(maximumValue) > 2) {
+          maximumValue = maximumValue.toFixed(2);
+        }
         return maximumValue;
       }
       return 0;
@@ -2229,11 +2256,15 @@ define([
         if (features[i].attributes[field] !== null && features[i].attributes[
             field] !== "") {
           isFeatureSkipped = false;
-          for (j = 0; j < this.skipLayer.graphics.length; j++) {
-            if ((outputLayerName === this.skipLayer.graphics[j].GPParam) &&
-              (features[i].attributes[skipField] === this.skipLayer.graphics[
-                j].attributes[skipField])) {
-              isFeatureSkipped = true;
+          if (this.skipLayer){
+            if (this.skipLayer.graphics){
+              for (j = 0; j < this.skipLayer.graphics.length; j++) {
+                if ((outputLayerName === this.skipLayer.graphics[j].GPParam) &&
+                  (features[i].attributes[skipField] === this.skipLayer.graphics[
+                    j].attributes[skipField])) {
+                  isFeatureSkipped = true;
+                }
+              }
             }
           }
           if (!isFeatureSkipped) {
@@ -2244,7 +2275,9 @@ define([
       if (meanArr.length > 0) {
         total = this._getSummationOfArr(meanArr);
         meanValue = total / meanArr.length;
-        meanValue = meanValue.toFixed(2);
+        if (this._decimalPlaces(meanValue) > 2) {
+          meanValue = meanValue.toFixed(2);
+        }
         return meanValue;
       }
       return 0;

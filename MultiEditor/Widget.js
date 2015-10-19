@@ -335,7 +335,7 @@ define([
                 }
                 var height = domStyle.get(editDiv, "height");
 
-                var styleNode = domConstruct.toDom("<style>.jimu-widget-mission-editor .grid{height: " + (height - 100) + "px;}</style>");
+                var styleNode = domConstruct.toDom("<style>.jimu-widget-multi-editor .grid{height: " + (height - 100) + "px;}</style>");
                 domConstruct.place(styleNode, document.body);
 
                 this.editor = new Editor(params, editDiv);
@@ -349,13 +349,10 @@ define([
              * @private
              */
             _resize: function () {
-                var computedStyle = domStyle.getComputedStyle(this.domNode);
-                var widgetBox = domGeom.getMarginBox(this.domNode, computedStyle);
-                var height = widgetBox.h;
-                var width = widgetBox.w;
-
-                if(this.editor){
-                    this.editor.templatePicker.update();
+                if(this.editor) {
+                    if (this.editor.templatePicker) {
+                        this.editor.templatePicker.update();
+                    }                    
                 }
             }
         });

@@ -1,4 +1,104 @@
 ﻿<div style="width: 100%; height: 100%;">
+    <fieldset class="fldSetClosestFacilityParameters row">
+        <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.captionClosestFacilityParameters}">
+            ${nls.captionClosestFacilityParameters}</legend>
+        <div class="divClosestFacilityParametersContainer">
+            <div class="divClosestFacilityURLContainer row">
+                <div class="SFlabel" title="${nls.lblClosestFacilityServiceUrl}">
+                    ${nls.lblClosestFacilityServiceUrl}
+                </div>
+                <div class="inputurlbox">
+                    <div class="setClosestURL" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="closedFacilityServiceURL"
+                        data-dojo-props='required:true,trim:true'>
+                    </div>
+                    <button class="jimu-btn jimu-float-trailing jimu-leading-margin1 urlButton esriCTBtnEllipsis"
+                        title="${nls.btnSet}" data-dojo-attach-point="onSetBtnClick">
+                        ${nls.btnSet}</button>
+                </div>
+                <div class="esriCTHint esriCTMargin">
+                    ${nls.hintText.closestFacilityText}</div>
+            </div>
+            <div class="esriCTHidden" data-dojo-attach-point="closestFacilityParamContainer">
+                <div class="divFacilitySearchDistanceContainer row">
+                    <div class="SFlabel" title="${nls.lblFacilitySearchDistance}">
+                        ${nls.lblFacilitySearchDistance}</div>
+                    <div class="esriCTInputTextbox" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="txtFacilityDistance"
+                        data-dojo-props='required:true,trim:true,disabled:false'>
+                    </div>
+                    <div class="esriCTHint esriCTMargin">
+                        ${nls.hintText.facilitySearchDistanceText}</div>
+                </div>
+                <div class="divImpedanceAttributeContainer row " data-dojo-attach-point="ImpedanceAttributeContainer">
+                    <div class="SFlabel" title="${nls.lblImpedanceAttribute}">
+                        ${nls.lblImpedanceAttribute}</div>
+                    <div class="inputbox">
+                        <select data-dojo-attach-point="selectInpedanceAttribute" data-dojo-type="dijit/form/Select">
+                        </select>
+                    </div>
+                    <div class="esriCTHint esriCTMargin">
+                        ${nls.hintText.impedanceText}</div>
+                </div>
+                <div class="divCutoffDistanceContainer row">
+                    <div class="SFlabel" title="${nls.lblDefaultCutOffDistance}">
+                        ${nls.lblDefaultCutOffDistance}</div>
+                    <div class="esriCTInputTextbox" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="txtdefaultCuttoff"
+                        data-dojo-props='required:true,trim:true,disabled:false'>
+                    </div>
+                    <div class="esriCTHint esriCTMargin">
+                        ${nls.hintText.cuttOffDistanceText}</div>
+                </div>
+                <div class="row travelModeContainer">
+                    <div class="SFlabel" title="${nls.lblTravelMode}">
+                        <input type="radio" name="attributeParameterSelection" data-dojo-type="dijit/form/RadioButton"
+                            data-dojo-attach-point="travelModeRdb" />
+                        ${nls.lblTravelMode}
+                    </div>
+                    <div class="inputbox esriCTHidden" data-dojo-attach-point="travelModesListParentContainer">
+                        <select data-dojo-type="dijit/form/Select" data-dojo-attach-point="travelModesList">
+                        </select>
+                    </div>
+                </div>
+                <div class="row customAttributeContainer">
+                    <div class="SFlabel" title="${nls.lblAttributeParameterValues}">
+                        <input type="radio" name="attributeParameterSelection" data-dojo-type="dijit/form/RadioButton"
+                            data-dojo-attach-point="customAttributeParameterRdb" />
+                        ${nls.lblAttributeParameterValues}
+                    </div>
+                </div>
+                <div class="row esriCTHidden" data-dojo-attach-point="attributeParameterValues">
+                    <div class="esriCTMainAttrPos">
+                        <div class="esriCTHint esriCTMargin esriCTAttrPos esriCTLayoutLeft">
+                            ${nls.hintText.AttributeParameterValueText1}</div>
+                        <div class="esriCTHint esriCTMargin esriCTAttrPos esriCTLayoutLeft">
+                            ${nls.hintText.AttributeParameterValueText2}</div>
+                    </div>
+                    <div class="esriCTAttrParamContainer" data-dojo-attach-point="esriCTAttrParamContainer">
+                        <div data-dojo-attach-point="attrParamValueContainer">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+    <fieldset class="fldSetServiceAreaParameters row">
+        <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.captiveAttributeLookup}">
+            ${nls.captiveAttributeLookup}</legend>
+        <div class="esriCTattributeParamLookup row">
+            <div class="SFlabel" title="${nls.lblAttributeParamLookup}">
+                ${nls.lblAttributeParamLookup}
+            </div>
+            <div>
+                <textarea class="esriCTAttributeTextArea" data-dojo-type="dijit/form/SimpleTextarea"
+                    rows="4" cols="50" data-dojo-attach-point="txtAttributeParam" data-dojo-props='required:true,trim:true,disabled:false'>${nls.defaultDataDictionaryValue}</textarea>
+                <button class="jimu-btn jimu-float-trailing jimu-leading-margin1 urlButton esriCTBtnEllipsis esriCTBtnRefresh"
+                    title="${nls.btnRefresh}" data-dojo-attach-point="_onRefreshBtnClick">
+                    ${nls.btnRefresh}</button></div>
+            <div class="esriCTHint esriCTMargin esriCTMarginForLookupHint">
+                ${nls.hintText.lookupText}</div>
+            <div class="esriCTHint esriCTMargin esriCTMarginForLookupHint">
+                ${nls.hintText.lookupTextOnSet}</div>
+        </div>
+    </fieldset>
     <fieldset class="fldSetServiceAreaParameters row">
         <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.captionServiceAreaParameters}">
             ${nls.captionServiceAreaParameters}</legend>
@@ -135,106 +235,6 @@
         <div class="esriCTHint esriCTMargin">
             ${nls.hintText.roundingOptionHintText}</div>
     </div>
-    <fieldset class="fldSetServiceAreaParameters row">
-        <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.captiveAttributeLookup}">
-            ${nls.captiveAttributeLookup}</legend>
-        <div class="esriCTattributeParamLookup row">
-            <div class="SFlabel" title="${nls.lblAttributeParamLookup}">
-                ${nls.lblAttributeParamLookup}
-            </div>
-            <div>
-                <textarea class="esriCTAttributeTextArea" data-dojo-type="dijit/form/SimpleTextarea"
-                    rows="4" cols="50" data-dojo-attach-point="txtAttributeParam" data-dojo-props='required:true,trim:true,disabled:false'>${nls.defaultDataDictionaryValue}</textarea>
-                <button class="jimu-btn jimu-float-trailing jimu-leading-margin1 urlButton esriCTBtnEllipsis esriCTBtnRefresh"
-                    title="${nls.btnRefresh}" data-dojo-attach-point="_onRefreshBtnClick">
-                    ${nls.btnRefresh}</button></div>
-            <div class="esriCTHint esriCTMargin esriCTMarginForLookupHint">
-                ${nls.hintText.lookupText}</div>
-            <div class="esriCTHint esriCTMargin esriCTMarginForLookupHint">
-                ${nls.hintText.lookupTextOnSet}</div>
-        </div>
-    </fieldset>
-    <fieldset class="fldSetClosestFacilityParameters row">
-        <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.captionClosestFacilityParameters}">
-            ${nls.captionClosestFacilityParameters}</legend>
-        <div class="divClosestFacilityParametersContainer">
-            <div class="divClosestFacilityURLContainer row">
-                <div class="SFlabel" title="${nls.lblClosestFacilityServiceUrl}">
-                    ${nls.lblClosestFacilityServiceUrl}
-                </div>
-                <div class="inputurlbox">
-                    <div class="setClosestURL" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="closedFacilityServiceURL"
-                        data-dojo-props='required:true,trim:true'>
-                    </div>
-                    <button class="jimu-btn jimu-float-trailing jimu-leading-margin1 urlButton esriCTBtnEllipsis"
-                        title="${nls.btnSet}" data-dojo-attach-point="onSetBtnClick">
-                        ${nls.btnSet}</button>
-                </div>
-                <div class="esriCTHint esriCTMargin">
-                    ${nls.hintText.closestFacilityText}</div>
-            </div>
-            <div class="esriCTHidden" data-dojo-attach-point="closestFacilityParamContainer">
-                <div class="divFacilitySearchDistanceContainer row">
-                    <div class="SFlabel" title="${nls.lblFacilitySearchDistance}">
-                        ${nls.lblFacilitySearchDistance}</div>
-                    <div class="esriCTInputTextbox" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="txtFacilityDistance"
-                        data-dojo-props='required:true,trim:true,disabled:false'>
-                    </div>
-                    <div class="esriCTHint esriCTMargin">
-                        ${nls.hintText.facilitySearchDistanceText}</div>
-                </div>
-                <div class="divImpedanceAttributeContainer row " data-dojo-attach-point="ImpedanceAttributeContainer">
-                    <div class="SFlabel" title="${nls.lblImpedanceAttribute}">
-                        ${nls.lblImpedanceAttribute}</div>
-                    <div class="inputbox">
-                        <select data-dojo-attach-point="selectInpedanceAttribute" data-dojo-type="dijit/form/Select">
-                        </select>
-                    </div>
-                    <div class="esriCTHint esriCTMargin">
-                        ${nls.hintText.impedanceText}</div>
-                </div>
-                <div class="divCutoffDistanceContainer row">
-                    <div class="SFlabel" title="${nls.lblDefaultCutOffDistance}">
-                        ${nls.lblDefaultCutOffDistance}</div>
-                    <div class="esriCTInputTextbox" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="txtdefaultCuttoff"
-                        data-dojo-props='required:true,trim:true,disabled:false'>
-                    </div>
-                    <div class="esriCTHint esriCTMargin">
-                        ${nls.hintText.cuttOffDistanceText}</div>
-                </div>
-                <div class="row travelModeContainer">
-                    <div class="SFlabel" title="${nls.lblTravelMode}">
-                        <input type="radio" name="attributeParameterSelection" data-dojo-type="dijit/form/RadioButton"
-                            data-dojo-attach-point="travelModeRdb" />
-                        ${nls.lblTravelMode}
-                    </div>
-                    <div class="inputbox esriCTHidden" data-dojo-attach-point="travelModesListParentContainer">
-                        <select data-dojo-type="dijit/form/Select" data-dojo-attach-point="travelModesList">
-                        </select>
-                    </div>
-                </div>
-                <div class="row customAttributeContainer">
-                    <div class="SFlabel" title="${nls.lblAttributeParameterValues}">
-                        <input type="radio" name="attributeParameterSelection" data-dojo-type="dijit/form/RadioButton"
-                            data-dojo-attach-point="customAttributeParameterRdb" />
-                        ${nls.lblAttributeParameterValues}
-                    </div>
-                </div>
-                <div class="row esriCTHidden" data-dojo-attach-point="attributeParameterValues">
-                    <div class="esriCTMainAttrPos">
-                        <div class="esriCTHint esriCTMargin esriCTAttrPos esriCTLayoutLeft">
-                            ${nls.hintText.AttributeParameterValueText1}</div>
-                        <div class="esriCTHint esriCTMargin esriCTAttrPos esriCTLayoutLeft">
-                            ${nls.hintText.AttributeParameterValueText2}</div>
-                    </div>
-                    <div class="esriCTAttrParamContainer" data-dojo-attach-point="esriCTAttrParamContainer">
-                        <div data-dojo-attach-point="attrParamValueContainer">
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </fieldset>
     <fieldset class="fldSetServiceAreaParameters row">
         <legend class="fieldSetLegend esriCTEllipsisFieldSet" title="${nls.captionSaveResults}">
             ${nls.captionSaveResults}</legend>

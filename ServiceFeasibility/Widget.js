@@ -61,7 +61,9 @@ define([
   "jimu/utils",
   "dijit/popup",
   "dojo/dom-geometry",
-  "dojo/date/locale"
+  "dojo/date/locale",
+  "dojo/has",
+  "dojo/sniff"
 ], function (
   declare,
   BaseWidget,
@@ -107,7 +109,8 @@ define([
   jimuUtils,
   dojoPopup,
   domGeom,
-  dateLocale
+  dateLocale,
+  has
 ) {
   return declare([BaseWidget], {
     baseClass: 'jimu-widget-ServiceFeasibility',
@@ -172,13 +175,15 @@ define([
           "geometryService")) && (this.appConfig.geometryService ===
           null || this.appConfig.geometryService === "")) {
         this._showAlertMessage(this.nls.invalidGeometryService);
-      } else if (!this._checkLayerAvailability(this.config.businessesLayerName)) {
+      } else if (!this._checkLayerAvailability(this.config.businessesLayerName) &&
+        this.config.AllowBusinessOptional) {
         this._showAlertMessage(this.nls.businessLayerUnavailable);
       } else {
         this._initializeDrawTool();
         this._addLayer();
       }
       this._enhancedStyling();
+      this._setDartBackgroudColor();
     },
 
     /**
@@ -205,6 +210,7 @@ define([
             "esriCTHidePanel");
           this._routeLength = 0;
           this._businessPassed = 0;
+          this._routeCost = 0;
           this.resultDisplayAttributes = [];
           domConstruct.empty(this.exportToCSVContainer);
           this._isDescending = false;
@@ -265,7 +271,8 @@ define([
       if (this.domNode && this.domNode.parentElement && this.domNode.parentElement
         .parentElement) {
         containerGeom = domGeom.position(this.domNode.parentElement.parentElement);
-        if (containerGeom && containerGeom.h) {
+        if (containerGeom && containerGeom.h && dojoWindow.getBox().w >
+          767) {
           domStyle.set(this.resultListContainer, "max-height", (
             containerGeom.h - 270) + "px");
         }
@@ -506,7 +513,8 @@ define([
     * @memberOf widgets/ServiceFeasibility/Widget
     **/
     _initializingFindNearestOptions: function () {
-      var findNearestOptions, arrayFindNearestOptions, k, labelDiv,
+      var findNearestOptions, arrayFindNearestOptions = [],
+        k, labelDiv,
         labelValue, selectOptionArr = [],
         selectListDiv;
       if (this.config && this.config.accessPointsLayersName) {
@@ -516,7 +524,8 @@ define([
         arrayFindNearestOptions = findNearestOptions.split(",");
         //Looping through the Nearest Options to create options in a select.
         for (k = 0; k < arrayFindNearestOptions.length; k++) {
-          if (arrayFindNearestOptions.hasOwnProperty(k)) {
+          if (arrayFindNearestOptions.hasOwnProperty(k) &&
+            arrayFindNearestOptions[k] !== "") {
             selectOptionArr.push({
               "label": arrayFindNearestOptions[k],
               "value": arrayFindNearestOptions[k]
@@ -531,15 +540,16 @@ define([
         }, selectListDiv);
         labelDiv = query(".esriCTFindNearest", this.divFindNearest)[0];
         this.resultPanelIndex = (this.resultPanelIndex + 1);
-        if (labelDiv) {
+        if (labelDiv && this.config.AllowedAccessPointCheckBoxChecked) {
           labelValue = "";
           labelValue = (this.resultPanelIndex) + ".  " + this.nls.findNearest;
           labelDiv.innerHTML = labelValue;
           domAttr.set(labelDiv, "title", this.nls.findNearest);
           this.resultPanelIndex = (this.resultPanelIndex + 1);
+        } else {
+          domStyle.set(this.divFindNearest, "display", "none");
         }
         this._setLayerForDropdown(this.findNearestList.value);
-
         on(this.findNearestList, "change", lang.hitch(this, function (
           value) {
           if (this.businessInfluenceValue) {
@@ -611,6 +621,21 @@ define([
           this.routeLayer.layerObject.templates : "",
         "capabilities": "Query,Editing"
       };
+      //In case of range domain API requires range array to be available in domain,
+      //so check if range array is not available add it to domain
+      array.forEach(featureCollection.layerDefinition.fields, lang.hitch(this, function (field) {
+        if (field && field.domain && field.domain.type === "range") {
+          if (!field.domain.range) {
+            field.domain.range = [];
+            if (field.domain.minValue) {
+              field.domain.range.push(field.domain.minValue);
+            }
+            if (field.domain.maxValue) {
+              field.domain.range.push(field.domain.maxValue);
+            }
+          }
+        }
+      }));
       this.routeFeatureLayer = new FeatureLayer(featureCollection, {
         outFields: outFields,
         id: "routeFeatureLayer"
@@ -633,48 +658,50 @@ define([
       this.businessInfluenceValue = [];
       this.textboxValues = [];
       this.attributeValues = [];
-      //loop to create control for each attribute parameter name
-      for (i = 0; i < attributeParameterValues.length; i++) {
-        // if parameter type is restriction and allow user input is true then it will create both drop down as
-        // well input slider field else if type is not defined and allow user input is true then only input slider
-        // will be created and allow user input is false then value is pushed in array and passed internally
-        if (attributeParameterValues[i].type === "Restriction" &&
-          attributeParameterValues[i].allowUserInput) {
-          // method to create drop down field for allow user input
-          this._createDropDown(attributeParameterValues[i], i);
-          // loop for traversing parameters in attributes parameters
-          for (index in attributeParameterValues[i].parameters) {
-            // if object array have index property then only
-            if (attributeParameterValues[i].parameters.hasOwnProperty(
-                index)) {
-              // if index is greater than 0 as on 0th index always allow user input value will exist
-              if (index > 0) {
-                this._createRangeSlider(attributeParameterValues[i],
-                  i, index);
+      if (this.config.customAttributeSelection) {
+        //loop to create control for each attribute parameter name
+        for (i = 0; i < attributeParameterValues.length; i++) {
+          // if parameter type is restriction and allow user input is true then it will create both drop down as
+          // well input slider field else if type is not defined and allow user input is true then only input slider
+          // will be created and allow user input is false then value is pushed in array and passed internally
+          if (attributeParameterValues[i].type === "Restriction" &&
+            attributeParameterValues[i].allowUserInput) {
+            // method to create drop down field for allow user input
+            this._createDropDown(attributeParameterValues[i], i);
+            // loop for traversing parameters in attributes parameters
+            for (index in attributeParameterValues[i].parameters) {
+              // if object array have index property then only
+              if (attributeParameterValues[i].parameters.hasOwnProperty(
+                  index)) {
+                // if index is greater than 0 as on 0th index always allow user input value will exist
+                if (index > 0) {
+                  this._createRangeSlider(attributeParameterValues[i],
+                    i, index);
+                }
               }
             }
-          }
-        } else if (attributeParameterValues[i].type === "" &&
-          attributeParameterValues[i].allowUserInput) {
-          arrayindex = 0;
-          this._createRangeSlider(attributeParameterValues[i], i,
-            arrayindex);
-        } else {
-          // loop for traversing parameters in attributes parameters
-          for (attributeindex in attributeParameterValues[i].parameters) {
-            // if object array have index property then only
-            if (attributeParameterValues[i].parameters.hasOwnProperty(
-                attributeindex)) {
-              this.attributeValues.push({
-                "attributeName": attributeParameterValues[i].name,
-                "parameterName": attributeParameterValues[i].parameters[
-                  attributeindex].name,
-                "parameterValue": attributeParameterValues[i].parameters[
-                  attributeindex].value
-              });
+          } else if (attributeParameterValues[i].type === "" &&
+            attributeParameterValues[i].allowUserInput) {
+            arrayindex = 0;
+            this._createRangeSlider(attributeParameterValues[i], i,
+              arrayindex);
+          } else {
+            // loop for traversing parameters in attributes parameters
+            for (attributeindex in attributeParameterValues[i].parameters) {
+              // if object array have index property then only
+              if (attributeParameterValues[i].parameters.hasOwnProperty(
+                  attributeindex)) {
+                this.attributeValues.push({
+                  "attributeName": attributeParameterValues[i].name,
+                  "parameterName": attributeParameterValues[i].parameters[
+                    attributeindex].name,
+                  "parameterValue": attributeParameterValues[i].parameters[
+                    attributeindex].value
+                });
+              }
             }
+            this.arrayIntegerValues.push(attributeParameterValues[i]);
           }
-          this.arrayIntegerValues.push(attributeParameterValues[i]);
         }
       }
       this._setSearchPanelIndex();
@@ -692,14 +719,19 @@ define([
         0];
       selectLocationLabelDiv = query(".esriCTLocationLabel", this.divSelectLocationOnMap)[
         0];
-      if (labelDiv) {
-        labelValue = "";
-        labelValue = this.resultPanelIndex + ".  " + this.nls.DrawBarriersOnMap;
-        if (labelValue) {
-          labelDiv.innerHTML = labelValue;
-          domAttr.set(labelDiv, "title", this.nls.DrawBarriersOnMap);
-          this.resultPanelIndex = (this.resultPanelIndex + 1);
+      if (this.config && this.config.AllowedBarriersCheckBoxChecked) {
+        if (labelDiv) {
+          domStyle.set(this.divDrawBarriersOnMap, "display", "block");
+          labelValue = "";
+          labelValue = this.resultPanelIndex + ".  " + this.nls.DrawBarriersOnMap;
+          if (labelValue) {
+            labelDiv.innerHTML = labelValue;
+            domAttr.set(labelDiv, "title", this.nls.DrawBarriersOnMap);
+            this.resultPanelIndex = (this.resultPanelIndex + 1);
+          }
         }
+      } else {
+        domStyle.set(this.divDrawBarriersOnMap, "display", "none");
       }
       if (selectLocationLabelDiv) {
         selectLocationLabelValue = "";
@@ -845,7 +877,13 @@ define([
           domClass.remove(this.findButton,
             "jimu-state-disabled");
         }
-        setTimeout(function () {
+        if (this._sliderChangeTimer) {
+          if (textbox) {
+            textbox.set("value", value);
+            clearTimeout(this._sliderChangeTimer);
+          }
+        }
+        this._sliderChangeTimer = setTimeout(function () {
           if (textbox) {
             textbox.set("value", value);
           }
@@ -997,14 +1035,6 @@ define([
     **/
     _onPointBarrierClicked: function () {
       if (!this.pointBarrierClicked) {
-        //Checking the width of the device.
-        if (this.viewWindowSize.w < 768) {
-          if (this.panelManager.getPanelById(this.id + '_panel').titleNode &&
-            this.panelManager.getPanelById(this.id + '_panel').onTitleClick
-          ) {
-            this.panelManager.getPanelById(this.id + '_panel').onTitleClick();
-          }
-        }
         this.pointBarrierClicked = true;
         this.polylineBarrierClicked = false;
         this.polygonBarrierClicked = false;
@@ -1031,14 +1061,6 @@ define([
     **/
     _onPolylineBarrierClicked: function () {
       if (!this.polylineBarrierClicked) {
-        //Checking the width of the device.
-        if (this.viewWindowSize.w < 768) {
-          if (this.panelManager.getPanelById(this.id + '_panel').titleNode &&
-            this.panelManager.getPanelById(this.id + '_panel').onTitleClick
-          ) {
-            this.panelManager.getPanelById(this.id + '_panel').onTitleClick();
-          }
-        }
         this.polylineBarrierClicked = true;
         // set other barriers flags and location flag to false
         this.polygonBarrierClicked = false;
@@ -1066,14 +1088,6 @@ define([
     **/
     _onPolygonBarrierClicked: function () {
       if (!this.polygonBarrierClicked) {
-        //Checking the width of the device.
-        if (this.viewWindowSize.w < 768) {
-          if (this.panelManager.getPanelById(this.id + '_panel').titleNode &&
-            this.panelManager.getPanelById(this.id + '_panel').onTitleClick
-          ) {
-            this.panelManager.getPanelById(this.id + '_panel').onTitleClick();
-          }
-        }
         this.polygonBarrierClicked = true;
         // set other barriers flags and location flag to false
         this.polylineBarrierClicked = false;
@@ -1101,14 +1115,6 @@ define([
     **/
     _onSelectLocationClicked: function () {
       if (!this.selectLocationClicked) {
-        //Checking the width of the device.
-        if (this.viewWindowSize.w < 768) {
-          if (this.panelManager.getPanelById(this.id + '_panel').titleNode &&
-            this.panelManager.getPanelById(this.id + '_panel').onTitleClick
-          ) {
-            this.panelManager.getPanelById(this.id + '_panel').onTitleClick();
-          }
-        }
         this.selectLocationClicked = true;
         // set barriers flags to false
         this.polylineBarrierClicked = false;
@@ -1266,6 +1272,10 @@ define([
     **/
     _onClearButtonClicked: function () {
       this._enhancedStyling();
+      domClass.remove(this.businessPassedDiv,
+        "esriCTHideBusinessPassedDiv");
+      domClass.remove(this.costHeadingDiv,
+        "esriCTCostHeadingDivFullWidth");
       if (!this.clearButtonSearch.disabled || this.errorExist) {
         this._hideLoadingIndicator();
         this._enableWebMapPopup();
@@ -1297,6 +1307,7 @@ define([
         domConstruct.empty(this.exportToCSVContainer);
         this._routeLength = 0;
         this._businessPassed = 0;
+        this._routeCost = 0;
         this._resetBusinessInfluenceValues();
       }
     },
@@ -1487,28 +1498,60 @@ define([
     * @memberOf widgets/ServiceFeasibility/Widget
     **/
     _addBufferGeometryOnMap: function (response, geometry) {
-      var bufferResultGeometry, bufferGraphic, bufferSymbol,
-        bufferSymbolData;
+      var i, bufferResultGeometry, bufferGraphic, bufferSymbol,
+        bufferSymbolData, arrayAccessPointsLayers = [],
+        deferredArray = [],
+        featuresList = [];
       // when buffer geomtery is point
-      if (geometry && geometry[0]) {
-        if (geometry[0].type === "point") {
-          this._queryForFacilityFeatures(response);
+      if (geometry && geometry[0] && geometry[0].type && geometry[0].type ===
+        "point") {
+        if (this.config && this.config.AllowedAccessPointCheckBoxChecked) {
+          this._queryForFacilityFeatures(response, deferredArray,
+            featuresList);
         } else {
-          // when buffer geometry is polygon
-          if (this.config && this.config.symbol && this.config.symbol
-            .length && this.config.symbol.length > 0) {
-            bufferSymbolData = this._getSymbolJson("bufferSymbol");
-            bufferSymbol = this._createGraphicFromJSON(
-              bufferSymbolData);
-            bufferGraphic = new Graphic(response, bufferSymbol);
-            if (this.bufferGraphicLayer.graphics.length > 0) {
-              this.map.getLayer("bufferGraphicLayer").clear();
+          arrayAccessPointsLayers = this.config.accessPointsLayersName
+            .split(",");
+          for (i = 0; i < arrayAccessPointsLayers.length; i++) {
+            if (arrayAccessPointsLayers.hasOwnProperty(i) &&
+              arrayAccessPointsLayers[i] !== "") {
+              this._setLayerForDropdown(arrayAccessPointsLayers[i]);
+              this._queryForFacilityFeatures(response, deferredArray,
+                featuresList);
             }
-            this.bufferGraphicLayer.add(bufferGraphic);
-            bufferResultGeometry = response;
-            this.map.setExtent(bufferResultGeometry.getExtent(), true);
-            this._queryForBusinessData(bufferResultGeometry);
           }
+        }
+        all(deferredArray).then(lang.hitch(this, function () {
+          try {
+            this._getResultantRoutes(featuresList);
+          } catch (error) {
+            this.errorExist = true;
+            this._onClearButtonClicked();
+            this._showAlertMessage(error.message);
+            this._enableAllControls();
+            this._hideLoadingIndicator();
+          }
+        }), lang.hitch(this, function (error) {
+          this.errorExist = true;
+          this._onClearButtonClicked();
+          this._showAlertMessage(error.message);
+          this._enableAllControls();
+          this._hideLoadingIndicator();
+        }));
+      } else {
+        // when buffer geometry is polygon
+        if (this.config && this.config.symbol && this.config.symbol
+          .length && this.config.symbol.length > 0) {
+          bufferSymbolData = this._getSymbolJson("bufferSymbol");
+          bufferSymbol = this._createGraphicFromJSON(
+            bufferSymbolData);
+          bufferGraphic = new Graphic(response, bufferSymbol);
+          if (this.bufferGraphicLayer.graphics.length > 0) {
+            this.map.getLayer("bufferGraphicLayer").clear();
+          }
+          this.bufferGraphicLayer.add(bufferGraphic);
+          bufferResultGeometry = response;
+          this.map.setExtent(bufferResultGeometry.getExtent(), true);
+          this._queryForBusinessData(bufferResultGeometry);
         }
       }
     },
@@ -1530,33 +1573,36 @@ define([
     * param{object}geometry: object containing information of buffer geometry.
     * @memberOf widgets/ServiceFeasibility/Widget
     **/
-    _queryForFacilityFeatures: function (geometry) {
+    _queryForFacilityFeatures: function (geometry, deferredArray,
+      featuresList) {
       var queryFeature, queryTask;
       queryFeature = new Query();
       queryFeature.geometry = geometry;
       queryFeature.returnGeometry = true;
       queryFeature.spatialRelationship = Query.SPATIAL_REL_INTERSECTS;
       queryFeature.outFields = ["*"];
+      if (this._existingDefinitionExpression) {
+        queryFeature.where = this._existingDefinitionExpression;
+      }
       queryTask = new QueryTask(this.layer);
-      queryTask.execute(queryFeature, lang.hitch(this, function (
-        results) {
-        if (results !== null && results.features && results.features
-          .length > 0) {
-          this._getResultantRoutes(results);
-        } else {
-          this._hideLoadingIndicator();
+      deferredArray.push(queryTask.execute(queryFeature, lang.hitch(
+        this,
+        function (
+          results) {
+          if (results !== null && results.features && results.features
+            .length > 0) {
+            array.forEach(results.features, lang.hitch(this,
+              function (features) {
+                featuresList.push(features);
+              }));
+          }
+        }), lang.hitch(this, function (error) {
           this.errorExist = true;
           this._onClearButtonClicked();
-          this._showAlertMessage(this.nls.featureNotExist);
+          this._showAlertMessage(error.message);
           this._enableAllControls();
-        }
-      }), lang.hitch(this, function (error) {
-        this.errorExist = true;
-        this._onClearButtonClicked();
-        this._showAlertMessage(error.message);
-        this._enableAllControls();
-        this._hideLoadingIndicator();
-      }));
+          this._hideLoadingIndicator();
+        })));
     },
 
     /**
@@ -1585,8 +1631,18 @@ define([
 
         }
       }
-      facilityParams.attributeParameterValues =
-        attributeParameterValues;
+      if (this.config.travelModeSelection) {
+        if (this.config.selectedTravelMode.TravelMode) {
+          facilityParams.travelMode = JSON.parse(this.config
+            .selectedTravelMode.TravelMode);
+        } else if (this.config.selectedTravelMode.itemId) {
+          facilityParams.travelMode = parseInt(this.config
+            .selectedTravelMode.itemId, 10);
+        }
+      } else {
+        facilityParams.attributeParameterValues =
+          attributeParameterValues;
+      }
       incidents = new FeatureSet();
       pointLocation = new Graphic(this.locationPointGeometry);
       features.push(pointLocation);
@@ -1594,7 +1650,7 @@ define([
       facilityParams.incidents = incidents;
       facilities = new FeatureSet();
       locationGraphics = [];
-      array.forEach(results.features, function (pointLocation) {
+      array.forEach(results, function (pointLocation) {
         locationGraphics.push(new Graphic(pointLocation.geometry));
       });
       facilities.features = locationGraphics;
@@ -1624,7 +1680,12 @@ define([
           (error.details && error.details.length > 0 ? "\n" +
             error.details[0] : "");
           errorMsg = (errorMsg !== "") ? errorMsg : this.nls.unableToFindClosestFacility;
-          this._showAlertMessage(errorMsg);
+          if (errorMsg.length > 500) {
+            errorMsg = errorMsg.substring(0, 500) + "...";
+            this._showAlertMessage(errorMsg);
+          } else {
+            this._showAlertMessage(errorMsg);
+          }
           this._enableAllControls();
           this._hideLoadingIndicator();
         }));
@@ -1734,6 +1795,29 @@ define([
       return facilityParams;
     },
 
+    /**
+    * This function will round of the value route length or cost
+    * @params{string}result: string contains route length or cost
+    * @memberOf widgets/ServiceFeasibility/Widget
+    **/
+    _calculateRouteUnit: function (result) {
+      var routeUnitVal;
+      if (this.config.routeUnitsRoundingOption === this.config.settingNLS
+        .twoDecimalValue) {
+        routeUnitVal = result.toFixed(2);
+      } else if (this.config.routeUnitsRoundingOption === this.config
+        .settingNLS.noDecimalValue) {
+        routeUnitVal = result.toFixed();
+      } else if (this.config.routeUnitsRoundingOption === this.config
+        .settingNLS.tenDecimalValue || this.config.routeUnitsRoundingOption ===
+        this.config.settingNLS.hunderedDecimalValue || this.config.routeUnitsRoundingOption ===
+        this.config.settingNLS.thousandDecimalValue) {
+        routeUnitVal = Math.floor(result / parseInt(this.config.routeUnitsRoundingOption,
+          10)) * parseInt(this.config.routeUnitsRoundingOption,
+          10);
+      }
+      return routeUnitVal;
+    },
 
     /**
     * This function will draw the closest route path and show it on map
@@ -1742,11 +1826,28 @@ define([
     **/
     _showFinalRoute: function (routes) {
       var lineSymbol, finalRoute, pathLine, routeSymbolData,
+        routeUnitVal,
         routeLayerInfos = [],
-        routeFieldInfo = [];
-      this.routeLengthCountValue.innerHTML = routes.attributes.Shape_Length
-        .toFixed(0) + " " + this.config.routeLengthLabelUnits;
-      this._routeLength = routes.attributes.Shape_Length.toFixed(0);
+        routeFieldInfo = [],
+        variable, resultVariable, result, routeGeometry;
+      variable = routes.attributes.Shape_Length.toFixed(0).toString();
+      if (this.config && this.config.LabelForBox) {
+        this.lblForBox.innerHTML = this.config.LabelForBox;
+      }
+      if (this.config && this.config.ExpressionValue) {
+        resultVariable = this._getStringValue(variable);
+        result = eval(resultVariable); // jshint ignore:line
+        routeUnitVal = this._calculateRouteUnit(result);
+        if (this.config.Before) {
+          this.routeLengthCountValue.innerHTML = this.config.routeLengthLabelUnits +
+            " " + routeUnitVal;
+        } else {
+          this.routeLengthCountValue.innerHTML = routeUnitVal +
+            " " + this.config.routeLengthLabelUnits;
+        }
+        this._routeCost = routeUnitVal;
+      }
+      this._routeLength = this._calculateRouteUnit(routes.attributes.Shape_Length);
       if (this.config && this.config.symbol && this.config.symbol.length &&
         this.config.symbol.length > 0) {
         routeSymbolData = this._getSymbolJson("routeSymbol");
@@ -1782,7 +1883,9 @@ define([
             this.attInspector.startup();
             on(this.attInspector, "attribute-change", lang.hitch(this,
               function (evt) {
-                if (this.routeFeatureLayer.graphics.length > 0) {
+                if (this.routeFeatureLayer && this.routeFeatureLayer
+                  .graphics && this.routeFeatureLayer.graphics.length >
+                  0) {
                   if (evt.fieldName === this.config.FieldMappingData
                     .routeLayerField) {
                     this._changeInField = true;
@@ -1799,11 +1902,31 @@ define([
                 }
               }));
           }
-          // Call function to draw buffer around the closest route path
-          this._createBufferGeometry([routes.geometry], [this.config.bufferDistance],
-            this.config.bufferEsriUnits, [this.map.extent.spatialReference
-              .wkid
-            ]);
+          if (this.config.AllowBusinessOptional) {
+            // Call function to draw buffer around the closest route path
+            this._createBufferGeometry([routes.geometry], [this.config
+                .bufferDistance
+              ],
+              this.config.bufferEsriUnits, [this.map.extent.spatialReference
+                .wkid
+              ]);
+          } else {
+            if (this.clearButtonSearch) {
+              this.clearButtonSearch.disabled = false;
+              domClass.remove(this.clearButtonSearch,
+                "jimu-state-disabled");
+            }
+            routeGeometry = routes.geometry;
+            this.map.setExtent(routeGeometry.getExtent(), true);
+            if (this.ExportToLayer) {
+              domStyle.set(this.ExportToLayer, "display",
+                "inline-block");
+            }
+            this._setRouteAttributes();
+            this.isResultExist = true;
+            this._switchToResultPanel();
+            this._enableAllControls();
+          }
         } else {
           this.errorExist = true;
           this._onClearButtonClicked();
@@ -1836,6 +1959,18 @@ define([
           value) {
           this.layer = this.map.itemInfo.itemData.operationalLayers[j]
             .url;
+          if (this.map.itemInfo.itemData.operationalLayers[j].layerDefinition &&
+            this.map.itemInfo.itemData.operationalLayers[j].layerDefinition
+            .definitionExpression &&
+            this.map.itemInfo.itemData.operationalLayers[j].layerDefinition
+            .definitionExpression !== "" &&
+            this.map.itemInfo.itemData.operationalLayers[j].layerDefinition
+            .definitionExpression !== null) {
+            this._existingDefinitionExpression = this.map.itemInfo.itemData
+              .operationalLayers[j].layerDefinition.definitionExpression;
+          } else {
+            this._existingDefinitionExpression = null;
+          }
         }
         if (this.map.itemInfo.itemData.operationalLayers[j].title ===
           this.config.businessesLayerName) {
@@ -1985,9 +2120,12 @@ define([
         this.resultListContainer.disabled = true;
         this._switchToResultPanel();
         this._enableAllControls();
-        domClass.remove(this.businessPassedResultListLabel, "esriCTListLabelCSV");
-        domClass.remove(this.businessPassedResultListLabel, "esriCTListLabelArrow");
-        domClass.add(this.businessPassedResultListLabel, "esriCTListLabelFullWidth");
+        domClass.remove(this.businessPassedResultListLabel,
+          "esriCTListLabelCSV");
+        domClass.remove(this.businessPassedResultListLabel,
+          "esriCTListLabelArrow");
+        domClass.add(this.businessPassedResultListLabel,
+          "esriCTListLabelFullWidth");
       }
     },
 
@@ -2007,6 +2145,11 @@ define([
             .saveBusinessCountField) !== "") {
           this.routeFeatureLayer.graphics[0].attributes[this.config.saveBusinessCountField] =
             this._businessPassed;
+        }
+        if (this.config.saveRouteCostField && lang.trim(this.config
+            .saveRouteCostField) !== "") {
+          this.routeFeatureLayer.graphics[0].attributes[this.config.saveRouteCostField] =
+            this._routeCost;
         }
       }
     },
@@ -2030,11 +2173,23 @@ define([
             domStyle.set(this.tabContainer.tabs[j].content, "display",
               "block");
             domStyle.set(this.resultContainer, "display", "block");
-            domStyle.set(this.resultListContainer, "display", "block");
+            if (this.config.AllowBusinessOptional) {
+              domStyle.set(this.resultListContainer, "display",
+                "block");
+              domStyle.set(this.businessTitleContainer, "display",
+                "block");
+            } else {
+              domClass.add(this.businessPassedDiv,
+                "esriCTHideBusinessPassedDiv");
+              domClass.add(this.costHeadingDiv,
+                "esriCTCostHeadingDivFullWidth");
+              domStyle.set(this.resultListContainer, "display",
+                "none");
+              domStyle.set(this.businessTitleContainer, "display",
+                "none");
+            }
             domClass.remove(this.divExportToLayerButtons,
               "esriCTHidePanel");
-            domStyle.set(this.businessTitleContainer, "display",
-              "block");
           } else if (this.tabContainer.controlNodes[j].innerHTML ===
             this.nls.searchContainerHeading) {
             domClass.replace(this.tabContainer.controlNodes[j],
@@ -2218,10 +2373,12 @@ define([
         this.resultDisplayAttributes.length = 0;
         this.resultDisplayField.length = 0;
         for (l = 0; l < this.results.length; l++) {
-          if (this.results[l].attributes.hasOwnProperty(this.config.businessDisplayField)) {
+          if (this.results[l].attributes.hasOwnProperty(
+              this.config.businessDisplayField)) {
             this.resultDisplayAttributes.push(this.results[l]);
             this.resultDisplayField.push({
-              "name": this.results[l].attributes[this.config.businessDisplayField],
+              "name": this.results[l].attributes[
+                this.config.businessDisplayField],
               "objectId": this.results[l].attributes[this.businessLayer
                 .layerObject.fields[0].name]
             });
@@ -2238,9 +2395,7 @@ define([
       } else {
         domClass.add(this.sortIconDiv, "esriCTHidePanel");
         domStyle.set(this.exportToCSVContainer, "display", "none");
-        if (this.ExportToLayer) {
-          domStyle.set(this.ExportToLayer, "display", "none");
-        }
+        domStyle.set(this.ExportToLayer, "display", "none");
       }
     },
 
@@ -2337,54 +2492,55 @@ define([
     * @memberOf widgets/ServiceFeasibility/Widget
     **/
     _attachEventsToResultListContainer: function (resultFeatures, list) {
-      var countSelectedFeatures, selectedFeature, featureId;
+      var i, selectedFeature, featureId,
+        featureList = [];
       this.own(on(list, "click", lang.hitch(this, function (evt) {
         selectedFeature = lang.trim(evt.target.innerHTML.replace(
           "amp;", ""));
         featureId = list.id;
-        domClass.remove(evt.target, "esriCTHoverFeatureList");
-        countSelectedFeatures = query(
-          ".esriCTSelectedFeatureFieldList");
-        // deselect the already selected feature in the result grid
-        if (countSelectedFeatures.length > 0) {
-          domClass.remove(dom.byId(countSelectedFeatures[0].id),
-            "esriCTHoverFeatureList");
-          domClass.replace(dom.byId(countSelectedFeatures[0].id),
-            "esriCTDeselectedFeatureList",
-            "esriCTSelectedFeatureFieldList");
-        }
-        domClass.replace(evt.target,
-          "esriCTSelectedFeatureFieldList",
-          "esriCTDeselectedFeatureList");
-        domClass.replace(this.resultListContainer,
-          "esriCTDeselectedFeatureList",
-          "esriCTSelectedFeatureFieldList");
-        if (this.viewWindowSize.w < 768) {
-          if (this.panelManager.getPanelById(this.id +
-              '_panel').titleNode && this.panelManager.getPanelById(
-              this.id + '_panel').onTitleClick) {
-            this.panelManager.getPanelById(this.id + '_panel')
-              .onTitleClick();
+        featureList = query(".esriCTFeatureFieldContainer");
+        if (featureList && featureList.length > 0) {
+          for (i = 0; i < featureList.length; i++) {
+            domClass.remove(featureList[i],
+              "esriCTSelectedFeatureFieldList");
+            domClass.remove(featureList[i],
+              "esriCTSelectedDartFeatureFieldList");
+            domClass.remove(featureList[i],
+              "esriCTHoverFeatureList");
+            domClass.remove(featureList[i],
+              "esriCTDartHoverFeatureList");
           }
+        }
+        if (this.appConfig.theme.name !== "DartTheme") {
+          domClass.add(evt.target,
+            "esriCTSelectedFeatureFieldList");
+        } else {
+          domClass.add(evt.target,
+            "esriCTSelectedDartFeatureFieldList");
         }
         this._highlightFeatureOnMap(selectedFeature,
           resultFeatures, featureId);
       })));
       this.own(on(list, "mouseover", lang.hitch(this, function (evt) {
         if (evt.target.childNodes.length < 2 && evt.target.innerHTML !==
-          this.nls.noBusinessPassedMsg) {
-          domClass.replace(evt.target,
-            "esriCTHoverFeatureList",
-            "esriCTFocusoutFeatureList");
+          this.nls.noBusinessPassedMsg && this.appConfig.theme
+          .name !== "DartTheme") {
+          domClass.add(evt.target,
+            "esriCTHoverFeatureList");
+        } else {
+          domClass.add(evt.target,
+            "esriCTDartHoverFeatureList");
         }
       })));
       this.own(on(list, "mouseout", lang.hitch(this, function (evt) {
         if (evt.target.childNodes.length < 2 && !domClass.contains(
-            evt.target, "esriCTSelectedFeatureFieldList")) {
-          domClass.replace(evt.target,
-            "esriCTFocusoutFeatureList",
+            evt.target, "esriCTSelectedFeatureFieldList") &&
+          this.appConfig.theme.name !== "DartTheme") {
+          domClass.remove(evt.target,
             "esriCTHoverFeatureList");
-
+        } else {
+          domClass.remove(evt.target,
+            "esriCTDartHoverFeatureList");
         }
       })));
     },
@@ -2740,6 +2896,12 @@ define([
               }
             }));
         this.attInspector.refresh();
+        // if applied Theme is for widget is dart Theme and browser is IE9
+        if (this.appConfig.theme.name === "DartTheme" && has("ie") ===
+          9) {
+          this._setDartBackgroudColorForIE9();
+        }
+
       }
     },
 
@@ -2769,7 +2931,6 @@ define([
 
       return fieldInfoArr;
     },
-
 
     layerFieldsToFieldInfos: function () {
       var fieldInfo = null,
@@ -2894,8 +3055,17 @@ define([
           }
         }
         domStyle.set(this.resultContainer, "display", "block");
-        domStyle.set(this.businessTitleContainer, "display", "block");
-        domStyle.set(this.resultListContainer, "display", "block");
+        if (this.config.AllowBusinessOptional) {
+          domStyle.set(this.resultListContainer, "display",
+            "block");
+          domStyle.set(this.businessTitleContainer, "display",
+            "block");
+        } else {
+          domStyle.set(this.resultListContainer, "display",
+            "none");
+          domStyle.set(this.businessTitleContainer, "display",
+            "none");
+        }
         domClass.add(this.saveLayercontentContainer,
           "esriCTHidePanel");
         domClass.add(this.saveToLayerContainer, "esriCTHidePanel");
@@ -3119,6 +3289,7 @@ define([
         }
       }
     },
+
     /**
     * This function will save the route graphic on layer
     * @params{object}routeLayer:Route feature layer on map
@@ -3363,14 +3534,159 @@ define([
     * @memberOf widgets/ServiceFeasibility/Widget
     **/
     _enhancedStyling: function () {
-      domClass.remove(this.businessPassedResultListLabel, "esriCTListLabelCSV");
-      domClass.remove(this.businessPassedResultListLabel, "esriCTListLabelArrow");
-      domClass.remove(this.businessPassedResultListLabel, "esriCTListLabelFullWidth");
-      if (this.config.exportToCSV) {
-        domClass.add(this.businessPassedResultListLabel, "esriCTListLabelCSV");
-      } else {
-        domClass.add(this.businessPassedResultListLabel, "esriCTListLabelArrow");
+      if (this.businessPassedResultListLabel) {
+        domClass.remove(this.businessPassedResultListLabel,
+          "esriCTListLabelCSV");
+        domClass.remove(this.businessPassedResultListLabel,
+          "esriCTListLabelArrow");
+        domClass.remove(this.businessPassedResultListLabel,
+          "esriCTListLabelFullWidth");
+        if (this.config.exportToCSV) {
+          domClass.add(this.businessPassedResultListLabel,
+            "esriCTListLabelCSV");
+        } else {
+          domClass.add(this.businessPassedResultListLabel,
+            "esriCTListLabelArrow");
+        }
+      }
+    },
+
+    /**
+    * Function for getting string required to be replaced in expression
+    * @memberOf widgets/ServiceFeasibility/Widget
+    */
+    _getStringValue: function (val) {
+      var string, stringValue, replaceStringStartPos,
+        replaceStringEndPos, replaceString, replaceBy;
+      stringValue = this.config.ExpressionValue;
+      replaceStringStartPos = stringValue.indexOf("{");
+      replaceStringEndPos = stringValue.indexOf("}") + 1;
+      replaceString = stringValue.substring(replaceStringStartPos,
+        replaceStringEndPos);
+      replaceBy = new RegExp(replaceString, 'g');
+      string = stringValue.replace(replaceBy, val);
+      return string;
+    },
+
+    /**
+    * Function for setting dart theme background color on IE 9
+    * @memberOf widgets/ServiceFeasibility/Widget
+    */
+    _setDartBackgroudColor: function () {
+      var mainDivContainer;
+      if (this.appConfig.theme.name === "DartTheme" && has("ie") ===
+        9) {
+        mainDivContainer = query(".jimu-widget-frame.jimu-container")[
+          0];
+        domClass.add(mainDivContainer, "esriCTDartBackgroudColor");
+      }
+    },
+
+    /**
+    * This function is used to add focus class on text box click for IE9
+    * @param{object} Element node to which class needs to be added
+    * @memberOf widgets/ServiceFeasibility/Widget
+    */
+    _addFocusClassOnTextBoxClick: function (textBoxNode) {
+      var dijitTextBoxFocusedIE9div, dijitTextBoxFocuseddiv, j;
+      domClass.add(textBoxNode, "dijitTextBoxIE9");
+      // binding events for changing CSS on click of input Div
+      // in dart theme and in case of  IE9
+      on(textBoxNode, "click", lang.hitch(this, function () {
+        dijitTextBoxFocusedIE9div = query(
+          ".dijitTextBoxFocusedIE9");
+        dijitTextBoxFocuseddiv = query(".dijitTextBoxFocused")[
+          0];
+        // loop for removing classes of focused node from all dijitTextBox
+        for (j = 0; j < dijitTextBoxFocusedIE9div.length; j++) {
+          domClass.remove(dijitTextBoxFocusedIE9div[j],
+            "dijitTextBoxFocusedIE9");
+        }
+        domClass.add(dijitTextBoxFocuseddiv,
+          "dijitTextBoxFocusedIE9");
+      }));
+    },
+
+    /**
+    * This function is used to add focus class on date change for IE9
+    * @param{object} Element node to which class needs to be added
+    * @memberOf widgets/ServiceFeasibility/Widget
+    */
+    _addFocusClassOnDateChange: function (inputNode) {
+      var dijitTextBoxFocusedIE9div, dijitTextBoxFocuseddiv, j;
+      // binding events for changing CSS on change of input Div
+      // in dart theme and in case of  IE9
+      on(inputNode, "change", lang.hitch(this, function () {
+        dijitTextBoxFocusedIE9div = query(
+          ".dijitTextBoxFocusedIE9");
+        dijitTextBoxFocuseddiv = query(".dijitTextBoxFocused")[
+          0];
+        // loop for removing classes of focused node from all dijitTextBox
+        for (j = 0; j < dijitTextBoxFocusedIE9div.length; j++) {
+          domClass.remove(dijitTextBoxFocusedIE9div[j],
+            "dijitTextBoxFocusedIE9");
+        }
+        domClass.add(dijitTextBoxFocuseddiv,
+          "dijitTextBoxFocusedIE9");
+      }));
+    },
+
+    /**
+    * This function is used to add class on focus of dijit input for IE9
+    * @param{object} Element node to which class needs to be added
+    * @memberOf widgets/ServiceFeasibility/Widget
+    */
+    _addClassOnFocus: function (inputNode) {
+      var dijitTextBoxFocusedIE9div, dijitTextBoxFocuseddiv, j;
+      // binding events for changing CSS on focus of input Div
+      // in dart theme and in case of  IE9
+      on(inputNode, "focus", lang.hitch(this, function () {
+        dijitTextBoxFocusedIE9div = query(
+          ".dijitTextBoxFocusedIE9");
+        dijitTextBoxFocuseddiv = query(".dijitTextBoxFocused")[
+          0];
+        // loop for removing classes of focused node from all dijitTextBox
+        for (j = 0; j < dijitTextBoxFocusedIE9div.length; j++) {
+          domClass.remove(dijitTextBoxFocusedIE9div[j],
+            "dijitTextBoxFocusedIE9");
+        }
+        domClass.add(dijitTextBoxFocuseddiv,
+          "dijitTextBoxFocusedIE9");
+      }));
+    },
+
+    /**
+    * Function for setting dart theme background color on IE 9
+    * @memberOf widgets/ServiceFeasibility/Widget
+    */
+    _setDartBackgroudColorForIE9: function () {
+      var dijitTextBoxdiv, dijitButtonNodediv, i, dijitInputInnerdiv,
+        dijitArrowButtondiv;
+      dijitTextBoxdiv = query(".dijitTextBox");
+      dijitButtonNodediv = query(".dijitButtonNode");
+      dijitInputInnerdiv = query(".dijitInputInner");
+      dijitArrowButtondiv = query(".dijitArrowButton");
+
+      for (i = 0; i < dijitArrowButtondiv.length; i++) {
+        domClass.add(dijitArrowButtondiv[i], "dijitArrowButtonIE9");
+      }
+      // loop for adding class for applying CSS on input field of div text box div
+      // in dart theme in case of  IE9
+      for (i = 0; i < dijitTextBoxdiv.length; i++) {
+        this._addFocusClassOnTextBoxClick(dijitTextBoxdiv[i]);
+      }
+      // loop for adding class for applying CSS on input field of div text box div
+      // in dart theme in case of  IE9
+      for (i = 0; i < dijitInputInnerdiv.length; i++) {
+        this._addFocusClassOnDateChange(dijitInputInnerdiv[i]);
+        this._addClassOnFocus(dijitInputInnerdiv[i]);
+      }
+      // loop for adding class for applying CSS on button div of select div
+      //in dart theme in case of  IE9
+      for (i = 0; i < dijitButtonNodediv.length; i++) {
+        domClass.add(dijitButtonNodediv[i], "dijitButtonNodeIE9");
       }
     }
+
   });
 });

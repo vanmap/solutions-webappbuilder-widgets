@@ -44,18 +44,17 @@
                         </div>
                         <div data-dojo-attach-point="tabResults">
                             <div class="esriCTResultContainer" data-dojo-attach-point="resultContainer">
-                                <div class="esriCTRouteLengthContainer">
+                                <div class="esriCTRouteLengthContainer" data-dojo-attach-point="costHeadingDiv">
                                     <div class="esriCTRouteLengthLabel">
-                                        <label>
-                                            ${nls.routeLengthHeading}
+                                        <label data-dojo-attach-point="lblForBox" class="esriCTRouteAndCostLabel">
                                         </label>
                                     </div>
                                     <div class="esriCTRouteLengthCount" data-dojo-attach-point="routeLengthCountValue">
                                     </div>
                                 </div>
-                                <div class="esriCTBusinessPassedContainer">
+                                <div class="esriCTBusinessPassedContainer" data-dojo-attach-point="businessPassedDiv">
                                     <div class="esriCTBusinessPassedLabel" data-dojo-attach-point="businessPassedLabel">
-                                        <label>
+                                        <label class="esriCTBusinessPassedLabelText">
                                             ${nls.businessPassedCountLabel}</label></div>
                                     <div class="esriCTBusinessPassedCount" data-dojo-attach-point="businessPassedCountValue">
                                     </div>
@@ -116,3 +115,4 @@
             </div>
         </div>
     </div>
+</div>

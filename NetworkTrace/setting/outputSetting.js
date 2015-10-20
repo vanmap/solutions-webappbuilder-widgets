@@ -255,13 +255,6 @@ define([
         this._chooseSymbolFromPopup)));
       // if input parameters configuration is available else set fall back symbol as Symbol
       if (this.outputConfig && this.outputConfig.symbol) {
-        this.popup = new Popup({
-          titleLabel: this.nls.symbolSelecter.selectSymbolLabel,
-          width: 530,
-          height: 400,
-          content: this.outputSymbolChooser
-        });
-
         this.symbolJson = selectedSymbol = this.outputSymbolChooser.symbolChooser
           .getSymbol().toJson();
         addSymbol = this._createGraphicFromJSON(selectedSymbol);
@@ -270,10 +263,6 @@ define([
         addSymbol = this._createGraphicFromJSON(this._getFallbackSymbol());
       }
       this._updatePreview(this.symbolDataPreview, addSymbol);
-      // if pop up instance is created
-      if (this.popup) {
-        this.popup.close();
-      }
       this._bindPopupOkEvent();
     },
 
@@ -283,31 +272,42 @@ define([
     */
     _getFallbackSymbol: function () {
       var jsonObj;
-      if (this.data.defaultValue.geometryType === "esriGeometryPoint") {
-        jsonObj = {
-          "color": [0, 0, 128, 128],
-          "outline": {
-            "color": [0, 0, 128, 255],
-            "width": 0.75,
+      switch (this.data.defaultValue.geometryType) {
+        case "esriGeometryPoint":
+          jsonObj = {
+            "color": [0, 0, 128, 128],
+            "outline": {
+              "color": [0, 0, 128, 255],
+              "width": 0.75,
+              "type": "esriSLS",
+              "style": "esriSLSSolid"
+            },
+            "size": 18,
+            "type": "esriSMS",
+            "style": "esriSMSCircle"
+          };
+          break;
+        case "esriGeometryPolygon":
+          jsonObj = {
+            "color": [155, 187, 89, 129],
+            "outline": {
+              "color": [115, 140, 61, 255],
+              "width": 1.5,
+              "type": "esriSLS",
+              "style": "esriSLSSolid"
+            },
+            "type": "esriSFS",
+            "style": "esriSFSSolid"
+          };
+          break;
+        case "esriGeometryPolyline":
+          jsonObj = {
+            "color": [155, 187, 89, 255],
             "type": "esriSLS",
-            "style": "esriSLSSolid"
-          },
-          "size": 18,
-          "type": "esriSMS",
-          "style": "esriSMSCircle"
-        };
-      } else {
-        jsonObj = {
-          "color": [155, 187, 89, 129],
-          "outline": {
-            "color": [115, 140, 61, 255],
-            "width": 1.5,
-            "type": "esriSLS",
-            "style": "esriSLSSolid"
-          },
-          "type": "esriSFS",
-          "style": "esriSFSSolid"
-        };
+            "style": "esriSLSSolid",
+            "width": 2.25
+          };
+          break;
       }
       return jsonObj;
     },
@@ -321,6 +321,13 @@ define([
       this.outputSymbolChooser.onOkClick = lang.hitch(this, function () {
         this.symbolJson = selectedSymbol = this.outputSymbolChooser
           .symbolChooser.getSymbol().toJson();
+        if (this.outputConfig && this.outputConfig.symbol) {
+          this.outputConfig.symbol = this.symbolJson;
+        } else {
+          var outputConfigObj = {};
+          outputConfigObj.symbol = this.symbolJson;
+          this.outputConfig = outputConfigObj;
+        }
         addSymbol = this._createGraphicFromJSON(selectedSymbol);
         this._updatePreview(this.symbolDataPreview, addSymbol);
         this.popup.close();

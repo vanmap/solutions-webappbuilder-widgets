@@ -216,13 +216,6 @@ define([
         this._chooseSymbolFromPopup)));
       // if input parameters configuration is available else set fall back symbol as Symbol
       if (this.overviewConfig && this.overviewConfig.symbol) {
-        this.popup = new Popup({
-          titleLabel: this.nls.symbolSelecter.selectSymbolLabel,
-          width: 530,
-          height: 400,
-          content: this.overviewSymbolChooser
-        });
-
         this.symbolJson = selectedSymbol = this.overviewSymbolChooser
           .symbolChooser.getSymbol().toJson();
         addSymbol = this._createGraphicFromJSON(selectedSymbol);
@@ -231,10 +224,6 @@ define([
         addSymbol = this._createGraphicFromJSON(this._getFallbackSymbol());
       }
       this._updatePreview(this.symbolDataPreview, addSymbol);
-      // if pop up instance is created
-      if (this.popup) {
-        this.popup.close();
-      }
       this._bindPopupOkEvent();
     },
 
@@ -267,6 +256,13 @@ define([
         function () {
           this.symbolJson = selectedSymbol = this.overviewSymbolChooser
             .symbolChooser.getSymbol().toJson();
+          if (this.overviewConfig && this.overviewConfig.symbol) {
+            this.overviewConfig.symbol = this.symbolJson;
+          } else {
+            var overviewConfigObj = {};
+            overviewConfigObj.symbol = this.symbolJson;
+            this.overviewConfig = overviewConfigObj;
+          }
           addSymbol = this._createGraphicFromJSON(selectedSymbol);
           this._updatePreview(this.symbolDataPreview, addSymbol);
           this.popup.close();

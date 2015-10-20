@@ -394,11 +394,14 @@ define([
     *This function will execute when user clicked on the 'Run Trace' button.
     **/
     _onTraceButtonClick: function () {
-      var resultMainDiv, i, tracePanelHeight, inputBarrierTabContentHeight, loadingIconHeight;
+      var resultMainDiv, i, tracePanelHeight,
+        inputBarrierTabContentHeight, loadingIconHeight;
       style.set(this.loadingIcon, "height", "0px");
       tracePanelHeight = style.get(this.tracePanel, "height");
-      inputBarrierTabContentHeight = style.get(this.InputBarrierTabContent, "height");
-      loadingIconHeight = tracePanelHeight + inputBarrierTabContentHeight + 35;
+      inputBarrierTabContentHeight = style.get(this.InputBarrierTabContent,
+        "height");
+      loadingIconHeight = tracePanelHeight +
+        inputBarrierTabContentHeight + 35;
       if (has("ie")) {
         loadingIconHeight = loadingIconHeight + 40;
       } else if (document && document.documentMode) {
@@ -450,7 +453,8 @@ define([
         this._overviewLayerSave();
         this._displayOutageAreaDetail();
         // if selected theme is Dart Theme and browser is IE9
-        if (this.appConfig.theme.name === "DartTheme" && has("ie") === 9) {
+        if (this.appConfig.theme.name === "DartTheme" && has("ie") ===
+          9) {
           this._setDartBackgroudColorForIE9();
         }
         if (this.appConfig.theme.name === "DartTheme") {
@@ -1152,9 +1156,7 @@ define([
         if (this.flagBtnClicked) {
           addType = "Flag";
           domClass.remove(this.btnTrace, "jimu-state-disabled");
-          domClass.remove(this.btnClear, "jimu-state-disabled");
           this.btnTrace.disabled = false;
-          this.btnClear.disabled = false;
           this._flagID++;
           objID = this._flagID;
           this._addInputLocation(new Graphic(evt.mapPoint, null, {
@@ -1164,8 +1166,6 @@ define([
         //checking whether barrier button is clicked or not.
         if (this.barrierBtnClicked) {
           addType = "Barrier";
-          domClass.remove(this.btnClear, "jimu-state-disabled");
-          this.btnClear.disabled = false;
           this._barrierID++;
           objID = this._barrierID;
           this._addBarrierLocation(new Graphic(evt.mapPoint, null, {
@@ -1418,8 +1418,10 @@ define([
           style.set(this.resultsLayerNamesContainer, "display",
             "block");
           style.set(this.resultPanel, "display", "block");
-          if (this.resultLayersInformationContainer.innerHTML !== "") {
-            domClass.remove(this.headPaneTitle, "esriCTBorderNone");
+          if (this.resultLayersInformationContainer.innerHTML !==
+            "") {
+            domClass.remove(this.headPaneTitle,
+              "esriCTBorderNone");
           }
         })));
     },
@@ -1428,11 +1430,9 @@ define([
     *This function will execute when User clicked on 'Clear' button.
     **/
     _onClearButtonClick: function () {
-      if (!domClass.contains(this.btnClear, "jimu-state-disabled")) {
-        this._clearResults();
-        if (this.appConfig.theme.name === "DartTheme") {
-          style.set(this.InputBarrierTabContent, "display", "none");
-        }
+      this._clearResults();
+      if (this.appConfig.theme.name === "DartTheme") {
+        style.set(this.InputBarrierTabContent, "display", "none");
       }
     },
 
@@ -1499,9 +1499,7 @@ define([
       this.btnFlag.disabled = false;
       this.btnBarrier.disabled = false;
       domClass.add(this.btnTrace, "jimu-state-disabled");
-      domClass.add(this.btnClear, "jimu-state-disabled");
       this.btnTrace.disabled = true;
-      this.btnClear.disabled = true;
       domClass.add(this.btnSaveToLayer, "jimu-state-disabled");
       domClass.add(this.btnExportToLayer, "jimu-state-disabled");
     },
@@ -1553,9 +1551,7 @@ define([
         this.toolbar = null;
       }
       domClass.add(this.btnTrace, "jimu-state-disabled");
-      domClass.add(this.btnClear, "jimu-state-disabled");
       this.btnTrace.disabled = true;
-      this.btnClear.disabled = true;
       domClass.add(this.btnFlag, "traceControlDisabledDiv");
       domClass.add(this.btnBarrier, "traceControlDisabledDiv");
       this.btnFlag.disabled = true;
@@ -1643,8 +1639,6 @@ define([
       this.btnBarrier.disabled = false;
       this.btnTrace.disabled = false;
       domClass.remove(this.btnTrace, "jimu-state-disabled");
-      this.btnClear.disabled = false;
-      domClass.remove(this.btnClear, "jimu-state-disabled");
       domClass.remove(this.btnFlag, "traceControlDisabledDiv");
       domClass.remove(this.btnBarrier, "traceControlDisabledDiv");
       domClass.remove(this.btnExportToLayer, "jimu-state-disabled");
@@ -2000,9 +1994,10 @@ define([
         summaryExpressionValueResultText);
       summaryExpressionValueResultText = this._convertExpressionRelatedToOutputParameter(
         summaryExpressionValueResultText);
-      if (summaryExpressionValueResultText && summaryExpressionValueResultText !== "") {
+      if (summaryExpressionValueResultText &&
+        summaryExpressionValueResultText !== "") {
         this.resultLayersInformationContainer.innerHTML =
-        summaryExpressionValueResultText;
+          summaryExpressionValueResultText;
         domClass.remove(this.headPaneTitle, "esriCTBorderNone");
       }
     },
@@ -2121,12 +2116,13 @@ define([
         if (features[i].attributes[field] !== null && features[i].attributes[
             field] !== "") {
           isFeatureSkipped = false;
-          if (this.skipLayer){
-            if (this.skipLayer.graphics){
+          if (this.skipLayer) {
+            if (this.skipLayer.graphics) {
               for (j = 0; j < this.skipLayer.graphics.length; j++) {
                 if ((outputLayerName === this.skipLayer.graphics[j].GPParam) &&
-                  (features[i].attributes[skipField] === this.skipLayer.graphics[
-                    j].attributes[skipField])) {
+                  (features[i].attributes[skipField] === this.skipLayer
+                    .graphics[
+                      j].attributes[skipField])) {
                   isFeatureSkipped = true;
                 }
               }
@@ -2139,23 +2135,26 @@ define([
       }
       if (sumArr.length > 0) {
         total = this._getSummationOfArr(sumArr);
-        if (this._decimalPlaces(total) > 2){
+        if (this._decimalPlaces(total) > 2) {
           total = total.toFixed(2);
         }
         return total;
       }
       return 0;
     },
-    _decimalPlaces: function(num) {
-      var match = (''+num).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
-      if (!match) { return 0; }
-      return Math.max(
-           0,
-           // Number of digits right of decimal point.
-           (match[1] ? match[1].length : 0)
-           // Adjust for scientific notation.
-           - (match[2] ? +match[2] : 0));
+
+    _decimalPlaces: function (num) {
+      var match = ('' + num).match(/(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/);
+      if (!match) {
+        return 0;
+      }
+      // (match[1] ? match[1].length : 0) --> Number of digits right of decimal point.
+      // (match[2] ? +match[2] : 0) --> Adjust for scientific notation.
+      // To solve JSHint error(Operator - should be on a new line)
+      // comments position is changed in above manner
+      return Math.max(0, (match[1] ? match[1].length : 0) - (match[2] ? +match[2] : 0));
     },
+
     /**
     * This function is used to get summation of field values
     * @memberOf widgets/NetworkTrace/widgets
@@ -2180,12 +2179,13 @@ define([
         if (features[i].attributes[field] !== null && features[i].attributes[
             field] !== "") {
           isFeatureSkipped = false;
-          if (this.skipLayer){
-            if (this.skipLayer.graphics){
+          if (this.skipLayer) {
+            if (this.skipLayer.graphics) {
               for (j = 0; j < this.skipLayer.graphics.length; j++) {
                 if ((outputLayerName === this.skipLayer.graphics[j].GPParam) &&
-                  (features[i].attributes[skipField] === this.skipLayer.graphics[
-                    j].attributes[skipField])) {
+                  (features[i].attributes[skipField] === this.skipLayer
+                    .graphics[
+                      j].attributes[skipField])) {
                   isFeatureSkipped = true;
                 }
               }
@@ -2218,12 +2218,13 @@ define([
         if (features[i].attributes[field] !== null && features[i].attributes[
             field] !== "") {
           isFeatureSkipped = false;
-          if (this.skipLayer){
-            if (this.skipLayer.graphics){
+          if (this.skipLayer) {
+            if (this.skipLayer.graphics) {
               for (j = 0; j < this.skipLayer.graphics.length; j++) {
                 if ((outputLayerName === this.skipLayer.graphics[j].GPParam) &&
-                  (features[i].attributes[skipField] === this.skipLayer.graphics[
-                    j].attributes[skipField])) {
+                  (features[i].attributes[skipField] === this.skipLayer
+                    .graphics[
+                      j].attributes[skipField])) {
                   isFeatureSkipped = true;
                 }
               }
@@ -2256,12 +2257,13 @@ define([
         if (features[i].attributes[field] !== null && features[i].attributes[
             field] !== "") {
           isFeatureSkipped = false;
-          if (this.skipLayer){
-            if (this.skipLayer.graphics){
+          if (this.skipLayer) {
+            if (this.skipLayer.graphics) {
               for (j = 0; j < this.skipLayer.graphics.length; j++) {
                 if ((outputLayerName === this.skipLayer.graphics[j].GPParam) &&
-                  (features[i].attributes[skipField] === this.skipLayer.graphics[
-                    j].attributes[skipField])) {
+                  (features[i].attributes[skipField] === this.skipLayer
+                    .graphics[
+                      j].attributes[skipField])) {
                   isFeatureSkipped = true;
                 }
               }
@@ -2719,8 +2721,6 @@ define([
               "block");
             style.set(this.tracePanel, "display", "block");
             if (this.barrierLocContent.children.length === 0) {
-              domClass.add(this.btnClear, "jimu-state-disabled");
-              this.btnClear.disabled = true;
               style.set(this.InputBarrierTabContent, "display",
                 "none");
             }
@@ -2784,8 +2784,6 @@ define([
             "block";
           style.set(this.tracePanel, "display", "block");
           if (this.flagLocContent.children.length === 0) {
-            domClass.add(this.btnClear, "jimu-state-disabled");
-            this.btnClear.disabled = true;
             style.set(this.InputBarrierTabContent, "display",
               "none");
           }
@@ -2893,13 +2891,16 @@ define([
     */
     _setDartInlineStyle: function () {
       var i, classContainerObject = [];
-      classContainerObject.push(query(".esriCTInputBarrierTabContainer"));
+      classContainerObject.push(query(
+        ".esriCTInputBarrierTabContainer"));
       classContainerObject.push(query(".esriCTInputBarrierLoc"));
       classContainerObject.push(query(".tracePanel"));
       classContainerObject.push(query(".resultsHeadText"));
-      classContainerObject.push(query(".esriCTResultsLayerNamesContainer"));
+      classContainerObject.push(query(
+        ".esriCTResultsLayerNamesContainer"));
       classContainerObject.push(query(".esriCTResultContainer"));
-      classContainerObject.push(query(".esriCTLayerInformationContainer"));
+      classContainerObject.push(query(
+        ".esriCTLayerInformationContainer"));
       // looping for setting grey Background color for dart theme
       for (i = 0; i < classContainerObject.length; i++) {
         this._setInlineStyle(classContainerObject[i]);
@@ -2916,7 +2917,7 @@ define([
       for (i = 0; i < classNode.length; i++) {
         domAttr.set(classNode[i], "style",
           "background-color: transparent !important; padding-right: 0px; padding-left: 0px;"
-          );
+        );
       }
     },
 
@@ -2948,13 +2949,17 @@ define([
       // binding events for changing CSS on click of input Div
       // in dart theme and in case of  IE9
       on(textBoxNode, "click", lang.hitch(this, function () {
-        dijitTextBoxFocusedIE9div = query(".dijitTextBoxFocusedIE9");
-        dijitTextBoxFocuseddiv = query(".dijitTextBoxFocused")[0];
+        dijitTextBoxFocusedIE9div = query(
+          ".dijitTextBoxFocusedIE9");
+        dijitTextBoxFocuseddiv = query(".dijitTextBoxFocused")[
+          0];
         // loop for removing classes of focused node from all dijitTextBox
         for (j = 0; j < dijitTextBoxFocusedIE9div.length; j++) {
-          domClass.remove(dijitTextBoxFocusedIE9div[j], "dijitTextBoxFocusedIE9");
+          domClass.remove(dijitTextBoxFocusedIE9div[j],
+            "dijitTextBoxFocusedIE9");
         }
-        domClass.add(dijitTextBoxFocuseddiv, "dijitTextBoxFocusedIE9");
+        domClass.add(dijitTextBoxFocuseddiv,
+          "dijitTextBoxFocusedIE9");
       }));
     },
 
@@ -2968,13 +2973,17 @@ define([
       // binding events for changing CSS on change of input Div
       // in dart theme and in case of  IE9
       on(inputNode, "change", lang.hitch(this, function () {
-        dijitTextBoxFocusedIE9div = query(".dijitTextBoxFocusedIE9");
-        dijitTextBoxFocuseddiv = query(".dijitTextBoxFocused")[0];
+        dijitTextBoxFocusedIE9div = query(
+          ".dijitTextBoxFocusedIE9");
+        dijitTextBoxFocuseddiv = query(".dijitTextBoxFocused")[
+          0];
         // loop for removing classes of focused node from all dijitTextBox
         for (j = 0; j < dijitTextBoxFocusedIE9div.length; j++) {
-          domClass.remove(dijitTextBoxFocusedIE9div[j], "dijitTextBoxFocusedIE9");
+          domClass.remove(dijitTextBoxFocusedIE9div[j],
+            "dijitTextBoxFocusedIE9");
         }
-        domClass.add(dijitTextBoxFocuseddiv, "dijitTextBoxFocusedIE9");
+        domClass.add(dijitTextBoxFocuseddiv,
+          "dijitTextBoxFocusedIE9");
       }));
     },
 
@@ -2988,13 +2997,17 @@ define([
       // binding events for changing CSS on focus of input Div
       // in dart theme and in case of  IE9
       on(inputNode, "focus", lang.hitch(this, function () {
-        dijitTextBoxFocusedIE9div = query(".dijitTextBoxFocusedIE9");
-        dijitTextBoxFocuseddiv = query(".dijitTextBoxFocused")[0];
+        dijitTextBoxFocusedIE9div = query(
+          ".dijitTextBoxFocusedIE9");
+        dijitTextBoxFocuseddiv = query(".dijitTextBoxFocused")[
+          0];
         // loop for removing classes of focused node from all dijitTextBox
         for (j = 0; j < dijitTextBoxFocusedIE9div.length; j++) {
-          domClass.remove(dijitTextBoxFocusedIE9div[j], "dijitTextBoxFocusedIE9");
+          domClass.remove(dijitTextBoxFocusedIE9div[j],
+            "dijitTextBoxFocusedIE9");
         }
-        domClass.add(dijitTextBoxFocuseddiv, "dijitTextBoxFocusedIE9");
+        domClass.add(dijitTextBoxFocuseddiv,
+          "dijitTextBoxFocusedIE9");
       }));
     },
 
@@ -3007,7 +3020,8 @@ define([
       dijitArrowButtondiv = query(".dijitArrowButton");
       if (dijitArrowButtondiv) {
         for (i = 0; i < dijitArrowButtondiv.length; i++) {
-          domClass.add(dijitArrowButtondiv[i], "dijitArrowButtonBlankContent");
+          domClass.add(dijitArrowButtondiv[i],
+            "dijitArrowButtonBlankContent");
         }
       }
     },
@@ -3017,7 +3031,8 @@ define([
     * @memberOf widgets/NetworkTrace/Widget
     */
     _setDartBackgroudColorForIE9: function () {
-      var dijitTextBoxdiv, dijitButtonNodediv, i, dijitInputInnerdiv, dijitArrowButtondiv;
+      var dijitTextBoxdiv, dijitButtonNodediv, i, dijitInputInnerdiv,
+        dijitArrowButtondiv;
       dijitTextBoxdiv = query(".dijitTextBox");
       dijitButtonNodediv = query(".dijitButtonNode");
       dijitInputInnerdiv = query(".dijitInputInner");

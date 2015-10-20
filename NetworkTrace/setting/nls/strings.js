@@ -35,7 +35,7 @@
     // Summary expression builder
     summaryTab: {
       summaryTabText: "Summary",
-      summaryFieldsetText: "Summary Settings",
+      summaryFieldsetText: "Summary settings",
       inputOutput: "Inputs/Outputs",
       field: "Fields",
       operator: "Operators",
@@ -47,7 +47,8 @@
       fieldOperatorMaxOption: "Max",
       fieldOperatorMeanOption: "Mean",
       expressionAddButtonText: "Add",
-      expressionVerifyButtonText: "Verify"
+      expressionVerifyButtonText: "Verify",
+      summaryEditorText: "Summary text"
     },
     // Outage details
     outagePanel: {
@@ -127,7 +128,7 @@
       imageWidthHintText: "Hint: Specify numeric value for image width.",
       selectImageHintText: "Hint: Please click on the image to select any other highlighter image.",
       inputTextHint: "Hint:Build your expression above by selectig input,output and fielnames",
-      expressionHint: "Hint:select items and click add to build expression"
+      expressionHint: "Hint: Select items and click add to build expression"
     },
     // Symbol chooser
     symbolSelecter: {

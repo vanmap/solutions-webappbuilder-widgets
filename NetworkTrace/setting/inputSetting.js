@@ -151,19 +151,11 @@ define([
         "data": this.data,
         "inputConfig": this.inputConfig
       };
-
       this.inputSymbolChooser = new InputSymbolChooser(param);
       this.own(on(this.symbolDataPreview, 'click', lang.hitch(this,
         this._chooseSymbolFromPopup)));
       // if input parameters configuration is available else set fall back symbol as Symbol
       if (this.inputConfig && this.inputConfig.symbol) {
-        this.popup = new Popup({
-          titleLabel: this.nls.symbolSelecter.selectSymbolLabel,
-          width: 530,
-          height: 400,
-          content: this.inputSymbolChooser
-        });
-
         this.symbolJson = selectedSymbol = this.inputSymbolChooser.symbolChooser
                   .getSymbol().toJson();
         addSymbol = this._createGraphicFromJSON(selectedSymbol);
@@ -172,10 +164,6 @@ define([
         addSymbol = this._createGraphicFromJSON(this._getFallbackSymbol());
       }
       this._updatePreview(this.symbolDataPreview, addSymbol);
-      // if pop up instance is created
-      if (this.popup) {
-        this.popup.close();
-      }
       this._bindPopupOkEvent();
     },
 
@@ -209,6 +197,13 @@ define([
       this.inputSymbolChooser.onOkClick = lang.hitch(this, function () {
         this.symbolJson = selectedSymbol = this.inputSymbolChooser
           .symbolChooser.getSymbol().toJson();
+        if (this.inputConfig && this.inputConfig.symbol) {
+          this.inputConfig.symbol = this.symbolJson;
+        } else {
+          var inputConfigObj = {};
+          inputConfigObj.symbol = this.symbolJson;
+          this.inputConfig = inputConfigObj;
+        }
         addSymbol = this._createGraphicFromJSON(selectedSymbol);
         this._updatePreview(this.symbolDataPreview, addSymbol);
         this.popup.close();

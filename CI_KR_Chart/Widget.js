@@ -397,21 +397,6 @@ define([
             * @private
             */
             _getMarkerSymbol:function(){
-                //var style = SimpleMarkerSymbol.STYLE_CIRCLE;
-                //var size = 15;
-                //var color = new Color("#3fafdc");
-                //color.a = 1;
-
-                //var outlineSymbol = new SimpleLineSymbol();
-                //var outlineColor = new Color("#000000");
-                //var outlineWidth = 0;
-                //outlineSymbol.setStyle(SimpleLineSymbol.STYLE_SOLID);
-                //outlineSymbol.setColor(outlineColor);
-                //outlineSymbol.setWidth(outlineWidth);
-
-                //var symbol = new SimpleMarkerSymbol(style, size, outlineSymbol, color);
-                //return symbol;
-
                 var style = SimpleMarkerSymbol.STYLE_CIRCLE;
                 var size = 15;
                 var color = new Color("#FF0000");
@@ -760,6 +745,11 @@ define([
             * @private
             */
             _setFacilitiesDataSource: function (features) {
+
+                // Set the title for the content pane from the config file
+                this.cpFacilities.set("title", this.config.CIKR.infrastructureLayer.title);
+                this.cpDemographic.set("title", this.config.CIKR.demographicLayer.title);
+
                 //Clear out old results
                 domConstruct.empty(this.facilitiesListSection);
                 if (features.length > 0) {
@@ -772,7 +762,6 @@ define([
                         }, facilityDiv);
                         this._trackDijits(facility);
                     }, this);
-                    // New stuff
 
                     var exportButton = new Button({ label: "Export to CSV" });
                     exportButton.startup();

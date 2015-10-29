@@ -22,7 +22,7 @@ define({
     lblForRouteRoundingOption: "Rounding option",
     lblForExpression: "Route result expression",
     lblFieldTobeDisplayed: "Field to be displayed in result list",
-    captionServiceAreaParameters: "Selection Layer Settings",
+    captionServiceAreaParameters: "Selection layer settings",
     lblBufferDistanceToGenerateServiceArea: "Buffer distance to generate service area",
     lblBufferUnits: "Buffer units",
     captionClosestFacilityParameters: "Closest facility parameters",

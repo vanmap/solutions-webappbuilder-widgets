@@ -107,11 +107,13 @@ define({
       esriCTKilometers: "Kilometers"
     },
     routeLengthroundingOption: {
+      oneDecimalName: "one decimal",
       twoDecimalName: "two decimal",
       noDecimalName: "no decimal",
       tenDecimalName: "nearest 10",
       hunderedDecimalName: "nearest 100",
       thousandDecimalName: "nearest 1000",
+      oneDecimalValue: "1",
       twoDecimalValue: "2",
       noDecimalValue: "0",
       tenDecimalValue: "10",

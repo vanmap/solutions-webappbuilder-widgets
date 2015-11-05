@@ -542,7 +542,8 @@ define([
           "class": "esriCTFindNearestDropdown"
         }, this.selectFindNearest);
         this.findNearestList = new Select({
-          "options": selectOptionArr
+          "options": selectOptionArr,
+          "title": this.nls.findNearest
         }, selectListDiv);
 
         labelDiv = query(".esriCTFindNearest", this.divFindNearest)[0];
@@ -1816,6 +1817,9 @@ define([
     _calculateRouteUnit: function (result) {
       var routeUnitVal;
       if (this.config.routeUnitsRoundingOption === this.config.settingNLS
+        .oneDecimalValue) {
+        routeUnitVal = result.toFixed(1);
+      } else if (this.config.routeUnitsRoundingOption === this.config.settingNLS
         .twoDecimalValue) {
         routeUnitVal = result.toFixed(2);
       } else if (this.config.routeUnitsRoundingOption === this.config
@@ -1825,9 +1829,8 @@ define([
         .settingNLS.tenDecimalValue || this.config.routeUnitsRoundingOption ===
         this.config.settingNLS.hunderedDecimalValue || this.config.routeUnitsRoundingOption ===
         this.config.settingNLS.thousandDecimalValue) {
-        routeUnitVal = Math.floor(result / parseInt(this.config.routeUnitsRoundingOption,
-          10)) * parseInt(this.config.routeUnitsRoundingOption,
-          10);
+        routeUnitVal = Math.round(result / parseInt(this.config.routeUnitsRoundingOption,
+          10)) * parseInt(this.config.routeUnitsRoundingOption, 10);
       }
       return routeUnitVal;
     },
@@ -1843,7 +1846,7 @@ define([
         routeLayerInfos = [],
         routeFieldInfo = [],
         variable, resultVariable, result, routeGeometry;
-      variable = routes.attributes.Shape_Length.toFixed(0).toString();
+      variable = routes.attributes.Shape_Length.toString();
       if (this.config && this.config.LabelForBox) {
         this.lblForBox.innerHTML = this.config.LabelForBox;
       }

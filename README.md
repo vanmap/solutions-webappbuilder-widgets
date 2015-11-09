@@ -22,7 +22,6 @@ The Widget Reposistory currently includes:
 * [Image Discovery](./ImageDiscovery/README.md) | WAB 1.2 | 1.0
 * [Network Trace](./NetworkTrace/README.md) | WAB 1.2 | 1.0
 * [Service Feasibility](./ServiceFeasibility/README.md) | WAB 1.2 | 1.0
-* [Swipe](./Swipe/README.md) | WAB 1.2 | 1.0
 
 ## Requirements
 Requires Web AppBuilder for ArcGIS version 1.2

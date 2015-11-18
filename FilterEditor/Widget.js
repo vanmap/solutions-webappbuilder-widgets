@@ -51,41 +51,30 @@ define([
       var clazz = declare([BaseWidget, _WidgetsInTemplateMixin], {
 
           name: 'FilterEditor',
-          baseClass: 'jimu-widget-filterEditor',
-          layerInfos: [],
-          legend: null,
+          baseClass: 'jimu-widget-FilterEditor',
           startup: function () {
               this.inherited(arguments);
 
-              var layerList = [{
-                  "featureLayer": {
-                      "url": "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Wildfire/FeatureServer/0"
-                  },
-                  "disableGeometryUpdate": true,
-                  "fieldInfos": [
-                  {
-                      "fieldName": "Name",
-                      "isEditable": false
-                  }
-                  ]
-              },
+               var layerList = [
+                   {
+                       "featureLayer": {
+                          "url": "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Wildfire/FeatureServer/0"
+                       }
+                   },
                    {
                        "featureLayer": {
                            "url": "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Wildfire/FeatureServer/1"
-                       },
-                       "disableGeometryUpdate": true
+                       }
                    },
                    {
                        "featureLayer": {
                            "url": "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Wildfire/FeatureServer/2"
-                       },
-                       "disableGeometryUpdate": true
+                       }
                    },
                    {
                        "featureLayer": {
                            "url": "http://sampleserver6.arcgisonline.com/arcgis/rest/services/RedlandsEmergencyVehicles/FeatureServer/0"
-                       },
-                       "disableGeometryUpdate": true
+                       }
                    }
               ];
 

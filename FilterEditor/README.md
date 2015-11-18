@@ -1,6 +1,9 @@
-# Multi-Editor
-Similar to the Edit widget, the Multi-Editor widget allows users to edit multiple feature services. The difference is
-this widget displays each feature service in its own tab allowing for easier access and readability.
+# Filter Editor
+Similar to the Edit widget, the Filter Editor widget allows users to edit multiple feature layer services. 
+This widget displays each feature layer in a drop down list which provides easier access and readability.  
+The ability to filter templates has also been added.  The filtering is done based on the selected feature layer
+in the drop down list.  If 'All' is selected, the TemplatePicker will display the filtered templates for all 
+of the feature layers.
 
 ## Sections
 
@@ -14,13 +17,14 @@ this widget displays each feature service in its own tab allowing for easier acc
 
 ## Features
 * Allows for editing multiple feature services
-* Each feature service is displayed in its own tab in the widget
+* Allows for filtering templates in all feature services or individual feature services
+* Each feature service is displayed in a drop down list
 
 ## Requirements
 * ArcGIS WebApp Builder v.1.2
 
 ## Instructions
-In order to develop and test widgets, you need to deploy the Multi-Editor widget directory into the stemapp/widgets directory in your WebApp Builder installation.
+In order to develop and test widgets, you need to deploy the Filter Editor widget directory into the stemapp/widgets directory in your WebApp Builder installation.
 
 ## Issues
 

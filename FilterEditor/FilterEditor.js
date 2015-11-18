@@ -26,6 +26,7 @@ define([
     "dojo/query",
     "dojo/_base/html",
     "dojo/dom",
+    "dojo/parser",
 
     "dijit/_TemplatedMixin",
     "dijit/_WidgetsInTemplateMixin",
@@ -38,7 +39,7 @@ define([
     "esri/request"
 
 ],
-    function(declare, lang, array, on, domConstruct, domGeom, domStyle, mouse, query, html, dom,
+    function(declare, lang, array, on, domConstruct, domGeom, domStyle, mouse, query, html, dom, parser,
              _TemplatedMixin, _WidgetsInTemplateMixin, Tooltip, _WidgetBase,
              Editor, FeatureLayer, TemplatePicker, esriRequest) {
         return declare([_WidgetBase, _TemplatedMixin], {
@@ -56,6 +57,7 @@ define([
             continueExecution: true,
             resetInfoWindow: {},
             selectDropDown: null,
+            filterTextBox: null,
             featureLayerNames: [],
             _sharedInfoBetweenEdits: {
                 editCount: 0,
@@ -69,16 +71,18 @@ define([
 
                 declare.safeMixin(this, args);
                 if (this.inputFeatureLayers === null || !(this.inputFeatureLayers instanceof Array)) {
-                    alert("Please set 'inputFeatureLayers' parameter as a list of FeatureLayers");
                     this.continueExecution = false;
-                    return;
+                    throw new Error("'inputFeatureLayers' parameter was not set.  Please set 'inputFeatureLayers' parameter as a list of FeatureLayers");
                 }
 
                 if (this.map === null) {
-                    alert("Please set 'map' parameter");
                     this.continueExecution = false;
-                    return;
+                    throw new Error("Map parameter was not set");
                 }
+            },
+
+            postCreate: function(){
+                this.inherited(arguments);
 
                 if (this.continueExecution) {
 
@@ -101,10 +105,6 @@ define([
                         }))
                     }
                 }
-            },
-
-            postCreate: function(){
-                this.inherited(arguments);
 
             },
 
@@ -115,22 +115,21 @@ define([
                 // Clear any selections from previous selection
                 this.searchTemplatePicker.clearSelection();
 
-                var val = document.getElementById("flDropDown").value;
+                var val = this.selectDropDown.options[this.selectDropDown.selectedIndex].text;
+                var flVal = this.selectDropDown.value;
 
-                if (val != "") {
-                    if (val === "all") {
+                if (val !== "") {
+                    if (val === "All") {
                         this.searchTemplatePicker.attr("featureLayers", this.flList);
                         this.searchTemplatePicker.set("grouping", true);
-                        this.searchTemplatePicker._setGridData();
                         this.searchTemplatePicker.update();
                         
                         return;
                     }
   
-                    var layer = new FeatureLayer(val);
+                    var layer = new FeatureLayer(flVal);
                     this.searchTemplatePicker.attr("featureLayers", [layer]);
                     this.searchTemplatePicker.set("grouping", false);
-                    this.searchTemplatePicker._setGridData();
                     this.searchTemplatePicker.update();
                 }           
             },
@@ -143,7 +142,7 @@ define([
                 // label for select
                 dojo.place("<label id='selectLabel'>Feature Layers </label>", this.filterEditorDiv);
 
-                this.selectDropDown = domConstruct.toDom("<select class='flDropDown' id='flDropDown'>");
+                this.selectDropDown = domConstruct.create("select", { 'class': 'flDropDown'}); 
                 domConstruct.place(this.selectDropDown, this.filterEditorDiv);
                 this.selectDropDown.onchange = lang.hitch(this, function () { this._updateTemplate() });
 
@@ -159,14 +158,15 @@ define([
                 this.filterEditorDiv.appendChild(document.createElement('br'));
                 this.filterEditorDiv.appendChild(document.createElement('br'));
 
-                var filterTextBox = domConstruct.create("input", { 'class': "searchtextbox", id: "SearchTextBox", type: "text", placeholder: "Search Templates" }, this.filterEditorDiv);
-                filterTextBox.onkeyup = lang.hitch(this, function () { this._filterTemplatePicker() });
+                //var filterTextBox = domConstruct.create("input", { 'class': "searchtextbox", id: "SearchTextBox", type: "text", placeholder: "Search Templates" }, this.filterEditorDiv);
+                this.filterTextBox = domConstruct.create("input", { 'class': "searchtextbox", type: "text", placeholder: "Search Templates" }, this.filterEditorDiv);
+                this.filterTextBox.onkeyup = lang.hitch(this, function () { this._filterTemplatePicker() });
 
                 this.filterEditorDiv.appendChild(document.createElement('br'));
                 this.filterEditorDiv.appendChild(document.createElement('br'));
          
                 this._initSearchEditor(this.filterEditorDiv, this.flList);
-
+                parser.parse();
             },
             
             /**
@@ -179,8 +179,7 @@ define([
                 
                 var origFunc = this.searchTemplatePicker.constructor.prototype._getItemsFromLayer;
 
-                // dojo attachpoint
-                var filterText = document.getElementById("SearchTextBox").value;
+                var filterText = this.filterTextBox.value;
                 this.searchTemplatePicker._getItemsFromLayer = lang.hitch(this, function () {
                         
                     var items;
@@ -207,8 +206,9 @@ define([
                     return items;
                 });
 
-                var val = document.getElementById("flDropDown").value;
-                if (val == "all")
+                var val = this.selectDropDown.options[this.selectDropDown.selectedIndex].text;
+
+                if (val == "All")
                     this.searchTemplatePicker.set("grouping", true);
                 else
                     this.searchTemplatePicker.set("grouping", false);
@@ -407,8 +407,7 @@ define([
                     style: templStyle,
                     columns: columnsToDisplay,
                     showTooltip: true,
-                    grouping: true,
-                    id: "editorTemplatePicker"
+                    grouping: true
                 };
                 if(type === "FeatureLayer"){
                     templateOptions.featureLayers = items;

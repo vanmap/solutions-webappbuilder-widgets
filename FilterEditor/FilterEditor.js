@@ -158,7 +158,6 @@ define([
                 this.filterEditorDiv.appendChild(document.createElement('br'));
                 this.filterEditorDiv.appendChild(document.createElement('br'));
 
-                //var filterTextBox = domConstruct.create("input", { 'class': "searchtextbox", id: "SearchTextBox", type: "text", placeholder: "Search Templates" }, this.filterEditorDiv);
                 this.filterTextBox = domConstruct.create("input", { 'class': "searchtextbox", type: "text", placeholder: "Search Templates" }, this.filterEditorDiv);
                 this.filterTextBox.onkeyup = lang.hitch(this, function () { this._filterTemplatePicker() });
 
@@ -166,7 +165,6 @@ define([
                 this.filterEditorDiv.appendChild(document.createElement('br'));
          
                 this._initSearchEditor(this.filterEditorDiv, this.flList);
-                parser.parse();
             },
             
             /**

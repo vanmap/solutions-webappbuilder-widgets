@@ -1,7 +1,21 @@
-﻿define({
-    left: "ķ_LEFT_ū",
-    right: "ķ_RIGHT_ū",
-    arrangement: "Vienošanās",
-    autoUpdate: "Automātiska atjaunināšana",
-    respectCurrentMapScale: "Saglabāt pašreizējo kartes mērogu"
-});
+﻿define(
+   ({
+    enableUndoRedo: "Iespējot Atsaukt/Atatsaukt",
+    toolbarVisible: "Rīkjosla redzama",
+    toolbarOptions: "Rīkjoslas opcijas",
+    mergeVisible: "Apvienot",
+    cutVisible: "Izgriezt",
+    reshapeVisible: "Pārveidot",
+    back: "Atpakaļ",
+    label: "Slānis",
+    edit: "Rediģējams",
+    update: "Atspējot Atjaunināt ģeometriju",
+    fields: "Lauki",
+    actions: "Darbības",
+    editpageName: "Nosaukums",
+    editpageAlias: "Aizstājvārds",
+    editpageVisible: "Redzams",
+    editpageEditable: "Rediģējams",
+    noLayers: "Nav pieejams neviens rediģējams elementu slānis"
+  })
+);

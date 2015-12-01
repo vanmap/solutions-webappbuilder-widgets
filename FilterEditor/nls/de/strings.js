@@ -1,4 +1,9 @@
-﻿define({
-
-    title: "ä_Select template to create feature_Ü"
-});
+﻿define(
+   ({
+    _widgetLabel: "Bearbeiten",
+    title: "Vorlage zur Feature-Erstellung auswählen",
+    pressStr: "Drücken Sie ",
+    ctrlStr: " STRG ",
+    snapStr: " , um die Fangfunktion zu aktivieren."
+  })
+);

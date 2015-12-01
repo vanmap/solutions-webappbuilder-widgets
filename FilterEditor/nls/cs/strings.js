@@ -1,4 +1,9 @@
-﻿define({
-
-    title: "Ř_Select template to create feature_ů"
-});
+﻿define(
+   ({
+    _widgetLabel: "Upravit",
+    title: "Zvolte šablonu, podle které chcete vytvářet prvky.",
+    pressStr: "Stisknutím ",
+    ctrlStr: " CTRL ",
+    snapStr: " aktivujete přichytávání."
+  })
+);

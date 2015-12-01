@@ -3,10 +3,81 @@
     "enableUndoRedo": true,
     "toolbarVisible": true,
     "toolbarOptions": {
-      "mergeVisible": true,
-      "cutVisible": true,
-      "reshapeVisible": true
+      "mergeVisible": false,
+      "cutVisible": false,
+      "reshapeVisible": false
     },
-    "layerInfos": []
+    "layerInfos": [
+      {
+        "featureLayer": {
+          "id": "Wildfire_9445"
+        },
+        "disableGeometryUpdate": false,
+        "fieldInfos": [
+          {
+            "fieldName": "symbolid",
+            "label": "symbolID",
+            "isEditable": true
+          },
+          {
+            "fieldName": "description",
+            "label": "Description",
+            "isEditable": true
+          }
+        ]
+      },
+      {
+        "featureLayer": {
+          "id": "Wildfire_6832"
+        },
+        "disableGeometryUpdate": false,
+        "fieldInfos": [
+          {
+            "fieldName": "symbolid",
+            "label": "symbolID",
+            "isEditable": true
+          },
+          {
+            "fieldName": "timestamp",
+            "label": "TimeStamp",
+            "isEditable": true
+          },
+          {
+            "fieldName": "description",
+            "label": "Description",
+            "isEditable": true
+          }
+        ]
+      },
+      {
+        "featureLayer": {
+          "id": "Wildfire_6445"
+        },
+        "disableGeometryUpdate": false,
+        "fieldInfos": [
+          {
+            "fieldName": "rotation",
+            "label": "Rotation",
+            "isEditable": true
+          },
+          {
+            "fieldName": "description",
+            "label": "Description",
+            "isEditable": true
+          },
+          {
+            "fieldName": "eventdate",
+            "label": "Date",
+            "isEditable": true
+          },
+          {
+            "fieldName": "eventtype",
+            "label": "Type",
+            "isEditable": true
+          }
+        ]
+      }
+    ],
+    "useFilterEdit": true
   }
 }

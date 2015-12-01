@@ -17,262 +17,449 @@
 define([
     'dojo/_base/declare',
     'dojo/_base/lang',
+    'dojo/_base/array',
     'dojo/_base/html',
+    'dojo/query',
     'dojo/i18n!esri/nls/jsapi',
     'dojo/on',
-    'dojo/query',
     'dijit/_WidgetsInTemplateMixin',
     'jimu/BaseWidget',
     'jimu/MapManager',
-    'esri/layers/FeatureLayer',
+    'jimu/LayerInfos/LayerInfos',
+    'esri/dijit/editing/Editor',
+    'esri/dijit/Popup',
+    "esri/dijit/editing/TemplatePicker",
+    "dijit/form/Button",
+    "./utils",
     './FilterEditor'
-  ],
-  function(declare, lang, html, esriBundle, on, query, _WidgetsInTemplateMixin,
-    BaseWidget, MapManager, FeatureLayer, FilterEditor) {
-    return declare([BaseWidget, _WidgetsInTemplateMixin], {
-      name: 'Edit',
-      baseClass: 'jimu-widget-edit',
-      editor: null,
-      layers: null,
-      _defaultStartStr: "",
-      _defaultAddPointStr: "",
-      resetInfoWindow: {},
-      _sharedInfoBetweenEdits: {
-        editCount: 0,
-        resetInfoWindow: null
-      },
+],
+  function (declare, lang, array, html, query, esriBundle, on, _WidgetsInTemplateMixin,
+    BaseWidget, MapManager, LayerInfos, Editor, Popup, TemplatePicker, Button, editUtils, FilterEditor) {
+      return declare([BaseWidget, _WidgetsInTemplateMixin], {
+          name: 'Edit',
+          baseClass: 'jimu-widget-edit',
+          editor: null,
+          _defaultStartStr: "",
+          _defaultAddPointStr: "",
+          resetInfoWindow: {},
+          _sharedInfoBetweenEdits: {
+              editCount: 0,
+              resetInfoWindow: null
+          },
+          _jimuLayerInfos: null,
+          editPopup: null,
+          _configEditor: null,
 
-      onOpen: function() {
-        this.layers = [];
-        this.disableWebMapPopup();
-        this.first = true;
-        this.getLayers();
-        this.initEditor();
-      },
+          startup: function () {
+              this.inherited(arguments);
+              this.editPopup = new Popup(null, html.create("div",
+                                                          { "class": "jimu-widget-edit-infoWindow" },
+                                                          null,
+                                                          this.map.root));
+          },
 
-      // onOpen: function() {
-      //   if(!this.first) {
-      //     this.disableWebMapPopup();
-      //   }
-      //   this.first = false;
-      // },
+          _init: function () {
+              this._editorMapClickHandlers = [];
+              this._configEditor = lang.clone(this.config.editor);
+          },
 
-      disableWebMapPopup: function() {
-        var mapManager = MapManager.getInstance();
+          onOpen: function () {
+              this._init();
+              LayerInfos.getInstance(this.map, this.map.itemInfo)
+                .then(lang.hitch(this, function (operLayerInfos) {
+                    this._jimuLayerInfos = operLayerInfos;
+                    setTimeout(lang.hitch(this, function () {
+                        this.widgetManager.activateWidget(this);
+                        this._createEditor();
+                    }), 1);
+                }));
+          },
 
-        mapManager.disableWebMapPopup();
-        // change to map's default infowindow(popup)
-        var mapInfoWindow = mapManager.getMapInfoWindow();
-        if (mapManager.isMobileInfoWindow) {
-          this.map.setInfoWindow(mapInfoWindow.bigScreen);
-          mapManager.isMobileInfoWindow = false;
-        }
+          onActive: function () {
+              this.disableWebMapPopup();
+          },
 
-        // instead of Mapmanager.resetInfoWindow by self resetInfoWindow
-        if (this._sharedInfoBetweenEdits.resetInfoWindow === null) {
-          this._sharedInfoBetweenEdits.resetInfoWindow = mapManager.resetInfoWindow;
-          this.own(on(this.map.infoWindow, "show", lang.hitch(this, function() {
-            if (window.appInfo.isRunInMobile) {
-              this.map.infoWindow.maximize();
-            }
-          })));
-        }
-        mapManager.resetInfoWindow = lang.hitch(this, function() {});
+          onDeActive: function () {
+              this.enableWebMapPopup();
+          },
 
-        this._sharedInfoBetweenEdits.editCount++;
-      },
+          disableWebMapPopup: function () {
+              var mapManager = MapManager.getInstance();
+              mapManager.disableWebMapPopup();
+              // hide map's infoWindow
+              this.map.infoWindow.hide();
+              // instead of map's infowindow by editPopup
+              this.map.setInfoWindow(this.editPopup);
+              this._enableMapClickHandler();
 
-      enableWebMapPopup: function() {
-        var mapManager = MapManager.getInstance();
-
-        // recover restInfoWindow when close widget.
-        this._sharedInfoBetweenEdits.editCount--;
-        if (this._sharedInfoBetweenEdits.editCount === 0 &&
-          this._sharedInfoBetweenEdits.resetInfoWindow) {
-          // edit will change infoWindow's size, so resize it.
-          mapManager.getMapInfoWindow().bigScreen.resize(270, 316);
-          mapManager.resetInfoWindow =
-            lang.hitch(mapManager, this._sharedInfoBetweenEdits.resetInfoWindow);
-          this._sharedInfoBetweenEdits.resetInfoWindow = null;
-          mapManager.resetInfoWindow();
-          mapManager.enableWebMapPopup();
-        }
-      },
-
-      getLayerFromMap: function(url) {
-        var ids = this.map.graphicsLayerIds;
-        var len = ids.length;
-        for (var i = 0; i < len; i++) {
-          var layer = this.map.getLayer(ids[i]);
-          if (layer.url === url) {
-            return layer;
-          }
-        }
-        return null;
-      },
-
-      getLayers: function() {
-        var layerInfos;
-
-        if(!this.config.editor.layerInfos) {
-          // configured in setting page and no layers checked.
-          layerInfos = [];
-        } else if(this.config.editor.layerInfos.length > 0)  {
-          // configured and has layer checked.
-          layerInfos = this.config.editor.layerInfos;
-        } else {
-          // does not configure.
-          layerInfos = this._getDefaultLayerInfos();
-        }
-
-        for (var i = 0; i < layerInfos.length; i++) {
-          var featureLayer = layerInfos[i].featureLayer;
-          var layer = this.getLayerFromMap(featureLayer.url);
-          if (!layer) {
-            if (!layerInfos[i].featureLayer.options) {
-              layerInfos[i].featureLayer.options = {};
-            }
-            if (!layerInfos[i].featureLayer.options.outFields) {
-              if (layerInfos[i].fieldInfos) {
-                layerInfos[i].featureLayer.options.outFields = [];
-                for (var j = 0; j < layerInfos[i].fieldInfos.length; j++) {
-                  layerInfos[i].featureLayer.options
-                    .outFields.push(layerInfos[i].fieldInfos[j].fieldName);
-                }
-              } else {
-                layerInfos[i].featureLayer.options.outFields = ["*"];
+              // instead of Mapmanager.resetInfoWindow by self resetInfoWindow
+              if (this._sharedInfoBetweenEdits.resetInfoWindow === null) {
+                  this._sharedInfoBetweenEdits.resetInfoWindow = mapManager.resetInfoWindow;
+                  this.own(on(this.map.infoWindow, "show", lang.hitch(this, function () {
+                      if (window.appInfo.isRunInMobile) {
+                          this.map.infoWindow.maximize();
+                      }
+                  })));
               }
-            }
-            layer = new FeatureLayer(featureLayer.url, featureLayer.options);
-            this.map.addLayer(layer);
+              mapManager.resetInfoWindow = lang.hitch(this, function () { });
+
+              //this._sharedInfoBetweenEdits.editCount++;
+          },
+
+          enableWebMapPopup: function () {
+              var mapManager = MapManager.getInstance();
+              var mapInfoWindow = mapManager.getMapInfoWindow();
+              // recover restInfoWindow when close widget.
+              //this._sharedInfoBetweenEdits.editCount--;
+              if (this._sharedInfoBetweenEdits.resetInfoWindow) {
+                  //this._sharedInfoBetweenEdits.editCount === 0 &&
+
+                  this.map.setInfoWindow(mapInfoWindow.bigScreen);
+                  mapManager.isMobileInfoWindow = false;
+
+                  mapManager.resetInfoWindow =
+                    lang.hitch(mapManager, this._sharedInfoBetweenEdits.resetInfoWindow);
+                  this._sharedInfoBetweenEdits.resetInfoWindow = null;
+                  mapManager.resetInfoWindow();
+                  this._disableMapClickHandler();
+                  // hide popup and delete seleection
+                  this.editPopup.hide();
+                  this.editor._clearSelection();
+                  // recall enableWebMap
+                  mapManager.enableWebMapPopup();
+              }
+          },
+
+          _enableMapClickHandler: function () {
+              if (this.editor) {
+                  this._editorMapClickHandlers.push(this.editor._mapClickHandler);
+                  this.editor._enableMapClickHandler();
+                  this._editorMapClickHandlers.push(this.editor._mapClickHandler);
+              }
+          },
+
+          _disableMapClickHandler: function () {
+              if (this.editor) {
+                  this.editor._disableMapClickHandler();
+                  array.forEach(this._editorMapClickHandlers, function (editorMapClickHandler) {
+                      if (editorMapClickHandler && editorMapClickHandler.remove) {
+                          editorMapClickHandler.remove();
+                      }
+                  });
+                  this._editorMapClickHandlers = [];
+              }
+          },
+
+          _getDefaultFieldInfos: function (layerId) {
+              // summary:
+              //  filter webmap fieldInfos.
+              // description:
+              //   return null if fieldInfos has not been configured in webmap.
+              var fieldInfos = editUtils.getFieldInfosFromWebmap(layerId, this._jimuLayerInfos);
+              if (fieldInfos) {
+                  fieldInfos = array.filter(fieldInfos, function (fieldInfo) {
+                      return fieldInfo.visible || fieldInfo.isEditable;
+                  });
+              }
+              return fieldInfos;
+          },
+
+          _getDefaultLayerInfos: function () {
+              var defaultLayerInfos = [];
+              var fieldInfos;
+              for (var i = this.map.graphicsLayerIds.length - 1; i >= 0 ; i--) {
+                  var layerObject = this.map.getLayer(this.map.graphicsLayerIds[i]);
+                  if (layerObject.type === "Feature Layer" && layerObject.url) {
+                      var layerInfo = {
+                          featureLayer: {}
+                      };
+                      layerInfo.featureLayer.id = layerObject.id;
+                      layerInfo.disableGeometryUpdate = false;
+                      fieldInfos = this._getDefaultFieldInfos(layerObject.id);
+                      if (fieldInfos && fieldInfos.length > 0) {
+                          layerInfo.fieldInfos = fieldInfos;
+                      }
+                      defaultLayerInfos.push(layerInfo);
+                  }
+              }
+              return defaultLayerInfos;
+          },
+
+          _converConfiguredLayerInfos: function (layerInfos) {
+              array.forEach(layerInfos, function (layerInfo) {
+                  // convert layerInfos to compatible with old version
+                  if (!layerInfo.featureLayer.id && layerInfo.featureLayer.url) {
+                      var layerObject = getLayerObjectFromMapByUrl(this.map, layerInfo.featureLayer.url);
+                      if (layerObject) {
+                          layerInfo.featureLayer.id = layerObject.id;
+                      }
+                  }
+
+                  // convert fieldInfos
+                  var newFieldInfos = [];
+                  var webmapFieldInfos =
+                    editUtils.getFieldInfosFromWebmap(layerInfo.featureLayer.id, this._jimuLayerInfos);
+                  array.forEach(layerInfo.fieldInfos, function (fieldInfo) {
+                      if (fieldInfo.isEditable &&
+                          // only for compitible with old version of config.
+                          // 'globalid' and 'objectid' can not appear in new app's config.
+                         fieldInfo.fieldName !== "globalid" &&
+                         fieldInfo.fieldName !== "objectid") {
+                          var webmapFieldInfo = getFieldInfoFromWebmapFieldInfos(webmapFieldInfos, fieldInfo);
+                          if (webmapFieldInfo) {
+                              newFieldInfos.push(webmapFieldInfo);
+                          } else {
+                              newFieldInfos.push(fieldInfo);
+                          }
+                      }
+                  }, this);
+
+                  if (newFieldInfos.length !== 0) {
+                      layerInfo.fieldInfos = newFieldInfos;
+                  }
+              }, this);
+              return layerInfos;
+
+              function getFieldInfoFromWebmapFieldInfos(webmapFieldInfos, fieldInfo) {
+                  var resultFieldInfo = null;
+                  if (webmapFieldInfos) {
+                      for (var i = 0; i < webmapFieldInfos.length; i++) {
+                          if (fieldInfo.fieldName === webmapFieldInfos[i].fieldName) {
+                              webmapFieldInfos[i].label = fieldInfo.label;
+                              webmapFieldInfos[i].isEditable = fieldInfo.isEditable;
+                              resultFieldInfo = webmapFieldInfos[i];
+                              break;
+                          }
+                      }
+                  }
+                  return resultFieldInfo;
+              }
+
+              function getLayerObjectFromMapByUrl(map, layerUrl) {
+                  var resultLayerObject = null;
+                  for (var i = 0; i < map.graphicsLayerIds.length; i++) {
+                      var layerObject = map.getLayer(map.graphicsLayerIds[i]);
+                      if (!layerObject)
+                          return null;
+                      if (layerObject.url && layerObject.url.toLowerCase() === layerUrl.toLowerCase()) {
+                          resultLayerObject = layerObject;
+                          break;
+                      }
+                  }
+                  return resultLayerObject;
+              }
+          },
+
+          _getLayerInfosParam: function () {
+              // var retDef = new Deferred();
+              // var defs = [];
+              var layerInfos;
+              var resultLayerInfosParam = [];
+              if (!this._configEditor.layerInfos) {
+                  // configured in setting page and no layers checked.
+                  layerInfos = [];
+              } else if (this._configEditor.layerInfos.length > 0) {
+                  // configured and has been checked.
+                  layerInfos = this._converConfiguredLayerInfos(this._configEditor.layerInfos);
+              } else {
+                  // has not been configure.
+                  layerInfos = this._getDefaultLayerInfos();
+              }
+
+              //according to condition to filter
+              array.forEach(layerInfos, function (layerInfo) {
+                  var layerObject = this.map.getLayer(layerInfo.featureLayer.id);
+                  if (layerObject &&
+                     layerObject.visible &&
+                     layerObject.isEditable &&
+                     layerObject.isEditable()) {
+                      layerInfo.featureLayer = layerObject;
+                      resultLayerInfosParam.push(layerInfo);
+                  }
+              }, this);
+              return resultLayerInfosParam;
+          },
+
+          _getTemplatePicker: function (layerInfos) {
+              var layerObjects = array.map(layerInfos, function (layerInfo) {
+                  return layerInfo.featureLayer;
+              });
+
+              var templatePicker = new TemplatePicker({
+                  featureLayers: layerObjects,
+                  grouping: true,
+                  rows: "auto",
+                  columns: "auto",
+                  style: this._configEditor.toolbarVisible ? "" : "bottom: 0px"
+              }, html.create("div", {}, this.domNode));
+              templatePicker.startup();
+              return templatePicker;
+          },
+
+          _getSettingsParam: function () {
+              var settings = {
+                  map: this.map,
+                  createOptions: {
+                      polygonDrawTools: [
+                        Editor.CREATE_TOOL_ARROW,
+                        Editor.CREATE_TOOL_AUTOCOMPLETE,
+                        Editor.CREATE_TOOL_CIRCLE,
+                        Editor.CREATE_TOOL_ELLIPSE,
+                        Editor.CREATE_TOOL_RECTANGLE,
+                        Editor.CREATE_TOOL_TRIANGLE,
+                        Editor.CREATE_TOOL_POLYGON,
+                        Editor.CREATE_TOOL_FREEHAND_POLYGON
+                      ],
+                      polylineDrawTools: [
+                        Editor.CREATE_TOOL_POLYLINE,
+                        Editor.CREATE_TOOL_FREEHAND_POLYLINE
+                      ]
+                  }
+              };
+              for (var attr in this._configEditor) {
+                  settings[attr] = this._configEditor[attr];
+              }
+              settings.layerInfos = this._getLayerInfosParam();
+              if (!this._configEditor.useFilterEdit || this._configEditor.useFilterEdit == false)
+                settings.templatePicker = this._getTemplatePicker(settings.layerInfos);
+
+              return settings;
+          },
+
+          _createEditor: function () {
+              var params = {
+                  settings: this._getSettingsParam()
+              };
+              this._worksBeforeCreate(params.settings);
+              if (this._configEditor.useFilterEdit && this._configEditor.useFilterEdit == true) {
+
+                  this.editor = new FilterEditor(params, html.create("div", {}, this.domNode));
+                  this.editor.startup();
+              }
+              else {
+                  this.editor = new Editor(params, html.create("div", {}, this.domNode));
+                  this.editor.startup();
+
+              }
+              this._worksAfterCreate();
+          },
+
+          _addButtonToInspector: function () {
+              var closeButton = new Button({
+                  label: esriBundle.common.close,
+                  "class": " atiButton closeButton"
+              }, html.create("div"));
+
+              html.place(closeButton.domNode,
+                         this.editor.attributeInspector.deleteBtn.domNode,
+                         "after");
+              this.own(on(closeButton, 'click', lang.hitch(this, function () {
+                  this.editPopup.hide();
+              })));
+          },
+
+          _update: function () {
+              if (this.editor && this.editor.templatePicker) {
+                  this.editor.templatePicker.update();
+              }
+
+              var widgetBox = html.getMarginBox(this.domNode);
+              var height = widgetBox.h;
+              var width = widgetBox.w;
+
+              if (this.config.editor.useFilterEdit && this.config.editor.useFilterEdit == true) {
+                  if (this.editor.searchTemplatePicker) {
+                      var cols = Math.floor(width / 60);
+                      this.editor.searchTemplatePicker.attr('columns', cols);
+                      this.editor.searchTemplatePicker.update();
+                  }
+                  query(".templatePicker", this.domNode).style('height', height - 140 + 'px');
+                  query(".jimu-widget-FilterEditor", this.domNode).style('height', height - 60 + 'px');
+              }
+          },
+
+          resize: function () {
+              this._update();
+          },
+
+          onClose: function () {
+              if (this.editor) {
+                  this.editor.destroy();
+              }
+              this.editor = null;
+              // close method will call onDeActive automaticlly
+              // so do not need to call onDeActive();
+              this._worksAfterClose();
+          },
+
+          _worksBeforeCreate: function (settings) {
+              // change string of mouse tooltip
+              var additionStr = "<br/>" + "(" + this.nls.pressStr + "<b>" +
+                this.nls.ctrlStr + "</b> " + this.nls.snapStr + ")";
+              this._defaultStartStr = esriBundle.toolbars.draw.start;
+              this._defaultAddPointStr = esriBundle.toolbars.draw.addPoint;
+              esriBundle.toolbars.draw.start =
+                esriBundle.toolbars.draw.start + additionStr;
+              esriBundle.toolbars.draw.addPoint =
+                esriBundle.toolbars.draw.addPoint + additionStr;
+
+              // hide label layer.
+              var labelLayer = this.map.getLayer("labels");
+              if (labelLayer) {
+                  labelLayer.hide();
+              }
+
+              // change layer name
+              array.forEach(settings.layerInfos, function (layerInfo) {
+                  var jimuLayerInfo =
+                    this._jimuLayerInfos.getLayerInfoByTopLayerId(layerInfo.featureLayer.id);
+                  if (jimuLayerInfo) {
+                      layerInfo.featureLayer.name = jimuLayerInfo.title;
+                  }
+              }, this);
+          },
+
+          _worksAfterCreate: function () {
+              
+              if (!this._configEditor.useFilterEdit || this._configEditor.useFilterEdit == false) {
+                  // add close button to atiInspector
+                  this._addButtonToInspector();
+                  // update templatePicker for responsive.
+                  this.editor.templatePicker.update();
+              }
+                
+              // resize editPopup
+              this.editPopup.resize(500, 251);
+              // update templatePicker for responsive.
+              //this.editor.templatePicker.update();
+              //just for BoxTheme
+              setTimeout(lang.hitch(this, this._update), 900);
+              // // reset default selectionSymbol that change by Editor dijit.
+              // array.forEach(this.editor.settings.layerInfos, function(layerInfo) {
+              //   layerInfo.featureLayer.setSelectionSymbol();
+              // }, this);
+          },
+
+          _worksAfterClose: function () {
+              esriBundle.toolbars.draw.start = this._defaultStartStr;
+              esriBundle.toolbars.draw.addPoint = this._defaultAddPointStr;
+
+              // show lable layer.
+              var labelLayer = this.map.getLayer("labels");
+              if (labelLayer) {
+                  labelLayer.show();
+              }
+          },
+
+          onNormalize: function () {
+              setTimeout(lang.hitch(this, this._update), 100);
+          },
+
+          onMinimize: function () {
+          },
+
+          onMaximize: function () {
+              setTimeout(lang.hitch(this, this._update), 100);
           }
-          if (layer.visible) {
-            layerInfos[i].featureLayer = layer;
-            this.layers.push(layerInfos[i]);
-          }
-        }
-      },
-
-      _getDefaultLayerInfos: function() {
-        var defaultLayerInfos = [];
-        for(var i = 0; i < this.map.graphicsLayerIds.length; i++) {
-          var layer = this.map.getLayer(this.map.graphicsLayerIds[i]);
-          if (layer.type === "Feature Layer" && layer.url && layer.isEditable()) {
-            var layerInfo = {
-              featureLayer: {}
-            };
-            layerInfo.featureLayer.url = layer.url;
-            layerInfo.disableGeometryUpdate = false;
-            layerInfo.fieldInfos = this._getDefaultFieldInfos(layer);
-            if (!layerInfo.fieldInfos || !layerInfo.fieldInfos.length) {
-              delete layerInfo.fieldInfos;
-            }
-            defaultLayerInfos.push(layerInfo);
-          }
-        }
-        return defaultLayerInfos;
-      },
-
-      _getDefaultFieldInfos: function(layer) {
-        var fields = [];
-        var count = layer.fields.length;
-        for (var m = 0; m < count; m++) {
-          if (!layer.fields[m].alias) {
-            layer.fields[m].alias = layer.fields[m].name;
-          }
-          fields.push({
-            fieldName: layer.fields[m].name,
-            label: layer.fields[m].alias,
-            isEditable: true
-          });
-        }
-      },
-
-      initEditor: function() {
-        this._defaultStartStr = esriBundle.toolbars.draw.start;
-        esriBundle.toolbars.draw.start = esriBundle.toolbars.draw.start +
-          "<br/>" + "(" + this.nls.pressStr + "<b>" +
-          this.nls.ctrlStr + "</b> " + this.nls.snapStr + ")";
-        this._defaultAddPointStr = esriBundle.toolbars.draw.addPoint;
-        esriBundle.toolbars.draw.addPoint = esriBundle.toolbars.draw.addPoint +
-          "<br/>" + "(" + this.nls.pressStr + "<b>" +
-          this.nls.ctrlStr + "</b> " + this.nls.snapStr + ")";
-        var json = this.config.editor;
-        var settings = {};
-        for (var attr in json) {
-          settings[attr] = json[attr];
-        }
-        settings.layerInfos = this.layers;
-        settings.map = this.map;
-
-        var params = {
-          settings: settings
-        };
-        if (!this.editDiv) {
-          this.editDiv = html.create("div", {
-            style: {
-              width: "100%",
-              height: "100%"
-            }
-          });
-          html.place(this.editDiv, this.domNode);
-        }
-        // var styleNode =
-        // html.toDom("<style>.jimu-widget-edit .grid{height: " + (height - 60) + "px;}</style>");
-        // html.place(styleNode, document.head);
-
-        var filterEditor = new FilterEditor({
-          inputFeatureLayers: this.layers,
-          map: this.map,
-          toolbarOptions: { displayEditorToolbar: true, enableUndoRedo: false, mergeVisible: true, cutVisible: false, reshapeVisible: true },
-          templatePickerOptions: { columnnsToDisplay: 4, height: 325 }
-
-        }, this.filterEditorDiv);
-
-        filterEditor.startup();
-
-        setTimeout(lang.hitch(this, this.resize), 100);
-      },
-
-      onMaximize: function() {
-        setTimeout(lang.hitch(this, this.resize), 100);
-      },
-
-      onClose: function() {
-
-        if (this.editor) {
-          this.editor.destroy();
-        }
-        this.enableWebMapPopup();
-        this.layers = [];
-        this.editor = null;
-        this.editDiv = html.create("div", {
-          style: {
-            width: "100%",
-            height: "100%"
-          }
-        });
-        html.place(this.editDiv, this.domNode);
-        esriBundle.toolbars.draw.start = this._defaultStartStr;
-        esriBundle.toolbars.draw.addPoint = this._defaultAddPointStr;
-      },
-
-      resize: function() {
-        var widgetBox = html.getMarginBox(this.domNode);
-        var height = widgetBox.h;
-        var width = widgetBox.w;
-
-        if(this.editor){
-          this.editor.templatePicker.update();
-        }
-
-        //query(".esriEditor", this.domNode).style('height', height + 'px');
-        query(".templatePicker", this.domNode).style('height', height - 50 + 'px');
-        query(".grid", this.domNode).style('height', height - 60 + 'px');
-        query(".dojoxGridView", this.domNode).style('height', height - 60 + 'px');
-        query(".dojoxGridScrollbox", this.domNode).style('height', height - 60 + 'px');
-
-        query(".dojoxGridRowTable", this.domNode).style('width', width - 32 + 'px');
-      }
-    });
+      });
   });

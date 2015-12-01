@@ -1,4 +1,9 @@
-﻿define({
-
-    title: "Ĳ_Select template to create feature_ä"
-});
+﻿define(
+   ({
+    _widgetLabel: "Bewerken",
+    title: "Selecteer template voor het maken van objecten",
+    pressStr: "Druk op ",
+    ctrlStr: " Ctrl ",
+    snapStr: " om snapping in te schakelen"
+  })
+);

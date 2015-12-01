@@ -1,4 +1,9 @@
-﻿define({
-
-    title: "é_Select template to create feature_È"
-});
+﻿define(
+   ({
+    _widgetLabel: "Modifica",
+    title: "Selezionare un modello per creare le feature",
+    pressStr: "Premere ",
+    ctrlStr: " CTRL ",
+    snapStr: " per abilitare lo snap"
+  })
+);

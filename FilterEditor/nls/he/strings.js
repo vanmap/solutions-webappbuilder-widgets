@@ -1,4 +1,9 @@
-﻿define({
-
-    title: "כן_Select template to create feature_ש"
-});
+﻿define(
+   ({
+    _widgetLabel: "עריכה",
+    title: "בחר תבנית בכדי ליצור ישויות",
+    pressStr: "הקש על ",
+    ctrlStr: " CTRL ",
+    snapStr: " כדי להפעיל הצמדה"
+  })
+);

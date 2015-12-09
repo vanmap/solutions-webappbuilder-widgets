@@ -16,6 +16,7 @@
     editpageAlias: "別名",
     editpageVisible: "可見",
     editpageEditable: "可編輯",
-    noLayers: "沒有可編輯圖徵圖層"
+    noLayers: "沒有可編輯圖徵圖層",
+    configureFields: "配置圖層欄位"
   })
 );

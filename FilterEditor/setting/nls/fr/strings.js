@@ -16,6 +16,7 @@
     editpageAlias: "Alias",
     editpageVisible: "Visible",
     editpageEditable: "Modifiable",
-    noLayers: "Aucune couche d\'entités modifiable n\'est disponible"
+    noLayers: "Aucune couche d\'entités modifiable n\'est disponible",
+    configureFields: "Configurer les champs de couche"
   })
 );

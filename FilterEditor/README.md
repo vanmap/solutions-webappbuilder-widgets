@@ -24,7 +24,8 @@ of the feature layers.
 * ArcGIS WebApp Builder v.1.2
 
 ## Instructions
-In order to develop and test widgets, you need to deploy the Filter Editor widget directory into the stemapp/widgets directory in your WebApp Builder installation.
+In order to develop and test widgets, you need to deploy the Filter Editor widget directory into the stemapp/widgets
+directory in your WebApp Builder installation.
 
 ## Issues
 

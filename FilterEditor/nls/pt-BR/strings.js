@@ -1,4 +1,9 @@
-﻿define({
-
-    title: "ã_Select template to create feature_Ç"
-});
+﻿define(
+   ({
+    _widgetLabel: "Editar",
+    title: "Selecione um modelo para criar feições",
+    pressStr: "Pressionar ",
+    ctrlStr: " CTRL ",
+    snapStr: " para habilitar o ajuste"
+  })
+);

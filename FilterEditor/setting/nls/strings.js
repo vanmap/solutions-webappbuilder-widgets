@@ -16,7 +16,9 @@ define({
     editpageAlias: "Alias",
     editpageVisible: "Visible",
     editpageEditable: "Editable",
-    noLayers: "No editable feature layers are available"
+    noLayers: "No editable feature layers are available",
+    configureFields: "Configure Layer Fields",
+    useFilterEdit:"Use Filter Edit"
   }),
   "ar": 1,
   "cs": 1,

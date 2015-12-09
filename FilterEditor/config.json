@@ -10,7 +10,7 @@
     "layerInfos": [
       {
         "featureLayer": {
-          "id": "Wildfire_9445"
+          "id": "Wildfire_6761"
         },
         "disableGeometryUpdate": false,
         "fieldInfos": [
@@ -28,30 +28,7 @@
       },
       {
         "featureLayer": {
-          "id": "Wildfire_6832"
-        },
-        "disableGeometryUpdate": false,
-        "fieldInfos": [
-          {
-            "fieldName": "symbolid",
-            "label": "symbolID",
-            "isEditable": true
-          },
-          {
-            "fieldName": "timestamp",
-            "label": "TimeStamp",
-            "isEditable": true
-          },
-          {
-            "fieldName": "description",
-            "label": "Description",
-            "isEditable": true
-          }
-        ]
-      },
-      {
-        "featureLayer": {
-          "id": "Wildfire_6445"
+          "id": "Wildfire_4759"
         },
         "disableGeometryUpdate": false,
         "fieldInfos": [

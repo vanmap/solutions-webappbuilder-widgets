@@ -86,7 +86,6 @@ define([
             //wigdget control events
             onChangeCalculateBy: function (newValue) {
                 this.chemicalOrPlacard = newValue;
-                console.log(newValue);
                 this.materialType.removeOption(this.materialType.getOptions());
                 if (newValue === "Chemical") {
                     this.materialType.addOption(this.ERGPChemicalList);
@@ -124,8 +123,6 @@ define([
 
             //GP Service callbacks
             ERGRequestSucceeded: function (data) {
-                console.log("Data: ", data);
-
                 this.executionType = data.executionType;
                 var materials = data.parameters[1];
                 var choiceList = materials.choiceList;
@@ -180,9 +177,6 @@ define([
             },
 
             calculateStatistics: function (features) {
-//                var lbl = dom.byId("sumInfrastructure");
-//                lbl.innerHTML = "Count of Affected Infrastructure: " + features.length;
-
                 for (var i = 0; i < features.length; i++) {
                     var feature = features[i];
 
@@ -204,8 +198,6 @@ define([
                     feature.setSymbol(sms);
                     this.facilitiesGraphicsLayer.add(feature);
                 }
-
-                //count for features ==null
             },
 
             ERGRequestFailed: function (error) {
@@ -266,7 +258,6 @@ define([
 
             //asynchronous job completed successfully
             displayERGServiceResults: function (results) {
-                console.log(results);
                 var sharedPolygon = null;
                 if (results.paramName === "output_areas") {
                     this.ergGraphicsLayer.clear();
@@ -329,7 +320,6 @@ define([
             },
 
             onERGGPComplete: function (jobInfo) {
-                console.log(jobInfo.jobStatus);
                 if (jobInfo.jobStatus !== "esriJobFailed") {
                     this.ergGPJobID = jobInfo.jobId;
                     if (this.ergGPActive === "ergChemicalActive") {
@@ -345,11 +335,9 @@ define([
 
             onERGGPStatusCallback: function (jobInfo) {
                 var status = jobInfo.jobStatus;
-                console.log(status);
             },
 
             onFindWSExecuteComplete: function (results) {
-                console.log(results);
                 var features = results[0].value.features;
 
                 for (var i = 0; i < features.length; i++) {
@@ -400,8 +388,6 @@ define([
             },
 
             windDirectionQTCompleted: function (results) {
-                console.log("wind direction:");
-                console.log(results);
                 this.btnWindDirection.disabled = false;
 
                 var weatherStationName = null;
@@ -506,12 +492,9 @@ define([
                 if (evt.target.id === "drawSpillInfo") {
                     return;
                 }
-                var tool = evt.target.id.toLowerCase();
                 this.map.disableMapNavigation();
                 this.spillGraphicsLayer.clear();
-                this.drawToolbar.activate(tool);
-                //this.selectedShapeId = dom.byId(evt.target.id);
-                //domStyle.set(this.selectedShapeId, "background-color", "#C0C0C0");
+                this.drawToolbar.activate("point");
             },
 
             onSolve: function (evt) {
@@ -521,10 +504,7 @@ define([
                 html.setStyle(this.resultsSection, 'display', 'none');
                 html.setStyle(this.noresultsSection, 'display', 'none');
 
-                console.log(this.selectedWindDir);
                 if (this.spillGraphicsLayer.graphics.length > 0) {
-                    console.log(this.spillGraphicsLayer.graphics.length)
-
                     var features = [];
                     features.push(this.spillGraphicsLayer.graphics[0]);
                     var featureSet = new FeatureSet();
@@ -570,31 +550,12 @@ define([
 
             postCreate: function () {
                 this.inherited(arguments);
-                console.log('postCreate');
                 this._initChartLayer();
                 this._initResultsTab();
             },
 
             startup: function () {
                 this.inherited(arguments);
-                console.log('startup');
-
-                //add CORS servers
-                for (var key in this.config) {
-                    if (this.config.hasOwnProperty(key)) {
-                        if (this._isValidUrl(this.config[key])) {
-                            var url = this._parseUrl(this.config[key]);
-                            if (!this._itemExists(url.hostname, esri.config.defaults.io.corsEnabledServers)) {
-                                esri.config.defaults.io.corsEnabledServers.push(url.hostname);
-                                urlUtils.addProxyRule({
-                                    urlPrefix: url.hostname,
-                                    proxyUrl: "/dotNetProxy/proxy.ashx"
-                                })                                
-                            }   
-                        }
-                    }
-                }
-
                 this.tabContainer = new TabContainer({
                     tabs: [
                         {
@@ -710,36 +671,12 @@ define([
             },
 
             facilitiesGraphicsLayerClick: function (evt) {
-                console.log(evt);
                 var graphic = evt.graphic;
             },
 
-            onOpen: function () {
-                console.log('onOpen');
-            },
-
-            onClose: function () {
-                console.log('onClose');
-            },
-
-            onMinimize: function () {
-                console.log('onMinimize');
-            },
-
-            onMaximize: function () {
-                console.log('onMaximize');
-            },
-
-            onSignIn: function (credential) {
-                /* jshint unused:false*/
-                console.log('onSignIn');
-            },
-
-            onSignOut: function () {
-                console.log('onSignOut');
-            },
-
             destroy: function () {
+                this.inherited(arguments);
+                
                 if (this.chartLayer) {
                     this.map.removeLayer(this.chartLayer);
                     this.chartLayer = null;
@@ -749,6 +686,21 @@ define([
                     this.map.removeLayer(this.facilitiesGraphicsLayer);
                     this.facilitiesGraphicsLayer = null;
                 }
+
+                if (this.spillGraphicsLayer) {
+                    this.map.removeLayer(this.spillGraphicsLayer);
+                    this.spillGraphicsLayer = null;
+                }                
+
+                if (this.ergGraphicsLayer) {
+                    this.map.removeLayer(this.ergGraphicsLayer);
+                    this.ergGraphicsLayer = null;
+                }                
+
+                if (this.ergGraphicsLayer) {
+                    this.map.removeLayer(this.ergGraphicsLayer);
+                    this.ergGraphicsLayer = null;
+                }                          
             },
 
             _doFacilitiesQuery: function(geometry) {

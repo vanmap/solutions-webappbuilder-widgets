@@ -74,6 +74,10 @@ define([
        */
       postCreate: function () {
         this.inherited(arguments);
+
+        this.featureLayerNames = [];
+        this.flList = [];
+        
         this._getLayers();
         this._getFeatureLayers();
 
@@ -92,6 +96,22 @@ define([
           }));
         }, this);
       },
+
+      /**
+       * Resets and null out class variables
+       */
+      destroy: function () {
+        this.inherited(arguments);
+        if (this.featureLayerNames) {
+          this.featureLayerNames = [];          
+        }          
+        if (this.flList) {
+          this.flList = [];
+        }
+        if (this.searchTemplatePicker) {
+          this.searchTemplatePicker = null;
+        }
+      },      
 
       /**
        * Updates the template picker based on selection in dropdown

@@ -558,6 +558,14 @@ define([
 
       startup: function () {
         this.inherited(arguments);
+        
+        //add CORS servers       
+        array.forEach(this.config.corsEnabledServers, function (corsServer) {
+          if (!this._itemExists(corsServer, esri.config.defaults.io.corsEnabledServers)) {
+            esri.config.defaults.io.corsEnabledServers.push(corsServer);
+          }  
+        }, this);
+      
         this.tabContainer = new TabContainer({
           tabs: [
             {
@@ -583,7 +591,6 @@ define([
 
         this.windDirectionQueryTask = new QueryTask(this.config.windDirectionLayer.url);
         this.own(on(this.windDirectionQueryTask, "complete", lang.hitch(this, this.windDirectionQTCompleted)));
-        //this.windDirectionQueryTask.complete(lang.hitch(this, this.windDirectionQTCompleted));
 
         //calculate by option
         var option = [];

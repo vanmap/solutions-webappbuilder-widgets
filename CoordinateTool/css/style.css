@@ -1,0 +1,94 @@
+.jimu-widget-cw {
+
+}
+
+.jimu-widget-cw .inputcontainer {
+    /*border: 1px solid #CCC;*/
+    margin: 3px;
+    width: 100%;
+    vertical-align: middle;
+    padding: 6px;
+}
+
+.jimu-widget-cw .outputcontainer {
+    /*border: 1px solid #CCC;*/
+    margin: 3px;
+    width: 100%;
+    padding: 6px;
+}
+
+.jimu-widget-cw .coordinateContainer {
+    border:1px solid #CCC;
+    margin: 7px;
+    padding-top: 5px;
+    padding-left: 5px;
+}
+
+.jimu-widget-cw .coordarea {
+   height: 0px;
+   overflow: hidden;
+}
+
+.jimu-widget-cw .crdfrmtlabel {
+    display: inline-block;
+    height: 16px;
+    font-size: 14px;
+    color: #86909c;
+    margin-top:14px;
+}
+
+.jimu-widget-cw .crds {
+    display: inline-block;
+    width: 150px;
+}
+
+
+.jimu-widget-cw .coordarea.expanded {
+    height: 150px;
+}
+
+.jimu-widget-cw .coordactions {
+    display:inline-block;
+}
+
+.jimu-widget-cw .add-with-icon {
+    display: inline-block;
+    height: 32px;
+}
+
+.jimu-widget-cw .add-with-icon > span {
+    float: none;
+    margin-top: 6px;
+    line-height: 32px;
+}
+
+.jimu-widget-cw .add-with-icon > input {
+    width: 255px;
+    color: #538EC8
+}
+
+.jimu-widget-cw .add-output {
+    margin-bottom: 7px;
+    cursor: pointer;
+    display: inline-block;
+}
+
+.jimu-widget-cw .add-output-coordinate-icon {
+    background-image: url(../../../jimu.js/css/images/add_default.png);
+    background-repeat: no-repeat;
+    background-position: center;
+    width: 14px;
+    height: 14px;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.jimu-widget-cw .add-output-coordinate-label {
+    font-size: 14px;
+    color: #518dca;
+    margin-left: 10px;
+    /* line-height: 24px; */
+    display: inline-block;
+    height: 100%;
+    text-decoration: underline;
+}

@@ -1,0 +1,95 @@
+@import url("customDrawBox.css");
+/*form*/
+.solutions-widget-batcheditor .widget-draw-control {
+    margin: 0 15px 5px 15px;
+    padding-right: 15px;
+}
+
+
+.solutions-widget-batcheditor .hide {
+    display: none;
+}
+
+.solutions-widget-batcheditor .widget-intro {
+    margin: 0 10px 0 10px;
+    font-size: 14px;
+    line-height: 150%;
+}
+
+/*shared*/
+.solutions-widget-batcheditor .widget-error {
+    font-size: 1.1em;
+    color: orangered;
+}
+.solutions-widget-batcheditor td.simple-table-td.normal-text-td.syncProcessing {
+  color:mediumorchid;
+}
+.solutions-widget-batcheditor td.simple-table-td.normal-text-td.syncComplete {
+    color: blue;
+}
+.solutions-widget-batcheditor td.simple-table-td.normal-text-td.syncSkipped {
+    color: orange;
+}
+
+/*Layers Results*/
+.solutions-widget-batcheditor .widget-layers-table {
+    margin: 5px 5px 0 5px;
+    padding-right: 5px;
+    font-size: 12px;
+}
+
+.solutions-widget-batcheditor .widget-layers-table .selectioncount {
+    width: 60px;
+}
+
+.solutions-widget-batcheditor td.simple-table-td.normal-text-td.maxRecordCount {
+    color: orangered;
+}
+
+.solutions-widget-batcheditor .layerInIntro {
+    font-weight: bold;
+        color: blue;
+}
+
+.solutions-widget-batcheditor .maxRecordInIntro {
+    color: orangered;
+    font-weight: bold;
+}
+/*Loading Message*/
+.solutions-widget-batcheditor .loading-indicator {
+    /* Loading status */
+    height: 100%;
+    width: 100%;
+    z-index: 500;
+    position: absolute;
+    top: 0;
+    left: 0;
+    overflow: hidden;
+    background: rgba(128, 128, 128, 0.10);
+    background-position: center center;
+    background-image: url(../images/preloader.gif);
+    background-repeat: no-repeat;
+}
+
+/*Controls*/
+.solutions-widget-batcheditor .widget-controls {
+    width: 100%;
+    margin-top: 15px;
+}
+
+.solutions-widget-batcheditor .clearBtn {
+    margin-right: 25px;
+    float: right !important;
+    display: inline-block !important;
+}
+
+.solutions-widget-batcheditor .widget-results {
+    font-size: 1.1em;
+    color: blue;
+    margin-left:15px;
+}
+
+.solutions-widget-batcheditor .filtered {
+  color: #000000;
+  font-weight: bold;
+}

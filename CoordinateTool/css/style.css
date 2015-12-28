@@ -29,6 +29,15 @@
    overflow: hidden;
 }
 
+.jimu-widget-cw .cpbtn {
+    display: inline-block;
+    background: url('../images/copy.png');
+    background-repeat: no-repeat;
+    background-color: transparent;
+    width: 16px;
+    height: 16px;
+}
+
 .jimu-widget-cw .crdfrmtlabel {
     display: inline-block;
     height: 16px;

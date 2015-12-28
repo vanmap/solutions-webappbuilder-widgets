@@ -54,6 +54,13 @@ define([
          **/
         constructor: function (args) {
             dojoDeclare.safeMixin(this, args);
+
+            this.uid = args.id || dijit.registry.getUniqueId('cc') + "_crdtext";
+
+        },
+
+        postMixInProperties: function () {
+
         },
 
         /**
@@ -61,6 +68,7 @@ define([
          **/
         postCreate: function () {
             this.inherited(arguments);
+            this.uid = this.id;
 
             this.util = new Util({});
             this.typeSelect.set('value', this.type);
@@ -77,6 +85,10 @@ define([
             if (!this.input) {
                 this.setHidden(this.addNewCoordinateNotationBtn);
             }
+
+
+
+            var cp = new Clipboard('.cpbtn');
         },
 
         /**
@@ -109,6 +121,20 @@ define([
          **/
         remove: function () {
             this.destroy();
+        },
+
+        /**
+         *
+         **/
+        copyCoordNotation: function (evt) {
+            //alert("Implement Copy");
+            //this.coordtext.select();
+
+            /**var ct = document.querySelector('#crdtext');
+            ct.select();
+            var supported = document.queryCommandSupported('copy');
+            var success = document.execCommand('copy');**/
+
         },
 
         /**
@@ -151,27 +177,31 @@ define([
          **/
         getFormattedCoordinates: function (latlonpoint) {
             var frmt;
+            var latdeg;
+            var latmin;
+            var londeg;
+            var lonmin;
 
             switch (this.type) {
             case 'DDM':
                 // Math.trunc not fully supported on older browsers
-                latdeg = Math.floor(this.currentClickPoint.y);
-                latmin = dojoNumber.format((this.currentClickPoint.y - latdeg) * 60, {
+                latdeg = Math.floor(Math.abs(this.currentClickPoint.y));
+                latmin = dojoNumber.format((Math.abs(this.currentClickPoint.y) - latdeg) * 60, {
                     places: 2
                 });
 
-                londeg = Math.floor(this.currentClickPoint.x);
-                lonmin = dojoNumber.format((this.currentClickPoint.x - londeg) * 60, {
+                londeg = Math.floor(Math.abs(this.currentClickPoint.x));
+                lonmin = dojoNumber.format((Math.abs(this.currentClickPoint.x) - londeg) * 60, {
                     places: 2
                 });
 
                 frmt = dojoString.substitute('${latd}° ${latm}${latdir} ${lond}° ${lonm}${londir}',{
                     latd: latdeg,
                     latm: latmin,
-                    latdir: latdeg < 0 ? "S" : "N",
+                    latdir: this.currentClickPoint.y < 0 ? "S" : "N",
                     lond: londeg,
                     lonm: lonmin,
-                    londir: londeg < 0 ? "W" : "E"
+                    londir: this.currentClickPoint.x < 0 ? "W" : "E"
                 })
                 break;
             case 'DD':
@@ -264,8 +294,7 @@ define([
             /*return (decDir === 'LAT') ? deg + "&deg;" + min_string + "&prime;" + sec_string + "&Prime;" + dir :
                 deg + "&deg;" + min_string + "&prime;" + sec_string + "&Prime;" + dir;*/
 
-            return (decDir === 'LAT') ? deg + "° " + min_string + "' " + sec_string + "''" + dir :
-                deg + "° " + min_string + "' " + sec_string + "''" + dir;
+            return (decDir === 'LAT') ? deg + "° " + min_string + "' " + sec_string + "''" + dir : deg + "° " + min_string + "' " + sec_string + "''" + dir;
         }
     });
 });

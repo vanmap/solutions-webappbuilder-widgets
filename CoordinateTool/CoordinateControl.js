@@ -154,6 +154,26 @@ define([
 
             switch (this.type) {
             case 'DDM':
+                // Math.trunc not fully supported on older browsers
+                latdeg = Math.floor(this.currentClickPoint.y);
+                latmin = dojoNumber.format((this.currentClickPoint.y - latdeg) * 60, {
+                    places: 2
+                });
+
+                londeg = Math.floor(this.currentClickPoint.x);
+                lonmin = dojoNumber.format((this.currentClickPoint.x - londeg) * 60, {
+                    places: 2
+                });
+
+                frmt = dojoString.substitute('${latd}° ${latm}${latdir} ${lond}° ${lonm}${londir}',{
+                    latd: latdeg,
+                    latm: latmin,
+                    latdir: latdeg < 0 ? "S" : "N",
+                    lond: londeg,
+                    lonm: lonmin,
+                    londir: londeg < 0 ? "W" : "E"
+                })
+                break;
             case 'DD':
                 frmt = dojoString.substitute('${xcrd} ${ycrd}', {
                     xcrd: dojoNumber.format(this.currentClickPoint.y, {

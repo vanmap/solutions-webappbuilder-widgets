@@ -174,7 +174,6 @@ define([
                                     downloadUrl = curr.text + downloadUrl;
                                 }
                             }
-                            console.log(downloadUrl);
                         }
                     }
                     return downloadUrl;

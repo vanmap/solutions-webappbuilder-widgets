@@ -19,6 +19,15 @@
     unableToSaveLayer: "Unable to save one or more of the selected layers.",
     noLayerToSave: "No layers selected to save.",
     noChangeToSave: "No changes to save.",
-    unavailableLayersError: "Could not find ${0} layer(s) in webmap to save the results."
+    unavailableLayersError: "Could not find ${0} layer(s) in webmap to save the results.",
+    lblInputLocTab: "Input Locations",
+    lblBlockLocTab: "Block Locations",
+    lblInputLocation: "Input Feature",
+    lblBlockLocation: "Block Feature",
+    lblInputLocHeader: "Input Locations (0)",
+    lblBlockLocHeader: "Block Locations (0)",
+    atLeastOneInputLoc: "Atleast one Input Location is required",
+    inputTabTitle: "Input",
+    outputTabTitle: "Output"
   })
 });

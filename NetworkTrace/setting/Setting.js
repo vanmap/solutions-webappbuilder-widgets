@@ -40,7 +40,8 @@ define([
   "./inputSetting",
   "./outputSetting",
   "./othersSetting",
-  "./outageSetting"
+  "./outageSetting",
+  "./summarySetting"
 ], function (
   declare,
   _WidgetBase,
@@ -66,7 +67,8 @@ define([
   InputSetting,
   OutputSetting,
   OthersSetting,
-  OutageSetting
+  OutageSetting,
+  SummarySetting
 ) {
   return declare([BaseWidgetSetting, _WidgetBase, _TemplatedMixin,
     _WidgetsInTemplateMixin
@@ -230,11 +232,6 @@ define([
       if (recordSetValCheckFlag && inputGPParamFlag) {
         this.validConfig = true;
         this._showTaskDetails(gpTaskParameters);
-        // if config is already exist
-        if (this.config && this.config.geoprocessing && this.config.geoprocessing
-          .url) {
-          this.setConfig();
-        }
         this.loading.hide();
       } else {
         this._refreshConfigContainer();
@@ -344,12 +341,104 @@ define([
         0) {
         // creates the output task parameters panel
         this._createOutputTaskParameters();
+        // creates summary tab
+        this._createSummaryTextSetting();
         //Outage task.
         //this._createOutageTaskParameters();
         this._createOutageTaskParameter();
       }
       // creates the Others task parameters panel
       this._createOthersTaskParameters();
+    },
+
+    /**
+    * This function is used to create summary expression UI
+    * @memberOf widgets/NetworkTrace/settings/settings
+    **/
+    _createSummaryTextSetting: function () {
+      var summaryHolderDiv = this._createSummaryTab();
+      this._onClickSelectSummarySettingTab(summaryHolderDiv);
+      this._displaySummaryExpressionBuilder();
+      this._getInputPanelData();
+    },
+
+    /**
+    * This function is used to create summary tab
+    * @memberOf widgets/NetworkTrace/settings/settings
+    **/
+    _createSummaryTab: function () {
+      var summaryHolderDiv;
+      summaryHolderDiv = domConstruct.create("div", {
+        "class": "esriCTSummaryHolder",
+        "innerHTML": this.nls.summaryTab.summaryTabText
+      }, this.taskData);
+      return summaryHolderDiv;
+    },
+
+    /**
+    * This function is used to highlight summary tab
+    * @memberOf widgets/NetworkTrace/settings/settings
+    **/
+    _onClickSelectSummarySettingTab: function (summaryHolderDiv) {
+      on(summaryHolderDiv, "click", lang.hitch(this, function (evt) {
+        var m, selectedItems;
+        selectedItems = query(".esriCTSelected", this.taskData);
+        // loop for selecting the clicked others and deselecting rest of the all
+        for (m = 0; m < selectedItems.length; m++) {
+          domClass.remove(selectedItems[m], 'esriCTSelected');
+        }
+        domClass.add(evt.currentTarget, "esriCTSelected");
+        domClass.add(this.esriCTInputOutputParameters,
+          "esriCTHidden");
+        domClass.remove(this.taskDataContainer, "esriCTHidden");
+        domClass.add(this.outageData, "esriCTHidden");
+        domClass.add(this.othersData, "esriCTHidden");
+        domClass.remove(this.summaryTextData, "esriCTHidden");
+        if (this._summarySettingObjArr) {
+          array.forEach(this._summarySettingObjArr, lang.hitch(
+            this,
+            function (widgetNode) {
+              if (widgetNode) {
+                widgetNode.refreshOperator();
+              }
+            }));
+        }
+      }));
+    },
+
+    /**
+    * This function is used to display summary expression page
+    * @memberOf widgets/NetworkTrace/settings/settings
+    **/
+    _displaySummaryExpressionBuilder: function () {
+      var summarySettingInstance, param;
+      domConstruct.empty(this.summaryTextData);
+      param = {
+        "nls": this.nls,
+        "config": this.config,
+        "inputParametersArray": this.inputParametersArray,
+        "outputParametersArray": this.outputParametersArray,
+        "outputSettingArray": this.outputSettingArray
+      };
+      this._summarySettingObjArr = [];
+      summarySettingInstance = new SummarySetting(param, domConstruct
+        .create("div", {}, this.summaryTextData));
+      this._summarySettingObjArr.push(summarySettingInstance);
+    },
+
+    /**
+    * This function is used to fetch data for input panel
+    * @memberOf widgets/NetworkTrace/settings/settings
+    **/
+    _getInputPanelData: function () {
+      if (this._summarySettingObjArr) {
+        array.forEach(this._summarySettingObjArr, lang.hitch(this,
+          function (widgetNode) {
+            if (widgetNode) {
+              widgetNode.displayInputOutputParameters();
+            }
+          }));
+      }
     },
 
     /**
@@ -439,6 +528,7 @@ define([
             "ObjId": "selectInput_" + j,
             "inputConfig": inputConfig,
             "parentContainer": inputContainer,
+            "folderUrl": this.folderUrl,
             "id": "ParameterDiv_" + j + "_" + this.inputParametersArray[
               j].displayName
           };
@@ -462,6 +552,7 @@ define([
             domClass.add(this.outageData, "esriCTHidden");
             domClass.add(this.outputAdditionalProperty,
               "esriCTHidden");
+            domClass.add(this.summaryTextData, "esriCTHidden");
           }
           this._inputTaskClicked(inputSettingInstance);
           this._onInputTypeChange(inputSettingInstance);
@@ -500,6 +591,7 @@ define([
           domClass.add(this.outageData, "esriCTHidden");
           domClass.add(this.outputAdditionalProperty,
             "esriCTHidden");
+          domClass.add(this.summaryTextData, "esriCTHidden");
           domClass.remove(this.inputProperty, "esriCTHidden");
           this._focusTop();
         });
@@ -597,6 +689,7 @@ define([
               "map": this.map,
               "outputConfig": outputConfig,
               "parentContainer": outputContainer,
+              "folderUrl": this.folderUrl,
               "id": "ParameterDiv_" + k + "_" +
                 outputParameters.name
             };
@@ -635,6 +728,8 @@ define([
                 domClass.add(this.othersData, "esriCTHidden");
                 domClass.add(this.outageData, "esriCTHidden");
                 domClass.add(this.inputProperty, "esriCTHidden");
+                domClass.add(this.summaryTextData,
+                  "esriCTHidden");
                 domClass.remove(this.outputAdditionalProperty,
                   "esriCTHidden");
                 this._focusTop();
@@ -720,6 +815,7 @@ define([
           "esriCTHidden");
         domClass.remove(this.taskDataContainer, "esriCTHidden");
         domClass.add(this.othersData, "esriCTHidden");
+        domClass.add(this.summaryTextData, "esriCTHidden");
         domClass.remove(this.outageData, "esriCTHidden");
         this._focusTop();
       }));
@@ -748,7 +844,8 @@ define([
     **/
     _createOthersTaskParameters: function () {
       var m, othersConfig, othersSettingInstance, OthersHolderDiv,
-        selectedItems, param, displayTextForRunButton;
+        selectedItems, param, displayTextForRunButton,
+        autoZoomAfterTraceCheckedState;
       OthersHolderDiv = domConstruct.create("div", {
         "id": "esriCTOtherHolder",
         "class": "esriCTOtherHolder",
@@ -765,6 +862,7 @@ define([
           "esriCTHidden");
         domClass.remove(this.taskDataContainer, "esriCTHidden");
         domClass.add(this.outageData, "esriCTHidden");
+        domClass.add(this.summaryTextData, "esriCTHidden");
         domClass.remove(this.othersData, "esriCTHidden");
       }));
       this.othersSettingObj = [];
@@ -777,12 +875,16 @@ define([
       if (this.config && this.config.displayTextForRunButton) {
         displayTextForRunButton = this.config.displayTextForRunButton;
       }
-
+      autoZoomAfterTraceCheckedState = false;
+      if (this.config && this.config.autoZoomAfterTrace) {
+        autoZoomAfterTraceCheckedState = this.config.autoZoomAfterTrace;
+      }
       param = {
         "nls": this.nls,
         "folderUrl": this.folderUrl,
         "othersConfig": othersConfig,
-        "displayTextForRunButton": displayTextForRunButton
+        "displayTextForRunButton": displayTextForRunButton,
+        "autoZoomAfterTraceCheckedState": autoZoomAfterTraceCheckedState
       };
       othersSettingInstance = new OthersSetting(param, domConstruct.create(
         "div", {}, this.othersData));
@@ -846,6 +948,17 @@ define([
               overviewParam = widgetNode.getOverviewForm();
               cloneOverviewParamArray = lang.clone(overviewParam);
               this.config.overview = cloneOverviewParamArray;
+            }
+          }));
+      }
+    },
+
+    _getSummaryExpressionConfigParameters: function () {
+      if (this._summarySettingObjArr) {
+        array.forEach(this._summarySettingObjArr, lang.hitch(this,
+          function (widgetNode) {
+            if (widgetNode) {
+              this.config.summaryExpression = widgetNode.getSummaryExpressionConfigData();
             }
           }));
       }
@@ -951,6 +1064,7 @@ define([
               this.config.displayTextForRunButton = othersParam.displayTextForRunButton;
               //delete othersParam.displayTextforRunButton;
               this.config.highlighterDetails = othersParam.highlighterDetails;
+              this.config.autoZoomAfterTrace = othersParam.autoZoomAfterTrace;
             }
           }));
       }
@@ -970,7 +1084,8 @@ define([
         validateOutputTask = false,
         validateOutageTask = false,
         validateOthersTask = false,
-        validateSaveToLayer = false;
+        validateSaveToLayer = false,
+        validateSummaryExpression = false;
       // Setting object for highlighted details
       highlighterDetails = {
         "imageData": "",
@@ -989,6 +1104,7 @@ define([
         // Setting config object
         validateInputTask = this._validateInputTaskParameters();
         validateOutputTask = this._validateOutputTaskParameters();
+        validateSummaryExpression = this._validateSummaryExpressionParameter();
         validateOutageTask = this._validateOutageTaskParameters();
         validateOthersTask = this._validateOthersTaskParameters();
         validateSaveToLayer = this._validateSaveToLayerParameters();
@@ -1000,6 +1116,9 @@ define([
           validateInputTask = false;
         } else if (validateOutputTask.returnFlag) {
           this._errorMessage(validateOutputTask.returnErr);
+          validateInputTask = false;
+        } else if (validateSummaryExpression.returnFlag) {
+          this._errorMessage(validateSummaryExpression.returnErr);
           validateInputTask = false;
         } else if (validateOutageTask.returnFlag) {
           this._errorMessage(validateOutageTask.returnErr);
@@ -1027,6 +1146,8 @@ define([
           this._getOtherConfigParameters();
           // Get config for overview parameter
           this._getOverviewConfigParameters();
+          // Get config for summary expression builder
+          this._getSummaryExpressionConfigParameters();
         } else {
           return false;
         }
@@ -1034,7 +1155,6 @@ define([
         this._errorMessage(this.nls.inValidGPService);
         return false;
       }
-      console.log(this.config);
       return this.config;
     },
 
@@ -1104,6 +1224,22 @@ define([
       if (!tempFlag) {
         returnObj.returnErr = this.nls.validationErrorMessage.saveToLayerTargetLayers;
         returnObj.returnFlag = true;
+      }
+      return returnObj;
+    },
+
+    _validateSummaryExpressionParameter: function () {
+      var returnObj = {
+        returnErr: "",
+        returnFlag: false
+      };
+      if (this._summarySettingObjArr) {
+        array.forEach(this._summarySettingObjArr, lang.hitch(this,
+          function (widgetNode) {
+            if (widgetNode) {
+              returnObj = widgetNode.validateExpressionOnOkClick();
+            }
+          }));
       }
       return returnObj;
     },
@@ -1178,6 +1314,7 @@ define([
       }
       return returnObj;
     },
+
     /**
     * This function validates the input parameters
     * @param {return} flag value for validation
@@ -1245,7 +1382,7 @@ define([
         returnErr: "",
         returnFlag: false
       },
-        key, skippableChecked, summaryTextVal, validSummary = false,
+        key, validSummary = false,
         validDisplayTextArr, displayTextVal, validDisplay;
       // if output parameters is created in Dom
       if (this.outputSettingArray) {
@@ -1256,15 +1393,11 @@ define([
             validDisplayTextArr = [];
             // if outage area drop down is not null and the this particular container belongs to the outage area
             if (this.outputSettingArray[key].outputLabelData && this.outputSettingArray[
-                key].outputSummaryText && this.outputSettingArray[key]
-              .outputSummaryText && this.outputSettingArray[key].outputMinScaleData &&
+                key].outputMinScaleData &&
               this.outputSettingArray[key].outputMaxScaleData) {
               if ((this.outputSettingArray[key].outputLabelData.value ===
                   "" || this.outputSettingArray[key].outputLabelData.value ===
                   null) ||
-                (this.outputSettingArray[key].outputSummaryText.value ===
-                  "" || this.outputSettingArray[key].outputSummaryText
-                  .value === null) ||
                 (this.outputSettingArray[key].outputDisplayText.value ===
                   "" || this.outputSettingArray[key].outputDisplayText
                   .value === null) ||
@@ -1288,15 +1421,6 @@ define([
                     key].outputLabelData.value === null)) {
                   returnObj.returnErr = this.nls.validationErrorMessage
                     .outputLabelDataErr + " in " + this.outputSettingArray[
-                      key].data.displayName;
-                  returnObj.returnFlag = true;
-                } else if ((this.outputSettingArray[key]) && (this.outputSettingArray[
-                    key].outputSummaryText) && (this.outputSettingArray[
-                    key].outputSummaryText.value === "" || this.outputSettingArray[
-                    key].outputSummaryText.value === null)) {
-                  // Summary Text value is null
-                  returnObj.returnErr = this.nls.validationErrorMessage
-                    .outputSummaryDataErr + " in " + this.outputSettingArray[
                       key].data.displayName;
                   returnObj.returnFlag = true;
                 } else if ((this.outputSettingArray[key]) && (this.outputSettingArray[
@@ -1335,18 +1459,6 @@ define([
                 }
 
               } else {
-                // if the summary text value is not null and not and outage area type output
-                if ((this.outputSettingArray[key].outputSummaryText) &&
-                  (this.outputSettingArray[key].outputSummaryText.value !==
-                    "")) {
-                  skippableChecked = this.outputSettingArray[key].skippable
-                    .checked;
-                  summaryTextVal = this.outputSettingArray[key].outputSummaryText
-                    .value;
-                  validSummary = this._validateSummaryText(
-                    summaryTextVal, skippableChecked);
-
-                }
                 // if the display text value is not null and not and outage area type output
                 if (!validSummary && (this.outputSettingArray[key].outputDisplayText) &&
                   this.outputSettingArray[key].outputDisplayText.value !==
@@ -1389,7 +1501,6 @@ define([
       }
       return returnObj;
     },
-
 
     /**
     * This function validates the Summary text of output parameters
@@ -1500,6 +1611,7 @@ define([
       }
       return validFlag;
     },
+
     /**
     * This function validates the Overview parameters
     * @param {return} flag value for validation
@@ -1559,10 +1671,6 @@ define([
       }
 
       return returnObj;
-    },
-
-    setConfig: function () {
-      console.log(this.config);
     },
 
     /**

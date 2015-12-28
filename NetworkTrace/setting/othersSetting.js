@@ -41,13 +41,13 @@ define([
   return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin], {
     templateString: othersSetting,
     ImageChooser: null,
+
     startup: function () {
       this.inherited(arguments);
     },
 
     postCreate: function () {
       this._createOthersPanel();
-
     },
 
     /**
@@ -109,7 +109,8 @@ define([
         },
         "displayTextForRunButton": ((this.displayTextforRun && this
             .displayTextforRun.value) ? this.displayTextforRun.value :
-          "")
+          ""),
+        "autoZoomAfterTrace": this.autoZoomAfterTrace.checked
       };
       return othersParam;
     },
@@ -124,6 +125,14 @@ define([
         this.spinnerImgWidth.set("value", this.othersConfig.width);
         this.spinnerImgTimeout.set("value", this.othersConfig.timeout);
         this.displayTextforRun.set("value", this.displayTextForRunButton);
+        if (this.autoZoomAfterTraceCheckedState) {
+          this.autoZoomAfterTrace.checked = this.autoZoomAfterTraceCheckedState;
+          domClass.add(this.autoZoomAfterTrace.checkNode, "checked");
+        } else {
+          this.autoZoomAfterTrace.checked = this.autoZoomAfterTraceCheckedState;
+          domClass.remove(this.autoZoomAfterTrace.checkNode,
+            "checked");
+        }
       }
     }
   });

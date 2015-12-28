@@ -6,12 +6,12 @@
     inValidGPService: "Please enter valid geoprocessing service.",
     GPFeatureRecordSetLayerERR: "Please enter a geoprocessing service with inputs of type 'GPFeatureRecordSetLayer' only.",
     invalidInputParameters: "Number of input parameters is either less than 1 or more than 3. Please enter a valid geoprocessing service.",
-    // common
+    // Common
     inputName: "Name",
     inputLabel: "Label",
     inputTooltip: "Tooltip",
     symbol: "Symbol",
-    // input details
+    // Input details
     inputPanel: {
       inputTask: "Input",
       inputType: "Type",
@@ -19,7 +19,7 @@
       inputTypeBarriers: "Barriers",
       inputTypeSkip: "Skip"
     },
-    // output details
+    // Output details
     outputPanel: {
       outputTask: "Output",
       outputExport: "Export to CSV",
@@ -32,7 +32,25 @@
       outputminScale: "Min scale",
       outputmaxScale: "Max scale"
     },
-    //For Outage
+    // Summary expression builder
+    summaryTab: {
+      summaryTabText: "Summary",
+      summaryFieldsetText: "Summary settings",
+      inputOutput: "Inputs/Outputs",
+      field: "Fields",
+      operator: "Operators",
+      inputOperatorCountOption: "Count",
+      outputOperatorCountOption: "Count",
+      outputOperatorSkipCountOption: "SkipCount",
+      fieldOperatorSumOption: "Sum",
+      fieldOperatorMinOption: "Min",
+      fieldOperatorMaxOption: "Max",
+      fieldOperatorMeanOption: "Mean",
+      expressionAddButtonText: "Add",
+      expressionVerifyButtonText: "Verify",
+      summaryEditorText: "Summary text"
+    },
+    // Outage details
     outagePanel: {
       bufferDistance: "Buffer distance",
       esriUnits: "Unit",
@@ -49,7 +67,7 @@
       esriKilometers: "Kilometers",
       outageNoneText: "None"
     },
-    // Others
+    // Other details
     OthersHighlighter: {
       others: "Other",
       pixel: "(pixels)",
@@ -61,9 +79,11 @@
       selectImage: "Image",
       height: "Image height",
       width: "Image width",
-      timeout: "Timeout"
+      timeout: "Timeout",
+      autoZoomAfterTrace: "Zoom options",
+      zoomText: "Auto zoom after trace"
     },
-    // validation messages
+    // Validation messages
     validationErrorMessage: {
       webMapError: "No layers available in the webmap. Please select a valid webmap.",
       inputTypeFlagGreaterThanError: "Input of type flag cannot be more than one.",
@@ -85,9 +105,11 @@
       saveToLayerTargetLayers: "Target layer should be unique or cannot be blank.",
       displayTextForButtonError: "Display text for 'Run' button cannot be blank.",
       BufferDisatanceOverview: "Buffer distance should not be blank or 0 or less than 0.",
-      UnableToLoadGeoprocessError: "Unable to load geoprocessing service."
+      UnableToLoadGeoprocessError: "Unable to load geoprocessing service.",
+      invalidSummaryExpression: "Invalid expression",
+      validSummaryExpression: "Success !"
     },
-    // Hint Text
+    // Hint text
     hintText: {
       inputTypeHint: "Hint: Select the type/purpose of this input parameter.",
       labelTextHint: "Hint: Provide display label for result panel of output parameter.",
@@ -104,7 +126,15 @@
       imgTimeoutHintText: "Hint: Specify numeric value for highlight animation timeout.",
       imageHeightHintText: "Hint: Specify numeric value for image height.",
       imageWidthHintText: "Hint: Specify numeric value for image width.",
-      selectImageHintText: "Hint: Please click on the image to select any other highlighter image."
+      selectImageHintText: "Hint: Please click on the image to select any other highlighter image.",
+      inputTextHint: "Hint:Build your expression above by selectig input,output and fieldnames",
+      expressionHint: "Hint: Select items and click add to build expression"
+    },
+    // Symbol chooser
+    symbolSelecter: {
+      selectSymbolLabel: "Select symbol from SymbolChooser",
+      okButton: "OK",
+      symbolPreviewLabal: "Preview"
     }
   }
 });

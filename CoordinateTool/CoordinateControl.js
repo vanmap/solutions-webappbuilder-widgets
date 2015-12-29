@@ -16,6 +16,7 @@ define([
     'dijit/_TemplatedMixin',
     'dijit/_WidgetsInTemplateMixin',
     'dijit/form/TextBox',
+    'dijit/form/Select',
     'dojo/text!./CoordinateControl.html',
     'esri/geometry/webMercatorUtils',
     './util',
@@ -38,6 +39,7 @@ define([
     dijitTemplatedMixin,
     dijitWidgetsInTemplate,
     dijitTextBox,
+    dijitSelect,
     coordCntrl,
     esriWMUtils,
     Util,
@@ -84,6 +86,11 @@ define([
 
             if (!this.input) {
                 this.setHidden(this.addNewCoordinateNotationBtn);
+            }
+
+            if (!this.currentClickPoint) {
+                this.currentClickPoint = this.getDDPoint(this.map.extent.getCenter());
+                this.getFormattedCoordinates(this.currentClickPoint);
             }
 
 
@@ -142,22 +149,32 @@ define([
          **/
         mapWasClicked: function (evt) {
 
-            /**/
-            switch (evt.mapPoint.spatialReference.wkid) {
-            case 102100:
-                this.currentClickPoint = esriWMUtils.webMercatorToGeographic(evt.mapPoint);
-                break;
-
-            default:
-                this.currentClickPoint = evt.mapPoint;
-                break;
-            }
+            this.currentClickPoint = this.getDDPoint(evt.mapPoint);
 
             this.getFormattedCoordinates(this.currentClickPoint);
 
             if (this.input) {
                 dojoTopic.publish("INPUTPOINTDIDCHANGE", this.currentClickPoint);
             }
+        },
+
+        getDDPoint: function (fromPoint) {
+            /**/
+
+            if (fromPoint.spatialReference.wkid === 102100){
+                return esriWMUtils.webMercatorToGeographic(fromPoint);
+            } 
+            
+            /**switch (fromPoint.spatialReference.wkid) {
+            case 102100:
+                return 
+                break;
+
+            default:
+                toPoint = fromPoint;
+                break;
+            }**/
+            return fromPoint;
         },
 
         /**

@@ -37,9 +37,7 @@ define([
             dojoTopic.subscribe("ADDNEWNOTATION", dojoLang.hitch(this, this.addOutputSrBtn));
 
             this.coordTypes = ['DD', 'DDM', 'DMS', 'GARS', 'MGRS', 'USNG', 'UTM'];
-            dojoArray.forEach(this.coordTypes, function (itm) {
-                this.addOutputSrBtn(itm);
-            }, this);
+            
         },
 
         /**
@@ -64,6 +62,7 @@ define([
                 type: withType,
                 currentpoint: this.currentpoint
             });
+
             cc.placeAt(this.outputtablecontainer);
             cc.startup();
 
@@ -110,36 +109,28 @@ define([
          *
          **/
         startup: function () {
-            //this.inherited(arguments);
 
             var v = new CoordinateControl({
                 map: this.map,
                 input: true,
-                type: 'DD'
+                type: 'DD',
+                currentpoint: this.map.extent.getCenter()
             });
             v.placeAt(this.inputcoordcontainer);
             v.startup();
 
-            //this.own(this.map.on('click', lang.hitch(this, this.mapWasClicked)));
+            dojoArray.forEach(this.coordTypes, function (itm) {
+                this.addOutputSrBtn(itm);
+            }, this);
+
         },
 
         /**
-         * map click event handler
          *
-        mapWasClicked: function (evt) {
-            var fstr = dojoString.substitute("${xcoord} ${ycoord}", {
-                xcoord: evt.mapPoint.x,
-                ycoord: evt.mapPoint.y
-            });
-
-            dojoDomAttr.set(this.inputcoordinates, 'value', fstr);
-        },**/
-
-        /**
-         *
+         **/
         onOpen: function () {
 
-        },**/
+        },
 
         /**
          *

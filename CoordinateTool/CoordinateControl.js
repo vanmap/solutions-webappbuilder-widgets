@@ -74,28 +74,37 @@ define([
 
             this.util = new Util({});
             this.typeSelect.set('value', this.type);
+            
             this.own(dojoOn(this.expandButton, 'click', dojoLang.hitch(this, this.expandButtonWasClicked)));
-            this.own(this.map.on('click', dojoLang.hitch(this, this.mapWasClicked)));
             this.own(dojoOn(this.addNewCoordinateNotationBtn, 'click', dojoLang.hitch(this, this.newCoordnateBtnWasClicked)));
-            this.own(this.typeSelect.on('change', dojoLang.hitch(this, this.typeSelectDidChange)));
+            this.own(dojoOn(this.zoomButton,'click', dojoLang.hitch(this, this.zoomButtonWasClicked)));
 
+            this.own(this.map.on('click', dojoLang.hitch(this, this.mapWasClicked)));
+            this.own(this.typeSelect.on('change', dojoLang.hitch(this, this.typeSelectDidChange)));
+            
+            // hide any actions we don't want to see on the input coords
             if (this.input) {
                 this.setHidden(this.expandButton);
                 this.setHidden(this.removeControlBtn);
             }
 
+            // hide any actions we don't need to see on the result coords
             if (!this.input) {
                 this.setHidden(this.addNewCoordinateNotationBtn);
+                this.setHidden(this.zoomButton);
             }
 
+            // set an initial coord
             if (!this.currentClickPoint) {
                 this.currentClickPoint = this.getDDPoint(this.map.extent.getCenter());
                 this.getFormattedCoordinates(this.currentClickPoint);
             }
 
-
-
             var cp = new Clipboard('.cpbtn');
+        },
+
+        zoomButtonWasClicked: function () {
+            this.map.centerAndZoom(this.currentClickPoint, 19);
         },
 
         /**

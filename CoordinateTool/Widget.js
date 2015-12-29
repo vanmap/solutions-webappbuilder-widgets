@@ -3,32 +3,20 @@ define([
     'dojo/_base/declare',
     'dojo/_base/lang',
     'dojo/topic',
-    'dojo/string',
-    'dojo/on',
-    'dojo/dom-attr',
-    'dojo/keys',
     'dojo/_base/array',
     'dijit/_WidgetsInTemplateMixin',
-    'jimu/dijit/Popup',
     'jimu/BaseWidget',
     'esri/tasks/GeometryService',
-    './CoordinateControl',
-    './OutputCoordinateSystem'
+    './CoordinateControl'
 ], function (
     dojoDeclare,
     dojoLang,
     dojoTopic,
-    dojoString,
-    dojoOn,
-    dojoDomAttr,
-    dojoKeys,
     dojoArray,
     dojoWidgetsInTemplateMixin,
-    jimuPopup,
     jimuBaseWidget,
     EsriGeometryService,
-    CoordinateControl,
-    OCS
+    CoordinateControl
 ) {
     var clazz = dojoDeclare([jimuBaseWidget, dojoWidgetsInTemplateMixin], {
 
@@ -54,9 +42,13 @@ define([
             }, this);
         },
 
+        /**
+         *
+         **/
         removeControl: function () {
             console.log("Remove Control");
         },
+
         /**
          *
          **/

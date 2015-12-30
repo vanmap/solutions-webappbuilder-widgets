@@ -42,6 +42,7 @@ define([
     usng,
     gars
 ) {
+    'use strict';
     return dojoDeclare([dijitWidgetBase, dijitTemplatedMixin, dijitWidgetsInTemplate], {
         templateString: coordCntrl,
         input: true,
@@ -52,13 +53,12 @@ define([
          **/
         constructor: function (args) {
             dojoDeclare.safeMixin(this, args);
-
-            
-
             this.uid = args.id || dijit.registry.getUniqueId('cc') + "_crdtext";
-
         },
 
+        /**
+         *
+         **/
         parentStateDidChange: function (state) {
             if (state === 'opened') {
                 this.mapclickhandler.resume();
@@ -84,7 +84,7 @@ define([
             this.own(dojoOn(this.zoomButton, 'click', dojoLang.hitch(this, this.zoomButtonWasClicked)));
 
             this.mapclickhandler = dojoOn.pausable(this.map, 'click', dojoLang.hitch(this, this.mapWasClicked));
-            
+
             this.own(this.typeSelect.on('change', dojoLang.hitch(this, this.typeSelectDidChange)));
 
             // hide any actions we don't want to see on the input coords
@@ -107,9 +107,12 @@ define([
                 this.getFormattedCoordinates(this.currentClickPoint);
             }
 
-            new Clipboard('.cpbtn');
+            var cp = new Clipboard('.cpbtn');
         },
 
+        /**
+         *
+         **/
         zoomButtonWasClicked: function () {
             if (this.input) {
                 this.map.centerAndZoom(this.currentClickPoint, 19);
@@ -151,27 +154,13 @@ define([
         /**
          *
          **/
-        copyCoordNotation: function () {
-            //alert("Implement Copy");
-            //this.coordtext.select();
-
-            /**var ct = document.querySelector('#crdtext');
-            ct.select();
-            var supported = document.queryCommandSupported('copy');
-            var success = document.execCommand('copy');**/
-
-        },
-
-        /**
-         *
-         **/
         mapWasClicked: function (evt) {
 
             if (this.input) {
                 this.glayer.clear();
                 this.glayer.add(new EsriGraphic(evt.mapPoint));
             }
-            
+
             this.currentClickPoint = this.getDDPoint(evt.mapPoint);
 
             this.getFormattedCoordinates(this.currentClickPoint);
@@ -206,12 +195,14 @@ define([
         /**
          *
          **/
-        getFormattedCoordinates: function (latlonpoint) {
+        getFormattedCoordinates: function () {
             var frmt;
             var latdeg;
             var latmin;
+            var latdirstr;
             var londeg;
             var lonmin;
+            var londirstr;
             var utmcrds = [];
             var utmzone = '';
 
@@ -228,13 +219,23 @@ define([
                     places: 2
                 });
 
+                latdirstr = "N";
+                if (this.currentClickPoint.y < 0) {
+                    latdirstr = "S";
+                }
+
+                londirstr = "E";
+                if (this.currentClickPoint.x < 0) {
+                    londirstr = "W";
+                }
+
                 frmt = dojoString.substitute('${latd}° ${latm}${latdir} ${lond}° ${lonm}${londir}', {
                     latd: latdeg,
                     latm: latmin,
-                    latdir: this.currentClickPoint.y < 0 ? "S" : "N",
+                    latdir: latdirstr,
                     lond: londeg,
                     lonm: lonmin,
-                    londir: this.currentClickPoint.x < 0 ? "W" : "E"
+                    londir: londirstr
                 });
                 break;
             case 'DD':

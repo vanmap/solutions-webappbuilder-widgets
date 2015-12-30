@@ -158,7 +158,7 @@ define([
          * widget close event handler
          **/
         onClose: function () {
-            this.setWidgetSleep(true);  
+            this.setWidgetSleep(true);
         },
 
         /**
@@ -169,13 +169,13 @@ define([
             if (sleeping) {
                 if (this.coordGLayer && this.coordGLayer.visible) {
                     this.coordGLayer.setVisibility(false);
-                } 
+                }
             } else {
                 if (this.coordGLayer && !this.coordGLayer.visible) {
                     this.coordGLayer.setVisibility(true);
                 }
             }
-            
+
             //inform child widgets we are inactive
             dojoTopic.publish("CRDWIDGETSTATEDIDCHANGE", this.state);
         },

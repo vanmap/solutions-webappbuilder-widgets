@@ -6,7 +6,10 @@ define([
     'dojo/_base/array',
     'dijit/_WidgetsInTemplateMixin',
     'jimu/BaseWidget',
+    'esri/layers/GraphicsLayer',
     'esri/tasks/GeometryService',
+    'esri/renderers/SimpleRenderer',
+    'esri/symbols/PictureMarkerSymbol',
     './CoordinateControl'
 ], function (
     dojoDeclare,
@@ -15,11 +18,14 @@ define([
     dojoArray,
     dojoWidgetsInTemplateMixin,
     jimuBaseWidget,
+    EsriGraphicsLayer,
     EsriGeometryService,
+    EsriSimpleRenderer,
+    EsriPictureMarkerSymbol,
     CoordinateControl
 ) {
+    'use strict';
     var clazz = dojoDeclare([jimuBaseWidget, dojoWidgetsInTemplateMixin], {
-
         baseClass: 'jimu-widget-cw',
         name: 'CW',
         coordinateControls: [],
@@ -37,7 +43,22 @@ define([
             dojoTopic.subscribe("ADDNEWNOTATION", dojoLang.hitch(this, this.addOutputSrBtn));
 
             this.coordTypes = ['DD', 'DDM', 'DMS', 'GARS', 'MGRS', 'USNG', 'UTM'];
-            
+
+            // Create graphics layer
+            if (!this.coordGLayer) {
+                var glsym = new EsriPictureMarkerSymbol(
+                    this.folderUrl + "images/CoordinateLocation.png",
+                    26,
+                    26
+                );
+                glsym.setOffset(0, 13);
+
+                var glrenderer = new EsriSimpleRenderer(glsym);
+
+                this.coordGLayer = new EsriGraphicsLayer();
+                this.coordGLayer.setRenderer(glrenderer);
+                this.map.addLayer(this.coordGLayer);
+            }
         },
 
         /**
@@ -58,6 +79,7 @@ define([
 
             var cc = new CoordinateControl({
                 map: this.map,
+                glayer: this.coordGLayer,
                 input: false,
                 type: withType,
                 currentpoint: this.currentpoint
@@ -109,11 +131,12 @@ define([
          *
          **/
         startup: function () {
-
             var v = new CoordinateControl({
                 map: this.map,
                 input: true,
                 type: 'DD',
+                glayer: this.coordGLayer,
+                isInput: true,
                 currentpoint: this.map.extent.getCenter()
             });
             v.placeAt(this.inputcoordcontainer);
@@ -122,14 +145,39 @@ define([
             dojoArray.forEach(this.coordTypes, function (itm) {
                 this.addOutputSrBtn(itm);
             }, this);
+        },
 
+        /**
+         * widget open event handler
+         **/
+        onOpen: function () {
+            this.setWidgetSleep(false);
+        },
+
+        /**
+         * widget close event handler
+         **/
+        onClose: function () {
+            this.setWidgetSleep(true);  
         },
 
         /**
          *
          **/
-        onOpen: function () {
+        setWidgetSleep: function (sleeping) {
 
+            if (sleeping) {
+                if (this.coordGLayer && this.coordGLayer.visible) {
+                    this.coordGLayer.setVisibility(false);
+                } 
+            } else {
+                if (this.coordGLayer && !this.coordGLayer.visible) {
+                    this.coordGLayer.setVisibility(true);
+                }
+            }
+            
+            //inform child widgets we are inactive
+            dojoTopic.publish("CRDWIDGETSTATEDIDCHANGE", this.state);
         },
 
         /**

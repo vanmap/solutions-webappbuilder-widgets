@@ -9,9 +9,6 @@ define([
     'dojo/string',
     'dojo/topic',
     'dojo/number',
-    'dojo/html',
-    'dojo/query',
-    'dojo/NodeList-traverse',
     'dijit/_WidgetBase',
     'dijit/_TemplatedMixin',
     'dijit/_WidgetsInTemplateMixin',
@@ -19,6 +16,7 @@ define([
     'dijit/form/Select',
     'dojo/text!./CoordinateControl.html',
     'esri/geometry/webMercatorUtils',
+    'esri/graphic',
     './util',
     'libs/usng/usng',
     './libs/gars'
@@ -32,9 +30,6 @@ define([
     dojoString,
     dojoTopic,
     dojoNumber,
-    dojoHtml,
-    dojoQuery,
-    dojoNodeListTraverse,
     dijitWidgetBase,
     dijitTemplatedMixin,
     dijitWidgetsInTemplate,
@@ -42,6 +37,7 @@ define([
     dijitSelect,
     coordCntrl,
     esriWMUtils,
+    EsriGraphic,
     Util,
     usng,
     gars
@@ -57,31 +53,40 @@ define([
         constructor: function (args) {
             dojoDeclare.safeMixin(this, args);
 
+            
+
             this.uid = args.id || dijit.registry.getUniqueId('cc') + "_crdtext";
 
         },
 
-        postMixInProperties: function () {
-
+        parentStateDidChange: function (state) {
+            if (state === 'opened') {
+                this.mapclickhandler.resume();
+            } else {
+                this.mapclickhandler.pause();
+            }
         },
 
         /**
          *
          **/
         postCreate: function () {
-            this.inherited(arguments);
+            //this.inherited(arguments);
             this.uid = this.id;
 
             this.util = new Util({});
             this.typeSelect.set('value', this.type);
-            
+
+            dojoTopic.subscribe("CRDWIDGETSTATEDIDCHANGE", dojoLang.hitch(this, this.parentStateDidChange));
+
             this.own(dojoOn(this.expandButton, 'click', dojoLang.hitch(this, this.expandButtonWasClicked)));
             this.own(dojoOn(this.addNewCoordinateNotationBtn, 'click', dojoLang.hitch(this, this.newCoordnateBtnWasClicked)));
-            this.own(dojoOn(this.zoomButton,'click', dojoLang.hitch(this, this.zoomButtonWasClicked)));
+            this.own(dojoOn(this.zoomButton, 'click', dojoLang.hitch(this, this.zoomButtonWasClicked)));
 
-            this.own(this.map.on('click', dojoLang.hitch(this, this.mapWasClicked)));
-            this.own(this.typeSelect.on('change', dojoLang.hitch(this, this.typeSelectDidChange)));
+            this.mapclickhandler = dojoOn.pausable(this.map, 'click', dojoLang.hitch(this, this.mapWasClicked));
             
+            this.own(this.typeSelect.on('change', dojoLang.hitch(this, this.typeSelectDidChange)));
+
             // hide any actions we don't want to see on the input coords
             if (this.input) {
                 this.setHidden(this.expandButton);
@@ -96,15 +101,19 @@ define([
 
             // set an initial coord
             if (!this.currentClickPoint) {
-                this.currentClickPoint = this.getDDPoint(this.map.extent.getCenter());
+                var cPt = this.map.extent.getCenter();
+                this.glayer.add(new EsriGraphic(cPt));
+                this.currentClickPoint = this.getDDPoint(cPt);
                 this.getFormattedCoordinates(this.currentClickPoint);
             }
 
-            var cp = new Clipboard('.cpbtn');
+            new Clipboard('.cpbtn');
         },
 
         zoomButtonWasClicked: function () {
-            this.map.centerAndZoom(this.currentClickPoint, 19);
+            if (this.input) {
+                this.map.centerAndZoom(this.currentClickPoint, 19);
+            }
         },
 
         /**
@@ -142,7 +151,7 @@ define([
         /**
          *
          **/
-        copyCoordNotation: function (evt) {
+        copyCoordNotation: function () {
             //alert("Implement Copy");
             //this.coordtext.select();
 
@@ -158,6 +167,11 @@ define([
          **/
         mapWasClicked: function (evt) {
 
+            if (this.input) {
+                this.glayer.clear();
+                this.glayer.add(new EsriGraphic(evt.mapPoint));
+            }
+            
             this.currentClickPoint = this.getDDPoint(evt.mapPoint);
 
             this.getFormattedCoordinates(this.currentClickPoint);
@@ -167,22 +181,13 @@ define([
             }
         },
 
+        /**
+         *
+         **/
         getDDPoint: function (fromPoint) {
-            /**/
-
-            if (fromPoint.spatialReference.wkid === 102100){
+            if (fromPoint.spatialReference.wkid === 102100) {
                 return esriWMUtils.webMercatorToGeographic(fromPoint);
-            } 
-            
-            /**switch (fromPoint.spatialReference.wkid) {
-            case 102100:
-                return 
-                break;
-
-            default:
-                toPoint = fromPoint;
-                break;
-            }**/
+            }
             return fromPoint;
         },
 
@@ -207,6 +212,8 @@ define([
             var latmin;
             var londeg;
             var lonmin;
+            var utmcrds = [];
+            var utmzone = '';
 
             switch (this.type) {
             case 'DDM':
@@ -221,14 +228,14 @@ define([
                     places: 2
                 });
 
-                frmt = dojoString.substitute('${latd}° ${latm}${latdir} ${lond}° ${lonm}${londir}',{
+                frmt = dojoString.substitute('${latd}° ${latm}${latdir} ${lond}° ${lonm}${londir}', {
                     latd: latdeg,
                     latm: latmin,
                     latdir: this.currentClickPoint.y < 0 ? "S" : "N",
                     lond: londeg,
                     lonm: lonmin,
                     londir: this.currentClickPoint.x < 0 ? "W" : "E"
-                })
+                });
                 break;
             case 'DD':
                 frmt = dojoString.substitute('${xcrd} ${ycrd}', {
@@ -256,8 +263,6 @@ define([
                 frmt = gars.LLtoGARS(this.currentClickPoint.y, this.currentClickPoint.x);
                 break;
             case 'UTM':
-                var utmcrds = [];
-                var utmzone = '';
                 usng.LLtoUTM(this.currentClickPoint.y, this.currentClickPoint.x, utmcrds, utmzone);
                 frmt = dojoString.substitute("${z}${zd} ${utm1}m ${utm2}m", {
                     z: utmcrds[2],
@@ -292,35 +297,64 @@ define([
         degToDMS: function (decDeg, decDir) {
             /** @type {number} */
             var d = Math.abs(decDeg);
+
             /** @type {number} */
             var deg = Math.floor(d);
             d = d - deg;
+
             /** @type {number} */
             var min = Math.floor(d * 60);
+
             /** @type {number} */
             var sec = Math.floor((d - min / 60) * 60 * 60);
+
             if (sec === 60) { // can happen due to rounding above
-                  min++;
-                  sec = 0;
+                min = min + 1;
+                sec = 0;
             }
             if (min === 60) { // can happen due to rounding above
-                  deg++;
-                  min = 0;
+                deg = deg + 1;
+                min = 0;
             }
 
             /** @type {string} */
-            var min_string = min < 10 ? "0" + min : min;
+            //var min_string = min < 10 ? "0" + min : min;
+            var min_string = min;
+            if (min < 10) {
+                min_string = "0" + min;
+            }
 
             /** @type {string} */
-            var sec_string = sec < 10 ? "0" + sec : sec;
+            //var sec_string = sec < 10 ? "0" + sec : sec;
+            var sec_string = sec;
+            if (sec < 10) {
+                sec_string = "0" + sec;
+            }
 
             /** @type {string} */
-            var dir = (decDir === 'LAT') ? (decDeg < 0 ? "S" : "N") : (decDeg < 0 ? "W" : "E");
+            //var dir = (decDir === 'LAT') ? (decDeg < 0 ? "S" : "N") : (decDeg < 0 ? "W" : "E");
 
+            var dir;
+            if (decDir === 'LAT') {
+                dir = "N";
+                if (decDeg < 0) {
+                    dir = "S";
+                }
+            } else {
+                dir = "E";
+                if (decDeg < 0) {
+                    dir = "N";
+                }
+            }
             /*return (decDir === 'LAT') ? deg + "&deg;" + min_string + "&prime;" + sec_string + "&Prime;" + dir :
                 deg + "&deg;" + min_string + "&prime;" + sec_string + "&Prime;" + dir;*/
 
-            return (decDir === 'LAT') ? deg + "° " + min_string + "' " + sec_string + "''" + dir : deg + "° " + min_string + "' " + sec_string + "''" + dir;
+            return dojoString.substitute("${d}° ${m}' ${s}''${dr}", {
+                d: deg,
+                m: min_string,
+                s: sec_string,
+                dr: dir
+            });
         }
     });
 });

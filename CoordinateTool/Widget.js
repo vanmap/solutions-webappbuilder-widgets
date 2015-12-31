@@ -72,22 +72,18 @@ define([
          *
          **/
         addOutputSrBtn: function (withType) {
-
             if (!withType) {
                 withType = 'DD';
             }
 
             var cc = new CoordinateControl({
-                map: this.map,
-                glayer: this.coordGLayer,
+                parent_widget: this,
                 input: false,
-                type: withType,
-                currentpoint: this.currentpoint
+                type: withType
             });
 
             cc.placeAt(this.outputtablecontainer);
             cc.startup();
-
         },
 
         /**
@@ -132,12 +128,9 @@ define([
          **/
         startup: function () {
             var v = new CoordinateControl({
-                map: this.map,
+                parent_widget: this,
                 input: true,
-                type: 'DD',
-                glayer: this.coordGLayer,
-                isInput: true,
-                currentpoint: this.map.extent.getCenter()
+                type: 'DD'
             });
             v.placeAt(this.inputcoordcontainer);
             v.startup();

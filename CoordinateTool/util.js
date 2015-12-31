@@ -10,7 +10,14 @@ define([
          *
          **/
         constructor: function (args) {
+            
+        },
 
+        /**
+         *
+         **/
+        isNumber: function (n) {
+            return !isNaN(parseFloat(n)) && isFinite(n);
         }
     });
 });

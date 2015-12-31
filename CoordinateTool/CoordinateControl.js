@@ -9,6 +9,7 @@ define([
     'dojo/string',
     'dojo/topic',
     'dojo/number',
+    'dojo/keys',
     'dijit/_WidgetBase',
     'dijit/_TemplatedMixin',
     'dijit/_WidgetsInTemplateMixin',
@@ -17,9 +18,13 @@ define([
     'dojo/text!./CoordinateControl.html',
     'esri/geometry/webMercatorUtils',
     'esri/graphic',
+    'esri/geometry/Point',
+    'esri/SpatialReference',
+    'esri/tasks/GeometryService',
     './util',
     'libs/usng/usng',
-    './libs/gars'
+    './libs/gars',
+    'jimu/dijit/Message'
 ], function (
     dojoDeclare,
     dojoLang,
@@ -30,6 +35,7 @@ define([
     dojoString,
     dojoTopic,
     dojoNumber,
+    dojoKeys,
     dijitWidgetBase,
     dijitTemplatedMixin,
     dijitWidgetsInTemplate,
@@ -38,9 +44,13 @@ define([
     coordCntrl,
     esriWMUtils,
     EsriGraphic,
+    EsriPoint,
+    EsriSpatialReference,
+    EsriGeometryService,
     Util,
     usng,
-    gars
+    gars,
+    JimuMessage
 ) {
     'use strict';
     return dojoDeclare([dijitWidgetBase, dijitTemplatedMixin, dijitWidgetsInTemplate], {
@@ -75,15 +85,24 @@ define([
             this.uid = this.id;
 
             this.util = new Util({});
+
+            var geomsrvcurl = this.parent_widget.config.geometry_service.url || 
+                'http://sampleserver6.arcgisonline.com/arcgis/rest/services/Geometry/GeometryServer/fromGeoCoordinateString';
+
+            this.geomsrvc = new EsriGeometryService(geomsrvcurl);
+
             this.typeSelect.set('value', this.type);
 
+            // setup event notification and handlers
             dojoTopic.subscribe("CRDWIDGETSTATEDIDCHANGE", dojoLang.hitch(this, this.parentStateDidChange));
+            dojoTopic.subscribe("INPUTPOINTDIDCHANGE", dojoLang.hitch(this, this.mapWasClicked));
 
             this.own(dojoOn(this.expandButton, 'click', dojoLang.hitch(this, this.expandButtonWasClicked)));
             this.own(dojoOn(this.addNewCoordinateNotationBtn, 'click', dojoLang.hitch(this, this.newCoordnateBtnWasClicked)));
             this.own(dojoOn(this.zoomButton, 'click', dojoLang.hitch(this, this.zoomButtonWasClicked)));
 
-            this.mapclickhandler = dojoOn.pausable(this.map, 'click', dojoLang.hitch(this, this.mapWasClicked));
+            this.mapclickhandler = dojoOn.pausable(this.parent_widget.map, 'click', dojoLang.hitch(this, this.mapWasClicked));
+            
 
             this.own(this.typeSelect.on('change', dojoLang.hitch(this, this.typeSelectDidChange)));
 
@@ -91,18 +110,21 @@ define([
             if (this.input) {
                 this.setHidden(this.expandButton);
                 this.setHidden(this.removeControlBtn);
+                this.own(dojoOn(this.coordtext, 'keyup', dojoLang.hitch(this, this.coordTextInputKeyWasPressed)));
+                this.own(this.geomsrvc.on('error', dojoLang.hitch(this, this.geomSrvcDidFail)));
             }
 
             // hide any actions we don't need to see on the result coords
             if (!this.input) {
                 this.setHidden(this.addNewCoordinateNotationBtn);
                 this.setHidden(this.zoomButton);
+                this.coordtext.readOnly = true;
             }
 
             // set an initial coord
             if (!this.currentClickPoint) {
-                var cPt = this.map.extent.getCenter();
-                this.glayer.add(new EsriGraphic(cPt));
+                var cPt = this.parent_widget.map.extent.getCenter();
+                this.parent_widget.coordGLayer.add(new EsriGraphic(cPt));
                 this.currentClickPoint = this.getDDPoint(cPt);
                 this.getFormattedCoordinates(this.currentClickPoint);
             }
@@ -113,9 +135,106 @@ define([
         /**
          *
          **/
+        geomSrvcDidComplete: function (r) {
+            if (r[0].length <= 0) {
+                new JimuMessage({message:"unable to parse coordinates"});
+                return;
+            }
+
+            var newpt = new EsriPoint(r[0][0], r[0][1], new EsriSpatialReference({wkid: 4326}));
+            this.currentClickPoint = newpt;
+
+            if (this.input) {
+                dojoTopic.publish("INPUTPOINTDIDCHANGE", {mapPoint: this.currentClickPoint});
+            }
+        },
+
+        /**
+         *
+         **/
+        geomSrvcDidFail: function (r) {
+            new JimuMessage({message: "Unable to parse input coordinates"});
+        },
+
+        /**
+         *
+         **/
+        coordTextInputKeyWasPressed: function (evt) {
+            if (evt.keyCode === dojoKeys.ENTER) {
+                this.processCoordTextInput(evt.currentTarget.value);
+            }
+        },
+
+        /**
+         *
+         **/
+        processCoordTextInput: function (withStr) {
+
+            var latCrd;
+            var lonCrd;
+            var newpt;
+            var result = [0, 0];
+
+            var params = {
+                sr: 4326,
+                conversionType: this.type,
+                strings: [withStr]
+            }
+
+            this.geomsrvc.fromGeoCoordinateString(params, dojoLang.hitch(this, this.geomSrvcDidComplete));
+            
+            /*switch (this.type) {
+            case 'DDM':
+                break;
+            case 'DD':
+                /*if (withStr.split(' ').length === 2) {
+                    latCrd = withStr.split(' ')[0];
+                    lonCrd = withStr.split(' ')[1];
+                } else if (withStr.split(',').length === 2) {
+                    latCrd = withStr.split(',')[0];
+                    lonCrd = withStr.split(',')[1];
+                } else {
+                    new JimuMessage({message: "Unable to parse input"});
+                    return;
+                }
+
+                if (this.util.isNumber(withStr[0]) && this.util.isNumber(withStr[1])) {
+                    newpt = new EsriPoint(lonCrd, latCrd, new EsriSpatialReference({wkid: 4326}));
+                    this.currentClickPoint = newpt;
+                    //this.mapWasClicked({mapPoint: newpt});
+                } else {
+                    new JimuMessage({message: "Unable to parse input"});
+                    return;
+                }
+
+                break;
+            case 'DMS':
+                break;
+            case 'USNG':
+            case 'MGRS':
+                /*try {
+                    usng.USNGtoLL(withStr, result);
+                    newpt = new EsriPoint(result[1], result[0], new EsriSpatialReference({wkid: 4326}));
+                    this.currentClickPoint = newpt;
+                } catch (e) {
+                    console.log(e);
+                }
+                break;
+            case 'GARS':
+
+                break;
+            case 'UTM':
+
+                break;
+            }*/
+        },
+
+        /**
+         *
+         **/
         zoomButtonWasClicked: function () {
             if (this.input) {
-                this.map.centerAndZoom(this.currentClickPoint, 19);
+                this.parent_widget.map.centerAndZoom(this.currentClickPoint, 19);
             }
         },
 
@@ -157,17 +276,13 @@ define([
         mapWasClicked: function (evt) {
 
             if (this.input) {
-                this.glayer.clear();
-                this.glayer.add(new EsriGraphic(evt.mapPoint));
+                this.parent_widget.coordGLayer.clear();
+                this.parent_widget.coordGLayer.add(new EsriGraphic(evt.mapPoint));
             }
 
             this.currentClickPoint = this.getDDPoint(evt.mapPoint);
 
             this.getFormattedCoordinates(this.currentClickPoint);
-
-            if (this.input) {
-                dojoTopic.publish("INPUTPOINTDIDCHANGE", this.currentClickPoint);
-            }
         },
 
         /**

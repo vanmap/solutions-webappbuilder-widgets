@@ -79,6 +79,7 @@ define([
             var cc = new CoordinateControl({
                 parent_widget: this,
                 input: false,
+                currentClickPoint: this.inputControl.currentClickPoint,
                 type: withType
             });
 
@@ -127,13 +128,13 @@ define([
          *
          **/
         startup: function () {
-            var v = new CoordinateControl({
+            this.inputControl = new CoordinateControl({
                 parent_widget: this,
                 input: true,
                 type: 'DD'
             });
-            v.placeAt(this.inputcoordcontainer);
-            v.startup();
+            this.inputControl.placeAt(this.inputcoordcontainer);
+            this.inputControl.startup();
 
             dojoArray.forEach(this.coordTypes, function (itm) {
                 this.addOutputSrBtn(itm);

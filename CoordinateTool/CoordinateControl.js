@@ -86,8 +86,8 @@ define([
 
             this.util = new Util({});
 
-            var geomsrvcurl = this.parent_widget.config.geometry_service.url || 
-                'http://sampleserver6.arcgisonline.com/arcgis/rest/services/Geometry/GeometryServer/fromGeoCoordinateString';
+            var geomsrvcurl = this.parent_widget.config.geometry_service.url ||
+                    'http://sampleserver6.arcgisonline.com/arcgis/rest/services/Geometry/GeometryServer/fromGeoCoordinateString';
 
             this.geomsrvc = new EsriGeometryService(geomsrvcurl);
 
@@ -102,7 +102,6 @@ define([
             this.own(dojoOn(this.zoomButton, 'click', dojoLang.hitch(this, this.zoomButtonWasClicked)));
 
             this.mapclickhandler = dojoOn.pausable(this.parent_widget.map, 'click', dojoLang.hitch(this, this.mapWasClicked));
-            
 
             this.own(this.typeSelect.on('change', dojoLang.hitch(this, this.typeSelectDidChange)));
 
@@ -112,6 +111,11 @@ define([
                 this.setHidden(this.removeControlBtn);
                 this.own(dojoOn(this.coordtext, 'keyup', dojoLang.hitch(this, this.coordTextInputKeyWasPressed)));
                 this.own(this.geomsrvc.on('error', dojoLang.hitch(this, this.geomSrvcDidFail)));
+
+                // add a default graphic during input widget initialization
+                var cPt = this.parent_widget.map.extent.getCenter();
+                this.parent_widget.coordGLayer.add(new EsriGraphic(cPt));
+                this.currentClickPoint = this.getDDPoint(cPt);
             }
 
             // hide any actions we don't need to see on the result coords
@@ -122,10 +126,7 @@ define([
             }
 
             // set an initial coord
-            if (!this.currentClickPoint) {
-                var cPt = this.parent_widget.map.extent.getCenter();
-                this.parent_widget.coordGLayer.add(new EsriGraphic(cPt));
-                this.currentClickPoint = this.getDDPoint(cPt);
+            if (this.currentClickPoint) {
                 this.getFormattedCoordinates(this.currentClickPoint);
             }
 
@@ -137,7 +138,7 @@ define([
          **/
         geomSrvcDidComplete: function (r) {
             if (r[0].length <= 0) {
-                new JimuMessage({message:"unable to parse coordinates"});
+                new JimuMessage({message: "unable to parse coordinates"});
                 return;
             }
 
@@ -152,7 +153,7 @@ define([
         /**
          *
          **/
-        geomSrvcDidFail: function (r) {
+        geomSrvcDidFail: function () {
             new JimuMessage({message: "Unable to parse input coordinates"});
         },
 
@@ -169,64 +170,13 @@ define([
          *
          **/
         processCoordTextInput: function (withStr) {
-
-            var latCrd;
-            var lonCrd;
-            var newpt;
-            var result = [0, 0];
-
             var params = {
                 sr: 4326,
                 conversionType: this.type,
                 strings: [withStr]
-            }
+            };
 
             this.geomsrvc.fromGeoCoordinateString(params, dojoLang.hitch(this, this.geomSrvcDidComplete));
-            
-            /*switch (this.type) {
-            case 'DDM':
-                break;
-            case 'DD':
-                /*if (withStr.split(' ').length === 2) {
-                    latCrd = withStr.split(' ')[0];
-                    lonCrd = withStr.split(' ')[1];
-                } else if (withStr.split(',').length === 2) {
-                    latCrd = withStr.split(',')[0];
-                    lonCrd = withStr.split(',')[1];
-                } else {
-                    new JimuMessage({message: "Unable to parse input"});
-                    return;
-                }
-
-                if (this.util.isNumber(withStr[0]) && this.util.isNumber(withStr[1])) {
-                    newpt = new EsriPoint(lonCrd, latCrd, new EsriSpatialReference({wkid: 4326}));
-                    this.currentClickPoint = newpt;
-                    //this.mapWasClicked({mapPoint: newpt});
-                } else {
-                    new JimuMessage({message: "Unable to parse input"});
-                    return;
-                }
-
-                break;
-            case 'DMS':
-                break;
-            case 'USNG':
-            case 'MGRS':
-                /*try {
-                    usng.USNGtoLL(withStr, result);
-                    newpt = new EsriPoint(result[1], result[0], new EsriSpatialReference({wkid: 4326}));
-                    this.currentClickPoint = newpt;
-                } catch (e) {
-                    console.log(e);
-                }
-                break;
-            case 'GARS':
-
-                break;
-            case 'UTM':
-
-                break;
-            }*/
         },
 
         /**
@@ -395,11 +345,9 @@ define([
                 break;
             }
 
-            //dojoHtml.set(this.coordtext, frmt);
-            //this.coordtext.set("innerHTML", frmt);
-            //this.coordtext.set('value', frmt);
-            dojoDomAttr.set(this.coordtext, 'value', frmt);
-            //this.coordtext.innerHTML = frmt;
+            if (this.coordtext) {
+                dojoDomAttr.set(this.coordtext, 'value', frmt);
+            }
         },
 
         /**

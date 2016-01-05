@@ -5,6 +5,7 @@ define([
     'dojo/topic',
     'dojo/_base/array',
     'dijit/_WidgetsInTemplateMixin',
+    'dijit/WidgetSet',
     'jimu/BaseWidget',
     'esri/layers/GraphicsLayer',
     'esri/tasks/GeometryService',
@@ -16,7 +17,8 @@ define([
     dojoLang,
     dojoTopic,
     dojoArray,
-    dojoWidgetsInTemplateMixin,
+    dijitWidgetsInTemplateMixin,
+    dijitWidgetSet,
     jimuBaseWidget,
     EsriGraphicsLayer,
     EsriGeometryService,
@@ -25,17 +27,14 @@ define([
     CoordinateControl
 ) {
     'use strict';
-    var clazz = dojoDeclare([jimuBaseWidget, dojoWidgetsInTemplateMixin], {
+    var cls = dojoDeclare([jimuBaseWidget, dijitWidgetsInTemplateMixin], {
         baseClass: 'jimu-widget-cw',
         name: 'CW',
-        coordinateControls: [],
-
+        outputControls: new dijitWidgetSet(),
         /**
          *
          **/
         postCreate: function () {
-            //this.inherited(arguments);
-
             this.geomService = new EsriGeometryService(this.appConfig.geometryService);
 
             //dojoTopic.subscribe("INPUTPOINTDIDCHANGE", dojoLang.hitch(this, this.getCoordValues));
@@ -85,6 +84,10 @@ define([
 
             cc.placeAt(this.outputtablecontainer);
             cc.startup();
+
+            this.outputControls.add(cc);
+
+            console.log(this.outputControls.length);
         },
 
         /**
@@ -189,5 +192,5 @@ define([
         }
     });
 
-    return clazz;
+    return cls;
 });

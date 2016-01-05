@@ -10,11 +10,15 @@ define([
     'dojo/topic',
     'dojo/number',
     'dojo/keys',
+    'dojo/dom',
+    'dojo/mouse',
     'dijit/_WidgetBase',
     'dijit/_TemplatedMixin',
     'dijit/_WidgetsInTemplateMixin',
     'dijit/form/TextBox',
     'dijit/form/Select',
+    'dijit/registry',
+    'dijit/Tooltip',
     'dojo/text!./CoordinateControl.html',
     'esri/geometry/webMercatorUtils',
     'esri/graphic',
@@ -36,11 +40,15 @@ define([
     dojoTopic,
     dojoNumber,
     dojoKeys,
+    dojoDom,
+    dojoMouse,
     dijitWidgetBase,
     dijitTemplatedMixin,
     dijitWidgetsInTemplate,
     dijitTextBox,
     dijitSelect,
+    dijitRegistry,
+    dijitTooltip,
     coordCntrl,
     esriWMUtils,
     EsriGraphic,
@@ -55,6 +63,7 @@ define([
     'use strict';
     return dojoDeclare([dijitWidgetBase, dijitTemplatedMixin, dijitWidgetsInTemplate], {
         templateString: coordCntrl,
+        baseClass: 'jimu-widget-cc',
         input: true,
         /**** type: 'dd', Available Types: DD, DDM, DMS, GARS, MGRS, USNG, UTM ****/
 
@@ -63,7 +72,7 @@ define([
          **/
         constructor: function (args) {
             dojoDeclare.safeMixin(this, args);
-            this.uid = args.id || dijit.registry.getUniqueId('cc') + "_crdtext";
+            this.uid = args.id || dijit.registry.getUniqueId('cc');
         },
 
         /**
@@ -101,38 +110,98 @@ define([
             this.own(dojoOn(this.addNewCoordinateNotationBtn, 'click', dojoLang.hitch(this, this.newCoordnateBtnWasClicked)));
             this.own(dojoOn(this.zoomButton, 'click', dojoLang.hitch(this, this.zoomButtonWasClicked)));
 
+            this.cpbtn.addEventListener('click', dojoLang.hitch(this, this.cpBtnWasClicked));
+            //this.own(dojoOn(this.cpbtn, 'click', dojoLang.hitch(this, this.cpBtnWasClicked)));
+
             this.mapclickhandler = dojoOn.pausable(this.parent_widget.map, 'click', dojoLang.hitch(this, this.mapWasClicked));
 
             this.own(this.typeSelect.on('change', dojoLang.hitch(this, this.typeSelectDidChange)));
 
             // hide any actions we don't want to see on the input coords
             if (this.input) {
+
                 this.setHidden(this.expandButton);
                 this.setHidden(this.removeControlBtn);
                 this.own(dojoOn(this.coordtext, 'keyup', dojoLang.hitch(this, this.coordTextInputKeyWasPressed)));
                 this.own(this.geomsrvc.on('error', dojoLang.hitch(this, this.geomSrvcDidFail)));
 
+                dojoDomClass.add(this.cpbtn, 'inputCopyBtn');
+                dojoDomAttr.set(this.cpbtn, 'title', 'Copy All');
+
                 // add a default graphic during input widget initialization
                 var cPt = this.parent_widget.map.extent.getCenter();
                 this.parent_widget.coordGLayer.add(new EsriGraphic(cPt));
                 this.currentClickPoint = this.getDDPoint(cPt);
-            }
-
-            // hide any actions we don't need to see on the result coords
-            if (!this.input) {
+            } else {
+                dojoDomClass.add(this.cpbtn, 'outputCopyBtn');
                 this.setHidden(this.addNewCoordinateNotationBtn);
                 this.setHidden(this.zoomButton);
-                this.coordtext.readOnly = true;
+                //this.coordtext.readOnly = true;
             }
 
             // set an initial coord
             if (this.currentClickPoint) {
                 this.getFormattedCoordinates(this.currentClickPoint);
             }
+        },
+      
+        /**
+         *
+         **/
+        cpBtnWasClicked: function (evt) {
+            evt.preventDefault();
+            var s = undefined;
+            var tv;
+            if (this.input) {
 
-            var cp = new Clipboard('.cpbtn');
+                var fw = dijitRegistry.filter(function (w) {
+                    return w.baseClass === 'jimu-widget-cc' && !w.input;
+                });
+
+                var w = fw.map(function (w) {
+                    return w.type + ":" + w.coordtext.value;
+                }).join(', ');
+
+                tv = this.coordtext.value;
+
+                this.coordtext.value = w;
+
+                this.coordtext.select();
+                
+                try {
+                    s = document.execCommand('copy');
+                } catch (err) {
+                    s = false;
+                }
+                
+                this.coordtext.value = tv;
+
+            } else {
+
+                this.coordtext.select();
+                try {
+                    s = document.execCommand('copy');
+                } catch (err) {
+                    s = false;
+                }
+            }
+
+            var t = s ? "Copy Succesful" : "Unable to Copy\n use ctrl+c as an alternative";
+            this.showToolTip(this.cpbtn.id, t);
         },
 
+        showToolTip: function (onId, withText) {
+
+            var n = dojoDom.byId(onId);
+            dijitTooltip.show(withText, n);
+            /*dijitTooltip.defaultPosition = 'below';
+            dojoOn.once(n, dojoMouse.leave, function () {
+                dijitTooltip.hide(n);
+            })*/
+            setTimeout(function () {
+                dijitTooltip.hide(n);
+            }, 1000);
+        },
         /**
          *
          **/

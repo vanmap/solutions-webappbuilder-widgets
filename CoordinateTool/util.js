@@ -1,17 +1,13 @@
 /*global define*/
 define([
-    'dojo/_base/declare'
+    'dojo/_base/declare',
+    'dojo/sniff'
 ], function (
-    dojoDeclare
+    dojoDeclare,
+    dojoSniff
 ) {
+    'use strict';
     return dojoDeclare(null, {
-        
-        /**
-         *
-         **/
-        constructor: function (args) {
-            
-        },
 
         /**
          *

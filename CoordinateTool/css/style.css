@@ -54,6 +54,8 @@
 
 .jimu-widget-cw .coordarea.expanded {
     height: 150px;
+    text-align:center;
+    margin-top: 10px;
 }
 
 .jimu-widget-cw .coordactions {

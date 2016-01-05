@@ -126,7 +126,7 @@ define([
                 this.own(this.geomsrvc.on('error', dojoLang.hitch(this, this.geomSrvcDidFail)));
 
                 dojoDomClass.add(this.cpbtn, 'inputCopyBtn');
-                dojoDomAttr.set(this.cpbtn, 'title', 'Copy All');
+                dojoDomAttr.set(this.cpbtn, 'title', 'Copy all output coordinates');
 
                 // add a default graphic during input widget initialization
                 var cPt = this.parent_widget.map.extent.getCenter();
@@ -399,7 +399,7 @@ define([
                 break;
             case 'UTM':
                 usng.LLtoUTM(this.currentClickPoint.y, this.currentClickPoint.x, utmcrds, utmzone);
-                frmt = dojoString.substitute("${z}${zd} ${utm1}m ${utm2}m", {
+                frmt = dojoString.substitute("${z}${zd} ${utm1} ${utm2}", {
                     z: utmcrds[2],
                     zd: usng.UTMLetterDesignator(this.currentClickPoint.y),
                     utm1: dojoNumber.format(utmcrds[0], {

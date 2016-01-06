@@ -159,7 +159,7 @@ define([
                 });
 
                 var w = fw.map(function (w) {
-                    return w.type + ":" + w.coordtext.value;
+                    return w.coordtext.value;
                 }).join(', ');
 
                 tv = this.coordtext.value;
@@ -389,10 +389,10 @@ define([
                 });
                 break;
             case 'USNG':
-                frmt = usng.LLtoUSNG(this.currentClickPoint.y, this.currentClickPoint.x, 4);
+                frmt = usng.LLtoUSNG(this.currentClickPoint.y, this.currentClickPoint.x, 5);
                 break;
             case 'MGRS':
-                frmt = usng.LLtoMGRS(this.currentClickPoint.y, this.currentClickPoint.x, 4);
+                frmt = usng.LLtoMGRS(this.currentClickPoint.y, this.currentClickPoint.x, 5);
                 break;
             case 'GARS':
                 frmt = gars.LLtoGARS(this.currentClickPoint.y, this.currentClickPoint.x);

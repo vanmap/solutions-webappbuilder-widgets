@@ -136,7 +136,7 @@ define([
                 dojoDomClass.add(this.cpbtn, 'outputCopyBtn');
                 this.setHidden(this.addNewCoordinateNotationBtn);
                 this.setHidden(this.zoomButton);
-                //this.coordtext.readOnly = true;
+                this.coordtext.readOnly = true;
             }
 
             // set an initial coord
@@ -160,7 +160,7 @@ define([
 
                 var w = fw.map(function (w) {
                     return w.coordtext.value;
-                }).join(', ');
+                }).join('\r\n');
 
                 tv = this.coordtext.value;
 

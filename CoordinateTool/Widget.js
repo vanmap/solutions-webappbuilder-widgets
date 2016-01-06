@@ -42,6 +42,10 @@ define([
             dojoTopic.subscribe("ADDNEWNOTATION", dojoLang.hitch(this, this.addOutputSrBtn));
 
             this.coordTypes = ['DD', 'DDM', 'DMS', 'GARS', 'MGRS', 'USNG', 'UTM'];
+            if (this.config.initial_coords && this.config.initial_coords.length > 0){
+                this.coordTypes = this.config.initial_coords;
+            }
+            
 
             // Create graphics layer
             if (!this.coordGLayer) {

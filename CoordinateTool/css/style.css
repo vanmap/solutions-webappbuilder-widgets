@@ -1,5 +1,23 @@
 .jimu-widget-cw {
+    
+}
 
+.jimu-widget-cw textarea {
+    font-family: 'Arial';
+    font-size: 14px;
+    resize: none;
+    overflow: hidden;
+    width: 255px;
+    height: 30px;
+    background: #FFFFFF;
+    border: 1px solid #d9d9d9;
+    color: #000000;
+    padding: 5px;
+    margin: 0;
+}
+
+.jimu-widget-cw textarea:active {
+    border: 1px solid #15a4fa;
 }
 
 .jimu-widget-cw .inputcontainer {
@@ -46,25 +64,6 @@
     margin-top:14px;
 }
 
-.jimu-widget-cw .ta {
-    resize: none;
-    overflow: hidden;
-    width: 255px;
-    height: 30px;
-    background: white;
-    border: 1px solid #d2dae2;
-    color: #686868;
-    padding: 5px;
-    margin: 0;
-    border-radius: 2px;
-    font-size: 16px;
-}
-
-.jimu-widget-cw .ta:focus{
-    color: #686868;
-    outline: none;
-    box-shadow: 0px 0px 5px 0px rgba(81, 177, 254, 0.4);v
-}
 
 
 .jimu-widget-cw .crds {
@@ -86,17 +85,13 @@
 .jimu-widget-cw .add-with-icon {
     display: inline-block;
     height: 32px;
+    color: #838383;
 }
 
 .jimu-widget-cw .add-with-icon > span {
     float: none;
     margin-top: 6px;
     line-height: 32px;
-}
-
-.jimu-widget-cw .add-with-icon > input {
-    width: 255px;
-    color: #538EC8
 }
 
 .jimu-widget-cw .add-output {

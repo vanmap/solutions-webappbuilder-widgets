@@ -58,19 +58,6 @@ Esri welcomes contributions from anyone and everyone. Please see our [guidelines
 If you are using [JS Hint](http://http://www.jshint.com/) there is a .jshintrc file included in the root folder which enforces this style.
 We allow for 120 characters per line instead of the highly restrictive 80.
 
-### Repository Points of Contact
-
-#### Repository Owner: [Joe](https://github.com/jmccausland)
-
-* Merge Pull Requests
-* Creates Releases and Tags
-* Manages Milestones
-* Manages and Assigns Issues
-
-#### Secondary: TBD
-
-* Backup when the Owner is away
-
 ## Licensing
 
 Copyright 2015 Esri

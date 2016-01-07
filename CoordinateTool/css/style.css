@@ -94,6 +94,10 @@
     line-height: 32px;
 }
 
+.jimu-widget-cw .add-with-icon .zoomButton {
+    text-decoration: underline;
+}
+
 .jimu-widget-cw .add-output {
     margin-bottom: 7px;
     cursor: pointer;

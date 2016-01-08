@@ -18,7 +18,6 @@ define([
     'dijit/form/TextBox',
     'dijit/form/Select',
     'dijit/registry',
-    'dijit/WidgetSet',
     'dijit/Tooltip',
     'dojo/text!./CoordinateControl.html',
     'esri/geometry/webMercatorUtils',
@@ -49,7 +48,6 @@ define([
     dijitTextBox,
     dijitSelect,
     dijitRegistry,
-    dijitWidgetSet,
     dijitTooltip,
     coordCntrl,
     esriWMUtils,
@@ -156,7 +154,7 @@ define([
             var tv;
             if (this.input) {
 
-                var fw = dijitRegistry.filter(function (w) {
+                var fw = dijitRegistry.toArray().filter(function (w) {
                     return w.baseClass === 'jimu-widget-cc' && !w.input;
                 });
 
@@ -176,7 +174,7 @@ define([
                 } catch (err) {
                     s = false;
                 }
-                
+
                 this.coordtext.value = tv;
                 
 

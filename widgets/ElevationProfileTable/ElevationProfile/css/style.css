@@ -33,6 +33,10 @@
     border: solid 2px #CD853F !important;
 }
 
+.esriMeasurement .esriMeasurementResultValue .result {
+    display: none;
+}
+
 .elevationsProfileToolbar {
     position: absolute;
     float: right;

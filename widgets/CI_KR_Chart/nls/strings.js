@@ -12,7 +12,8 @@ define({
     ellipse: "Draw Ellipse",
     polygon: "Draw Polygon",
     freehand: "Draw Freehand Polygon",
-    clear:"Clear"
+    clear:"Clear",
+    info: "Please use tools to display information"
   },
   "ar": false,
   "cs": false,

@@ -21,7 +21,8 @@ This is an Esri Prototype Widget for [Web AppBuilder for ArcGIS][wabdev] that ca
 
 ## Requirements
 
-* [ArcGIS Web Appbuilder for ArcGIS (Developer Edition)](wabdev)
+* Web Appbuilder Version 1.3 December 2015
+* [ArcGIS Web Appbuilder for ArcGIS (Developer Edition)](https://developers.arcgis.com/web-appbuilder/)
 
 ## Instructions
 Deploying Widget
@@ -30,7 +31,7 @@ Setting Up Repository for Development
 In order to develop and test widgets you need to deploy the CoordinateTool folder to the stemapp/widgets directory in your Web AppBuilder for ArcGIS installation. If you use Github for windows this can be accomplished using the following steps.
 
 1. Sync the repository to your local machine.
-2. Close Open the Repository in Windows Explorer
+2. Open the Repository in Windows Explorer
 3. Close Github for Windows
 4. Cut and paste the entire CoordinateTool folder into the stemapp/widgets folder
 5. Launch Github for Windows and choose the option to locate the repository. This will change the location on disk to the new location.
@@ -49,7 +50,7 @@ In order to develop and test widgets you need to deploy the CoordinateTool folde
 
 ## Issues
 
-Find a bug or want to request a new feature?  Please let us know by submitting an [issue](https://github.com/ArcGIS/coordinate-tool-addin-dotnet/issues).
+Find a bug or want to request a new feature?  Please let us know by submitting an [issue](https://github.com/Esri/solutions-webappbuilder-widgets/issues).
 
 ## Contributing
 
@@ -77,7 +78,5 @@ limitations under the License.
 A copy of the license is available in the repository's [license.txt](license.txt) file.
 
 [ss]: images/screenshot.png
-[wab]: http://doc.arcgis.com/en/web-appbuilder/
-[wabdev]: https://developers.arcgis.com/web-appbuilder/
 [](Esri Tags: Military Analyst Defense ArcGIS Widget Web AppBuilder ArcGISSolutions)
 [](Esri Language: Javascript) 

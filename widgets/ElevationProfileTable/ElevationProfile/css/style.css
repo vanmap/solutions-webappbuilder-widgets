@@ -13,6 +13,7 @@
 .esriMeasurement{
   position: absolute;
   right: 280px;
+  top:-4px;
 }
 .esriRTL .esriMeasurement{
   position: absolute;

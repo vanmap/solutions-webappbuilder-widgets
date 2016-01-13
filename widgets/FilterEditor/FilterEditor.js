@@ -105,23 +105,22 @@ define([
         if (val !== "") {
           if (val === "All") {
             this.searchTemplatePicker.attr("featureLayers", this.flList);
-
             if (this.filterTextBox.value === "") {
               this.searchTemplatePicker.attr("grouping", true);
             }
             else {
               this.searchTemplatePicker.attr("grouping", false);
             }
-
             this.searchTemplatePicker.update();
-
-            return;
+          } else {
+            var flVal = this.selectDropDown.value;
+            var layer = new FeatureLayer(flVal);
+            layer.on("Load", lang.hitch(this, function (evt) {
+              this.searchTemplatePicker.attr("featureLayers", [layer]);
+              this.searchTemplatePicker.update();
+            }));
+            this.searchTemplatePicker.attr("grouping", false);
           }
-          var flVal = this.selectDropDown.value;
-          var layer = new FeatureLayer(flVal);
-          this.searchTemplatePicker.attr("featureLayers", [layer]);
-          this.searchTemplatePicker.attr("grouping", false);
-          this.searchTemplatePicker.update();
         }
       },
 

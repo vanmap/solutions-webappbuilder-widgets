@@ -10,7 +10,7 @@
     "layerInfos": [
       {
         "featureLayer": {
-          "id": "Wildfire_6761"
+          "id": "Wildfire_120"
         },
         "disableGeometryUpdate": false,
         "fieldInfos": [
@@ -28,7 +28,7 @@
       },
       {
         "featureLayer": {
-          "id": "Wildfire_4759"
+          "id": "Wildfire_4529"
         },
         "disableGeometryUpdate": false,
         "fieldInfos": [

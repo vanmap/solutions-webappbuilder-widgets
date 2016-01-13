@@ -7,7 +7,7 @@
   "portalUrl": "http://cltdefense.maps.arcgis.com",
   "appId": "",
   "authorizedCrossOriginDomains": [],
-  "title": "Filter Editor",
+  "title": "Minute Man Viewer",
   "subtitle": "with Web AppBuilder for ArcGIS",
   "logo": "images/app-logo.png",
   "geometryService": "http://utility.arcgisonline.com/arcgis/rest/services/Geometry/GeometryServer",
@@ -148,13 +148,27 @@
       },
       {
         "uri": "widgets/AttributeTable/Widget",
+        "positionRelativeTo": "browser",
+        "version": "1.1",
+        "id": "widgets/AttributeTable/Widget_13",
         "position": {
-          "relativeTo": "browser"
+          "left": 0,
+          "top": 0
         },
-        "version": "1.4",
-        "id": "widgets_AttributeTable_Widget_13",
         "name": "AttributeTable",
         "label": "Attribute Table"
+      },
+      {
+        "uri": "widgets/ElevationProfileTable/Widget",
+        "positionRelativeTo": "browser",
+        "version": "1.1",
+        "id": "widgets/ElevationProfileTable/Widget_14",
+        "position": {
+          "left": 0,
+          "top": 0
+        },
+        "name": "ElevationProfileTable",
+        "label": "Elevation Profile Table"
       },
       {
         "uri": "widgets/Splash/Widget",
@@ -196,7 +210,7 @@
       "right": 0,
       "bottom": 0
     },
-    "itemId": "411cad3c32f9492986092edddec48a44",
+    "itemId": "5a8d0eb2a94143e8ae11669dfd4cb711",
     "mapOptions": {
       "extent": {
         "xmin": -9028461.913843764,
@@ -245,8 +259,44 @@
         "version": "1.4",
         "uri": "widgets/FilterEditor/Widget",
         "config": "widgets/FilterEditor/config.json",
-        "index": 5,
+        "index": 4,
         "id": "widgets_FilterEditor_Widget_18"
+      },
+      {
+        "name": "BombThreat",
+        "label": "Bomb Threat",
+        "version": "1.4",
+        "uri": "widgets/BombThreat/Widget",
+        "config": "widgets/BombThreat/config.json",
+        "index": 5,
+        "id": "widgets_BombThreat_Widget_19"
+      },
+      {
+        "name": "ERG",
+        "label": "ERG",
+        "version": "1.4",
+        "uri": "widgets/ERG/Widget",
+        "config": "widgets/ERG/config.json",
+        "index": 6,
+        "id": "widgets_ERG_Widget_20"
+      },
+      {
+        "name": "CIKR",
+        "label": "CI/KR",
+        "version": "1.4",
+        "uri": "widgets/CI_KR_Chart/Widget",
+        "config": "widgets/CI_KR_Chart/config.json",
+        "index": 7,
+        "id": "widgets_CIKR_Widget_21"
+      },
+      {
+        "name": "Bookmark",
+        "label": "Bookmark",
+        "version": "1.4",
+        "uri": "widgets/Bookmark/Widget",
+        "config": "widgets/Bookmark/config.json",
+        "index": 7,
+        "id": "widgets_Bookmark_Widget_22"
       }
     ],
     "groups": []

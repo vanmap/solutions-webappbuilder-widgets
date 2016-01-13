@@ -22,7 +22,7 @@ This is an Esri Prototype Widget for [Web AppBuilder for ArcGIS][wabdev] that ca
 ## Requirements
 
 * Web Appbuilder Version 1.3 December 2015
-* [ArcGIS Web Appbuilder for ArcGIS]((https://developers.arcgis.com/web-appbuilder/)
+* [ArcGIS Web Appbuilder for ArcGIS](https://developers.arcgis.com/web-appbuilder/)
 
 ## Instructions
 Deploying Widget

@@ -422,12 +422,12 @@ define([
                     z: utmcrds[2],
                     zd: usng.UTMLetterDesignator(this.currentClickPoint.y),
                     utm1: dojoNumber.format(utmcrds[0], {
-                        places: 2,
-                        pattern: '##000000.####'
+                        places: 0,
+                        pattern: '##000000'
                     }),
                     utm2: dojoNumber.format(utmcrds[1], {
-                        places: 2,
-                        pattern: '##000000.####'
+                        places: 0,
+                        pattern: '##000000'
                     })
                 });
                 break;

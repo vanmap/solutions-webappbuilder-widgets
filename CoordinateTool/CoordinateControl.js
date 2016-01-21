@@ -121,8 +121,10 @@ define([
             if (this.input) {
 
                 this.setHidden(this.expandButton);
+                this.setHidden(this.typeSelect.domNode);
                 this.setHidden(this.removeControlBtn);
                 this.own(dojoOn(this.coordtext, 'keyup', dojoLang.hitch(this, this.coordTextInputKeyWasPressed)));
+                //this.own(dojoOn(this.coordtext, 'blur', dojoLang.hitch(this, this.coordTextInputLostFocus)));
                 this.own(this.geomsrvc.on('error', dojoLang.hitch(this, this.geomSrvcDidFail)));
 
                 dojoDomClass.add(this.cpbtn, 'inputCopyBtn');
@@ -189,6 +191,7 @@ define([
             }
 
             var t = s ? "Copy Succesful" : "Unable to Copy\n use ctrl+c as an alternative";
+
             this.showToolTip(this.cpbtn.id, t);
         },
 
@@ -204,6 +207,7 @@ define([
                 dijitTooltip.hide(n);
             }, 1000);
         },
+
         /**
          *
          **/
@@ -231,9 +235,22 @@ define([
         /**
          *
          **/
+        coordTextInputLostFocus: function (evt) {
+            
+        },
+
+        /**
+         *
+         **/
         coordTextInputKeyWasPressed: function (evt) {
             if (evt.keyCode === dojoKeys.ENTER) {
-                this.processCoordTextInput(evt.currentTarget.value);
+                var newType = this.util.getCoordinateType(evt.currentTarget.value);
+                if (newType) {
+                    this.type = newType;
+                    this.processCoordTextInput(evt.currentTarget.value.trim());
+                } else {
+                    new JimuMessage({message: "Unable to determine input coordinate type"});
+                }
             }
         },
 

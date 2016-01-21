@@ -501,7 +501,7 @@ define([
             /*return (decDir === 'LAT') ? deg + "&deg;" + min_string + "&prime;" + sec_string + "&Prime;" + dir :
                 deg + "&deg;" + min_string + "&prime;" + sec_string + "&Prime;" + dir;*/
 
-            return dojoString.substitute("${d}° ${m}' ${s}''${dr}", {
+            return dojoString.substitute('${d}° ${m}\' ${s}\" ${dr}', {
                 d: deg,
                 m: min_string,
                 s: sec_string,

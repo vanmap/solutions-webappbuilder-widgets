@@ -1,6 +1,6 @@
 # Coordinate-Tool-Widget
 
-The Coordinate Tool  is an Esri Prototype Widget for [Web AppBuilder for ArcGIS][wabdev].The Coordinate Tool allows analysts to input coordinates, quickly converting them between several common formats including Universal Transverse Mercator (UTM) and Military Grid Reference System (MGRS). 
+The Coordinate Tool is an Esri Prototype Widget for [Web AppBuilder for ArcGIS](http://doc.arcgis.com/en/web-appbuilder/).The Coordinate Tool allows analysts to input coordinates, quickly converting them between several common formats including Universal Transverse Mercator (UTM) and Military Grid Reference System (MGRS). 
 
 ![Image of Coordinate Tool Widget][ss] 
 
@@ -22,7 +22,7 @@ The Coordinate Tool  is an Esri Prototype Widget for [Web AppBuilder for ArcGIS]
 ## Requirements
 
 * Web Appbuilder Version 1.3 December 2015
-* [ArcGIS Web Appbuilder for ArcGIS](https://developers.arcgis.com/web-appbuilder/)
+* [ArcGIS Web Appbuilder for ArcGIS](http://developers.arcgis.com/web-appbuilder/)
 
 ## Instructions
 Deploying Widget

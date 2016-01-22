@@ -1,4 +1,9 @@
-﻿define({
-
-    title: "بيت_Select template to create feature_لاحقة"
-});
+﻿define(
+   ({
+    _widgetLabel: "تحرير",
+    title: "تحديد قالب لإنشاء المعالم",
+    pressStr: "اضغط ",
+    ctrlStr: " CTRL ",
+    snapStr: " لتمكين الالتقاط"
+  })
+);

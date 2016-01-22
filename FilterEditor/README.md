@@ -21,10 +21,11 @@ of the feature layers.
 * Each feature service is displayed in a drop down list
 
 ## Requirements
-* ArcGIS WebApp Builder v.1.2
+* This widget is compatible with ArcGIS WebApp Builder versions 1.1, 1.2 and 1.3.
 
 ## Instructions
-In order to develop and test widgets, you need to deploy the Filter Editor widget directory into the stemapp/widgets directory in your WebApp Builder installation.
+In order to develop and test widgets, you need to deploy the Filter Editor widget directory into the stemapp/widgets
+directory in your WebApp Builder installation.
 
 ## Issues
 

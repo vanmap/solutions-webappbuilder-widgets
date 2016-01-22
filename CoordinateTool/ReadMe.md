@@ -1,14 +1,14 @@
 # Coordinate-Tool-Widget
 
-This is an Esri Prototype Widget for [Web AppBuilder for ArcGIS][wabdev] that can be used for converting coordinates.
+The Coordinate Tool  is an Esri Prototype Widget for [Web AppBuilder for ArcGIS][wabdev].The Coordinate Tool allows analysts to input coordinates, quickly converting them between several common formats including Universal Transverse Mercator (UTM) and Military Grid Reference System (MGRS). 
 
 ![Image of Coordinate Tool Widget][ss] 
 
 ## Features
 
-* Parses WGS1984 input coordinates and outputs multiple formats of the input coordinate
-* Widget
-    * Works with DD, DDM, DMS, GARS, MGRS, USNG and UTM
+* Parses WGS1984 input coordinates and outputs multiple formats of the input coordinate works with
+
+    * DD, DDM, DMS, GARS, MGRS, USNG and UTM
 
 ## Sections
 

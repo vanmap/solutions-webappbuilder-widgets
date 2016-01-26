@@ -26,7 +26,7 @@
     lblBlockLocation: "Block Feature",
     lblInputLocHeader: "Input Locations (0)",
     lblBlockLocHeader: "Block Locations (0)",
-    atLeastOneInputLoc: "Atleast one Input Location is required",
+    atLeastOneInputLoc: "At least one Input Location is required.",
     inputTabTitle: "Input",
     outputTabTitle: "Output"
   })

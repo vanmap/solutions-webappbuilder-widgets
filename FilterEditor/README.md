@@ -1,8 +1,8 @@
 # Filter Editor
-Similar to the Edit widget, the Filter Editor widget allows users to edit multiple feature layer services. 
-This widget displays each feature layer in a drop down list which provides easier access and readability.  
+Similar to the Edit widget, the Filter Editor widget allows users to edit multiple feature layer services.
+This widget displays each feature layer in a drop down list which provides easier access and readability.
 The ability to filter templates has also been added.  The filtering is done based on the selected feature layer
-in the drop down list.  If 'All' is selected, the TemplatePicker will display the filtered templates for all 
+in the drop down list.  If 'All' is selected, the TemplatePicker will display the filtered templates for all
 of the feature layers.
 
 ## Sections
@@ -57,5 +57,5 @@ limitations under the License.
 A copy of the license is available in the repository's
 [license.txt](license.txt) file.
 
-[](Esri Tags: ArcGIS Defense and Intelligence Military Environment Planning Analysis Emergency Management Local-Government Local Government State-Government State Government Utilities)
+[](Esri Tags: ArcGISSolutions ArcGIS Defense and Intelligence Military Environment Planning Analysis Emergency Management Local-Government Local Government State-Government State Government Utilities)
 [](Esri Language: Javascript)

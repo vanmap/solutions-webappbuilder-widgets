@@ -29,7 +29,7 @@ In order to develop and test widgets you need to deploy the Elevation Profile wi
 
 1. Copy the Elevation Profile Table widget directory to <Web App Builder location>/client/stemapp/widgets
 2. Open <Web App Builder location>/client/stemapp/config.json and add an entry for the Elevation Profile Table widget:
-``` 
+```
     {
         "uri": "widgets/ElevationProfileTable/Widget",
         "positionRelativeTo": "browser"
@@ -51,7 +51,7 @@ In order to develop and test widgets you need to deploy the Elevation Profile wi
     	"version": "1.2"
     }
 ```
-The [LOS toolbox](https://github.com/Esri/solutions-webappbuilder-widgets/blob/master/ElevationProfileTable/scripts/LOS.tbx) and [los.py](https://github.com/Esri/solutions-webappbuilder-widgets/blob/master/ElevationProfileTable/scripts/los.py) script should be used as a general guide during the creation of line-of-sight Geoprocessing service. Please make the necessary changes to the script in order to consume your own Digital Elevation Model (DEM) (please look at line 8 of the [los.py](https://github.com/Esri/solutions-webappbuilder-widgets/blob/master/ElevationProfileTable/scripts/los.py) script). 
+The [LOS toolbox](https://github.com/Esri/solutions-webappbuilder-widgets/blob/master/ElevationProfileTable/scripts/LOS.tbx) and [los.py](https://github.com/Esri/solutions-webappbuilder-widgets/blob/master/ElevationProfileTable/scripts/los.py) script should be used as a general guide during the creation of line-of-sight Geoprocessing service. Please make the necessary changes to the script in order to consume your own Digital Elevation Model (DEM) (please look at line 8 of the [los.py](https://github.com/Esri/solutions-webappbuilder-widgets/blob/master/ElevationProfileTable/scripts/los.py) script).
 
 NOTE: If you intend to select features (instead of digitizing your line), ensure that the web map has pop-ups enabled. This will allow for features to be selected.
 
@@ -85,5 +85,5 @@ limitations under the License.
 A copy of the license is available in the repository's
 [license.txt](license.txt) file.
 
-[](Esri Tags: ArcGIS Defense and Intelligence Military Environment Planning Analysis Emergency Management Local-Government Local Government State-Government State Government Utilities)
+[](Esri Tags: ArcGISSolutions ArcGIS Defense and Intelligence Military Environment Planning Analysis Emergency Management Local-Government Local Government State-Government State Government Utilities)
 [](Esri Language: Javascript)

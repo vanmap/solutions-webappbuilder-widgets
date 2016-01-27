@@ -106,7 +106,7 @@
       displayTextForButtonError: "Display text for 'Run' button cannot be blank.",
       BufferDisatanceOverview: "Buffer distance should not be blank or 0 or less than 0.",
       UnableToLoadGeoprocessError: "Unable to load geoprocessing service.",
-      invalidSummaryExpression: "Invalid expression",
+      invalidSummaryExpression: "Invalid expression.",
       validSummaryExpression: "Success !"
     },
     // Hint text
@@ -114,9 +114,9 @@
       inputTypeHint: "Hint: Select the type/purpose of this input parameter.",
       labelTextHint: "Hint: Provide display label for result panel of output parameter.",
       skippableHint: "Hint: Enable/disable skip functionality for this output parameter.",
-      skippableFieldHint: "Hint: Select unique ID Field for skip functionality, do not use the OBJECTID.",
-      summaryTextHint: "Hint: This will be displayed in the summary panel for this output parameter. Optionally you can include the following fields:",
-      displayTextHint: "Hint: This will be displayed in the details panel for this output parameter. Optionally you can include the following fields:",
+      skippableFieldHint: "Hint: Select Unique ID field for skip functionality, do not use the OBJECTID.",
+      summaryTextHint: "Hint: This will be displayed in the summary panel for this output parameter. Optionally, you can include the following fields:",
+      displayTextHint: "Hint: This will be displayed in the details panel for this output parameter. Optionally, you can include the following fields:",
       exportToCSVHint: "Hint: Enable/disable export to CSV functionality for this output parameter.",
       saveToLayerHint: "Hint: Enable/disable save to layer functionality for this output parameter.",
       outputLayerType: "Hint: Select feature layer in which results for this output parameter would be saved.",
@@ -127,8 +127,8 @@
       imageHeightHintText: "Hint: Specify numeric value for image height.",
       imageWidthHintText: "Hint: Specify numeric value for image width.",
       selectImageHintText: "Hint: Please click on the image to select any other highlighter image.",
-      inputTextHint: "Hint:Build your expression above by selectig input,output and fieldnames",
-      expressionHint: "Hint: Select items and click add to build expression"
+      inputTextHint: "Hint: Build your expression above by selecting input, output, and field names.",
+      expressionHint: "Hint: Select items and click add to build expression."
     },
     // Symbol chooser
     symbolSelecter: {

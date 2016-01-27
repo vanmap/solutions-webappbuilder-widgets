@@ -16,7 +16,7 @@ The Widget Repository currently includes:
 
 * [Batch Attribute Editor](./BatchAttributeEditor/README.md) | WAB 1.2 | 1.0
 * [Bomb Threat Tool](./BombThreat/README.md) | WAB 1.2 | 1.0
-* [Coordinate Tool](./CoordinateTool/ReadMe.md) | WAB 1.2 
+* [Coordinate Tool](./CoordinateTool/ReadMe.md) | WAB 1.2
 * [Filter Editor](./FilterEditor/README.md) | WAB 1.2 | 1.0
 * [Critical Infrastructure and Key Resources](./CI_KR_Chart/README.md) | WAB 1.2 | 1.0
 * [Elevation Profile Widget](./ElevationProfileTable/README.md) | WAB 1.2 | 1.0
@@ -54,10 +54,10 @@ Please see our [guidelines for contributing](http://github.com/Esri/solutions-we
 ## Branching and Releases
 
 #### Branches ####
-New widgets and development should always be created in a separate branch from master. One or more widgets can be contained in a branch. A widget should only be merged with the Master branch if it has been tested is ready to be used with the current released version of Web App Builder and ready for release. 
+New widgets and development should always be created in a separate branch from master. One or more widgets can be contained in a branch. A widget should only be merged with the Master branch if it has been tested is ready to be used with the current released version of Web App Builder and ready for release.
 #### Releases ####
 Releases are created for the following reasons:
-- A new version of Web App Builder has been released. 
+- A new version of Web App Builder has been released.
 - A widget (or set of widgets) has been released or updated on the solutions website
 
 
@@ -80,5 +80,5 @@ limitations under the License.
 A copy of the license is available in the repository's
 [license.txt](license.txt) file.
 
-[](Esri Tags: ArcGISSolutions ArcGIS Defense and Intelligence Military Environment Planning Analysis Emergency Management Local-Government Local Government State-Government State Government Utilities ArcGISSolutions)
+[](Esri Tags: ArcGISSolutions ArcGIS Defense and Intelligence Military Environment Planning Analysis Emergency Management Local-Government Local Government State-Government State Government Utilities)
 [](Esri Language: Javascript)

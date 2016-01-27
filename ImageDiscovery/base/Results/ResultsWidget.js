@@ -441,6 +441,7 @@ define([
                     cloudCoverDecimalValue = 0;
                 }
                 if (this.resultFilter) {
+                    featureFilterParameters.selectedServices = this.resultFilter.getSelectedServices();
                     dateRange = this.resultFilter.getDateRange();
                     if (dateRange) {
                         if (dateRange.start) {

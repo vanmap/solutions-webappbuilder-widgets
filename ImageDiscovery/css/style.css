@@ -1,4 +1,11 @@
 @charset "UTF-8";
+.serviceFilterEntryContainer {
+  margin: 5px 0;
+  color: gray; }
+.serviceFilterEntryContainer input {
+  vertical-align: middle;
+  margin-right: 5px; }
+
 .imageDiscoveryCartCheckoutWidget {
   -webkit-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
   -moz-box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);

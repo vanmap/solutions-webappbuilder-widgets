@@ -536,7 +536,7 @@ define([
                 this['cc_' + cntrlid + 'sub2val'].value = frmt.match(/[a-zA-Z]{2}/);
                 var q = frmt.match(/\d*$/);
                 this['cc_' + cntrlid + 'sub3val'].value = q[0][0];
-                this['cc_' + cntrlid + 'sub4sval'].value = q[0][1];
+                this['cc_' + cntrlid + 'sub4val'].value = q[0][1];
                 break;
             case 'UTM':
                 usng.LLtoUTM(this.currentClickPoint.y, this.currentClickPoint.x, utmcrds, utmzone);

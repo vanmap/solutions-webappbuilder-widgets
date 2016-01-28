@@ -41,25 +41,45 @@
     </div>
     
     <div data-dojo-attach-point='coordcontrols' class='coordarea'>
-        <div class='coordformat'>
+        <div data-dojo-attach-point='sub1' class='coordformat'>
             <div class='crdfrmtlabel'>
-                <span>label 1</span>
+                <span data-dojo-attach-point='sub1label'>label 1</span>
             </div>
-            <div class='jimu-input crds'></div>
+            <input data-dojo-attach-point='${uid}sub1val' class='jimu-input crds'></input>
+            <div class='add-with-icon'>
+                <span id='${uid}sub1val~cpbtn' title='Copy to clipboard' data-dojo-attach-point= 'sub1val_cpbtn' class='jimu-icon cpbtn'></span>
+            </div>
         </div>
-        <div class='coordformat'>
+        <div data-dojo-attach-point='sub2' class='coordformat'>
             <div class='crdfrmtlabel'>
-                <span>label 2</span>
+                <span data-dojo-attach-point='sub2label'>label 2</span>
             </div>
-            <div class='jimu-input crds'></div>
+            <input data-dojo-attach-point='${uid}sub2val' class='jimu-input crds'></input>
+             <div class='add-with-icon'>
+                <span id='${uid}sub2val~cpbtn' title='Copy to clipboard' data-dojo-attach-point= 'sub2val_cpbtn' class='jimu-icon cpbtn'></span>
+            </div>
         </div>
-        <div class='coordformat'>
-            <div class='crdfrmtlabel'>label 3</div>
-            <div class='jimu-input crds'></div>
+        <div data-dojo-attach-point='sub3' class='coordformat sub3'>
+            <div class='crdfrmtlabel'>
+                 <span data-dojo-attach-point='sub3label'>label 1</span>
+            </div>
+            <input data-dojo-attach-point='${uid}sub3val' class='jimu-input crds'>
+                
+            </input>
+             <div class='add-with-icon'>
+                <span id='${uid}sub3val~cpbtn' title='Copy to clipboard' data-dojo-attach-point= 'sub3val_cpbtn' class='jimu-icon cpbtn'></span>
+            </div>
         </div>
-        <div class='coordformat'>
-            <div class='crdfrmtlabel'>label 4</div>
-            <div class='jimu-input crds'></div>
+        <div data-dojo-attach-point='sub4' class='coordformat sub4'>
+            <div class='crdfrmtlabel'>
+                <span data-dojo-attach-point='sub4label'>label 1</span>
+            </div>
+            <input data-dojo-attach-point='${uid}sub4val' class='jimu-input crds'>
+                
+            </input>
+             <div class='add-with-icon'>
+                <span id='${uid}sub4val~cpbtn' title='Copy to clipboard' data-dojo-attach-point= 'sub4val_cpbtn' class='jimu-icon cpbtn'></span>
+            </div>
         </div>
     </div>
 </div>

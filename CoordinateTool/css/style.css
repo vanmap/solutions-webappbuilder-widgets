@@ -61,7 +61,20 @@
     height: 16px;
     font-size: 14px;
     color: #86909c;
-    margin-top:14px;
+    /*margin-top:14px;*/
+    margin-right: 4px;
+    width: 100px;
+    text-align: right;
+}
+
+.jimu-widget-cw .coordfrmt {
+    width:50%;
+}
+
+.jimu-widget-cw .coordformat {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: 4px;
 }
 
 
@@ -69,12 +82,12 @@
 .jimu-widget-cw .crds {
     display: inline-block;
     width: 150px;
+    margin-right: 4px;
 }
 
 
 .jimu-widget-cw .coordarea.expanded {
     height: 150px;
-    text-align:center;
     margin-top: 10px;
 }
 

@@ -12,6 +12,7 @@ define([
     'dojo/keys',
     'dojo/dom',
     'dojo/mouse',
+    'dojo/query',
     'dijit/_WidgetBase',
     'dijit/_TemplatedMixin',
     'dijit/_WidgetsInTemplateMixin',
@@ -42,6 +43,7 @@ define([
     dojoKeys,
     dojoDom,
     dojoMouse,
+    dojoQuery,
     dijitWidgetBase,
     dijitTemplatedMixin,
     dijitWidgetsInTemplate,
@@ -111,6 +113,10 @@ define([
             this.own(dojoOn(this.zoomButton, 'click', dojoLang.hitch(this, this.zoomButtonWasClicked)));
 
             this.cpbtn.addEventListener('click', dojoLang.hitch(this, this.cpBtnWasClicked));
+            this.sub1val_cpbtn.addEventListener('click', dojoLang.hitch(this, this.cpSubBtnWasClicked));
+            this.sub2val_cpbtn.addEventListener('click', dojoLang.hitch(this, this.cpSubBtnWasClicked));
+            this.sub3val_cpbtn.addEventListener('click', dojoLang.hitch(this, this.cpSubBtnWasClicked));
+            this.sub4val_cpbtn.addEventListener('click', dojoLang.hitch(this, this.cpSubBtnWasClicked));
             //this.own(dojoOn(this.cpbtn, 'click', dojoLang.hitch(this, this.cpBtnWasClicked)));
 
             this.mapclickhandler = dojoOn.pausable(this.parent_widget.map, 'click', dojoLang.hitch(this, this.mapWasClicked));
@@ -146,7 +152,25 @@ define([
                 this.getFormattedCoordinates(this.currentClickPoint);
             }
         },
-      
+
+        cpSubBtnWasClicked: function (evt) {
+            console.log("Copy" + evt.currentTarget);
+            var c = evt.currentTarget.id.split('~')[0];
+            var s;
+
+            this[c].select();
+            try {
+                s = document.execCommand('copy');
+            } catch (err) {
+                s = false;
+            }
+
+            var t = s ? "Copy Succesful" : "Unable to Copy\n use ctrl+c as an alternative";
+
+            this.showToolTip(evt.currentTarget.id, t);
+        },
+
+
         /**
          *
          **/
@@ -169,7 +193,7 @@ define([
                 this.coordtext.value = w;
 
                 this.coordtext.select();
-                
+
                 try {
                     s = document.execCommand('copy');
 
@@ -178,8 +202,6 @@ define([
                 }
 
                 this.coordtext.value = tv;
-                
-
             } else {
 
                 this.coordtext.select();
@@ -193,6 +215,10 @@ define([
             var t = s ? "Copy Succesful" : "Unable to Copy\n use ctrl+c as an alternative";
 
             this.showToolTip(this.cpbtn.id, t);
+        },
+
+        cpCoordPart: function (fromCntrl) {
+
         },
 
         showToolTip: function (onId, withText) {
@@ -236,7 +262,7 @@ define([
          *
          **/
         coordTextInputLostFocus: function (evt) {
-            
+
         },
 
         /**
@@ -298,7 +324,11 @@ define([
          *
          **/
         setHidden: function (cntrl) {
-            dojoDomStyle.set(cntrl, 'display', 'None');
+            dojoDomStyle.set(cntrl, 'display', 'none');
+        },
+
+        setVisible: function (cntrl) {
+            dojoDomStyle.set(cntrl, 'display', 'inline-flex');
         },
 
         /**
@@ -341,7 +371,44 @@ define([
 
             // if this.coordcontrols is expanded then disable all it's children
             if (dojoDomClass.contains(this.coordcontrols, 'expanded')) {
-                console.log("hello");
+                this.setSubCoordUI();
+            }
+        },
+
+        setSubCoordUI: function () {
+            switch (this.type) {
+            case 'DD':
+            case 'DMS':
+            case 'DDM':
+                this.sub1label.innerHTML = 'Lat';
+                this.sub2label.innerHTML = 'Lon';
+                this.setHidden(this.sub3);
+                this.setHidden(this.sub4);
+                break;
+            case 'GARS':
+                this.sub1label.innerHTML = 'Lon';
+                this.sub2label.innerHTML = 'Lat';
+                this.sub3label.innerHTML = 'Quadrant';
+                this.setVisible(this.sub3);
+                this.sub4label.innerHTML = 'Key';
+                this.setVisible(this.sub4);
+                break;
+            case 'USNG':
+            case 'MGRS':
+                this.sub1label.innerHTML = 'GZD';
+                this.sub2label.innerHTML = 'Grid Sq';
+                this.sub3label.innerHTML = 'Easting';
+                this.setVisible(this.sub3);
+                this.sub4label.innerHTML = 'Northing';
+                this.setVisible(this.sub4);
+                break;
+            case 'UTM':
+                this.sub1label.innerHTML = 'Zone';
+                this.sub2label.innerHTML = 'Easting';
+                this.sub3label.innerHTML = 'Northing';
+                this.setVisible(this.sub3);
+                this.setHidden(this.sub4);
+                break;
             }
         },
 
@@ -358,7 +425,7 @@ define([
             var londirstr;
             var utmcrds = [];
             var utmzone = '';
-
+            var cntrlid = this.uid.split('_')[3];
             switch (this.type) {
             case 'DDM':
                 // Math.trunc not fully supported on older browsers
@@ -390,6 +457,19 @@ define([
                     lonm: lonmin,
                     londir: londirstr
                 });
+
+                this['cc_' + cntrlid + 'sub1val'].value = dojoString.substitute('${latd}° ${latm}${latdir}', {
+                    latd: latdeg,
+                    latm: latmin,
+                    latdir: latdirstr
+                });
+
+                this['cc_' + cntrlid + 'sub2val'].value = dojoString.substitute('${lond}° ${lonm}${londir}', {
+                    lond: londeg,
+                    lonm: lonmin,
+                    londir: londirstr
+                });
+
                 break;
             case 'DD':
                 frmt = dojoString.substitute('${xcrd} ${ycrd}', {
@@ -400,21 +480,63 @@ define([
                         places: 4
                     })
                 });
+
+                this['cc_' + cntrlid + 'sub1val'].value = dojoString.substitute('${xcrd}', {
+                    xcrd: dojoNumber.format(this.currentClickPoint.y, {
+                        places: 4
+                    })
+                });
+
+                this['cc_' + cntrlid + 'sub2val'].value = dojoString.substitute('${ycrd}', {
+                    ycrd: dojoNumber.format(this.currentClickPoint.x, {
+                        places: 4
+                    })
+                });
                 break;
             case 'DMS':
                 frmt = dojoString.substitute("${d1} ${d2}", {
                     d1: this.degToDMS(this.currentClickPoint.y, 'LAT'),
                     d2: this.degToDMS(this.currentClickPoint.x, 'LON')
                 });
+
+                this['cc_' + cntrlid + 'sub1val'].value = dojoString.substitute("${d1}", {
+                    d1: this.degToDMS(this.currentClickPoint.y, 'LAT')
+                });
+
+                this['cc_' + cntrlid + 'sub2val'].value = dojoString.substitute("${d2}", {
+                    d2: this.degToDMS(this.currentClickPoint.x, 'LON')
+                });
                 break;
             case 'USNG':
                 frmt = usng.LLtoUSNG(this.currentClickPoint.y, this.currentClickPoint.x, 5);
+                var gzd = frmt.match(/\d{1,2}[C-HJ-NP-X]/);
+                var grdsq = frmt.match(/\s[a-zA-Z]{2}/);
+                var e = frmt.match(/\s\d*\s/);
+                var n = frmt.match(/\d{5}$/);
+                this['cc_' + cntrlid + 'sub1val'].value = gzd;
+                this['cc_' + cntrlid + 'sub2val'].value = grdsq;
+                this['cc_' + cntrlid + 'sub3val'].value = e;
+                this['cc_' + cntrlid + 'sub4val'].value = n;
                 break;
             case 'MGRS':
                 frmt = usng.LLtoMGRS(this.currentClickPoint.y, this.currentClickPoint.x, 5);
+                var usngfrmt = usng.LLtoUSNG(this.currentClickPoint.y, this.currentClickPoint.x, 5);
+                var gzd = usngfrmt.match(/\d{1,2}[C-HJ-NP-X]/);
+                var grdsq = usngfrmt.match(/\s[a-zA-Z]{2}/);
+                var e = usngfrmt.match(/\s\d*\s/);
+                var n = usngfrmt.match(/\d{5}$/);
+                this['cc_' + cntrlid + 'sub1val'].value = gzd;
+                this['cc_' + cntrlid + 'sub2val'].value = grdsq;
+                this['cc_' + cntrlid + 'sub3val'].value = e;
+                this['cc_' + cntrlid + 'sub4val'].value = n;
                 break;
             case 'GARS':
                 frmt = gars.LLtoGARS(this.currentClickPoint.y, this.currentClickPoint.x);
+                this['cc_' + cntrlid + 'sub1val'].value = frmt.match(/\d{3}/);
+                this['cc_' + cntrlid + 'sub2val'].value = frmt.match(/[a-zA-Z]{2}/);
+                var q = frmt.match(/\d*$/);
+                this['cc_' + cntrlid + 'sub3val'].value = q[0][0];
+                this['cc_' + cntrlid + 'sub4sval'].value = q[0][1];
                 break;
             case 'UTM':
                 usng.LLtoUTM(this.currentClickPoint.y, this.currentClickPoint.x, utmcrds, utmzone);
@@ -430,12 +552,30 @@ define([
                         pattern: '##000000'
                     })
                 });
+
+                this['cc_' + cntrlid + 'sub1val'].value = dojoString.substitute("${z}${zd}", {
+                    z: utmcrds[2],
+                    zd: usng.UTMLetterDesignator(this.currentClickPoint.y)
+                });
+                this['cc_' + cntrlid + 'sub2val'].value = dojoString.substitute("${utm1}", {
+                    utm1: dojoNumber.format(utmcrds[0], {
+                        places: 0,
+                        pattern: '##000000'
+                    })
+                });
+                this['cc_' + cntrlid + 'sub3val'].value = dojoString.substitute("${utm2}", {
+                    utm2: dojoNumber.format(utmcrds[1], {
+                        places: 0,
+                        pattern: '##000000'
+                    })
+                });
                 break;
             }
-
+            this.setSubCoordUI();
             if (this.coordtext) {
                 dojoDomAttr.set(this.coordtext, 'value', frmt);
             }
+
         },
 
         /**

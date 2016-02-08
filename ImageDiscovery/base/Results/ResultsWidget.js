@@ -31,7 +31,7 @@ define([
             iconEnabled: false,
             showAcquisitionDateFilter: true,
             showCloudCoverFilter: true,
-            createResultFilter: false,
+           // createResultFilter: false,
             _defaultNoResultsMessage: "There were no results returned for your search area",
             _defaultMinDateRangeFilterDelta: 86400000,
             showLayerManipulation: false,
@@ -67,13 +67,13 @@ define([
                 this.defaultSearchCompleteDateRangePercent = this.defaultSearchCompleteDateRangePercent || 1.00;
                 this.createResultList();
                 this._createLayerSupport();
-                if (this.createResultFilter) {
+             //  if (this.createResultFilter) {
                     this._createResultFilter();
-                }
-                else {
-                    this.hideResultFilterButton();
+              //  }
+             //  else {
+              //      this.hideResultFilterButton();
 
-                }
+             //   }
 
                 if (this.sortOptions && this.sortOptions.length > 0) {
                     this._createResultSort();
@@ -455,9 +455,6 @@ define([
                 }
                 featureFilterParameters.filteredArchiveSensorTypes = [];
                 featureFilterParameters.cloudCover = cloudCoverDecimalValue;
-				if (this.resultFilter) {
-					featureFilterParameters.selectedServices = this.resultFilter.getSelectedServices();
-				}
                 return featureFilterParameters;
             },
             handleSortChange: function (sortObj) {

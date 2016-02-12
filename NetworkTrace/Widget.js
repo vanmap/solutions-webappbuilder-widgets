@@ -2943,14 +2943,14 @@ define([
     * @memberOf widgets/NetworkTrace/Widget
     */
     _enhanceLaunchpadThemeStyle: function () {
-      var i, comboBoxButtonNode;
+      var i, comboBoxButtonNodeArrowButton;
       if (this.appConfig.theme.name === "LaunchpadTheme") {
         // quering combobox button node
-        comboBoxButtonNode = query(
-          ".claro .dijitComboBox .dijitButtonNode");
-        for (i = 0; i < comboBoxButtonNode.length; i++) {
-          domAttr.set(comboBoxButtonNode[i], "style",
-            "padding: 5px !important");
+        comboBoxButtonNodeArrowButton = query(
+          ".claro .dijitComboBox>div.dijitArrowButton.dijitDownArrowButton");
+        for (i = 0; i < comboBoxButtonNodeArrowButton.length; i++) {
+          domAttr.set(comboBoxButtonNodeArrowButton[i], "style",
+            "height: 30px !important");
         }
       }
     },

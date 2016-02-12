@@ -521,6 +521,31 @@
     clear: both;
 }
 
+.jimu-widget-NetworkTrace-setting .esriCTSkippableHintText
+{
+    margin-left: 20px !important;
+}
+
+.jimu-widget-NetworkTrace-setting .esriCTSaveToLayerHintText
+{
+    margin-left: 6px !important;
+}
+
+.jimu-widget-NetworkTrace-setting .esriCTExportToCsvHintText
+{
+    margin-left: 1px !important;
+}
+
+.jimu-widget-NetworkTrace-setting .esriCTVisibleHintText
+{
+    margin-left: 39px !important;
+}
+
+.jimu-widget-NetworkTrace-setting .esriCTOverviewSaveToLayerHintText
+{
+     margin-left: 8px !important;
+}
+
 /* Hint text ends */
 
 /* Updated UI starts */

@@ -892,6 +892,7 @@
 
 /** Output tab ends **/
 
+
 .claro .dijitSelect .dijitArrowButtonInner, .claro .dijitComboBox .dijitArrowButtonInner
 {
     border: none !important;
@@ -899,7 +900,7 @@
 
 .claro .dijitComboBox .dijitButtonNode
 {
-    padding: 0 12px !important;
+    padding: 2px !important;
 }
 
 .esriCTDartBackgroudColor

@@ -53,7 +53,7 @@
     // Outage details
     outagePanel: {
       bufferDistance: "Buffer distance",
-      esriUnits: "Unit",
+      esriUnits: "Units",
       outageFieldTagName: "Save summary options",
       outage: "Overview",
       isvisible: "Visible",

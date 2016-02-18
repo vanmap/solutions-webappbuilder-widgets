@@ -41,6 +41,9 @@ define([
 
 
                 }
+                else {
+                    this._hideNode(this.cloudCoverFilterContainer);
+                }
             },
 
             refreshResults: function () {

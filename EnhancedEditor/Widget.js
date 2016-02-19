@@ -200,27 +200,28 @@ define([
 
       // Cam
       _addGraphicToLocalFeatuerLayer: function(graphic, layer_id, update){
-        // get the selected feature and add its to its corresponding local featurelayer
+        // if it's an update then store its origial graphic
         if (update) {
           graphic.original = new Graphic(graphic.toJson());
         }
 
         var layerId = layer_id.lastIndexOf("_lfl") < 1 ? layer_id + "_lfl" : layer_id;
         
+        // add the feature to its corresponding local layer
         this.currentLocalFeatureLayer = this.map.getLayer(layerId);
         if (this.currentLocalFeatureLayer) {
           this.currentLocalFeatureLayer.applyEdits([graphic], null, null,
             lang.hitch(this, function (e) {
-              if (e && e.length > 0 && e[0].success) {
-                this.currentLocalFeatureLayer.refresh();
-              }
-            }), lang.hitch(this, function (e) {
-              // for now
-              alert("Error when performing applyEdits");
-            }));
-          this._showTemplate(false);
-          // ?
-          this.templatePicker.clearSelection();
+            if (e && e.length > 0 && e[0].success) {
+              this.currentLocalFeatureLayer.refresh();
+              this._showTemplate(false);
+              // ?
+              this.templatePicker.clearSelection();
+            }
+          }), lang.hitch(this, function (e) {
+            // for now
+            alert("Error when adding feature to local layer.");
+          }));
         }
       },
 
@@ -234,6 +235,12 @@ define([
       // Cam
       _cloneLayer: function (layer) {
         var cloneFeaturelayer;
+        var json = layer.renderer.toJson(); //
+        var renderer = null; //
+        switch (json.type) {
+          case "simpleRenderer":
+            renderer = new SimpleRenderer(json);
+        }
 
         var featureCollection = {
           layerDefinition: {
@@ -272,8 +279,9 @@ define([
           })
         });
         cloneFeaturelayer.visible = true;
-        cloneFeaturelayer.renderer = layer.renderer;
-        cloneFeaturelayer.originalLayer = layer;
+        cloneFeaturelayer.renderer =  layer.renderer;
+        //cloneFeaturelayer.originalLayer = layer;
+        cloneFeaturelayer.originalLayerId = layer.id;
 
         this.map.addLayer(cloneFeaturelayer);
 
@@ -324,19 +332,33 @@ define([
           // Todo: attributes updated but not showed up on UI
           if (this.currentLocalFeatureLayer && this.currentLocalFeatureLayer.graphics.length > 0 &&
             this.currentLocalFeatureLayer.graphics[0].original) {
-            this.currentLocalFeatureLayer.graphics[0].attributes =
-              this.currentLocalFeatureLayer.graphics[0].original.attributes;
+
+            var objId = this.currentLocalFeatureLayer.graphics[0].attributes["OBJECTID"];
+            var atts = JSON.parse(JSON.stringify(this.currentLocalFeatureLayer.graphics[0].original.attributes));
+
+            this.currentLocalFeatureLayer.graphics[0].attributes = atts;
+            this.currentLocalFeatureLayer.graphics[0].attributes["OBJECTID"] = objId;
+
+            this.currentLocalFeatureLayer.refresh(); //?
+            this.isDirty = false;
             this.attrInspector.refresh();
           }
         }));
 
         validateButton.on("click", lang.hitch(this, function () {
           // validate the fieldInfos
-
-          // apply
-          this._postChanges().then(lang.hitch(this, function () {
-            this._showTemplate(true);
-          }));
+          var ready = this._validateRequiredFields();
+          if (ready) {
+            // apply
+            this._postChanges().then(lang.hitch(this, function () {
+              this.currentLocalFeatureLayer.refresh(); // 
+              this._showTemplate(true);
+              this.isDirty = false;
+              this._clearLocalGraphic();
+            }));
+          } else {
+            alert("Not all required fields contain values.");
+          }
         }));
 
         templateButton.on("click", lang.hitch(this, function () {
@@ -344,6 +366,7 @@ define([
             this._resolvePendingEdit(true);
           } else {
             this._showTemplate(true);
+            this._clearLocalGraphic();
           }
           if (this.templatePicker) {
             this.templatePicker.clearSelection();
@@ -357,6 +380,38 @@ define([
           }
         }));
 
+        this.attrInspector.on("delete", lang.hitch(this, function (evt) {
+          var feature = evt.feature;
+          //retrieve server info from the local feature
+          feature.attributes["OBJECTID"] = feature.original.attributes["OBJECTID"];
+          var layer = this.map.getLayer(feature.getLayer().originalLayerId);
+
+          layer.applyEdits(null, null, [feature], lang.hitch(this, function (e) {
+            layer.refresh();
+            this._showTemplate(true);
+            this.isDirty = false;
+            this._clearLocalGraphic();
+          }));
+
+        }));
+      },
+
+      // Cam
+      _filterOnlyUpdatedAttributes: function (attributes, origAttributes) {
+        if (!attributes || attributes.length < 1 ||
+            !origAttributes || origAttributes.length < 1) {
+          return null;
+        }
+
+        var updatedAttrs = {};
+        for (var prop in attributes) {
+          if (attributes.hasOwnProperty(prop) &&
+            attributes[prop] != origAttributes[prop]) {
+            updatedAttrs[prop] = attributes[prop];
+          }
+        }
+
+        return updatedAttrs;
       },
 
       // Cam      
@@ -392,56 +447,69 @@ define([
       },
 
       // Cam
+      _performEnhancedEditorCleanup: function(){
+        if (this.attrInspector) {
+          this.attrInspector.destroy();
+          this.attrInspector = null;
+        }
+        
+      },
+
+      // Cam
       _postChanges: function () {
         var deferred = new Deferred();
         if (this.currentLocalFeatureLayer && this.currentLocalFeatureLayer.graphics.length > 0) {
           //get its corresponding feature layer
-          var featureLayer = this.currentLocalFeatureLayer.originalLayer;
+          var featureLayer = this.map.getLayer(this.currentLocalFeatureLayer.originalLayerId);
+
           var graphic = new Graphic(this.currentLocalFeatureLayer.graphics[0].geometry, null,
             this.currentLocalFeatureLayer.graphics[0].attributes);
           
           // determine if it's an add or edit operation
           if (this.currentLocalFeatureLayer.graphics[0].original) { // update
+
+            var newAttrs = this._filterOnlyUpdatedAttributes(graphic.attributes,
+              this.currentLocalFeatureLayer.graphics[0].original.attributes);
+            if (newAttrs) {
+              graphic.attributes = newAttrs;
+            }
+
             graphic.attributes[this.currentLocalFeatureLayer.objectIdField] =
               this.currentLocalFeatureLayer.graphics[0].original.attributes["OBJECTID"];
 
-            featureLayer.applyEdits(null, [graphic], null, lang.hitch(this, function (e) {
+            featureLayer.applyEdits(null, [graphic], null, function (e) {
               //if (e && e.length > 0 && e[0].success) {
-                this.isDirty = false;
-                this._clearLocalGraphic();
                 featureLayer.refresh();
-
-                deferred.resolve();
+                deferred.resolve("success");
               //}
-            }), lang.hitch(this, function (e) {
+            }, function (e) {
               // for now
               alert("Error when performing update ApplyEdits");
-              this.isDirty = false;
-              this._clearLocalGraphic();
-
-              deferred.resolve();
-            }));
+              deferred.resolve("failed");
+            });
           } else { // add
-            graphic.attributes[this.currentLocalFeatureLayer.objectIdField] = null;
+            //graphic.attributes[this.currentLocalFeatureLayer.objectIdField] = null;
+            //featureLayer.applyEdits([graphic], null, null, function (e) {
+            this.currentLocalFeatureLayer.graphics[0].attributes["OBJECTID"] = null;
+            featureLayer.applyEdits([this.currentLocalFeatureLayer.graphics[0]]);
+            deferred.resolve("success");
 
-            featureLayer.applyEdits([graphic], null, null, lang.hitch(this, function (e) {
-              if (e && e.length > 0 && e[0].success) {
-                this.isDirty = false;
-                this._clearLocalGraphic();
-                featureLayer.refresh();
-                deferred.resolve();
-              }
-            }), lang.hitch(this, function (e) {
-              // for now
-              alert("Error when performing applyEdits");
-              this.isDirty = false;
-              this._clearLocalGraphic();
-
-              deferred.resolve();
-            }));
+            //featureLayer.applyEdits([this.currentLocalFeatureLayer.graphics[0]], null, null, function (e) {
+            //  if (e && e.length > 0 && e[0].success) {
+            //    featureLayer.refresh();
+            //    deferred.resolve("success");
+            //  }
+            //}, function (e) {
+            //  // for now
+            //  alert("Error when performing applyEdits");
+            //  deferred.resolve("failed");
+            //});
           }
 
+        } else {
+          deferred.resolve();
         }
+
         return deferred.promise;
       },
 
@@ -456,6 +524,8 @@ define([
           }).forEach(function (e) {
             mymap.removeLayer(e);
           });
+
+          this.currentLocalFeatureLayer = null;
         }
       },
 
@@ -467,16 +537,26 @@ define([
           content: "Would you like to save the current feature?",
           style: "width: 400px",
           onExecute: lang.hitch(this, function () {
+            //needed?
+            this.templatePicker.clearSelection();
             // call validate
-            this.templatePicker.clearSelection(); // needed?
-            // call applyEdit
-            this._postChanges().then(lang.hitch(this, function () {
+            var valid = this._validateRequiredFields();
+            if (valid) {
+              // call applyEdit
+              this._postChanges().then(lang.hitch(this, function () {
+                if (switchToTemplate) {
+                  this._showTemplate(true);
+                }
+                this.isDirty = false;
+                this._clearLocalGraphic();
 
-              if (switchToTemplate) {
-                this._showTemplate(true);
-              }
-              deferred.resolve();
-            }));
+                deferred.resolve("success");
+              }));
+            } else {
+              // for now
+              alert("Not all required fields contain valid values.");
+              deferred.resolve("failed");
+            }
           }),
           onCancel: lang.hitch(this, function () { // not saving
             this.isDirty = false;
@@ -505,6 +585,33 @@ define([
           this.attrInspector.domNode.style.display = "block";
           this.attrInspector.refresh();
         }
+      },
+
+      // Cam
+      _validateRequiredFields: function(){
+        if (!this.currentLocalFeatureLayer) { return false; }
+
+        var errorFields = [];
+        this.currentLocalFeatureLayer.fields.filter(lang.hitch(this, function (field) {
+          return field.nullable === false && field.editable === true;
+        })).forEach(lang.hitch(this, function (f) {
+          var graphic = this.currentLocalFeatureLayer.graphics[0];
+          if (!graphic.attributes[f.name]) {
+            errorFields.push({"field": f.name, "issue": "undefined"});
+          } else {
+            switch (f.type) {
+              case "esriFieldTypeString":
+                if (graphic.attributes[f.name].trim() === "") {
+                  errorFields.push({ "field": f.name, "issue": "Empty string" });
+                }
+                break;
+              case "esriFieldTypeDate":
+              default:
+                break;
+            }
+          }
+        }));
+        return errorFields.length > 0 ? false : true;
       },
 
       _enableMapClickHandler: function() {

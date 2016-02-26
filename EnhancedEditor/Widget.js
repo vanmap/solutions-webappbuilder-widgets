@@ -26,28 +26,35 @@ define([
     'jimu/BaseWidget',
     'jimu/MapManager',
     'jimu/LayerInfos/LayerInfos',
-    'jimu/dijit/FilterEditor',
     'esri/dijit/editing/Editor',
-    'esri/dijit/Popup',
     "esri/dijit/editing/TemplatePicker",
 
     "esri/dijit/AttributeInspector", // Cam added block
+    "esri/toolbars/draw",
+    "esri/toolbars/edit",
+    "esri/dijit/editing/Editor",
+    "esri/tasks/query",
     "esri/graphic",
     "esri/layers/FeatureLayer",
     "dijit/ConfirmDialog",
     "dojo/Deferred",
+    "esri/symbols/SimpleMarkerSymbol",
+    "esri/symbols/SimpleLineSymbol",
+    "esri/symbols/SimpleFillSymbol",
+    "esri/Color",
+    "dojo/_base/event",
 
     "dijit/form/Button",
     "./utils"
   ],
   function(declare, lang, array, html, query, esriBundle, on, _WidgetsInTemplateMixin,
-    BaseWidget, MapManager, LayerInfos, FilterEditor, Editor, Popup, TemplatePicker,
-    AttributeInspector, Graphic, FeatureLayer, ConfirmDialog, Deferred,
+    BaseWidget, MapManager, LayerInfos, Editor, TemplatePicker,
+    AttributeInspector, Draw, Edit, Editor, Query, Graphic, FeatureLayer, ConfirmDialog, Deferred,
+    SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, Color, event,
     Button, editUtils) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
       name: 'Edit',
       baseClass: 'jimu-widget-EnhancedEditor', // Cam
-      editor: null,
       _defaultStartStr: "",
       _defaultAddPointStr: "",
       resetInfoWindow: {},
@@ -56,30 +63,22 @@ define([
         resetInfoWindow: null
       },
       _jimuLayerInfos: null,
-      editPopup: null,
       _configEditor: null,
 
       // Cam
+      settings: null,
       templatePicker: null,
       attrInspector: null,
+      selectedTemplate: null,
       isDirty: false,
-      currentLocalFeatureLayer: null,
-      localFeatureLayers: [],
+      currentLayer: null,
+      updateFeature: null,
 
       startup: function() {
         this.inherited(arguments);
-        this.editPopup = new Popup(null, html.create("div",
-                                                    {"class":"jimu-widget-edit-infoWindow"},
-                                                    null,
-                                                    this.map.root));
-        // Cam
-        if (this.config.editor.useEnhancedEditFeatures) {
-          on(this.map, "click", lang.hitch(this, this._onMapClick));
-        }
       },
 
       _init: function() {
-        this._editorMapClickHandlers = [];
         this._configEditor = lang.clone(this.config.editor);
       },
 
@@ -96,151 +95,66 @@ define([
       },
 
       onActive: function(){
-        this.disableWebMapPopup();
+        //this.disableWebMapPopup();
       },
 
       onDeActive: function(){
-        this.enableWebMapPopup();
-        // Cam
-        if (this.config.editor.useEnhancedEditFeatures) {
-          this._removeLocalLayers();
-        }
-      },
-
-      disableWebMapPopup: function() {
-        var mapManager = MapManager.getInstance();
-        mapManager.disableWebMapPopup();
-        // hide map's infoWindow
-        this.map.infoWindow.hide();
-        // instead of map's infowindow by editPopup
-        this.map.setInfoWindow(this.editPopup);
-        this._enableMapClickHandler();
-
-        // instead of Mapmanager.resetInfoWindow by self resetInfoWindow
-        if (this._sharedInfoBetweenEdits.resetInfoWindow === null) {
-          this._sharedInfoBetweenEdits.resetInfoWindow = mapManager.resetInfoWindow;
-          this.own(on(this.map.infoWindow, "show", lang.hitch(this, function() {
-            if (window.appInfo.isRunInMobile) {
-              this.map.infoWindow.maximize();
-            }
-          })));
-        }
-        mapManager.resetInfoWindow = lang.hitch(this, function() {});
-
-        //this._sharedInfoBetweenEdits.editCount++;
-      },
-
-      enableWebMapPopup: function() {
-        var mapManager = MapManager.getInstance();
-        var mapInfoWindow = mapManager.getMapInfoWindow();
-        // recover restInfoWindow when close widget.
-        //this._sharedInfoBetweenEdits.editCount--;
-        if (this._sharedInfoBetweenEdits.resetInfoWindow) {
-          //this._sharedInfoBetweenEdits.editCount === 0 &&
-
-          this.map.setInfoWindow(mapInfoWindow.bigScreen);
-          mapManager.isMobileInfoWindow = false;
-
-          mapManager.resetInfoWindow =
-            lang.hitch(mapManager, this._sharedInfoBetweenEdits.resetInfoWindow);
-          this._sharedInfoBetweenEdits.resetInfoWindow = null;
-          mapManager.resetInfoWindow();
-          this._disableMapClickHandler();
-          // hide popup and delete selection
-          this.editPopup.hide();
-          if (typeof this.editor._clearSelection === "function") {
-            this.editor._clearSelection();
-          }
-          // recall enableWebMap
-          mapManager.enableWebMapPopup();
-        }
-      },
-
-      // Cam 
-      _onMapClick: function (evt) {
-        this.map.setInfoWindowOnClick(false);
-
-        if (!this.templatePicker) { return;} // should never happen
-        
-        // resove any pending changes
-        if (this.isDirty) {
-          this._resolvePendingEdit(false).then(lang.hitch(this, function (e) {
-            this._processOnMapClick(evt);
-          }));
-        }else
-        {
-          this._processOnMapClick(evt);
-        }
+        //this.enableWebMapPopup();
       },
 
       // Cam
-      _processOnMapClick: function(evt){
-        // user adds a new feature
-        this._clearLocalGraphic();
+      // this function also create a new attribute inspector for the local layer
+      _addGraphicToLocalLayer: function (evt) {
+        if (!this.selectedTemplate) { return; }
 
-        var selectedTemplate = this.templatePicker.getSelected();
-        if (selectedTemplate) {
-          // add the selected feature to the equivalent local feature layer
-          var graphic = new Graphic(evt.mapPoint,
-                        null,
-                        selectedTemplate.template.prototype.attributes);
-          graphic.setSymbol(selectedTemplate.featureLayer.renderer.getSymbol(graphic));
-          this._addGraphicToLocalFeatuerLayer(graphic,
-                                              selectedTemplate.featureLayer.id,
-                                              false);
-          // since add, set isDirty to true
+        // assign the select layer to the member variable?
+
+        var newAttributes = lang.mixin({}, this.selectedTemplate.template.prototype.attributes);
+        var newGraphic = new Graphic(evt.geometry, null, newAttributes);
+        // store original graphic for latter use
+        newGraphic.original = new Graphic(newGraphic.toJson());
+
+        // preparation for a new attributeInspector for the local layer
+        var myLayer = this._cloneLayer(this.selectedTemplate.featureLayer);
+        this._setSelectionSymbol(myLayer);
+
+        var tempLayerInfos = this._getDefaultLayerInfosForLocalLayer(myLayer.originalLayerId);
+        var newTempLayerInfos = this._converConfiguredLayerInfos(tempLayerInfos);
+        newTempLayerInfos[0].featureLayer = myLayer;
+        //newTempLayerInfos[0].showAttachments = false;
+
+        // create a new attrinspector
+        if (this.attrInspector) {
+          this.attrInspector.destroy();
+          this.attrInspector = null;
+        }
+        this.attrInspector = this._createAttributeInspector(newTempLayerInfos);
+
+        myLayer.applyEdits([newGraphic], null, null, lang.hitch(this, function (e) {
           this.isDirty = true;
-        } else {
-          var graphic = new Graphic(evt.graphic.geometry,
-                        evt.graphic.symbol,
-                        evt.graphic.attributes);
-          this._addGraphicToLocalFeatuerLayer(graphic, evt.graphic.getLayer().id, true);
-        }
-      }, 
-
-      // Cam
-      _addGraphicToLocalFeatuerLayer: function(graphic, layer_id, update){
-        // if it's an update then store its origial graphic
-        if (update) {
-          graphic.original = new Graphic(graphic.toJson());
-        }
-
-        var layerId = layer_id.lastIndexOf("_lfl") < 1 ? layer_id + "_lfl" : layer_id;
-        
-        // add the feature to its corresponding local layer
-        this.currentLocalFeatureLayer = this.map.getLayer(layerId);
-        if (this.currentLocalFeatureLayer) {
-          this.currentLocalFeatureLayer.applyEdits([graphic], null, null,
-            lang.hitch(this, function (e) {
-            if (e && e.length > 0 && e[0].success) {
-              this.currentLocalFeatureLayer.refresh();
-              this._showTemplate(false);
-              // ?
-              this.templatePicker.clearSelection();
-            }
-          }), lang.hitch(this, function (e) {
-            // for now
-            alert("Error when adding feature to local layer.");
-          }));
-        }
+          var query = new Query();
+          query.objectIds = [e[0].objectId];
+          myLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
+          this.updateFeature = newGraphic;
+        }));
+        this._showTemplate(false);
       },
 
       // Cam
-      _clearLocalGraphic: function () {
-        if (this.currentLocalFeatureLayer) {
-          this.currentLocalFeatureLayer.clear();
+      _cancelEditingFeature: function(){
+        var layer = this.updateFeature.getLayer();
+        if (layer.originalLayerId) {
+          // the feature being edit is a new feature
+          this.map.removeLayer(layer);
         }
+        this.updateFeature = null;
+        this.selectedTemplate = null;
+        this.isDirty = false;
       },
 
       // Cam
       _cloneLayer: function (layer) {
         var cloneFeaturelayer;
-        var json = layer.renderer.toJson(); //
-        var renderer = null; //
-        switch (json.type) {
-          case "simpleRenderer":
-            renderer = new SimpleRenderer(json);
-        }
 
         var featureCollection = {
           layerDefinition: {
@@ -267,7 +181,7 @@ define([
             "typeIdField": layer.typeIdField,
             "fields": layer.fields,
             "types": layer.types,
-            "templates": layer.templates, 
+            "templates": layer.templates,
             "capabilities": "Query,Editing"
           }
         };
@@ -279,39 +193,37 @@ define([
           })
         });
         cloneFeaturelayer.visible = true;
-        cloneFeaturelayer.renderer =  layer.renderer;
-        //cloneFeaturelayer.originalLayer = layer;
+        cloneFeaturelayer.renderer = layer.renderer;
         cloneFeaturelayer.originalLayerId = layer.id;
 
+        // only keep one local layer
+        var existingLayer = this.map.getLayer(layer.id + "_lfl");
+        if (existingLayer) {
+          this.map.removeLayer(existingLayer);
+        }
         this.map.addLayer(cloneFeaturelayer);
 
         return cloneFeaturelayer;
       },
 
+
       // Cam
-      _createAttributeInspector: function () {
-        // there could be another inspector so need to query for the right one
-        if (query(".jimu-widget-EnhancedEditor .esriAttributeInspector").length > 0)
-        {
-          return;
-        }
-
-        var linfos = this.editor.settings.layerInfos;
-
-        this.attrInspector = new AttributeInspector({
-          layerInfos: linfos
+      _createAttributeInspector: function (layerInfos) {
+        var attrInspector = new AttributeInspector({
+          layerInfos: layerInfos
         }, html.create("div", {
           style: {
             width: "100%",
             height: "100%"
           }
         }));
-        html.place(this.attrInspector.domNode,
+        html.place(attrInspector.domNode,
                   query(".jimu-widget-EnhancedEditor .templatePicker")[0],
                   "after");
-        this.attrInspector.startup();
+        attrInspector.startup();
 
-        var delButton = query(".jimu-widget-EnhancedEditor .atiButtons .atiDeleteButton")[0];
+
+        var delButton = query(".atiButtons .atiDeleteButton", attrInspector.domNode)[0];
 
         //add additional buttons
         var validateButton = new Button({ label: this.nls.submit, "class": "validateButton" },
@@ -327,37 +239,37 @@ define([
           html.create("div"));
         html.place(templateButton.domNode, resetButton.domNode, "after");
 
+        //remove default delete button
+        delButton.remove();
+
         //wire up the events
         resetButton.on("click", lang.hitch(this, function () {
           // Todo: attributes updated but not showed up on UI
-          if (this.currentLocalFeatureLayer && this.currentLocalFeatureLayer.graphics.length > 0 &&
-            this.currentLocalFeatureLayer.graphics[0].original) {
+          if (this.updateFeature) {
 
-            var objId = this.currentLocalFeatureLayer.graphics[0].attributes["OBJECTID"];
-            var atts = JSON.parse(JSON.stringify(this.currentLocalFeatureLayer.graphics[0].original.attributes));
+            var objId = this.updateFeature.attributes["OBJECTID"];
+            var atts = JSON.parse(JSON.stringify(this.updateFeature.original.attributes));
 
-            this.currentLocalFeatureLayer.graphics[0].attributes = atts;
-            this.currentLocalFeatureLayer.graphics[0].attributes["OBJECTID"] = objId;
+            this.updateFeature.attributes = atts;
+            this.updateFeature.attributes["OBJECTID"] = objId;
 
-            this.currentLocalFeatureLayer.refresh(); //?
-            this.isDirty = false;
-            this.attrInspector.refresh();
+            this.updateFeature.getLayer().refresh(); //?
+            //this.isDirty = false;
+            attrInspector.refresh();
           }
         }));
 
         validateButton.on("click", lang.hitch(this, function () {
           // validate the fieldInfos
-          var ready = this._validateRequiredFields();
-          if (ready) {
+          var errorObj = this._validateRequiredFields();
+          if (this._isObjectEmpty(errorObj)) {
             // apply
             this._postChanges().then(lang.hitch(this, function () {
-              this.currentLocalFeatureLayer.refresh(); // 
               this._showTemplate(true);
               this.isDirty = false;
-              this._clearLocalGraphic();
             }));
           } else {
-            alert("Not all required fields contain values.");
+            this._formatErrorFields(errorObj);
           }
         }));
 
@@ -366,34 +278,164 @@ define([
             this._resolvePendingEdit(true);
           } else {
             this._showTemplate(true);
-            this._clearLocalGraphic();
           }
           if (this.templatePicker) {
             this.templatePicker.clearSelection();
           }
         }));
 
-        this.attrInspector.on("attribute-change", lang.hitch(this, function (evt) {
-          if (this.currentLocalFeatureLayer && this.currentLocalFeatureLayer.graphics.length > 0) {
-            this.currentLocalFeatureLayer.graphics[0].attributes[evt.fieldName] = evt.fieldValue;
+        attrInspector.on("attribute-change", lang.hitch(this, function (evt) {
+          if (this.updateFeature) {
+            this.updateFeature.attributes[evt.fieldName] = evt.fieldValue;
             this.isDirty = true;
           }
         }));
 
-        this.attrInspector.on("delete", lang.hitch(this, function (evt) {
-          var feature = evt.feature;
-          //retrieve server info from the local feature
-          feature.attributes["OBJECTID"] = feature.original.attributes["OBJECTID"];
-          var layer = this.map.getLayer(feature.getLayer().originalLayerId);
+        return attrInspector;
+      },
 
-          layer.applyEdits(null, null, [feature], lang.hitch(this, function (e) {
-            layer.refresh();
-            this._showTemplate(true);
-            this.isDirty = false;
-            this._clearLocalGraphic();
+      // Cam
+      _createEditor: function () {
+        this.settings = this._getSettingsParam()
+
+        var layers = this._getEditableLayers(this.settings.layerInfos);
+
+        //var options = {};
+        //options.allowAddVerticies = true;
+        //options.allowDeleteVertices = true;
+
+        var editToolbar = new Edit(this.map); //, options);
+        //editToolbar.on("deactivate", lang.hitch(this, function (evt) {
+        //  this.currentLayer.applyEdits(null, [evt.graphic], null);
+        //}));
+
+        array.forEach(layers, lang.hitch(this, function (layer) {
+          var editingEnabled = false;
+          // set selection symbol
+          this._setSelectionSymbol(layer);
+
+          //layer.on("dbl-click", lang.hitch(this, function (evt) {
+          //  event.stop(evt);
+          //  if (editingEnabled) {
+          //    this.currentLayer = layer; // or layer?
+          //    editingEnabled = false;
+          //    editToolbar.deactivate();
+          //    layer.clearSelection();
+          //  } else {
+          //    editingEnabled = true;
+          //    editToolbar.activate(Edit.EDIT_VERTICES, evt.graphic);
+          //    //var query = new Query();
+          //    //query.objectIds = [evt.graphic.attributes[layer.objectIdField]];
+          //    //layer.selectFeatures(query);
+          //  }
+          //}));
+
+          layer.on("click", lang.hitch(this, function (evt) {
+            this.map.setInfoWindowOnClick(false);
+            event.stop(evt); //?
+            // clear previously selected feature
+            if (this.currentLayer) {
+              this.currentLayer.clearSelection();
+            }
+
+            this.currentLayer = layer;
+            editToolbar.deactivate();
+            editingEnabled = false;
+
+            if (evt.ctrlKey === true || evt.metaKey === true) {  //delete feature if ctrl key is depressed
+              layer.applyEdits(null, null, [evt.graphic]);
+            } else {
+
+              if (!this.templatePicker) { return; } // should never happen
+
+              // resove any pending changes
+              if (this.isDirty) {
+                this._resolvePendingEdit(false).then(lang.hitch(this, function (e) {
+                  this._processOnLayerClick(evt, layer);
+                }));
+              } else {
+                this._processOnLayerClick(evt, layer);
+              }
+            }
           }));
+        })); // end of array.forEach
 
+        //create template picker
+        this.templatePicker = new TemplatePicker({
+          featureLayers: layers,
+          rows: "auto",
+          columns: 2,
+          grouping: true,
+          style: "height: auto, overflow: auto;"
+        }, "templatePickerDiv");
+        this.templatePicker.startup();
+
+        var drawToolbar = new Draw(this.map);
+
+        // wire up events
+        this.templatePicker.on("selection-change", lang.hitch(this, function () {
+          this.selectedTemplate = this.templatePicker.getSelected();
+          if (this.selectedTemplate) {
+            if (this.map) {
+              this.map.setInfoWindowOnClick(false);
+            }
+
+            switch (this.selectedTemplate.featureLayer.geometryType) {
+              case "esriGeometryPoint":
+                drawToolbar.activate(Draw.POINT);
+                break;
+              case "esriGeometryPolyline":
+                drawToolbar.activate(Draw.POLYLINE);
+                break;
+              case "esriGeometryPolygon":
+                drawToolbar.activate(Draw.POLYGON);
+                break;
+            }
+          }
         }));
+
+        drawToolbar.on("draw-end", lang.hitch(this, function (evt) {
+          drawToolbar.deactivate();
+          editToolbar.deactivate();
+          this._addGraphicToLocalLayer(evt);
+        }));
+
+
+        //// create editor toolbar
+        //this._createEditorToolbar(this.settings.layerInfos);
+        //query("#editorDiv")[0].style.display = "none";
+      },
+
+      _createEditorToolbar: function (linfos) {
+        var settings = {
+          map: this.map,
+          createOptions: {
+            polygonDrawTools: [
+              //Editor.CREATE_TOOL_ARROW,
+              Editor.CREATE_TOOL_AUTOCOMPLETE,
+              Editor.CREATE_TOOL_CIRCLE,
+              Editor.CREATE_TOOL_ELLIPSE,
+              Editor.CREATE_TOOL_RECTANGLE,
+              Editor.CREATE_TOOL_TRIANGLE,
+              Editor.CREATE_TOOL_POLYGON,
+              Editor.CREATE_TOOL_FREEHAND_POLYGON
+            ],
+            polylineDrawTools: [
+              Editor.CREATE_TOOL_POLYLINE,
+              Editor.CREATE_TOOL_FREEHAND_POLYLINE
+            ]
+          },
+          toolbarVisible: true,
+          toolbarOptions: {
+            reshapeVisible: true
+          },
+          layerInfos: linfos,
+          templatePicker: null
+        }
+
+        var params = { settings: settings };
+        var myEditor = new Editor(params, "editorDiv");
+        myEditor.startup();
       },
 
       // Cam
@@ -414,103 +456,170 @@ define([
         return updatedAttrs;
       },
 
-      // Cam      
-      _performAdditionalStepsForEnhancedEditor: function () {
-        if (this.editor && this.editor.templatePicker) {
-          this.localFeatureLayers = [];
-          // swap the layerInfos and featurelayers          
-          array.forEach(this.editor.settings.layerInfos, function (layerInfo) {
-            // clone the layer
-            var localLayer = this._cloneLayer(layerInfo.featureLayer);
-            layerInfo.featureLayer = localLayer;
-            this.localFeatureLayers.push(localLayer);
-          }, this);
-
-          this.editor.templatePicker.featureLayers = this.localFeatureLayers;
-          this.editor.templatePicker.update();
-
-          this._createAttributeInspector();
-
-          // set the template picker
-          this.templatePicker = this.editor.templatePicker;
-
-          // wire template picker events
-          this.templatePicker.on("selection-change", lang.hitch(this, function () {
-            var selected = this.templatePicker.getSelected();
-            if (selected) {
-              if (this.map) {
-                this.map.setInfoWindowOnClick(false);
-              }
-            }
-          }));
+      _findErrorElement: function (prop) {
+        var list = this.attrInspector.attributeTable.getElementsByTagName("tr");
+        for (var i = 0; i < list.length; i++) {
+          //if (list[i].firstChild.innerText.toUpperCase() === prop.toUpperCase()) {
+          if (list[i].firstChild.innerText === prop) {
+            list[i].lastChild.getElementsByClassName("dijitValidationTextBox")[0].style.borderColor = "red";
+            //list[i].lastChild.style.borderColor = "red";
+            return;
+          }
         }
       },
 
       // Cam
-      _performEnhancedEditorCleanup: function(){
-        if (this.attrInspector) {
-          this.attrInspector.destroy();
-          this.attrInspector = null;
+      _formatErrorFields: function (errObject) {
+        for (var prop in errObject) {
+          if (errObject.hasOwnProperty(prop)) {
+            // loop throug each row in the attrInspector 
+            this._findErrorElement(prop);
+          }
         }
-        
+      },
+
+
+      // Cam
+      _getDefaultLayerInfosForLocalLayer: function (layerId) {
+        var defaultLayerInfos = [];
+        var fieldInfos;
+
+        var layerObject = this.map.getLayer(layerId);
+        if (layerObject.type === "Feature Layer" && layerObject.url) {
+          var layerInfo = {
+            featureLayer: {}
+          };
+          layerInfo.featureLayer.id = layerObject.id;
+          layerInfo.disableGeometryUpdate = false;
+          fieldInfos = this._getDefaultFieldInfos(layerObject.id);
+          if (fieldInfos && fieldInfos.length > 0) {
+            layerInfo.fieldInfos = fieldInfos;
+          }
+          defaultLayerInfos.push(layerInfo);
+        }
+
+        return defaultLayerInfos;
+      },
+
+      // Cam
+      _getEditableLayers: function (layerInfos) {
+        var layers = [];
+        array.forEach(layerInfos, function (layerInfo) {
+          var layerObject = this.map.getLayer(layerInfo.featureLayer.id);
+          if (layerObject &&
+             layerObject.visible &&
+             layerObject.isEditable &&
+             layerObject.isEditable()) {
+            layers.push(layerObject);
+          }
+        }, this);
+        return layers;
+      },
+
+      // Cam
+      _isObjectEmpty: function (obj) {
+        if (obj) {
+          for (var prop in obj) {
+            if (obj.hasOwnProperty(prop)) {
+              return false;
+            }
+          }
+          return true;
+        }
+        return true; //return true if obj is null
       },
 
       // Cam
       _postChanges: function () {
         var deferred = new Deferred();
-        if (this.currentLocalFeatureLayer && this.currentLocalFeatureLayer.graphics.length > 0) {
-          //get its corresponding feature layer
-          var featureLayer = this.map.getLayer(this.currentLocalFeatureLayer.originalLayerId);
 
-          var graphic = new Graphic(this.currentLocalFeatureLayer.graphics[0].geometry, null,
-            this.currentLocalFeatureLayer.graphics[0].attributes);
-          
-          // determine if it's an add or edit operation
-          if (this.currentLocalFeatureLayer.graphics[0].original) { // update
+        if (this.updateFeature) {
+          if (this.updateFeature.getLayer().originalLayerId) {
+            // add a feature
+            var featureLayer = this.map.getLayer(this.updateFeature.getLayer().originalLayerId);
+            if (featureLayer) {
+              // modify some attributes before calling applyEdits
+              this.updateFeature.attributes["OBJECTID"] = null;
+              this.updateFeature.symbol = null;
+              featureLayer.applyEdits([this.updateFeature]);
+              featureLayer.clearSelection();
 
-            var newAttrs = this._filterOnlyUpdatedAttributes(graphic.attributes,
-              this.currentLocalFeatureLayer.graphics[0].original.attributes);
-            if (newAttrs) {
-              graphic.attributes = newAttrs;
-            }
+              this.updateFeature.getLayer().clear();
+              this.updateFeature = null;
+              this.selectedTemplate = null;
 
-            graphic.attributes[this.currentLocalFeatureLayer.objectIdField] =
-              this.currentLocalFeatureLayer.graphics[0].original.attributes["OBJECTID"];
+              deferred.resolve("success");
+            } // if featureLayer not null
+          } else {
+            // update existing feature
+            // only get the updated attributes
+            var newAttrs = this._filterOnlyUpdatedAttributes(
+              this.updateFeature.attributes, this.updateFeature.original.attributes);
 
-            featureLayer.applyEdits(null, [graphic], null, function (e) {
-              //if (e && e.length > 0 && e[0].success) {
-                featureLayer.refresh();
+            if (newAttrs && !this._isObjectEmpty(newAttrs)) {
+              this.updateFeature.attributes = newAttrs;
+
+              // modify some important attributes before calling applyEdits
+              this.updateFeature.attributes["OBJECTID"] =
+                this.updateFeature.original.attributes["OBJECTID"];
+              this.updateFeature.original = null;
+
+              this.updateFeature.getLayer().applyEdits(null, [this.updateFeature], null,
+                lang.hitch(this, function (e) {
+                // sometimes a successfully update returns an empty array
+                //if (e && e.length > 0 && e[0].success) {
+                this.updateFeature.getLayer().refresh();
                 deferred.resolve("success");
-              //}
-            }, function (e) {
-              // for now
-              alert("Error when performing update ApplyEdits");
-              deferred.resolve("failed");
-            });
-          } else { // add
-            //graphic.attributes[this.currentLocalFeatureLayer.objectIdField] = null;
-            //featureLayer.applyEdits([graphic], null, null, function (e) {
-            this.currentLocalFeatureLayer.graphics[0].attributes["OBJECTID"] = null;
-            featureLayer.applyEdits([this.currentLocalFeatureLayer.graphics[0]]);
-            deferred.resolve("success");
-
-            //featureLayer.applyEdits([this.currentLocalFeatureLayer.graphics[0]], null, null, function (e) {
-            //  if (e && e.length > 0 && e[0].success) {
-            //    featureLayer.refresh();
-            //    deferred.resolve("success");
-            //  }
-            //}, function (e) {
-            //  // for now
-            //  alert("Error when performing applyEdits");
-            //  deferred.resolve("failed");
-            //});
-          }
-
-        } else {
-          deferred.resolve();
+                //}
+              }), function (e) {
+                // for now
+                alert("Error when performing update ApplyEdits");
+                deferred.resolve("failed");
+              });
+            }
+          } // no attribute update
         }
+        deferred.resolve();
 
         return deferred.promise;
+      },
+
+      // Cam
+      _processOnLayerClick: function (evt, layer) {
+        // The logic of adding new feature to local layer is handled
+        // in the draw end event of the draw tool
+
+        // viewing/editing existing features
+        if (!this.selectedTemplate) {
+
+          // recreate the attr inspector if needed
+          if (!this.attrInspector) {
+            this.attrInspector = this._createAttributeInspector(this.settings.layerInfos);
+          } else {
+            // if previously the atts inspector is created for an add activity, recreate it
+            if (this.attrInspector.layerInfos.length == 1 &&
+                this.attrInspector.layerInfos[0].featureLayer.id.lastIndexOf("_lfl") > 0) {
+              this.attrInspector.destroy();
+              this.attrInspector = null;
+              this.attrInspector = this._createAttributeInspector(this.settings.layerInfos)
+            }
+          }
+
+          this.map.infoWindow.hide();
+
+          var selectQuery = new Query();
+          selectQuery.objectIds = [evt.graphic.attributes["OBJECTID"]];
+          layer.selectFeatures(selectQuery, FeatureLayer.SELECTION_NEW,
+            lang.hitch(this, function (features) {
+              if (features && features.length > 0) {
+                // store the feature to be edited
+                this.updateFeature = features[0];
+                this.updateFeature.original = new Graphic(this.updateFeature.toJson());
+                // show attribute inspector
+                this._showTemplate(false);
+              }
+            }));
+        }
       },
 
       // Cam
@@ -525,7 +634,8 @@ define([
             mymap.removeLayer(e);
           });
 
-          this.currentLocalFeatureLayer = null;
+          this.currentLayer = null;
+          this.updateFeature = null;
         }
       },
 
@@ -537,8 +647,8 @@ define([
           content: "Would you like to save the current feature?",
           style: "width: 400px",
           onExecute: lang.hitch(this, function () {
-            //needed?
-            this.templatePicker.clearSelection();
+            ////needed?
+            //this.templatePicker.clearSelection();
             // call validate
             var valid = this._validateRequiredFields();
             if (valid) {
@@ -548,7 +658,6 @@ define([
                   this._showTemplate(true);
                 }
                 this.isDirty = false;
-                this._clearLocalGraphic();
 
                 deferred.resolve("success");
               }));
@@ -559,8 +668,7 @@ define([
             }
           }),
           onCancel: lang.hitch(this, function () { // not saving
-            this.isDirty = false;
-            this._clearLocalGraphic();
+            this._cancelEditingFeature();
 
             if (switchToTemplate) {
               this._showTemplate(true);
@@ -569,40 +677,77 @@ define([
           })
         });
         confirmDialog.show();
+        //needed?
+        this.templatePicker.clearSelection();
         return deferred.promise;
+      },
+
+      _setSelectionSymbol: function (layer) {
+        if (!layer) { return; }
+
+        var selectionSymbol;
+        switch (layer.geometryType) {
+          case "esriGeometryPoint":
+            selectionSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE,
+                              20,
+                              new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
+                                  new Color([255, 0, 0]), 1),
+                              new Color([0, 255, 0, 0.15]));
+            break;
+          case "esriGeometryPolyline":
+            selectionSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
+                                  new Color([255, 0, 0]), 1);
+            break;
+          case "esriGeometryPolygon":
+            selectionSymbol = new SimpleFillSymbol().setColor(new Color([255, 255, 0, 0.5]));
+            break;
+        }
+        layer.setSelectionSymbol(selectionSymbol);
       },
 
       // Cam
       _showTemplate: function (showTemplate) {
         if (showTemplate) {
+          if (this.currentLayer) {
+            this.currentLayer.clearSelection();
+          }
           this.attrInspector.domNode.style.display = "none";
-          query(".jimu-widget-EnhancedEditor .esriEditor")[0].style.display = "block";
+          //query(".jimu-widget-EnhancedEditor .esriEditor")[0].style.display = "block";
+          //query("#editorDiv")[0].style.display = "none";
           this.templatePicker.domNode.style.display = "block";
+          this.templatePicker.domNode.previousElementSibling.style.display = "block";
           this.templatePicker.update();
         } else {
           this.templatePicker.domNode.style.display = "none";
-          query(".jimu-widget-EnhancedEditor .esriEditor")[0].style.display = "none";
+          this.templatePicker.domNode.previousElementSibling.style.display = "none";
+          //query(".jimu-widget-EnhancedEditor .esriEditor")[0].style.display = "none";
           this.attrInspector.domNode.style.display = "block";
-          this.attrInspector.refresh();
+          //query("#editorDiv")[0].style.display = "block";
         }
+        this.attrInspector.refresh();
       },
 
       // Cam
       _validateRequiredFields: function(){
-        if (!this.currentLocalFeatureLayer) { return false; }
+        var errorObj = {};
+        if (!this.updateFeature) { return errorObj; }//false; }
 
-        var errorFields = [];
-        this.currentLocalFeatureLayer.fields.filter(lang.hitch(this, function (field) {
+        //var errorFields = [];
+        var layer = this.updateFeature.getLayer();
+
+        layer.fields.filter(lang.hitch(this, function (field) {
           return field.nullable === false && field.editable === true;
         })).forEach(lang.hitch(this, function (f) {
-          var graphic = this.currentLocalFeatureLayer.graphics[0];
-          if (!graphic.attributes[f.name]) {
-            errorFields.push({"field": f.name, "issue": "undefined"});
+          //var graphic = layer.graphics[0];
+          if (!this.updateFeature.attributes[f.name]) {
+            //errorFields.push({"field": f.name, "issue": "undefined"});
+            errorObj[f.alias] = "undefined";
           } else {
             switch (f.type) {
               case "esriFieldTypeString":
-                if (graphic.attributes[f.name].trim() === "") {
-                  errorFields.push({ "field": f.name, "issue": "Empty string" });
+                if (this.updateFeature.attributes[f.name].trim() === "") {
+                  //errorFields.push({ "field": f.name, "issue": "Empty string" });
+                  errorObj[f.alias] = "Empty string";
                 }
                 break;
               case "esriFieldTypeDate":
@@ -611,27 +756,8 @@ define([
             }
           }
         }));
-        return errorFields.length > 0 ? false : true;
-      },
-
-      _enableMapClickHandler: function() {
-        if (this.editor && typeof this.editor._enableMapClickHandler === "function") {
-          this._editorMapClickHandlers.push(this.editor._mapClickHandler);
-          this.editor._enableMapClickHandler();
-          this._editorMapClickHandlers.push(this.editor._mapClickHandler);
-        }
-      },
-
-      _disableMapClickHandler: function() {
-        if (this.editor && typeof this.editor._disableMapClickHandler === "function") {
-          this.editor._disableMapClickHandler();
-          array.forEach(this._editorMapClickHandlers, function(editorMapClickHandler) {
-            if(editorMapClickHandler && editorMapClickHandler.remove) {
-              editorMapClickHandler.remove();
-            }
-          });
-          this._editorMapClickHandlers = [];
-        }
+        //return errorFields.length > 0 ? false : true;
+        return errorObj;
       },
 
       _getDefaultFieldInfos: function(layerId) {
@@ -770,34 +896,13 @@ define([
         return resultLayerInfosParam;
       },
 
-      _getTemplatePicker: function(layerInfos) {
-        var layerObjects = [];
-
-        array.forEach(layerInfos, function(layerInfo) {
-          if(layerInfo.featureLayer &&
-            layerInfo.featureLayer.getEditCapabilities &&
-            layerInfo.featureLayer.getEditCapabilities().canCreate) {
-            layerObjects.push(layerInfo.featureLayer);
-          }
-        }, this);
-
-        var templatePicker = new TemplatePicker({
-          featureLayers: layerObjects,
-          grouping: true,
-          rows: "auto",
-          columns: "auto",
-          style: this._configEditor.toolbarVisible ? "" : "bottom: 0px"
-        }, html.create("div", {}, this.domNode));
-        templatePicker.startup();
-        return templatePicker;
-      },
-
+      // Cam
       _getSettingsParam: function() {
         var settings = {
           map: this.map,
           createOptions: {
             polygonDrawTools: [
-              Editor.CREATE_TOOL_ARROW,
+              //Editor.CREATE_TOOL_ARROW,
               Editor.CREATE_TOOL_AUTOCOMPLETE,
               Editor.CREATE_TOOL_CIRCLE,
               Editor.CREATE_TOOL_ELLIPSE,
@@ -816,131 +921,24 @@ define([
           settings[attr] = this._configEditor[attr];
         }
         settings.layerInfos = this._getLayerInfosParam();
-        if (!this._configEditor.useFilterEdit) {
-          settings.templatePicker = this._getTemplatePicker(settings.layerInfos);
-        }
 
         return settings;
       },
 
-      _createEditor: function() {
-        var params = {
-          settings: this._getSettingsParam()
-        };
-        this._worksBeforeCreate(params.settings);
-        if (this._configEditor.useFilterEdit) {
-          this.editor = new FilterEditor(params, html.create("div", {}, this.domNode));
-        }
-        else {
-          this.editor = new Editor(params, html.create("div", {}, this.domNode));
-        }
-        this.editor.startup();
-        this._worksAfterCreate();
-      },
-
-      _addButtonToInspector: function() {
-        if (this.editor.attributeInspector) {
-          if (query(" atiButton closeButton",
-            this.editor.attributeInspector.deleteBtn.domNode).length === 0) {
-            var closeButton = new Button({
-              label: esriBundle.common.close,
-              "class": " atiButton closeButton"
-            }, html.create("div"));
-
-            html.place(closeButton.domNode,
-                       this.editor.attributeInspector.deleteBtn.domNode,
-                       "after");
-            this.own(on(closeButton, 'click', lang.hitch(this, function() {
-              this.editPopup.hide();
-            })));
-          }
-        }
-      },
-
-     _update: function() {
-        if(this.editor && this.editor.templatePicker){
-          this.editor.templatePicker.update();
-        }
-
-        if (this._configEditor.useFilterEdit) {
-          var widgetBox = html.getMarginBox(this.domNode);
-          var height = widgetBox.h;
-          var width = widgetBox.w;
-          if (this.editor.templatePicker) {
-            var cols = Math.floor(width / 60);
-            this.editor.templatePicker.attr('columns', cols);
-            this.editor.templatePicker.update();
-          }
-          query(".templatePicker", this.domNode).style('height', height - 140 + 'px');
-          query(".jimu-widget-FilterEditor", this.domNode).style('height', height - 60 + 'px');
-
-          if (!this._configEditor.useEnhancedEditFeatures) {
-            this._addButtonToInspector();
-          }
-        }
-      },
-
       resize: function() {
-        this._update();
       },
 
       onClose: function() {
-        if (this.editor) {
-          this.editor.destroy();
+        if (this.attrInspector) {
+          this.attrInspector.destroy();
         }
-        this.editor = null;
+        this.attrInspector = null;
+        if (this.templatePicker) {
+          this.templatePicker.destroy();
+        }
         // close method will call onDeActive automaticlly
         // so do not need to call onDeActive();
         this._worksAfterClose();
-      },
-
-      _worksBeforeCreate: function(settings) {
-        // change string of mouse tooltip
-        var additionStr = "<br/>" + "(" + this.nls.pressStr + "<b>" +
-          this.nls.ctrlStr + "</b> " + this.nls.snapStr + ")";
-        this._defaultStartStr = esriBundle.toolbars.draw.start;
-        this._defaultAddPointStr = esriBundle.toolbars.draw.addPoint;
-        esriBundle.toolbars.draw.start =
-          esriBundle.toolbars.draw.start + additionStr;
-        esriBundle.toolbars.draw.addPoint =
-          esriBundle.toolbars.draw.addPoint + additionStr;
-
-        // hide label layer.
-        var labelLayer = this.map.getLayer("labels");
-        if(labelLayer) {
-          labelLayer.hide();
-        }
-
-        // change layer name
-        array.forEach(settings.layerInfos, function(layerInfo) {
-          var jimuLayerInfo =
-            this._jimuLayerInfos.getLayerInfoByTopLayerId(layerInfo.featureLayer.id);
-          if(jimuLayerInfo) {
-            layerInfo.featureLayer.name = jimuLayerInfo.title;
-          }
-        }, this);
-      },
-
-      _worksAfterCreate: function() {
-        // add close button to atiInspector
-        this._addButtonToInspector();
-        // resize editPopup
-        this.editPopup.resize(500, 251);
-        // update templatePicker for responsive.
-        if (this.editor.templatePicker) {
-          this.editor.templatePicker.update();
-        }
-        //just for BoxTheme
-        setTimeout(lang.hitch(this, this._update), 9000);
-        // // reset default selectionSymbol that change by Editor dijit.
-        // array.forEach(this.editor.settings.layerInfos, function(layerInfo) {
-        //   layerInfo.featureLayer.setSelectionSymbol();
-        // }, this);
-
-        // Cam
-        if (this._configEditor.useEnhancedEditFeatures) {
-          setTimeout(lang.hitch(this, this._performAdditionalStepsForEnhancedEditor), 1000);
-        }
       },
 
       _worksAfterClose: function() {

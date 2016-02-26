@@ -67,8 +67,6 @@ define([
       },
 
       _initToolbar: function() {
-        this.useFilterEdit.set('checked', this.config.editor.useFilterEdit);
-        this.useEnhancedEditFeatures.set('checked', this.config.editor.useEnhancedEditFeatures);
         this.toolbarVisible.set('checked', this.config.editor.toolbarVisible);
         this.enableUndoRedo.set('checked', this.config.editor.enableUndoRedo);
         this.mergeVisible.set('checked', this.config.editor.toolbarOptions.mergeVisible);
@@ -188,19 +186,6 @@ define([
           });
           addRowResult.tr._layerInfo = layerInfo;
 
-          // var editableCheckBox;
-          // var editableCheckBoxDomNode = query(".editable .jimu-checkbox", addRowResult.tr)[0];
-          // if(editableCheckBoxDomNode) {
-          //   editableCheckBox = registry.byNode(editableCheckBoxDomNode);
-          //   // this.own(on(editableCheckBox,
-          //   // 'change',
-          //   // lang.hitch(this, function() {
-          //   //   console.log(layerInfo.id);
-          //   // })));
-          //   editableCheckBox.onChange = lang.hitch(this, function(checked) {
-          //     layerInfo._editFlag = checked;
-          //   });
-          // }
         }, this);
       },
 
@@ -298,8 +283,6 @@ define([
       },
 
       _resetToolbarConfig: function() {
-        this.config.editor.useFilterEdit = this.useFilterEdit.checked;
-        this.config.editor.useEnhancedEditFeatures = this.useEnhancedEditFeatures.checked;
         this.config.editor.toolbarVisible = this.toolbarVisible.checked;
         this.config.editor.enableUndoRedo = this.enableUndoRedo.checked;
         this.config.editor.toolbarOptions.mergeVisible = this.mergeVisible.checked;
@@ -322,14 +305,6 @@ define([
             checkedLayerInfos.push(layerInfo);
           }
         });
-
-        // var checkedLayerInfos = [];
-        // array.forEach(this._editableLayerInfos, function(layerInfo) {
-        //   if(layerInfo._editFlag) {
-        //     delete layerInfo._editFlag;
-        //     checkedLayerInfos.push(layerInfo);
-        //   }
-        // });
 
         if(checkedLayerInfos.length === 0) {
           delete this.config.editor.layerInfos;

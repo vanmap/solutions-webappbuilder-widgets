@@ -122,9 +122,14 @@
   margin: 0 0 0 45px;
 }
 
-.jimu-widget-EnhancedEditor .esriAttributeInspector .validateButton {
-    margin-left: 45px;
+.jimu-widget-EnhancedEditor .esriAttributeInspector{
+    height: 500px;
+    width: 300px;
 }
+
+/*.jimu-widget-EnhancedEditor .esriAttributeInspector .validateButton {
+    margin-left: 45px;
+}*/
 .jimu-widget-EnhancedEditor .esriAttributeInspector .templateButton {
     float: right;
 }

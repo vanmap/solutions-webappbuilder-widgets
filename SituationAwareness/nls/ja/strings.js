@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "状況認識 (ベータ版)",
+    _widgetLabel: "状況認識",
     locate_incident: "インシデントの特定",
     clear_incidents: "インシデントの消去",
     reverse_geocoded_address: "最も近い住所",
@@ -20,7 +20,7 @@
     THU: "木",
     FRI: "金",
     SAT: "土",
-    defaultTabMsg: "インシデントが見つかりません。",
+    defaultTabMsg: "インシデント エリアを定義してください。",
     actionLabel: "インシデントとして設定",
     drawPoint: "ポイントの描画",
     drawLine: "ラインの描画",
@@ -30,9 +30,9 @@
     useMapExtent: "現在のマップ範囲を使用",
     noFeaturesFound: "フィーチャは見つかりませんでした。",
     downloadCSV: "CSV のダウンロード",
-    editComplete: "フィーチャが正常に保存されました",
-    updateComplete: "フィーチャが正常に更新されました",
-    deleteComplete: "フィーチャが正常に削除されました",
+    editComplete: "フィーチャが正常に保存されました。",
+    updateComplete: "フィーチャが正常に更新されました。",
+    deleteComplete: "フィーチャが正常に削除されました。",
     sum: "SUM",
     min: "MIN",
     max: "MAX",
@@ -41,7 +41,10 @@
     area: "AREA",
     length: "LENGTH",
     notPolySave: "バッファー距離を指定してから保存してください。",
-    update_btn: "更新",
-    delete_btn: "削除"
+    update_btn: "完了",
+    delete_btn: "削除",
+    get_directions: "ルート案内の取得",
+    incident: "インシデント",
+    weather: "天気"
   })
 );

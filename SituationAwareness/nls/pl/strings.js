@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Świadomość sytuacyjna (Beta)",
+    _widgetLabel: "Świadomość sytuacji",
     locate_incident: "Zlokalizuj zdarzenie",
     clear_incidents: "Wyczyść zdarzenia",
     reverse_geocoded_address: "Najbliższy adres",
@@ -20,7 +20,7 @@
     THU: "CZW",
     FRI: "PT",
     SAT: "SOB",
-    defaultTabMsg: "Nie znaleziono żadnych zdarzeń.",
+    defaultTabMsg: "Zdefiniuj obszar zdarzenia.",
     actionLabel: "Skonfiguruj jako zdarzenie",
     drawPoint: "Rysuj punkt",
     drawLine: "Rysuj linię",
@@ -30,9 +30,9 @@
     useMapExtent: "Użyj bieżącego zasięgu mapy",
     noFeaturesFound: "Nie odnaleziono obiektów.",
     downloadCSV: "POBIERZ PLIK CSV",
-    editComplete: "Pomyślnie zapisano obiekt!",
-    updateComplete: "Obiekt został zaktualizowany pomyślnie.",
-    deleteComplete: "Obiekt został usunięty pomyślnie.",
+    editComplete: "Pomyślnie zapisano obiekt.",
+    updateComplete: "Pomyślnie zaktualizowano obiekt.",
+    deleteComplete: "Pomyślnie usunięto obiekt.",
     sum: "SUMA",
     min: "MIN.",
     max: "MAKS.",
@@ -41,7 +41,10 @@
     area: "POWIERZCHNIA",
     length: "DŁUGOŚĆ",
     notPolySave: "Podaj odległość buforowania przed zapisaniem.",
-    update_btn: "Zmień",
-    delete_btn: "Usuń"
+    update_btn: "Wykonano",
+    delete_btn: "Usuń",
+    get_directions: "Wyznacz wskazówki dojazdu",
+    incident: "Zdarzenie",
+    weather: "Pogoda"
   })
 );

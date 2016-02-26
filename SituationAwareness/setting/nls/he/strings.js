@@ -41,9 +41,9 @@
     "count": "ספירה",
     "area": "אזור",
     "length": "אורך",
-    "count_checkBox": "הצג ספירה",
-    "area_checkBox": "הצג שטח",
-    "length_checkBox": "הצג אורך",
+    "count_checkBox": "הצג ספירת ישויות",
+    "area_checkBox": "הצג סכום שטח",
+    "length_checkBox": "הצג סכום אורך",
     "max_records": "הגעת למספר המקסימלי",
     "save_label": "שמור אפשרויות",
     "save_checkbox": "הפעל שמירה",
@@ -51,6 +51,11 @@
     "csv_checkbox": "יצא את כל השדות שבשכבה.",
     "display_label": "הצג אפשרויות",
     "display_checkbox": "הצג ישויות סיכום",
-    "must_select_template": "בחר אחת מתבניות העריכה תחת \'שמור אפשרויות\'"
+    "must_select_template": "בחר אחת מתבניות העריכה תחת \'שמור אפשרויות\'",
+    "count_label": "תווית מונה",
+    "area_label": "תווית שטח",
+    "length_label": "תווית אורך",
+    "invalid_string_width": "הערך ארוך מדי. ",
+    "layer_type_not_supported": "סוג השכבה לא נתמך: "
   })
 );

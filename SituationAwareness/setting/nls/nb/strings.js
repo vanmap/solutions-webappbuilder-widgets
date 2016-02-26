@@ -41,9 +41,9 @@
     "count": "ANTALL",
     "area": "OMRÅDE",
     "length": "LENGDE",
-    "count_checkBox": "Vis antall",
-    "area_checkBox": "Vis område",
-    "length_checkBox": "Vis lengde",
+    "count_checkBox": "Vis antall geoobjekter",
+    "area_checkBox": "Vis sum for areal",
+    "length_checkBox": "Vis sum for lengde",
     "max_records": "Maksimumsgrensen er nådd",
     "save_label": "Lagre alternativer",
     "save_checkbox": "Aktiver lagring",
@@ -51,6 +51,11 @@
     "csv_checkbox": "Eksporter alle feltene i laget.",
     "display_label": "Visningsalternativer",
     "display_checkbox": "Vis geoobjekter for summering",
-    "must_select_template": "Velg en av redigeringsmalene i Lagre alternativer."
+    "must_select_template": "Velg en av redigeringsmalene i Lagre alternativer.",
+    "count_label": "Etikett for antall",
+    "area_label": "Etikett for areal",
+    "length_label": "Etikett for lengde",
+    "invalid_string_width": "Verdien er for lang. ",
+    "layer_type_not_supported": "Lagtypen støttes ikke: "
   })
 );

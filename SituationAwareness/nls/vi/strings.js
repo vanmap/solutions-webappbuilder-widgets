@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Nhận biết Tình huống (Beta)",
+    _widgetLabel: "Nhận biết Tình huống",
     locate_incident: "Định vị Sự cố",
     clear_incidents: "Xóa Sự cố",
     reverse_geocoded_address: "Địa chỉ gần nhất",
@@ -20,7 +20,7 @@
     THU: "T5",
     FRI: "T6",
     SAT: "T7",
-    defaultTabMsg: "Không có sự cố được xác định.",
+    defaultTabMsg: "Vui lòng xác định khu vực sự cố.",
     actionLabel: "Thiết lập Là Sự cố",
     drawPoint: "Vẽ Điểm",
     drawLine: "Vẽ Đường",
@@ -30,9 +30,9 @@
     useMapExtent: "Sử dụng phạm vi bản đồ hiện tại",
     noFeaturesFound: "Không tìm thấy đối tượng.",
     downloadCSV: "TẢI XUỐNG CSV",
-    editComplete: "Đã lưu thành công đối tượng!",
-    updateComplete: "Đã cập nhật thành công đối tượng!",
-    deleteComplete: "Đã xóa thành công đối tượng!",
+    editComplete: "Đã lưu thành công đối tượng.",
+    updateComplete: "Đã cập nhật thành công đối tượng.",
+    deleteComplete: "Đã xóa thành công đối tượng.",
     sum: "TỔNG",
     min: "TỐI THIỂU",
     max: "Tối đa",
@@ -41,7 +41,10 @@
     area: "DIỆN TÍCH",
     length: "ĐỘ DÀI",
     notPolySave: "Vui lòng xác định khoảng cách vùng đệm trước khi lưu.",
-    update_btn: "Cập nhật",
-    delete_btn: "Xóa"
+    update_btn: "Hoàn tất",
+    delete_btn: "Xóa",
+    get_directions: "Nhận Chỉ đường",
+    incident: "Sự cố",
+    weather: "Thời tiết"
   })
 );

@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Situationsbewusstsein (Beta)",
+    _widgetLabel: "Situationsbewusstsein",
     locate_incident: "Ereignis verorten",
     clear_incidents: "Ereignisse löschen",
     reverse_geocoded_address: "Nächstgelegene Adresse",
@@ -20,7 +20,7 @@
     THU: "DO",
     FRI: "FR",
     SAT: "SA",
-    defaultTabMsg: "Keine Ereignisse identifiziert.",
+    defaultTabMsg: "Definieren Sie einen Ereignisbereich.",
     actionLabel: "Als Ereignis festlegen",
     drawPoint: "Punkt zeichnen",
     drawLine: "Linie zeichnen",
@@ -30,9 +30,9 @@
     useMapExtent: "Die aktuelle Kartenausdehnung verwenden",
     noFeaturesFound: "Keine Features gefunden.",
     downloadCSV: "CSV HERUNTERLADEN",
-    editComplete: "Feature wurde erfolgreich gespeichert!",
-    updateComplete: "Feature wurde erfolgreich aktualisiert!",
-    deleteComplete: "Feature wurde erfolgreich gelöscht!",
+    editComplete: "Feature wurde erfolgreich gespeichert.",
+    updateComplete: "Feature wurde erfolgreich aktualisiert.",
+    deleteComplete: "Feature wurde erfolgreich gelöscht.",
     sum: "SUMME",
     min: "MINIMUM",
     max: "MAXIMUM",
@@ -41,7 +41,10 @@
     area: "FLÄCHE",
     length: "LÄNGE",
     notPolySave: "Geben Sie vor dem Speichern eine Pufferentfernung an.",
-    update_btn: "Aktualisieren",
-    delete_btn: "Löschen"
+    update_btn: "Fertig",
+    delete_btn: "Löschen",
+    get_directions: "Wegbeschreibung abrufen",
+    incident: "Ereignis",
+    weather: "Wetter"
   })
 );

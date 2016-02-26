@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Consapevolezza situazionale (Beta)",
+    _widgetLabel: "Consapevolezza situazionale",
     locate_incident: "Individua incidente",
     clear_incidents: "Cancella incidenti",
     reverse_geocoded_address: "Indirizzo più vicino",
@@ -20,7 +20,7 @@
     THU: "GIO",
     FRI: "VEN",
     SAT: "SAB",
-    defaultTabMsg: "Nessun incidente identificato.",
+    defaultTabMsg: "Definire un\'area dell\'incidente.",
     actionLabel: "Imposta come incidente",
     drawPoint: "Disegna punto",
     drawLine: "Disegna linea",
@@ -30,9 +30,9 @@
     useMapExtent: "Usa estensione mappa corrente",
     noFeaturesFound: "Nessuna feature trovata.",
     downloadCSV: "SCARICA CSV",
-    editComplete: "Feature salvata",
-    updateComplete: "Feature aggiornata",
-    deleteComplete: "Feature eliminata",
+    editComplete: "Salvataggio feature riuscito.",
+    updateComplete: "Aggiornamento feature riuscito.",
+    deleteComplete: "Eliminazione feature riuscita.",
     sum: "SOMMA",
     min: "MIN",
     max: "MAX",
@@ -41,7 +41,10 @@
     area: "AREA",
     length: "LENGTH",
     notPolySave: "Specificare una distanza di buffer prima del salvataggio.",
-    update_btn: "Aggiorna",
-    delete_btn: "Elimina"
+    update_btn: "Completato",
+    delete_btn: "Elimina",
+    get_directions: "Ottieni indicazioni",
+    incident: "Richiesta di assistenza",
+    weather: "Meteo"
   })
 );

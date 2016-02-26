@@ -41,9 +41,9 @@
     "count": "MÄÄRÄ",
     "area": "ALUE",
     "length": "PITUUS",
-    "count_checkBox": "Näytä määrä",
-    "area_checkBox": "Näytä alue",
-    "length_checkBox": "Näytä pituus",
+    "count_checkBox": "Näytä kohteiden määrä",
+    "area_checkBox": "Näytä alueen summa",
+    "length_checkBox": "Näytä pituuden summa",
     "max_records": "Enimmäisraja saavutettu",
     "save_label": "Tallenna asetukset",
     "save_checkbox": "Ota tallennus käyttöön",
@@ -51,6 +51,11 @@
     "csv_checkbox": "CSV-asetukset",
     "display_label": "Näytä asetukset",
     "display_checkbox": "Näytä kohteiden yhteenveto",
-    "must_select_template": "Valitse yksi muokkausmalleista Tallenna asetukset -kohdassa."
+    "must_select_template": "Valitse yksi muokkausmalleista Tallenna asetukset -kohdassa.",
+    "count_label": "Määrän nimiö",
+    "area_label": "Alueen nimiö",
+    "length_label": "Pituuden nimiö",
+    "invalid_string_width": "Arvo on liian pitkä. ",
+    "layer_type_not_supported": "Karttatasotyyppiä ei tueta: "
   })
 );

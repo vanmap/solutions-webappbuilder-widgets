@@ -41,9 +41,9 @@
     "count": "计数",
     "area": "面积",
     "length": "长度",
-    "count_checkBox": "显示计数",
-    "area_checkBox": "显示面积",
-    "length_checkBox": "显示长度",
+    "count_checkBox": "显示要素计数",
+    "area_checkBox": "显示面积总和",
+    "length_checkBox": "显示长度总和",
     "max_records": "已达到最大限制",
     "save_label": "保存选项",
     "save_checkbox": "启用保存",
@@ -51,6 +51,11 @@
     "csv_checkbox": "导出所有图层中的字段。",
     "display_label": "显示选项",
     "display_checkbox": "显示汇总要素",
-    "must_select_template": "请在保存选项中选择一个编辑模板。"
+    "must_select_template": "请在保存选项中选择一个编辑模板。",
+    "count_label": "计数标注",
+    "area_label": "面积标注",
+    "length_label": "长度标注",
+    "invalid_string_width": "值过长。 ",
+    "layer_type_not_supported": "不支持图层类型: "
   })
 );

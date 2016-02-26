@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Durum Farkındalığı (Beta)",
+    _widgetLabel: "Durum Farkındalığı",
     locate_incident: "Olay Bul",
     clear_incidents: "Olayları Temizle",
     reverse_geocoded_address: "En yakın adres",
@@ -20,7 +20,7 @@
     THU: "PER",
     FRI: "CUM",
     SAT: "CTS",
-    defaultTabMsg: "Tanımlanan olay yok.",
+    defaultTabMsg: "Bir olay alanı tanımlayın.",
     actionLabel: "Olay Olarak Ayarla",
     drawPoint: "Nokta Çiz",
     drawLine: "Çizgi Çiz",
@@ -30,9 +30,9 @@
     useMapExtent: "Geçerli harita yayılımını kullan",
     noFeaturesFound: "Detay bulunamadı.",
     downloadCSV: "CSV İNDİR",
-    editComplete: "Detay başarıyla kaydedildi!",
-    updateComplete: "Detay başarıyla güncellendi!",
-    deleteComplete: "Detay başarıyla silindi!",
+    editComplete: "Detay başarıyla kaydedildi.",
+    updateComplete: "Detay başarıyla güncellendi.",
+    deleteComplete: "Detay başarıyla silindi.",
     sum: "TOP",
     min: "MIN",
     max: "MAKS",
@@ -41,7 +41,10 @@
     area: "ALAN",
     length: "UZUNLUK",
     notPolySave: "Kaydetmeden önce bir tampon mesafesi belirtin.",
-    update_btn: "Güncelle",
-    delete_btn: "Sil"
+    update_btn: "Tamam",
+    delete_btn: "Sil",
+    get_directions: "Yol Tarifi Al",
+    incident: "Oluşum",
+    weather: "Hava Durumu"
   })
 );

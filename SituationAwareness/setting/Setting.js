@@ -116,43 +116,42 @@ define([
 
         ////////////////////////////////////////////////////////////////
         //solutions: added to support save and display
-        if (typeof (this.save_layer_options) !== 'undefined') {
-          if (this.save_layer_options.length > 0) {
-            this.selectSaveLayer.on("change", lang.hitch(this, function () {
-              if (this.chk_save.checked) {
+        if (typeof (this.save_layer_options) !== 'undefined' && this.save_layer_options.length > 0) {
+          this.selectSaveLayer.on("change", lang.hitch(this, function () {
+            if (this.chk_save.checked) {
+              var l = this.opLayers.getLayerInfoById(this.selectSaveLayer.value).layerObject;
+              this._updateTemplatePicker(l);
+            }
+          }));
+
+          this.chk_save.onChange = lang.hitch(this, function (val) {
+            if (this.selectSaveLayer) {
+              if (val === true) {
+                this.selectSaveLayer.set("disabled", '');
                 var l = this.opLayers.getLayerInfoById(this.selectSaveLayer.value).layerObject;
                 this._updateTemplatePicker(l);
               }
-            }));
-
-            this.chk_save.onChange = lang.hitch(this, function (val) {
-              if (this.selectSaveLayer) {
-                if (val === true) {
-                  this.selectSaveLayer.set("disabled", '');
-                  var l = this.opLayers.getLayerInfoById(this.selectSaveLayer.value).layerObject;
-                  this._updateTemplatePicker(l);
-                }
-                else {
-                  this.selectSaveLayer.set("disabled", 'disabled');
-                  if (this.tpd.children.length > 0) {
-                    if (this.templatePicker) {
-                      this.templatePicker.destroy();
-                      this.selectedTemplateIndex = -1;
-                      this.selectedTemplate = null;
-                    }
+              else {
+                this.selectSaveLayer.set("disabled", 'disabled');
+                if (this.tpd.children.length > 0) {
+                  if (this.templatePicker) {
+                    this.templatePicker.destroy();
+                    this.selectedTemplateIndex = undefined;
+                    this.selectedTemplate = null;
+                    this._enableOk();
                   }
                 }
               }
-            });
+            }
+          });
 
-            this.chk_save.set("checked", this.config.saveEnabled);
-            this.selectSaveLayer.addOption(this.save_layer_options);
-            this.selectSaveLayer.set("value", this.config.editLayer);
-            if (this.config.saveEnabled && this.config.editTemplate) {
-              this.selectedTemplate = this.config.editTemplate;
-              if (typeof(this.config.selectedTemplateIndex) !== 'undefined') {
-                this.selectedTemplateIndex = this.config.selectedTemplateIndex;
-              }
+          this.chk_save.set("checked", this.config.saveEnabled);
+          this.selectSaveLayer.addOption(this.save_layer_options);
+          this.selectSaveLayer.set("value", this.config.editLayer);
+          if (this.config.saveEnabled && this.config.editTemplate) {
+            this.selectedTemplate = this.config.editTemplate;
+            if (typeof (this.config.selectedTemplateIndex) !== 'undefined') {
+              this.selectedTemplateIndex = this.config.selectedTemplateIndex;
             }
           }
         } else {
@@ -264,21 +263,34 @@ define([
           if(OpLyr.newSubLayers.length > 0) {
             this._recurseOpLayers(OpLyr.newSubLayers, options, saveOptions);
           } else {
-            options.push({
-              label: OpLyr.title,
-              value: OpLyr.title
-            });
-
-            //solutions: added to only show editable poygon layers
+            var skipLayer = false;
             if (OpLyr.layerObject) {
-              var lo = OpLyr.layerObject;
-              //TODO: Check if strings like Create and Edit need to be in NLS.
-              if (lo.geometryType === 'esriGeometryPolygon' && (lo.capabilities.indexOf("Edit") > 0 || lo.capabilities.indexOf("Create") > 0)) {
-                saveOptions.push({
-                  label: OpLyr.title,
-                  value: OpLyr.id,
-                  selected: false
+              if (OpLyr.layerObject.url && OpLyr.layerObject.url.indexOf('ImageServer') > -1) {
+                skipLayer = true;
+                new Message({
+                  message: this.nls.layer_type_not_supported + OpLyr.layerObject.url
                 });
+              }
+            }
+            if (!skipLayer) {
+              options.push({
+                label: OpLyr.title,
+                value: OpLyr.title
+              });
+
+              //solutions: added to only show editable poygon layers
+              if (OpLyr.layerObject) {
+                var lo = OpLyr.layerObject;
+                //TODO: Check if strings like Create and Edit need to be in NLS.
+                if (lo.geometryType === 'esriGeometryPolygon' &&
+                    (lo.capabilities.indexOf("Edit") > 0 ||
+                    lo.capabilities.indexOf("Create") > 0)) {
+                  saveOptions.push({
+                    label: OpLyr.title,
+                    value: OpLyr.id,
+                    selected: false
+                  });
+                }
               }
             }
           }
@@ -310,7 +322,9 @@ define([
             //solutions: added to only show editable poygon layers
             if (Node.layerObject) {
               var lo = Node.layerObject;
-              if (lo.geometryType === 'esriGeometryPolygon' && (lo.capabilities.indexOf("Edit") > 0 || lo.capabilities.indexOf("Create") > 0)) {
+              if (lo.geometryType === 'esriGeometryPolygon' &&
+                  (lo.capabilities.indexOf("Edit") > 0 ||
+                  lo.capabilities.indexOf("Create") > 0)) {
                 pSaveOptions.push({
                   label: Node.title,
                   value: Node.id,
@@ -570,26 +584,65 @@ define([
         widget.startup();
 
         widget.on("selection-change", lang.hitch(this, function () {
-          this.selectedTemplate = widget.getSelected().template;
-          if (typeof(this.selectedTemplateIndex) !== 'undefined') {
-            if (widget._selectedCell.cellIndex !== this.selectedTemplateIndex) {
-              var row = this.tpd.getElementsByTagName('tr')[0];
-              var row1 = this.tpd.getElementsByTagName('tr')[1];
-              domClass.remove(row.cells[this.selectedTemplateIndex], "dojoxGridCellOver dojoxGridCellFocus selectedItem");
-              domClass.remove(row1.cells[this.selectedTemplateIndex], "dojoxGridCellOver dojoxGridCellFocus selectedItem");
-            }
+          var selected = widget.getSelected();
+          if (selected) {
+            this.selectedTemplate = selected.template;
+          } else {
+            this.selectedTemplate = undefined;
           }
-          this.selectedTemplateIndex = widget._selectedCell.cellIndex;
+
+          if (this.selectedTemplate) {
+            this._enableOk();
+            if (typeof (this.selectedTemplateIndex) !== 'undefined') {
+              if (widget._selectedCell.cellIndex !== this.selectedTemplateIndex) {
+                var row = this.tpd.getElementsByTagName('tr')[0];
+                var row1 = this.tpd.getElementsByTagName('tr')[1];
+                domClass.remove(row.cells[this.selectedTemplateIndex],
+                  "dojoxGridCellOver dojoxGridCellFocus selectedItem");
+                domClass.remove(row1.cells[this.selectedTemplateIndex],
+                  "dojoxGridCellOver dojoxGridCellFocus selectedItem");
+              }
+            }
+            this.selectedTemplateIndex = widget._selectedCell.cellIndex;
+          } else {
+            this._disableOk();
+          }
         }));
 
         this.templatePicker = widget;
 
-        if (typeof(this.selectedTemplateIndex) !== 'undefined') {
-          var row = this.tpd.getElementsByTagName('tr')[0];
-          var row1 = this.tpd.getElementsByTagName('tr')[1];
-          domClass.add(row.cells[this.selectedTemplateIndex], "dojoxGridCell  dojoxGridCellOver dojoxGridCellFocus selectedItem");
-          domClass.add(row1.cells[this.selectedTemplateIndex], "dojoxGridCell  dojoxGridCellOver dojoxGridCellFocus selectedItem");
+        var row = this.tpd.getElementsByTagName('tr')[0];
+        var row1 = this.tpd.getElementsByTagName('tr')[1];
+        if (typeof (this.selectedTemplateIndex) !== 'undefined') {
+          this._enableOk();
+          domClass.add(row.cells[this.selectedTemplateIndex],
+            "dojoxGridCell  dojoxGridCellOver dojoxGridCellFocus selectedItem");
+          domClass.add(row1.cells[this.selectedTemplateIndex],
+            "dojoxGridCell  dojoxGridCellOver dojoxGridCellFocus selectedItem");
+        } else {
+          this.selectedTemplateIndex = 0;
+          domClass.add(row.cells[this.selectedTemplateIndex],
+            "dojoxGridCell  dojoxGridCellOver dojoxGridCellFocus selectedItem");
+          domClass.add(row1.cells[this.selectedTemplateIndex],
+            "dojoxGridCell  dojoxGridCellOver dojoxGridCellFocus selectedItem");
         }
+      },
+
+      _disableOk: function () {
+        this.selectedTemplateIndex = undefined;
+        var s = query(".button-container")[0];
+        var s2 = s.children[2];
+        var s3 = s.children[3];
+        domStyle.set(s2, "display", "none");
+        domStyle.set(s3, "display", "inline-block");
+      },
+
+      _enableOk: function () {
+        var s = query(".button-container")[0];
+        var s2 = s.children[2];
+        var s3 = s.children[3];
+        domStyle.set(s2, "display", "inline-block");
+        domStyle.set(s3, "display", "none");
       }
     });
   });

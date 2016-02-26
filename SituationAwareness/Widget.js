@@ -139,16 +139,6 @@ define([
         this._initLayers();
         this._verifyRouting();
 
-        if (this.config.enableRouting) {
-          this.config.enableRouting = false;
-          var widgets = this.appConfig.widgetPool.widgets;
-          array.forEach(widgets, lang.hitch(this, function(w) {
-            if (w.name === "Directions") {
-              this.config.enableRouting = true;
-            }
-          }));
-        }
-
         this.SLIDER_MAX_VALUE = this.config.bufferRange.maximum;
 
         // set operational layers
@@ -175,6 +165,8 @@ define([
         this._toggleTabLayersOld();
         this._resetInitalVisibility();
         this._resetInfoWindow();
+        this._resetMapDiv();
+        this._removeActionLink();
         this.inherited(arguments);
       },
 
@@ -225,17 +217,25 @@ define([
         var actionLink;
         var aDom = query(".actionList", this.map.infoWindow.domNode);
         if (aDom.length > 0) {
-          if (aDom[0].innerHTML.indexOf(actionLabel) < 0) {
+          var aLinks = query("#actionLink", aDom[0]);
+          if (aLinks.length > 0) {
+            actionLink = aLinks[0];
+          } else {
             actionLink = domConstruct.create("a", {
               "class": "action",
               "id": "SA_actionLink",
               "innerHTML": actionLabel,
               "href": "javascript: void(0);"
             }, aDom[0]);
-          } else {
-            actionLink = dom.byId("SA_actionLink");
           }
           this.own(on(actionLink, "click", lang.hitch(this, this._setEventLocation)));
+        }
+      },
+
+      // remove action link
+      _removeActionLink: function () {
+        if (dom.byId("SA_actionLink")) {
+          domConstruct.destroy(dom.byId("SA_actionLink"));
         }
       },
 
@@ -270,7 +270,7 @@ define([
         });
       },
 
-      /*jshint unused:true */
+      /*jshint unused:false */
       setPosition: function(position, containerNode) {
         if (this.appConfig.theme.name === "BoxTheme" || this.appConfig.theme.name === "DartTheme" ||
           this.appConfig.theme.name === "LaunchpadTheme") {
@@ -280,17 +280,19 @@ define([
             left: "0px",
             right: "0px",
             bottom: "0px",
-            height: "140px"
+            height: "140px",
+            relativeTo: "browser"
           };
           this.position = pos;
           var style = utils.getPositionStyle(this.position);
           style.position = 'absolute';
-          containerNode = this.map.id;
-          html.place(this.domNode, containerNode);
+          html.place(this.domNode, window.jimuConfig.layoutId);
           html.setStyle(this.domNode, style);
           if (this.started) {
             this.resize();
           }
+          var m = dom.byId('map');
+          m.style.bottom = "140px";
           // fix for Tab Thme on mobile devices
           if(this.appConfig.theme.name === "TabTheme") {
             var controllerWidget = this.widgetManager.getControllerWidgets()[0];
@@ -440,16 +442,17 @@ define([
         }, domConstruct.create("div"));
 
         var saveButton = new Button({
-          label: "Update"
+          label: this.nls.update_btn
         }, domConstruct.create("div"));
 
-        domConstruct.place(saveButton.domNode, this.attInspector.deleteBtn.domNode, "before");
+        domConstruct.place(saveButton.domNode, this.attInspector.deleteBtn.domNode.parentNode);
 
         this.own(on(saveButton, "click", lang.hitch(this, function () {
           this.lyrEdit.applyEdits(null, [this.updateFeature], null, lang.hitch(this, function () {
             new Message({
               message: this.nls.updateComplete
             });
+            this.map.infoWindow.hide();
           }), function (error) {
             var msg = "Error";
             if (typeof (error.details) !== 'undefined') {
@@ -631,7 +634,7 @@ define([
 
         var defTab = {
           type: "incidents",
-          label: "Incident",
+          label: this.nls.incident,
           color: this.config.color
         };
         this.config.tabs.splice(0, 0, defTab);
@@ -643,6 +646,9 @@ define([
         for (var i = 0; i < this.config.tabs.length; i++) {
           var obj = this.config.tabs[i];
           var label = obj.label;
+          if (obj.type === "weather") {
+            label = this.nls.weather;
+          }
           if (!label || label === "") {
             label = obj.layers;
           }
@@ -1015,7 +1021,9 @@ define([
             }
             if (this.incident && tab.updateFlag === true) {
               var gl = this.summaryDisplayEnabled ? this.lyrSummary : null;
-              tab.summaryInfo.updateForIncident(this.incident, this.buffer, gl);
+              if (this.buffer) {
+                tab.summaryInfo.updateForIncident(this.incident, this.buffer, gl);
+              }
               tab.updateFlag = false;
             }
             break;
@@ -1054,9 +1062,14 @@ define([
               });
             }
             this.lyrProximity.setVisibility(true);
-            if (this.incident && tab.updateFlag === true) {
+            if (this.incident && tab.updateFlag === true && this.buffer) {
               tab.proximityInfo.updateForIncident(this.incident, this.buffer, this.lyrProximity);
+              //tab.proximityInfo.updateForIncident(this.incident, this.config.maxDistance, this.lyrProximity);
               tab.updateFlag = false;
+            } else if (this.incident && tab.updateFlag === true && !this.buffer) {
+              tab.proximityInfo.container.innerHTML = this.nls.defaultTabMsg;
+            } else if (this.incident && tab.updateFlag === false && this.buffer) {
+              //tab.proximityInfo.container.innerHTML = this.nls.noFeaturesFound;
             }
             break;
         }
@@ -1174,14 +1187,25 @@ define([
       _verifyRouting: function() {
         if (this.config.enableRouting) {
           this.config.enableRouting = false;
-          var widgets = this.appConfig.widgetPool.widgets;
-          array.forEach(widgets, lang.hitch(this, function(w) {
-            if (w.name === "Directions") {
-              this.dirConfig = w;
-              this.config.enableRouting = true;
-            }
-          }));
+          var dirWidgetFound = this.findWidget(this.appConfig.widgetPool.widgets);
+
+          //check widgets on screen also
+          if (!dirWidgetFound) {
+            this.findWidget(this.appConfig.widgetOnScreen.widgets);
+          }
         }
+      },
+
+      findWidget: function (widgets) {
+        var dirWidgetFound = false;
+        array.forEach(widgets, lang.hitch(this, function (w) {
+          if (w.name === "Directions") {
+            this.dirConfig = w;
+            this.config.enableRouting = true;
+            dirWidgetFound = true;
+          }
+        }));
+        return dirWidgetFound;
       },
 
       // ZOOM TO LOCATION
@@ -1194,12 +1218,16 @@ define([
         var geom = this.incident.geometry;
         var pt = geom;
         if (geom.type !== "point") {
-          pt = geom.getExtent().getCenter();
+          pt = null;
         }
-        this.stops = [loc, pt];
-        // TO DO: send data to directions widget
+        this.stops = [pt, loc];
+        // TODO: send data to directions widget
         var id = this.dirConfig.id;
         var name = this.appConfig.theme.name;
+
+        //if (this.dirConfig.isOnScreen) {
+        //  //this._showDirections(this.dirConfig);
+        //} else {
         var controllerWidget = this.widgetManager.getControllerWidgets()[0];
         switch (name) {
           case "BoxTheme":
@@ -1243,8 +1271,30 @@ define([
             this.openWidgetById(id);
             break;
         }
+        //}
         setTimeout(lang.hitch(this, this._addStops), 2000);
       },
+
+      //_showDirections: function (iconConfig) {
+      //  this.widgetManager.loadWidget(iconConfig).then(lang.hitch(this, function (widget) {
+      //    this.openedId = iconConfig.id;
+      //    widget.startup();
+      //    html.setStyle(widget.domNode, 'zIndex', 101);
+      //    this.widgetManager.activateWidget(widget);
+      //    this.widgetManager.openWidget(widget);
+      //    this.widgetManager.changeWindowStateTo(widget, "normal");
+
+      //    this.widgetManager.triggerWidgetOpen(iconConfig.id);
+      //    this.widgetManager.triggerWidgetOpen(widget.id);
+
+      //    this.widgetManager._activeWidget(widget);
+      //    //widget.openWidgetById(widget.id);
+      //    // ST: Added to listen for out of panel widgets that can be closed
+      //    //this.own(aspect.after(widget, 'onClose', lang.hitch(this, function () {
+      //    //  this._unSelectIcon(iconConfig.id);
+      //    //})));
+      //  }));
+      //},
 
       _addStops: function() {
         var w = this.widgetManager.getWidgetById(this.dirConfig.id);
@@ -1455,6 +1505,11 @@ define([
         if (this.map.infoWindow.isShowing) {
           this.map.infoWindow.hide();
         }
+      },
+
+      _resetMapDiv: function () {
+        var m = dom.byId('map');
+        m.style.bottom = "0px";
       },
 
       // close

@@ -41,9 +41,9 @@
     "count": "SỐ LƯỢNG",
     "area": "DIỆN TÍCH",
     "length": "ĐỘ DÀI",
-    "count_checkBox": "Hiển thị Số lượng",
-    "area_checkBox": "Hiển thị Diện tích",
-    "length_checkBox": "Hiển thị Độ dài",
+    "count_checkBox": "Hiển thị bộ đếm đối tượng",
+    "area_checkBox": "Hiển thị tổng khu vực",
+    "length_checkBox": "Hiển thị tổng chiều dài",
     "max_records": "Giới hạn tối đa đã đạt đến",
     "save_label": "Lưu Tùy chọn",
     "save_checkbox": "Cho phép Lưu",
@@ -51,6 +51,11 @@
     "csv_checkbox": "Xuất tất cả các trường trong lớp.",
     "display_label": "Hiển thị Tùy chọn",
     "display_checkbox": "Hiển thị Đối tượng Tổng kết",
-    "must_select_template": "Vui lòng chọn một trong số các mẫu chỉnh sửa trong Lưu Tùy chọn."
+    "must_select_template": "Vui lòng chọn một trong số các mẫu chỉnh sửa trong Lưu Tùy chọn.",
+    "count_label": "Nhãn Bộ đếm",
+    "area_label": "Nhãn Khu vực",
+    "length_label": "Nhãn Chiều dài",
+    "invalid_string_width": "Giá trị quá dài. ",
+    "layer_type_not_supported": "Loại lớp không được hỗ trợ: "
   })
 );

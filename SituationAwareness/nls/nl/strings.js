@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Situatiebewustzijn (Beta)",
+    _widgetLabel: "Situatiebewustzijn",
     locate_incident: "Incident zoeken",
     clear_incidents: "Incidenten wissen",
     reverse_geocoded_address: "Dichtstbijzijnde adres",
@@ -20,7 +20,7 @@
     THU: "DON",
     FRI: "VRIJ",
     SAT: "ZAT",
-    defaultTabMsg: "Geen incidenten bekend.",
+    defaultTabMsg: "Geef een incidentgebied op.",
     actionLabel: "Instellen als incident",
     drawPoint: "Punt tekenen",
     drawLine: "Lijn tekenen",
@@ -30,9 +30,9 @@
     useMapExtent: "Huidige extent van de kaart gebruiken",
     noFeaturesFound: "Geen objecten gevonden.",
     downloadCSV: "CSV DOWNLOADEN",
-    editComplete: "Object succesvol opgeslagen!",
-    updateComplete: "Object succesvol bijgewerkt!",
-    deleteComplete: "Object succesvol verwijderd!",
+    editComplete: "Object succesvol opgeslagen.",
+    updateComplete: "Object succesvol bijgewerkt.",
+    deleteComplete: "Object succesvol verwijderd.",
     sum: "SOM",
     min: "MIN",
     max: "MAX",
@@ -41,7 +41,10 @@
     area: "GEBIED",
     length: "LENGTE",
     notPolySave: "Geef een bufferafstand op voor opslaan.",
-    update_btn: "Actualiseren",
-    delete_btn: "Verwijderen"
+    update_btn: "Gereed",
+    delete_btn: "Verwijderen",
+    get_directions: "Routebeschrijving krijgen",
+    incident: "Incident",
+    weather: "Weer"
   })
 );

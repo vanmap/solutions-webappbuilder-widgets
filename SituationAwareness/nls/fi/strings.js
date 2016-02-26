@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Tilannekuva (Beeta-versio)",
+    _widgetLabel: "Tilannekuva",
     locate_incident: "Paikanna tapahtuma",
     clear_incidents: "Tyhjennä tapahtumat",
     reverse_geocoded_address: "Lähin osoite",
@@ -20,7 +20,7 @@
     THU: "TO",
     FRI: "PE",
     SAT: "LA",
-    defaultTabMsg: "Yhtään tapahtumaa ei ole tunnistettu.",
+    defaultTabMsg: "Määritä tapausalue.",
     actionLabel: "Määritä tapahtumaksi",
     drawPoint: "Piirrä piste",
     drawLine: "Piirrä viiva",
@@ -41,7 +41,10 @@
     area: "ALUE",
     length: "PITUUS",
     notPolySave: "Määritä puskurin etäisyys ennen tallennusta.",
-    update_btn: "Päivitä",
-    delete_btn: "Poista"
+    update_btn: "Valmis",
+    delete_btn: "Poista",
+    get_directions: "Hae reittiohjeet",
+    incident: "Tapahtuma",
+    weather: "Sää"
   })
 );

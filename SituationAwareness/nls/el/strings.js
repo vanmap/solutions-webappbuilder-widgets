@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Αναγνώριση κατάστασης (Beta)",
+    _widgetLabel: "Αναγνώριση κατάστασης",
     locate_incident: "Εντοπισμός περιστατικού",
     clear_incidents: "Απαλοιφή περιστατικών",
     reverse_geocoded_address: "Πλησιέστερη διεύθυνση",
@@ -20,7 +20,7 @@
     THU: "ΠΕΜ",
     FRI: "ΠΑΡ",
     SAT: "ΣΑΒ",
-    defaultTabMsg: "Δεν εντοπίστηκαν περιστατικά.",
+    defaultTabMsg: "Καθορίστε μια περιοχή περιστατικού.",
     actionLabel: "Ορίστε ως περιστατικό",
     drawPoint: "Σχεδίαση σημείου",
     drawLine: "Σχεδίαση γραμμής",
@@ -30,9 +30,9 @@
     useMapExtent: "Χρήση της τρέχουσας έκτασης χάρτη",
     noFeaturesFound: "Δεν βρέθηκαν στοιχεία.",
     downloadCSV: "ΛΗΨΗ CSV",
-    editComplete: "Το στοιχείο αποθηκεύτηκε με επιτυχία!",
-    updateComplete: "Το στοιχείο ενημερώθηκε με επιτυχία!",
-    deleteComplete: "Το στοιχείο διαγράφηκε με επιτυχία!",
+    editComplete: "Το στοιχείο αποθηκεύτηκε με επιτυχία.",
+    updateComplete: "Το στοιχείο ενημερώθηκε με επιτυχία.",
+    deleteComplete: "Το στοιχείο διαγράφηκε με επιτυχία.",
     sum: "ΑΘΡ",
     min: "ΕΛΑΧ",
     max: "ΜΕΓ.",
@@ -41,7 +41,10 @@
     area: "ΠΕΡΙΟΧΗ",
     length: "ΜΗΚΟΣ",
     notPolySave: "Να ορίσετε ακτίνα ζώνης επιρροής πριν αποθηκεύσετε.",
-    update_btn: "Ενημέρωση",
-    delete_btn: "Διαγραφή"
+    update_btn: "Τέλος",
+    delete_btn: "Διαγραφή",
+    get_directions: "Λήψη οδηγιών",
+    incident: "Συμβάν",
+    weather: "Καιρός"
   })
 );

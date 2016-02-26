@@ -41,9 +41,9 @@
     "count": "COUNT",
     "area": "AREA",
     "length": "LENGTH",
-    "count_checkBox": "Mostra conteggio",
-    "area_checkBox": "Mostra area",
-    "length_checkBox": "Mostra lunghezza",
+    "count_checkBox": "Visualizza conteggio feature",
+    "area_checkBox": "Visualizza somma dell\'area",
+    "length_checkBox": "Visualizza somma della lunghezza",
     "max_records": "Raggiunto limite massimo",
     "save_label": "Salva opzioni",
     "save_checkbox": "Abilita salvataggio",
@@ -51,6 +51,11 @@
     "csv_checkbox": "Esportare tutti i campi nel layer.",
     "display_label": "Opzioni di visualizzazione",
     "display_checkbox": "Visualizza riepilogo delle feature",
-    "must_select_template": "Selezionare uno dei modelli di modifica nelle opzioni di salvataggio."
+    "must_select_template": "Selezionare uno dei modelli di modifica nelle opzioni di salvataggio.",
+    "count_label": "Etichetta conteggio",
+    "area_label": "Etichetta area",
+    "length_label": "Etichetta lunghezza",
+    "invalid_string_width": "Il valore è troppo lungo. ",
+    "layer_type_not_supported": "Il tipo di layer non è supportato: "
   })
 );

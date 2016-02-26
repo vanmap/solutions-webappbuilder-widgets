@@ -41,9 +41,9 @@
     "count": "OPTÆLLING",
     "area": "AREA",
     "length": "LÆNGDE",
-    "count_checkBox": "Vis antal",
-    "area_checkBox": "Vis område",
-    "length_checkBox": "Vis længde",
+    "count_checkBox": "Vis objekttælling",
+    "area_checkBox": "Vis sum af område",
+    "length_checkBox": "Vis sum af længde",
     "max_records": "Maksimumgrænse nået",
     "save_label": "Gem indstillinger",
     "save_checkbox": "Aktivér lagring",
@@ -51,6 +51,11 @@
     "csv_checkbox": "CSV-indstillinger",
     "display_label": "Indstillinger for visning",
     "display_checkbox": "Vis opsummerede objekter",
-    "must_select_template": "Vælg en af redigeringsskabelonerne under Gem indstillinger."
+    "must_select_template": "Vælg en af redigeringsskabelonerne under Gem indstillinger.",
+    "count_label": "Optællingsmærke",
+    "area_label": "Områdemærke",
+    "length_label": "Længdemærke",
+    "invalid_string_width": "Værdien er for lang. ",
+    "layer_type_not_supported": "Lagtype understøttes ikke: "
   })
 );

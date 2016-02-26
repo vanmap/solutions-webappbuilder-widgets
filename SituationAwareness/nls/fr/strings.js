@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Perception de situation (Bêta)",
+    _widgetLabel: "Perception de situation",
     locate_incident: "Localiser l\'incident",
     clear_incidents: "Effacer les incidents",
     reverse_geocoded_address: "Adresse la plus proche",
@@ -20,7 +20,7 @@
     THU: "JEU",
     FRI: "VEN",
     SAT: "SAM",
-    defaultTabMsg: "Aucun incident identifié.",
+    defaultTabMsg: "Définissez une zone d’incident.",
     actionLabel: "Définir comme incident",
     drawPoint: "Dessiner un point",
     drawLine: "Dessiner une ligne",
@@ -30,9 +30,9 @@
     useMapExtent: "Utiliser l\'étendue de la carte actuelle",
     noFeaturesFound: "Aucune entité n’a été trouvée.",
     downloadCSV: "TELECHARGER CSV",
-    editComplete: "L\'entité a été enregistrée !",
-    updateComplete: "L\'entité a été mise à jour !",
-    deleteComplete: "L\'entité a été supprimée !",
+    editComplete: "L’entité a bien été enregistrée.",
+    updateComplete: "L’entité a bien été mise à jour.",
+    deleteComplete: "L’entité a bien été supprimée.",
     sum: "SOMME",
     min: "MIN",
     max: "MAX",
@@ -41,7 +41,10 @@
     area: "SURFACE",
     length: "LENGTH",
     notPolySave: "Veuillez spécifier une distance de zone tampon avant d\'enregistrer.",
-    update_btn: "Mise à jour",
-    delete_btn: "Supprimer"
+    update_btn: "Terminer",
+    delete_btn: "Supprimer",
+    get_directions: "Obtenir l\’itinéraire",
+    incident: "Incident",
+    weather: "Temps"
   })
 );

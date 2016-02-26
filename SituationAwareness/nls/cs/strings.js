@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Povědomí o situaci (Beta)",
+    _widgetLabel: "Povědomí o situaci",
     locate_incident: "Vyhledat událost",
     clear_incidents: "Vymazat události",
     reverse_geocoded_address: "Nejbližší adresa",
@@ -20,7 +20,7 @@
     THU: "ČT",
     FRI: "PÁ",
     SAT: "SO",
-    defaultTabMsg: "Nebyly identifikovány žádné incidenty.",
+    defaultTabMsg: "Definujte oblast události.",
     actionLabel: "Nastavit jako incident",
     drawPoint: "Nakreslit bod",
     drawLine: "Nakreslit linii",
@@ -32,7 +32,7 @@
     downloadCSV: "STÁHNOUT CSV",
     editComplete: "Prvek byl úspěšně uložen.",
     updateComplete: "Prvek byl úspěšně aktualizován.",
-    deleteComplete: "Prvek byl úspěšně smazán.",
+    deleteComplete: "Prvek byl úspěšně odstraněn.",
     sum: "SUMA",
     min: "MIN",
     max: "MAX",
@@ -41,7 +41,10 @@
     area: "PLOCHA",
     length: "DÉLKA",
     notPolySave: "Před uložením zadejte šířku obalové zóny.",
-    update_btn: "Aktualizovat",
-    delete_btn: "Smazat"
+    update_btn: "Hotovo",
+    delete_btn: "Smazat",
+    get_directions: "Vyhledat trasy",
+    incident: "Událost",
+    weather: "Počasí"
   })
 );

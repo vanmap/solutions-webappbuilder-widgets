@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Situation Awareness(베타)",
+    _widgetLabel: "상황 인식",
     locate_incident: "사건 찾기",
     clear_incidents: "사건 지우기",
     reverse_geocoded_address: "가장 가까운 주소",
@@ -20,7 +20,7 @@
     THU: "목",
     FRI: "금",
     SAT: "토",
-    defaultTabMsg: "식별된 사건이 없습니다.",
+    defaultTabMsg: "사건 범위을 정의하세요.",
     actionLabel: "사건으로 설정",
     drawPoint: "포인트 그리기",
     drawLine: "라인 그리기",
@@ -41,7 +41,10 @@
     area: "AREA",
     length: "LENGTH",
     notPolySave: "저장하려면 먼저 버퍼 거리를 지정하세요.",
-    update_btn: "업데이트",
-    delete_btn: "삭제"
+    update_btn: "완료",
+    delete_btn: "삭제",
+    get_directions: "길찾기",
+    incident: "사건",
+    weather: "날씨"
   })
 );

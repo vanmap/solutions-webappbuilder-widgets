@@ -41,9 +41,9 @@
     "count": "COUNT",
     "area": "AREA",
     "length": "LENGTH",
-    "count_checkBox": "数の表示",
-    "area_checkBox": "面積の表示",
-    "length_checkBox": "長さの表示",
+    "count_checkBox": "フィーチャ数の表示",
+    "area_checkBox": "面積の合計の表示",
+    "length_checkBox": "長さの合計の表示",
     "max_records": "最大制限に達しました",
     "save_label": "保存オプション",
     "save_checkbox": "保存の有効化",
@@ -51,6 +51,11 @@
     "csv_checkbox": "レイヤー内のすべてのフィールドをエクスポートします。",
     "display_label": "表示オプション",
     "display_checkbox": "集計フィーチャの表示",
-    "must_select_template": "保存オプションで編集テンプレートのいずれかを選択してください。"
+    "must_select_template": "保存オプションで編集テンプレートのいずれかを選択してください。",
+    "count_label": "数のラベル",
+    "area_label": "面積のラベル",
+    "length_label": "長さのラベル",
+    "invalid_string_width": "値が長すぎます。 ",
+    "layer_type_not_supported": "レイヤー タイプはサポートされていません: "
   })
 );

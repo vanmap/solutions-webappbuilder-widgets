@@ -41,9 +41,9 @@
     "count": "KIEKIS",
     "area": "PLOTAS",
     "length": "ILGIS",
-    "count_checkBox": "Rodyti skaičių",
-    "area_checkBox": "Rodyti plotą",
-    "length_checkBox": "Rodyti ilgį",
+    "count_checkBox": "Rodyti elementų skaičių",
+    "area_checkBox": "Rodyti bendrą plotą",
+    "length_checkBox": "Rodyti bendrą ilgį",
     "max_records": "Pasiekta maksimali riba",
     "save_label": "Įrašyti parinktis",
     "save_checkbox": "Įjungti įrašymą",
@@ -51,6 +51,11 @@
     "csv_checkbox": "Eksportuoti visus sluoksnio laukus.",
     "display_label": "Rodymo parinktys",
     "display_checkbox": "Pateikti santraukos elementus",
-    "must_select_template": "Pasirinkite vieną iš redagavimo šablonų įrašymo parinktyse."
+    "must_select_template": "Pasirinkite vieną iš redagavimo šablonų įrašymo parinktyse.",
+    "count_label": "Skaičiaus žymė",
+    "area_label": "Ploto žymė",
+    "length_label": "Ilgio žymė",
+    "invalid_string_width": "Reikšmė per ilga. ",
+    "layer_type_not_supported": "Sluoksnio tipas nepalaikomas: "
   })
 );

@@ -109,3 +109,10 @@
 .template-picker-of{
     display: none;
 }
+
+.visDivLength
+{
+    position: absolute;
+    visibility: hidden;
+    width: auto;
+}

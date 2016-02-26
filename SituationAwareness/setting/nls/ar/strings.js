@@ -41,9 +41,9 @@
     "count": "عدد",
     "area": "AREA",
     "length": "LENGTH",
-    "count_checkBox": "عرض التعداد",
-    "area_checkBox": "عرض المنطقة",
-    "length_checkBox": "عرض الطول",
+    "count_checkBox": "عرض عدد المعالم",
+    "area_checkBox": "عرض مجموع المناطق",
+    "length_checkBox": "عرض مجموع الأطوال",
     "max_records": "تم الوصول إلى الحد الأقصى",
     "save_label": "خيارات الحفظ",
     "save_checkbox": "تمكين الحفظ",
@@ -51,6 +51,11 @@
     "csv_checkbox": "تصدير كل الحقول في الطبقة.",
     "display_label": "خيارات العرض",
     "display_checkbox": "عرض مميزات الملخص",
-    "must_select_template": "يرجى تحديد أحد قوالب التحرير في خيارات الحفظ."
+    "must_select_template": "يرجى تحديد أحد قوالب التحرير في خيارات الحفظ.",
+    "count_label": "عدّ التسميات",
+    "area_label": "تسمية المنطقة",
+    "length_label": "تسمية الطول",
+    "invalid_string_width": "القيمة طويلة للغاية. ",
+    "layer_type_not_supported": "نوع الطبقة غير مدعوم: "
   })
 );

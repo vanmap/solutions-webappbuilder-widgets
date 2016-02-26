@@ -41,9 +41,9 @@
     "count": "CONTAGEM",
     "area": "ÁREA",
     "length": "LENGTH",
-    "count_checkBox": "Exibir Contagem",
-    "area_checkBox": "Exibir Área",
-    "length_checkBox": "Exibir Comprimento",
+    "count_checkBox": "Exibir contagem de elemento",
+    "area_checkBox": "Exibir soma de área",
+    "length_checkBox": "Exibir soma de comprimento",
     "max_records": "Limite máximo atingido",
     "save_label": "Guardar Opções",
     "save_checkbox": "Ativar Guardar",
@@ -51,6 +51,11 @@
     "csv_checkbox": "Exporte todos os campos da camada.",
     "display_label": "Opções de Exibição",
     "display_checkbox": "Exibir Resumo de Elementos",
-    "must_select_template": "Por favor, selecione um dos modelos de edição em Guardar Opções."
+    "must_select_template": "Por favor, selecione um dos modelos de edição em Guardar Opções.",
+    "count_label": "Etiqueta de Contagem",
+    "area_label": "Etiqueta de Área",
+    "length_label": "Etiqueta de Comprimento",
+    "invalid_string_width": "O valor é muito comprido. ",
+    "layer_type_not_supported": "Tipo de camada não suportada: "
   })
 );

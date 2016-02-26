@@ -41,9 +41,9 @@
     "count": "TELLEN",
     "area": "GEBIED",
     "length": "LENGTE",
-    "count_checkBox": "Aantal weergeven",
-    "area_checkBox": "Oppervlakte weergeven",
-    "length_checkBox": "Lengte weergeven",
+    "count_checkBox": "Objecttelling weergeven",
+    "area_checkBox": "Totale oppervlakte weergeven",
+    "length_checkBox": "Totale lengte weergeven",
     "max_records": "Maximumlimiet bereikt",
     "save_label": "Opties opslaan",
     "save_checkbox": "Opslaan activeren",
@@ -51,6 +51,11 @@
     "csv_checkbox": "CSV-opties",
     "display_label": "Weergaveopties",
     "display_checkbox": "Samenvatting objecten weergeven",
-    "must_select_template": "Selecteer één van de bewerkingsjablonen in Opties opslaan."
+    "must_select_template": "Selecteer één van de bewerkingsjablonen in Opties opslaan.",
+    "count_label": "Labeltelling",
+    "area_label": "Gebiedlabel",
+    "length_label": "Lengtelabel",
+    "invalid_string_width": "De waarde is te lang. ",
+    "layer_type_not_supported": "Laagtype wordt niet ondersteund: "
   })
 );

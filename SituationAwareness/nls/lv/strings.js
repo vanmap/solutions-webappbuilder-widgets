@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Situācijas apzināšana (Beta)",
+    _widgetLabel: "Situācijas apzināšana",
     locate_incident: "Atrast gadījumu",
     clear_incidents: "Notīrīt gadījumus",
     reverse_geocoded_address: "Tuvākā adrese",
@@ -20,7 +20,7 @@
     THU: "CETURTD.",
     FRI: "PIEKTD.",
     SAT: "SESTD.",
-    defaultTabMsg: "Nav noteikts neviens gadījums.",
+    defaultTabMsg: "Definējiet negadījuma vietu.",
     actionLabel: "Iestatīt kā gadījumu",
     drawPoint: "Zīmēt punktu",
     drawLine: "Zīmēt līniju",
@@ -31,7 +31,7 @@
     noFeaturesFound: "Nav atrasts neviens elements.",
     downloadCSV: "LEJUPIELĀDĒT CSV",
     editComplete: "Elements sekmīgi saglabāts.",
-    updateComplete: "Elements sekmīgi atjaunināts.",
+    updateComplete: "Elements sekmīgi atjaunots.",
     deleteComplete: "Elements sekmīgi izdzēsts.",
     sum: "SUM",
     min: "MIN",
@@ -41,7 +41,10 @@
     area: "APGABALS",
     length: "GARUMS",
     notPolySave: "Lūdzu, pirms saglabāšanas norādiet bufera attālumu.",
-    update_btn: "Atjaunināt",
-    delete_btn: "Dzēst"
+    update_btn: "Pabeigts",
+    delete_btn: "Dzēst",
+    get_directions: "Iegūt virzienus",
+    incident: "Negadījums",
+    weather: "Laikapstākļi"
   })
 );

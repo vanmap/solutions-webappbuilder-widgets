@@ -41,9 +41,9 @@
     "count": "POČET",
     "area": "PLOCHA",
     "length": "DÉLKA",
-    "count_checkBox": "Zobrazit počet",
-    "area_checkBox": "Zobrazit plochu",
-    "length_checkBox": "Zobrazit délku",
+    "count_checkBox": "Zobrazit počet prvků",
+    "area_checkBox": "Zobrazit součet oblasti",
+    "length_checkBox": "Zobrazit součet délky",
     "max_records": "Byl dosažen maximální limit",
     "save_label": "Možnosti ukládání",
     "save_checkbox": "Povolit ukládání",
@@ -51,6 +51,11 @@
     "csv_checkbox": "Umožňuje exportovat všechna pole ve vrstvě.",
     "display_label": "Možnosti zobrazení",
     "display_checkbox": "Zobrazit prvky souhrnu",
-    "must_select_template": "Vyberte jednu z editačních šablon v možnostech ukládání."
+    "must_select_template": "Vyberte jednu z editačních šablon v možnostech ukládání.",
+    "count_label": "Popisek počtu",
+    "area_label": "Popisek oblasti",
+    "length_label": "Popisek délky",
+    "invalid_string_width": "Hodnota je příliš dlouhá. ",
+    "layer_type_not_supported": "Typ vrstvy není podporován. "
   })
 );

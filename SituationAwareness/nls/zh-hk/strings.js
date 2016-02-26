@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Situation Awareness (Beta)",
+    _widgetLabel: "情況意識",
     locate_incident: "尋找事件點",
     clear_incidents: "清除事件點",
     reverse_geocoded_address: "最近的地址",
@@ -20,7 +20,7 @@
     THU: "星期四",
     FRI: "星期五",
     SAT: "星期六",
-    defaultTabMsg: "未識別任何事件點。",
+    defaultTabMsg: "請定義事件區域。",
     actionLabel: "設為事件點",
     drawPoint: "繪製點",
     drawLine: "繪製線",
@@ -30,9 +30,9 @@
     useMapExtent: "使用目前地圖範圍",
     noFeaturesFound: "未找到任何圖徵。",
     downloadCSV: "下載 CSV",
-    editComplete: "已成功儲存圖徵!",
-    updateComplete: "圖徵已更新成功！",
-    deleteComplete: "圖徵已刪除成功！",
+    editComplete: "已成功儲存圖徵。",
+    updateComplete: "已成功更新圖徵。",
+    deleteComplete: "已成功刪除圖徵。",
     sum: "總和",
     min: "最小值",
     max: "最大值",
@@ -41,7 +41,10 @@
     area: "區域",
     length: "長度",
     notPolySave: "請於儲存之前指定緩衝執行個體。",
-    update_btn: "更新",
-    delete_btn: "刪除"
+    update_btn: "完成",
+    delete_btn: "刪除",
+    get_directions: "取得方向",
+    incident: "事件",
+    weather: "天氣"
   })
 );

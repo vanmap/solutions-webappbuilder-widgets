@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Olukorrateadlikkus (beetaversioon)",
+    _widgetLabel: "Situatsiooniteadlikkus",
     locate_incident: "Paiguta juhtum",
     clear_incidents: "Puhasta juhtumid",
     reverse_geocoded_address: "Lähim aadress",
@@ -20,7 +20,7 @@
     THU: "N",
     FRI: "R",
     SAT: "L",
-    defaultTabMsg: "Juhtumeid ei tuvastatud.",
+    defaultTabMsg: "Määratlege juhtumi ala.",
     actionLabel: "Määra juhtumiks",
     drawPoint: "Joonista punkt",
     drawLine: "Joonista joon",
@@ -41,7 +41,10 @@
     area: "AREA",
     length: "LENGTH",
     notPolySave: "Määrake enne salvestamist puhvri ulatus.",
-    update_btn: "Uuenda",
-    delete_btn: "Kustuta"
+    update_btn: "Valmis",
+    delete_btn: "Kustuta",
+    get_directions: "Hangi juhised",
+    incident: "Juhtum",
+    weather: "Ilm"
   })
 );

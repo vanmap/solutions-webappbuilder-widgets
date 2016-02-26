@@ -363,8 +363,10 @@ define([
               gra.symbol = this.lyrSymbol;
             }
             else {
-              var sym = this.graphicsLayer.renderer.getSymbol(gra);
-              gra.symbol = sym;
+              if (this.graphicsLayer.renderer) {
+                var sym = this.graphicsLayer.renderer.getSymbol(gra);
+                gra.symbol = sym;
+              }
             }
             this.graphicsLayer.add(gra);
             this.tab.tabLayers[1].add(gra);

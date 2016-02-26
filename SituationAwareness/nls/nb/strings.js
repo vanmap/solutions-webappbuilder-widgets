@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Situasjonsbevissthet (betaversjon)",
+    _widgetLabel: "Situasjonsbevissthet",
     locate_incident: "Lokaliser hendelsen",
     clear_incidents: "Fjern hendelser",
     reverse_geocoded_address: "Nærmeste adresse",
@@ -20,7 +20,7 @@
     THU: "TOR",
     FRI: "FRE",
     SAT: "LØR",
-    defaultTabMsg: "Ingen hendelser identifisert.",
+    defaultTabMsg: "Angi et hendelsesområde.",
     actionLabel: "Angi som hendelse",
     drawPoint: "Tegn punkt",
     drawLine: "Tegn linje",
@@ -41,7 +41,10 @@
     area: "OMRÅDE",
     length: "LENGDE",
     notPolySave: "Angi en bufferavstand før du lagrer.",
-    update_btn: "Oppdatere",
-    delete_btn: "Slett"
+    update_btn: "Fullført",
+    delete_btn: "Slett",
+    get_directions: "Hent veibeskrivelser",
+    incident: "Hendelse",
+    weather: "Vær"
   })
 );

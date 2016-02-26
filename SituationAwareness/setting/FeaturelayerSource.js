@@ -22,14 +22,13 @@ define([
     'jimu/dijit/Message',
     'dojo/text!./FeaturelayerSource.html',
     'dojo/_base/lang',
-    'dojo/_base/html',
     'dojo/_base/array',
     'dojox/form/CheckedMultiSelect',
     'dojo/on',
     'dojo/Evented'
   ],
   function(declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin,
-    Message, template, lang, html, array, CheckedMultiSelect, on, Evented) {
+    Message, template, lang, array, CheckedMultiSelect, on, Evented) {
     return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, Evented], {
 
       /*jshint loopfunc: true */
@@ -49,7 +48,7 @@ define([
           new Message({
             message: this.nls.missingLayerInWebMap
           });
-          return;
+          //return;
         }
 
         this.weatherLayersSelect = new CheckedMultiSelect({
@@ -78,27 +77,11 @@ define([
             setWeatherLayers.push(lang.trim(layer));
           }));
           this.weatherLayersSelect.set("value", setWeatherLayers);
-          if (setWeatherLayers.length > 0) {
-            html.removeClass(this.btnOk, 'jimu-state-disabled');
-          } else {
-            html.addClass(this.btnOk, 'jimu-state-disabled');
-          }
         }
-
-        this.own(on(this.weatherLayersSelect, 'click', lang.hitch(this, function() {
-          var items = this._getSelectedLayers();
-          if (items.length > 0) {
-            html.removeClass(this.btnOk, 'jimu-state-disabled');
-          } else {
-            html.addClass(this.btnOk, 'jimu-state-disabled');
-          }
-        })));
 
         this.own(on(this.btnOk, 'click', lang.hitch(this, function() {
           var items = this._getSelectedLayers();
-          if (items.length > 0) {
-            this.emit('ok', items);
-          }
+          this.emit('ok', items);
         })));
 
         this.own(on(this.btnCancel, 'click', lang.hitch(this, function() {

@@ -50,6 +50,7 @@ define([
       this.graphicsLayer = null;
       this.specialFields = {};
       this.dateFields = {};
+      this.config = parent.config;
     },
 
     // update for incident
@@ -70,6 +71,7 @@ define([
     // process incident
     processIncident: function (incident, buffer, graphicsLayer) {
       this.container.innerHTML = "";
+      this.buffer = buffer;
       domClass.add(this.container, "loading");
       var results = [];
       this.incident = incident;
@@ -86,7 +88,9 @@ define([
         } else {
           query.outFields = this._getFields(layer);
         }
-        defArray.push(layer.queryFeatures(query));
+        if(typeof(layer.queryFeatures) !== 'undefined'){
+          defArray.push(layer.queryFeatures(query));
+        }
       }
       var defList = new DeferredList(defArray);
       defList.then(lang.hitch(this, function (defResults) {
@@ -94,23 +98,30 @@ define([
           var featureSet = defResults[r][1];
           var layer = tabLayers[r];
           var fields = this._getFields(layer);
-          var graphics = featureSet.features;
-          for (var g = 0; g < graphics.length; g++) {
-            var gra = graphics[g];
-            var geom = gra.geometry;
-            // var loc = geom;
-            // if (geom.type !== "point") {
-            //   loc = geom.getExtent().getCenter();
-            // }
-            var dist = this._getDistance(incident.geometry, geom);
-            var newAttr = {
-              DISTANCE: dist
-            };
-            for (var f = 0; f < fields.length; f++) {
-              newAttr[fields[f]] = gra.attributes[fields[f]];
+          if (featureSet) {
+            var graphics = featureSet.features;
+            for (var g = 0; g < graphics.length; g++) {
+              var gra = graphics[g];
+              var geom = gra.geometry;
+              // var loc = geom;
+              // if (geom.type !== "point") {
+              //   loc = geom.getExtent().getCenter();
+              // }
+              var dist = this._getDistance(incident.geometry, geom);
+              var newAttr = {
+                DISTANCE: dist
+              };
+              for (var f = 0; f < fields.length; f++) {
+                newAttr[fields[f]] = gra.attributes[fields[f]];
+              }
+              if (this.config.csvAllFields === true || this.config.csvAllFields === "true") {
+                //do nothing.  All fields in graphic will export.
+                gra.attributes.DISTANCE = dist;
+              } else {
+                gra.attributes = newAttr;
+              }
+              results.push(gra);
             }
-            gra.attributes = newAttr;
-            results.push(gra);
           }
         }
         this._processResults(results);
@@ -123,9 +134,10 @@ define([
       domClass.remove(this.container, "loading");
       this.graphicsLayer.clear();
 
-      if (results.length === 0) {
+      if (results.length === 0 && this.buffer) {
         this.container.innerHTML = this.parent.nls.noFeaturesFound;
-        return;
+      } else if (results.length === 0 && !this.buffer) {
+        this.container.innerHTML = this.parent.nls.defaultTabMsg;
       }
       results.sort(this._compareDistance);
 
@@ -147,7 +159,40 @@ define([
 
       var unit = this.parent.config.distanceUnits;
       var units = this.parent.nls[unit];
-      var dFormat = null;
+      //var dFormat = null;
+
+      var displayFields;
+      if(typeof(this.tab.advStat) !== 'undefined') {
+        displayFields = this.tab.advStat.stats.outFields;
+      } else {
+        displayFields = [];
+        if (this.parent.map.itemInfo.itemData.operationalLayers.length > 0) {
+          var mapLayers = this.parent.map.itemInfo.itemData.operationalLayers;
+          array.forEach(mapLayers, lang.hitch(this, function(layer) {
+            if(layer.title === this.tab.layers) {
+              if(typeof(layer.popupInfo) !== 'undefined') {
+                array.forEach(layer.popupInfo.fieldInfos, lang.hitch(this, function (field) {
+                  if (field.visible) {
+                    var fieldObj = {};
+                    fieldObj.value = 0;
+                    fieldObj.expression = field.fieldName;
+                    fieldObj.label = field.label;
+                    displayFields.push(fieldObj);
+                  }
+                }));
+              } else {
+                array.forEach(layer.layerObject.fields, lang.hitch(this, function(field) {
+                  var fieldObj = {};
+                  fieldObj.value = 0;
+                  fieldObj.expression = field.name;
+                  fieldObj.label = field.alias;
+                  displayFields.push(fieldObj);
+                }));
+              }
+            }
+          }));
+        }
+      }
 
       for (var i = 0; i < results.length; i++) {
         var num = i + 1;
@@ -167,9 +212,15 @@ define([
         var c = 0;
         for (var prop in attr) {
           if (prop !== "DISTANCE" && c < 3) {
-            //info += attr[prop] + "<br/>";
-            info += utils.sanitizeHTML(this._getFieldValue(prop, attr[prop]) + "<br/>");
-            c += 1;
+            if (typeof (displayFields) !== 'undefined') {
+              for (var ij = 0; ij < displayFields.length; ij++) {
+                var field = displayFields[ij];
+                if (field.expression === prop) {
+                  info += utils.sanitizeHTML(this._getFieldValue(prop, attr[prop]) + "<br/>");
+                  c += 1;
+                }
+              }
+            }
           }
         }
 
@@ -196,7 +247,7 @@ define([
         }
 
         if (this.parent.config.enableRouting) {
-          var div4 = domConstruct.create("div", {}, div1);
+          var div4 = domConstruct.create("div", { title: this.parent.nls.get_directions }, div1);
           domClass.add(div4, "SATcolDir");
           on(div4, "click", lang.hitch(this, this._routeToIncident, loc));
         }

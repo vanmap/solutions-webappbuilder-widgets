@@ -41,9 +41,9 @@
     "count": "ANZAHL",
     "area": "FLÄCHE",
     "length": "LÄNGE",
-    "count_checkBox": "Anzahl anzeigen",
-    "area_checkBox": "Bereich anzeigen",
-    "length_checkBox": "Länge anzeigen",
+    "count_checkBox": "Feature-Anzahl anzeigen",
+    "area_checkBox": "Flächensumme anzeigen",
+    "length_checkBox": "Längensumme anzeigen",
     "max_records": "Maximaler Grenzwert erreicht",
     "save_label": "Speicheroptionen",
     "save_checkbox": "Speichern aktivieren",
@@ -51,6 +51,11 @@
     "csv_checkbox": "Alle Felder des Layers exportieren.",
     "display_label": "Anzeigeoptionen",
     "display_checkbox": "Zusammenfassungs-Features anzeigen",
-    "must_select_template": "Wählen Sie eine der Bearbeitungsvorlagen unter \"Speicheroptionen\" aus."
+    "must_select_template": "Wählen Sie eine der Bearbeitungsvorlagen unter \"Speicheroptionen\" aus.",
+    "count_label": "Beschriftung für Anzahl",
+    "area_label": "Flächenbeschriftung",
+    "length_label": "Längenbeschriftung",
+    "invalid_string_width": "Der Wert ist zu lang. ",
+    "layer_type_not_supported": "Layer-Typ wird nicht unterstützt: "
   })
 );

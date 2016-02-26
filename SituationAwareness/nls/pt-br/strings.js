@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Percepção da Situação (Beta)",
+    _widgetLabel: "Consciência da Situação",
     locate_incident: "Localizar Incidente",
     clear_incidents: "Apagar Incidentes",
     reverse_geocoded_address: "Endereço mais próximo",
@@ -20,7 +20,7 @@
     THU: "QUI",
     FRI: "SEX",
     SAT: "SAB",
-    defaultTabMsg: "Nenhum incidente identificado.",
+    defaultTabMsg: "Defina uma área de incidente.",
     actionLabel: "Configurar como Incidente",
     drawPoint: "Desenhar Ponto",
     drawLine: "Desenhar Linha",
@@ -30,9 +30,9 @@
     useMapExtent: "Utilize a extensão de mapa atual",
     noFeaturesFound: "Nenhuma feição foi encontrada.",
     downloadCSV: "DOWNLOAD DE CSV",
-    editComplete: "Feição salva com sucesso!",
-    updateComplete: "Feição atualizada com sucesso!",
-    deleteComplete: "Feição excluída com sucesso!",
+    editComplete: "Feição salva com sucesso.",
+    updateComplete: "Feição atualizada com sucesso.",
+    deleteComplete: "Feição excluída com sucesso.",
     sum: "SOMA",
     min: "MÍN",
     max: "MÁX",
@@ -41,7 +41,10 @@
     area: "ÁREA",
     length: "COMPRIMENTO",
     notPolySave: "Especifique uma distância de buffer antes de salvar.",
-    update_btn: "Atualizar",
-    delete_btn: "Excluir"
+    update_btn: "Concluído",
+    delete_btn: "Excluir",
+    get_directions: "Obter Direções",
+    incident: "Incidente",
+    weather: "Tempo"
   })
 );

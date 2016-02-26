@@ -41,9 +41,9 @@
     "count": "KOGUARV",
     "area": "AREA",
     "length": "LENGTH",
-    "count_checkBox": "Kuva kogus",
-    "area_checkBox": "Kuva pindala",
-    "length_checkBox": "Kuva ümbermõõt",
+    "count_checkBox": "Kuva objektide arv",
+    "area_checkBox": "Kuva summaarne pindala",
+    "length_checkBox": "Kuva summaarne pikkus",
     "max_records": "Limiit on täis",
     "save_label": "Salvestamise valikud",
     "save_checkbox": "Luba salvestamine",
@@ -51,6 +51,11 @@
     "csv_checkbox": "Ekspordi kõik kihi väljad.",
     "display_label": "Kuvamisvalikud",
     "display_checkbox": "Kuva kokkuvõtte objektid",
-    "must_select_template": "Valige üks salvestamise valikute muutmise mall."
+    "must_select_template": "Valige üks salvestamise valikute muutmise mall.",
+    "count_label": "Arvu märgis",
+    "area_label": "Pindala märgis",
+    "length_label": "Pikkuse märgis",
+    "invalid_string_width": "Väärtus on liiga pikk. ",
+    "layer_type_not_supported": "Kihi tüüpi ei toetata: "
   })
 );

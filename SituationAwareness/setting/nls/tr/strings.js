@@ -41,9 +41,9 @@
     "count": "SAYIM",
     "area": "ALAN",
     "length": "UZUNLUK",
-    "count_checkBox": "Sayımı Göster",
-    "area_checkBox": "Alanı Göster",
-    "length_checkBox": "Uzunluğu Göster",
+    "count_checkBox": "Detay sayısını görüntüle",
+    "area_checkBox": "Alan toplamını görüntüle",
+    "length_checkBox": "Uzunluk toplamını görüntüle",
     "max_records": "Maksimum sınıra ulaşıldı",
     "save_label": "Seçenekleri Kaydet",
     "save_checkbox": "Kaydetmeyi Etkinleştir",
@@ -51,6 +51,11 @@
     "csv_checkbox": "Katmandaki tüm alanları aktarın.",
     "display_label": "Görüntüleme Seçenekleri",
     "display_checkbox": "Özet Detaylarını Görüntüle",
-    "must_select_template": "Kaydetme Seçeneklerindeki düzenleme şablonlarından birini seçin."
+    "must_select_template": "Kaydetme Seçeneklerindeki düzenleme şablonlarından birini seçin.",
+    "count_label": "Sayı Etiketi",
+    "area_label": "Alan Etiketi",
+    "length_label": "Uzunluk Etiketi",
+    "invalid_string_width": "Değer çok uzun. ",
+    "layer_type_not_supported": "Katman türü desteklenmiyor: "
   })
 );

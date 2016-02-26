@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Conştientizare situaţie (Beta)",
+    _widgetLabel: "Conştientizare situaţie",
     locate_incident: "Localizare incident",
     clear_incidents: "Golire incidente",
     reverse_geocoded_address: "Cea mai apropiată adresă",
@@ -20,7 +20,7 @@
     THU: "JOI",
     FRI: "VIN",
     SAT: "SÂM",
-    defaultTabMsg: "Niciun incident identificat.",
+    defaultTabMsg: "Vă rugăm să definiţi o zonă de incident.",
     actionLabel: "Setare ca incident",
     drawPoint: "Trasare punct",
     drawLine: "Trasare linie",
@@ -30,9 +30,9 @@
     useMapExtent: "Utilizare extindere curentă a hărţii",
     noFeaturesFound: "Nu a fost găsit niciun obiect spaţial.",
     downloadCSV: "DESCĂRCARE CSV",
-    editComplete: "Obiect spaţial salvat cu succes!",
-    updateComplete: "Obiect spaţial actualizat cu succes!",
-    deleteComplete: "Obiect spaţial şters cu succes!",
+    editComplete: "Obiect spaţial salvat cu succes.",
+    updateComplete: "Obiect spaţial actualizat cu succes.",
+    deleteComplete: "Obiect spaţial şters cu succes.",
     sum: "SUMĂ",
     min: "MIN.",
     max: "MAX",
@@ -41,7 +41,10 @@
     area: "SUPRAFAŢĂ",
     length: "LUNGIME",
     notPolySave: "Specificaţi o distanţă de buffer înainte de a salva.",
-    update_btn: "Actualizare",
-    delete_btn: "Ştergere"
+    update_btn: "Gata",
+    delete_btn: "Ştergere",
+    get_directions: "Obţinere instrucţiuni",
+    incident: "Incident",
+    weather: "Vreme"
   })
 );

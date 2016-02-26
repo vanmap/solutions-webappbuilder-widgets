@@ -122,8 +122,10 @@ define([
       this.container.innerHTML = "";
       domClass.remove(this.container, "loading");
 
-      if (results.length === 0) {
+      if (results.length === 0 && this.buffer) {
         this.container.innerHTML = this.parent.nls.noFeaturesFound;
+      } else if (results.length === 0 && !this.buffer) {
+        this.container.innerHTML = this.parent.nls.defaultTabMsg;
       }
 
       var tpc = domConstruct.create("div", {
@@ -135,7 +137,7 @@ define([
       var unit = this.parent.config.distanceUnits;
       var units = this.parent.nls[unit];
 
-      var dFormat = null;
+      //var dFormat = null;
       for (var i = 0; i < results.length; i++) {
 
         var num = i + 1;
@@ -185,7 +187,7 @@ define([
         }
 
         if (this.parent.config.enableRouting) {
-          var div4 = domConstruct.create("div", {}, div1);
+          var div4 = domConstruct.create("div", { title: this.parent.nls.get_directions }, div1);
           domClass.add(div4, "SATcolDir");
           on(div4, "click", lang.hitch(this, this._routeToIncident, loc));
         }
@@ -261,37 +263,41 @@ define([
         } else {
           fldInfos = layer.fields;
         }
-        for (var j = 0; j < fldInfos.length; j++) {
-          var fld = fldInfos[j];
-          if (typeof (fld.visible) !== 'undefined') {
-            if (fld.visible) {
-              fields.push(fld.fieldName);
+        if (fldInfos) {
+          for (var j = 0; j < fldInfos.length; j++) {
+            var fld = fldInfos[j];
+            if (typeof (fld.visible) !== 'undefined') {
+              if (fld.visible) {
+                fields.push(fld.fieldName);
+              }
+            } else {
+              fields.push(fld.name);
             }
-          } else {
-            fields.push(fld.name);
           }
         }
       }
       // special fields: dates and domains
       var spFields = {};
-      array.forEach(layer.fields, lang.hitch(this, function (fld) {
-        if (fld.type === "esriFieldTypeDate" || fld.domain) {
-          if (fld.type === "esriFieldTypeDate") {
-            if (layer.infoTemplate) {
-              for (var key in layer.infoTemplate._fieldsMap) {
-                if (typeof (layer.infoTemplate._fieldsMap[key].fieldName) !== 'undefined') {
-                  if (layer.infoTemplate._fieldsMap[key].fieldName === fld.name) {
-                    if (typeof (layer.infoTemplate._fieldsMap[key].format.dateFormat) !== 'undefined') {
-                      this.dateFields[fld.name] = layer.infoTemplate._fieldsMap[key].format.dateFormat;
+      if (layer.fields) {
+        array.forEach(layer.fields, lang.hitch(this, function (fld) {
+          if (fld.type === "esriFieldTypeDate" || fld.domain) {
+            if (fld.type === "esriFieldTypeDate") {
+              if (layer.infoTemplate) {
+                for (var key in layer.infoTemplate._fieldsMap) {
+                  if (typeof (layer.infoTemplate._fieldsMap[key].fieldName) !== 'undefined') {
+                    if (layer.infoTemplate._fieldsMap[key].fieldName === fld.name) {
+                      if (typeof (layer.infoTemplate._fieldsMap[key].format.dateFormat) !== 'undefined') {
+                        this.dateFields[fld.name] = layer.infoTemplate._fieldsMap[key].format.dateFormat;
+                      }
                     }
                   }
                 }
               }
             }
+            spFields[fld.name] = fld;
           }
-          spFields[fld.name] = fld;
-        }
-      }));
+        }));
+      }
       this.specialFields = spFields;
       return fields;
     },

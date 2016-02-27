@@ -6,6 +6,6 @@
       status: "Stav",
       result: "Výsledek"
     },
-    _widgetLabel: "Ř_Info Summary (Beta)_______ů"
+    _widgetLabel: "Shrnutí informací (Beta)"
   })
 );

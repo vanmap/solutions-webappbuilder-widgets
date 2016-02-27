@@ -6,6 +6,6 @@
       status: "Statuss",
       result: "Rezultāts"
     },
-    _widgetLabel: "ķ_Info Summary (Beta)_______ū"
+    _widgetLabel: "Informācijas kopsavilkums (beta versija)"
   })
 );

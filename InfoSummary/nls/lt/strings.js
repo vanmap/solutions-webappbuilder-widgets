@@ -6,6 +6,6 @@
       status: "Būsena",
       result: "Rezultatas"
     },
-    _widgetLabel: "Į_Info Summary (Beta)_______š"
+    _widgetLabel: "Informacijos suvestinė (beta)"
   })
 );

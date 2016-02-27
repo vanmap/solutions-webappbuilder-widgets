@@ -6,6 +6,6 @@
       status: "Status",
       result: "Resultat"
     },
-    _widgetLabel: "å_Info Summary (Beta)_______ø"
+    _widgetLabel: "Informasjonssammendrag (beta)"
   })
 );

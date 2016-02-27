@@ -6,6 +6,6 @@
       status: "סטטוס",
       result: "תוצאה"
     },
-    _widgetLabel: "כן_Info Summary (Beta)_______ש"
+    _widgetLabel: "סיכום מידע (בטא)"
   })
 );

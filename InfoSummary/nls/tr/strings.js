@@ -6,6 +6,6 @@
       status: "Durum",
       result: "Sonuç"
     },
-    _widgetLabel: "ı_Info Summary (Beta)_______İ"
+    _widgetLabel: "Bilgi Özeti (Beta)"
   })
 );

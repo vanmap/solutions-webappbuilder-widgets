@@ -6,6 +6,6 @@
       status: "สถานะ",
       result: "ผลลัพธ์"
     },
-    _widgetLabel: "ก้_Info Summary (Beta)_______ษฺ"
+    _widgetLabel: "สรุปข้อมูล (เบต้า)"
   })
 );

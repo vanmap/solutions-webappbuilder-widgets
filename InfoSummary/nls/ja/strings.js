@@ -6,6 +6,6 @@
       status: "ステータス",
       result: "結果"
     },
-    _widgetLabel: "須_Info Summary (Beta)_______鷗"
+    _widgetLabel: "情報サマリー (ベータ版)"
   })
 );

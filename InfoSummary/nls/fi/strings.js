@@ -6,6 +6,6 @@
       status: "Tila",
       result: "Tulos"
     },
-    _widgetLabel: "Å_Info Summary (Beta)_______ö"
+    _widgetLabel: "Tietojen yhteenveto (beeta)"
   })
 );

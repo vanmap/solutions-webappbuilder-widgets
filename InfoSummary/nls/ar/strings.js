@@ -6,6 +6,6 @@
       status: "الحالة",
       result: "النتيجة"
     },
-    _widgetLabel: "بيت_Info Summary (Beta)_______لاحقة"
+    _widgetLabel: "ملخص المعلومات (بيتا)"
   })
 );

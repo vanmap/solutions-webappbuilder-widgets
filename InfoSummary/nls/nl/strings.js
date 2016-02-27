@@ -6,6 +6,6 @@
       status: "Status",
       result: "Resultaat"
     },
-    _widgetLabel: "Ĳ_Info Summary (Beta)_______ä"
+    _widgetLabel: "Infosamenvatting (bèta)"
   })
 );

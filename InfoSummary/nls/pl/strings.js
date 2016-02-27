@@ -6,6 +6,6 @@
       status: "Status",
       result: "Wynik"
     },
-    _widgetLabel: "ł_Info Summary (Beta)_______ą"
+    _widgetLabel: "Podsumowanie (Beta)"
   })
 );

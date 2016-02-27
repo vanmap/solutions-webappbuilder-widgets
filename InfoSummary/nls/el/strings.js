@@ -6,6 +6,6 @@
       status: "Κατάσταση",
       result: "Αποτέλεσμα"
     },
-    _widgetLabel: "Đ_Info Summary (Beta)_______ớ"
+    _widgetLabel: "Σύνοψη πληροφοριών (Beta)"
   })
 );

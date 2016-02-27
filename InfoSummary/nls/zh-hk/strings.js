@@ -6,6 +6,6 @@
       status: "狀態",
       result: "結果"
     },
-    _widgetLabel: "試_Info Summary (Beta)_______驗"
+    _widgetLabel: "資訊摘要 (Beta)"
   })
 );

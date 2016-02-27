@@ -6,6 +6,6 @@
       status: "状态",
       result: "结果"
     },
-    _widgetLabel: "试_Info Summary (Beta)_______验"
+    _widgetLabel: "信息汇总(Beta 版)"
   })
 );

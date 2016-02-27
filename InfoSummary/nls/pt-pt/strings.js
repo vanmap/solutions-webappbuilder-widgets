@@ -6,6 +6,6 @@
       status: "Estado",
       result: "Resultado"
     },
-    _widgetLabel: "ã_Info Summary (Beta)_______Ç"
+    _widgetLabel: "Resumo de Informação (Beta)"
   })
 );

@@ -6,6 +6,6 @@
       status: "Olek",
       result: "Tulemus"
     },
-    _widgetLabel: "Š_Info Summary (Beta)_______ä"
+    _widgetLabel: "Teabe kokkuvõte (beeta)"
   })
 );

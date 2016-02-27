@@ -6,6 +6,6 @@
       status: "상태",
       result: "결과"
     },
-    _widgetLabel: "한_Info Summary (Beta)_______빠"
+    _widgetLabel: "정보 요약(베타)"
   })
 );

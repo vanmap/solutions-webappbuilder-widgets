@@ -6,6 +6,6 @@
       status: "Trạng thái",
       result: "Kết quả"
     },
-    _widgetLabel: "Đ_Info Summary (Beta)_______ớ"
+    _widgetLabel: "Tổng kết Thông tin (Beta)"
   })
 );

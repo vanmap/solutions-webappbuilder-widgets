@@ -24,7 +24,6 @@ define([
     'dojo/on',
     'dijit/_WidgetsInTemplateMixin',
     'jimu/BaseWidget',
-    'jimu/MapManager',
     'jimu/LayerInfos/LayerInfos',
     'esri/dijit/editing/Editor',
     "esri/dijit/editing/TemplatePicker",
@@ -32,7 +31,6 @@ define([
     "esri/dijit/AttributeInspector", // Cam added block
     "esri/toolbars/draw",
     "esri/toolbars/edit",
-    "esri/dijit/editing/Editor",
     "esri/tasks/query",
     "esri/graphic",
     "esri/layers/FeatureLayer",
@@ -48,8 +46,8 @@ define([
     "./utils"
   ],
   function(declare, lang, array, html, query, esriBundle, on, _WidgetsInTemplateMixin,
-    BaseWidget, MapManager, LayerInfos, Editor, TemplatePicker,
-    AttributeInspector, Draw, Edit, Editor, Query, Graphic, FeatureLayer, ConfirmDialog, Deferred,
+    BaseWidget, LayerInfos, Editor, TemplatePicker,
+    AttributeInspector, Draw, Edit, Query, Graphic, FeatureLayer, ConfirmDialog, Deferred,
     SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, Color, event,
     Button, editUtils) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
@@ -296,7 +294,7 @@ define([
 
       // Cam
       _createEditor: function () {
-        this.settings = this._getSettingsParam()
+        this.settings = this._getSettingsParam();
 
         var layers = this._getEditableLayers(this.settings.layerInfos);
 
@@ -342,7 +340,8 @@ define([
             editToolbar.deactivate();
             editingEnabled = false;
 
-            if (evt.ctrlKey === true || evt.metaKey === true) {  //delete feature if ctrl key is depressed
+            if (evt.ctrlKey === true || evt.metaKey === true) {
+              //delete feature if ctrl key is depressed
               layer.applyEdits(null, null, [evt.graphic]);
             } else {
 
@@ -367,7 +366,9 @@ define([
           columns: 2,
           grouping: true,
           style: "height: auto, overflow: auto;"
-        }, "templatePickerDiv");
+        }, html.create("div")); 
+        html.place(this.templatePicker.domNode, this.domNode, "last");
+
         this.templatePicker.startup();
 
         var drawToolbar = new Draw(this.map);
@@ -431,7 +432,7 @@ define([
           },
           layerInfos: linfos,
           templatePicker: null
-        }
+        };
 
         var params = { settings: settings };
         var myEditor = new Editor(params, "editorDiv");
@@ -448,7 +449,7 @@ define([
         var updatedAttrs = {};
         for (var prop in attributes) {
           if (attributes.hasOwnProperty(prop) &&
-            attributes[prop] != origAttributes[prop]) {
+            attributes[prop] !== origAttributes[prop]) {
             updatedAttrs[prop] = attributes[prop];
           }
         }
@@ -461,7 +462,8 @@ define([
         for (var i = 0; i < list.length; i++) {
           //if (list[i].firstChild.innerText.toUpperCase() === prop.toUpperCase()) {
           if (list[i].firstChild.innerText === prop) {
-            list[i].lastChild.getElementsByClassName("dijitValidationTextBox")[0].style.borderColor = "red";
+            list[i].lastChild.getElementsByClassName("dijitValidationTextBox")[0]
+              .style.borderColor = "red";
             //list[i].lastChild.style.borderColor = "red";
             return;
           }
@@ -597,11 +599,11 @@ define([
             this.attrInspector = this._createAttributeInspector(this.settings.layerInfos);
           } else {
             // if previously the atts inspector is created for an add activity, recreate it
-            if (this.attrInspector.layerInfos.length == 1 &&
+            if (this.attrInspector.layerInfos.length === 1 &&
                 this.attrInspector.layerInfos[0].featureLayer.id.lastIndexOf("_lfl") > 0) {
               this.attrInspector.destroy();
               this.attrInspector = null;
-              this.attrInspector = this._createAttributeInspector(this.settings.layerInfos)
+              this.attrInspector = this._createAttributeInspector(this.settings.layerInfos);
             }
           }
 
@@ -715,11 +717,11 @@ define([
           //query(".jimu-widget-EnhancedEditor .esriEditor")[0].style.display = "block";
           //query("#editorDiv")[0].style.display = "none";
           this.templatePicker.domNode.style.display = "block";
-          this.templatePicker.domNode.previousElementSibling.style.display = "block";
+          //this.templatePicker.domNode.previousElementSibling.style.display = "block";
           this.templatePicker.update();
         } else {
           this.templatePicker.domNode.style.display = "none";
-          this.templatePicker.domNode.previousElementSibling.style.display = "none";
+          //this.templatePicker.domNode.previousElementSibling.style.display = "none";
           //query(".jimu-widget-EnhancedEditor .esriEditor")[0].style.display = "none";
           this.attrInspector.domNode.style.display = "block";
           //query("#editorDiv")[0].style.display = "block";
@@ -727,7 +729,6 @@ define([
         this.attrInspector.refresh();
       },
 
-      // Cam
       _validateRequiredFields: function(){
         var errorObj = {};
         if (!this.updateFeature) { return errorObj; }//false; }
@@ -738,25 +739,22 @@ define([
         layer.fields.filter(lang.hitch(this, function (field) {
           return field.nullable === false && field.editable === true;
         })).forEach(lang.hitch(this, function (f) {
-          //var graphic = layer.graphics[0];
-          if (!this.updateFeature.attributes[f.name]) {
-            //errorFields.push({"field": f.name, "issue": "undefined"});
+          if (this.updateFeature.attributes[f.name] === "undefined") {
             errorObj[f.alias] = "undefined";
           } else {
             switch (f.type) {
               case "esriFieldTypeString":
                 if (this.updateFeature.attributes[f.name].trim() === "") {
-                  //errorFields.push({ "field": f.name, "issue": "Empty string" });
                   errorObj[f.alias] = "Empty string";
                 }
                 break;
               case "esriFieldTypeDate":
+                break;
               default:
                 break;
             }
           }
         }));
-        //return errorFields.length > 0 ? false : true;
         return errorObj;
       },
 

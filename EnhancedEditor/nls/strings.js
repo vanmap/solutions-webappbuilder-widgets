@@ -9,6 +9,7 @@ define({
     featureLayers: "Feature Layers1",
     searchTemplates: "Search Templates",
     noAvailableTempaltes: "No available templates",
+    del: "Delete",
     submit: "Submit",
     reset: "Reset",
     cancel: "Cancel"

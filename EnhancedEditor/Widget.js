@@ -100,7 +100,6 @@ define([
         //this.enableWebMapPopup();
       },
 
-      // Cam
       // this function also create a new attribute inspector for the local layer
       _addGraphicToLocalLayer: function (evt) {
         if (!this.selectedTemplate) { return; }
@@ -118,8 +117,8 @@ define([
 
         var tempLayerInfos = this._getDefaultLayerInfosForLocalLayer(myLayer.originalLayerId);
         var newTempLayerInfos = this._converConfiguredLayerInfos(tempLayerInfos);
+        this._modifyFieldLabels(newTempLayerInfos[0]);
         newTempLayerInfos[0].featureLayer = myLayer;
-        //newTempLayerInfos[0].showAttachments = false;
 
         // create a new attrinspector
         if (this.attrInspector) {
@@ -138,7 +137,6 @@ define([
         this._showTemplate(false);
       },
 
-      // Cam
       _cancelEditingFeature: function(){
         var layer = this.updateFeature.getLayer();
         if (layer.originalLayerId) {
@@ -150,7 +148,6 @@ define([
         this.isDirty = false;
       },
 
-      // Cam
       _cloneLayer: function (layer) {
         var cloneFeaturelayer;
 
@@ -220,18 +217,20 @@ define([
                   "after");
         attrInspector.startup();
 
-
         var delButton = query(".atiButtons .atiDeleteButton", attrInspector.domNode)[0];
 
         //add additional buttons
         var validateButton = new Button({ label: this.nls.submit, "class": "validateButton" },
           html.create("div"));
-
         html.place(validateButton.domNode, delButton, "after");
 
         var resetButton = new Button({ label: this.nls.reset, "class": "resetButton" },
           html.create("div"));
         html.place(resetButton.domNode, validateButton.domNode, "after");
+
+        var deleteButton = new Button({ label: this.nls.del, "class": "deleteButton" },
+          html.create("div"));
+        html.place(deleteButton.domNode, resetButton.domNode, "after");
 
         var templateButton = new Button({ label: this.nls.cancel, "class": "templateButton" },
           html.create("div"));
@@ -241,6 +240,21 @@ define([
         delButton.remove();
 
         //wire up the events
+        deleteButton.on("click", lang.hitch(this, function () {
+          if (this.updateFeature) {
+            var objId = this.updateFeature.attributes["OBJECTID"];
+            var layer = this.updateFeature.getLayer();
+            if(layer.url === null){
+              layer.clear();
+            } else {
+              layer.applyEdits(null, null, [this.updateFeature]);
+            }
+            this.updateFeature = null;
+            this.isDirty = false;
+            this._showTemplate(true);
+          }
+        }));
+
         resetButton.on("click", lang.hitch(this, function () {
           // Todo: attributes updated but not showed up on UI
           if (this.updateFeature) {
@@ -292,20 +306,12 @@ define([
         return attrInspector;
       },
 
-      // Cam
       _createEditor: function () {
         this.settings = this._getSettingsParam();
 
         var layers = this._getEditableLayers(this.settings.layerInfos);
 
-        //var options = {};
-        //options.allowAddVerticies = true;
-        //options.allowDeleteVertices = true;
-
-        var editToolbar = new Edit(this.map); //, options);
-        //editToolbar.on("deactivate", lang.hitch(this, function (evt) {
-        //  this.currentLayer.applyEdits(null, [evt.graphic], null);
-        //}));
+        var editToolbar = new Edit(this.map); 
 
         array.forEach(layers, lang.hitch(this, function (layer) {
           var editingEnabled = false;
@@ -336,25 +342,20 @@ define([
               this.currentLayer.clearSelection();
             }
 
+            //todo: revisit
             this.currentLayer = layer;
             editToolbar.deactivate();
             editingEnabled = false;
 
-            if (evt.ctrlKey === true || evt.metaKey === true) {
-              //delete feature if ctrl key is depressed
-              layer.applyEdits(null, null, [evt.graphic]);
-            } else {
+            if (!this.templatePicker) { return; } // should never happen
 
-              if (!this.templatePicker) { return; } // should never happen
-
-              // resove any pending changes
-              if (this.isDirty) {
-                this._resolvePendingEdit(false).then(lang.hitch(this, function (e) {
-                  this._processOnLayerClick(evt, layer);
-                }));
-              } else {
+            // resove any pending changes
+            if (this.isDirty) {
+              this._resolvePendingEdit(false).then(lang.hitch(this, function (e) {
                 this._processOnLayerClick(evt, layer);
-              }
+              }));
+            } else {
+              this._processOnLayerClick(evt, layer);
             }
           }));
         })); // end of array.forEach
@@ -400,13 +401,9 @@ define([
           editToolbar.deactivate();
           this._addGraphicToLocalLayer(evt);
         }));
-
-
-        //// create editor toolbar
-        //this._createEditorToolbar(this.settings.layerInfos);
-        //query("#editorDiv")[0].style.display = "none";
       },
 
+      // currently not used
       _createEditorToolbar: function (linfos) {
         var settings = {
           map: this.map,
@@ -439,7 +436,6 @@ define([
         myEditor.startup();
       },
 
-      // Cam
       _filterOnlyUpdatedAttributes: function (attributes, origAttributes) {
         if (!attributes || attributes.length < 1 ||
             !origAttributes || origAttributes.length < 1) {
@@ -457,31 +453,24 @@ define([
         return updatedAttrs;
       },
 
-      _findErrorElement: function (prop) {
-        var list = this.attrInspector.attributeTable.getElementsByTagName("tr");
-        for (var i = 0; i < list.length; i++) {
-          //if (list[i].firstChild.innerText.toUpperCase() === prop.toUpperCase()) {
-          if (list[i].firstChild.innerText === prop) {
-            list[i].lastChild.getElementsByClassName("dijitValidationTextBox")[0]
-              .style.borderColor = "red";
-            //list[i].lastChild.style.borderColor = "red";
-            return;
-          }
-        }
-      },
-
-      // Cam
       _formatErrorFields: function (errObject) {
+        var list = this.attrInspector.attributeTable.getElementsByTagName("tr");
+
         for (var prop in errObject) {
           if (errObject.hasOwnProperty(prop)) {
             // loop throug each row in the attrInspector 
-            this._findErrorElement(prop);
+            for (var i = 0; i < list.length; i++) {
+              //if (list[i].firstChild.innerText.toUpperCase() === prop.toUpperCase()) {
+              if (list[i].firstChild.innerText.indexOf(prop) === 0) {
+                list[i].lastChild.getElementsByClassName("dijitReset dijitInputInner")[0].focus();
+                continue;
+              }
+            }
           }
         }
+        list[0].lastChild.getElementsByClassName("dijitReset dijitInputInner")[0].focus();
       },
 
-
-      // Cam
       _getDefaultLayerInfosForLocalLayer: function (layerId) {
         var defaultLayerInfos = [];
         var fieldInfos;
@@ -503,7 +492,6 @@ define([
         return defaultLayerInfos;
       },
 
-      // Cam
       _getEditableLayers: function (layerInfos) {
         var layers = [];
         array.forEach(layerInfos, function (layerInfo) {
@@ -518,7 +506,6 @@ define([
         return layers;
       },
 
-      // Cam
       _isObjectEmpty: function (obj) {
         if (obj) {
           for (var prop in obj) {
@@ -531,7 +518,23 @@ define([
         return true; //return true if obj is null
       },
 
-      // Cam
+      // to add (*) to the label of required fields
+      _modifyFieldLabels: function (layerInfo) {
+        if (!layerInfo) { return; }
+
+        var layerObject = this.map.getLayer(layerInfo.featureLayer.id);
+        layerObject.fields.filter(lang.hitch(this, function (field) {
+          return field.nullable === false && field.editable === true;
+        })).forEach(lang.hitch(this, function (f) {
+          layerInfo.fieldInfos.forEach(function (finfo) {
+            if (finfo.fieldName === f.name) {
+              finfo.label = finfo.label +
+                '<a class="asteriskIndicator"> *</a>';
+            }
+          });
+        }));
+      },
+
       _postChanges: function () {
         var deferred = new Deferred();
 
@@ -586,7 +589,6 @@ define([
         return deferred.promise;
       },
 
-      // Cam
       _processOnLayerClick: function (evt, layer) {
         // The logic of adding new feature to local layer is handled
         // in the draw end event of the draw tool
@@ -624,7 +626,6 @@ define([
         }
       },
 
-      // Cam
       _removeLocalLayers: function () {
         var mymap = this.map;
         if (mymap) {
@@ -641,6 +642,21 @@ define([
         }
       },
 
+      _removeSpacesInLayerTemplates: function (layer) {
+        if (!layer) { return; }
+
+        layer.fields.filter(lang.hitch(this, function (field) {
+          return field.nullable === false && field.editable === true;
+        })).forEach(lang.hitch(this, function (f) {
+          // trim of space in the field value
+          layer.templates.forEach(function (t) {
+            if (t.prototype.attributes[f.name] === " ") {
+              t.prototype.attributes[f.name] = t.prototype.attributes[f.name].trim();
+            }
+          });
+        }));
+      },
+
       // Cam - switchToTemplate=true if it's triggered by the cancel button on the attribute window 
       _resolvePendingEdit: function (switchToTemplate) {
         var deferred = new Deferred();
@@ -652,8 +668,8 @@ define([
             ////needed?
             //this.templatePicker.clearSelection();
             // call validate
-            var valid = this._validateRequiredFields();
-            if (valid) {
+            var errorObj = this._validateRequiredFields();
+            if (this._isObjectEmpty(errorObj)){
               // call applyEdit
               this._postChanges().then(lang.hitch(this, function () {
                 if (switchToTemplate) {
@@ -664,8 +680,7 @@ define([
                 deferred.resolve("success");
               }));
             } else {
-              // for now
-              alert("Not all required fields contain valid values.");
+              this._formatErrorFields(errorObj);
               deferred.resolve("failed");
             }
           }),
@@ -707,7 +722,6 @@ define([
         layer.setSelectionSymbol(selectionSymbol);
       },
 
-      // Cam
       _showTemplate: function (showTemplate) {
         if (showTemplate) {
           if (this.currentLayer) {
@@ -717,11 +731,11 @@ define([
           //query(".jimu-widget-EnhancedEditor .esriEditor")[0].style.display = "block";
           //query("#editorDiv")[0].style.display = "none";
           this.templatePicker.domNode.style.display = "block";
-          //this.templatePicker.domNode.previousElementSibling.style.display = "block";
+          this.templatePicker.domNode.previousElementSibling.style.display = "block";
           this.templatePicker.update();
         } else {
           this.templatePicker.domNode.style.display = "none";
-          //this.templatePicker.domNode.previousElementSibling.style.display = "none";
+          this.templatePicker.domNode.previousElementSibling.style.display = "none";
           //query(".jimu-widget-EnhancedEditor .esriEditor")[0].style.display = "none";
           this.attrInspector.domNode.style.display = "block";
           //query("#editorDiv")[0].style.display = "block";
@@ -731,9 +745,9 @@ define([
 
       _validateRequiredFields: function(){
         var errorObj = {};
-        if (!this.updateFeature) { return errorObj; }//false; }
 
-        //var errorFields = [];
+        if (!this.updateFeature) { return errorObj; }
+
         var layer = this.updateFeature.getLayer();
 
         layer.fields.filter(lang.hitch(this, function (field) {
@@ -887,10 +901,17 @@ define([
              layerObject.visible &&
              layerObject.isEditable &&
              layerObject.isEditable()) {
+
+            // CT: modify templates with space in string fields
+            this._removeSpacesInLayerTemplates(layerObject);
+            // CT: modify field labels
+            this._modifyFieldLabels(layerInfo);
+
             layerInfo.featureLayer = layerObject;
             resultLayerInfosParam.push(layerInfo);
           }
         }, this);
+
         return resultLayerInfosParam;
       },
 

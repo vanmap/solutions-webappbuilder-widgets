@@ -127,9 +127,9 @@
     width: 300px;
 }
 
-/*.jimu-widget-EnhancedEditor .esriAttributeInspector .validateButton {
-    margin-left: 45px;
-}*/
+.jimu-widget-EnhancedEditor .esriAttributeInspector .asteriskIndicator {
+    color: red;
+}
 .jimu-widget-EnhancedEditor .esriAttributeInspector .templateButton {
     float: right;
 }

@@ -80,5 +80,5 @@ limitations under the License.
 A copy of the license is available in the repository's
 [license.txt](license.txt) file.
 
-[](Esri Tags: ArcGISSolutions ArcGIS Defense and Intelligence Military Environment Planning Analysis Emergency-Management Local-Government Local Government State-Government State Government Utilities)
+[](Esri Tags: ArcGISSolutions ArcGIS Defense and Intelligence Military Environment Planning Analysis Local-Government Local Government State-Government State Government Emergency-Management Emergency Management Utilities)
 [](Esri Language: Javascript)

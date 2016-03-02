@@ -14,9 +14,18 @@
 	overflow-y: auto;
 }
 
+.jimu-widget-map-filter .headerTable {
+	width: 100%;
+}
+
+.jimu-widget-map-filter .groupHeader {
+	font-size: 12pt;
+	padding-left: 5px;
+}
+
 .jimu-widget-map-filter .group-picker {
 	position: absolute;
-	right: 5px;
+	left: 5px;
 	top: 5px;
 }
 
@@ -31,8 +40,14 @@
 	width: 100%;
 }
 
-.jimu-widget-map-filter .tableHeader {
-	background-color: #elelel;
+.jimu-widget-map-filter .tableFormat {
+	table-layout: fixed;
+	width:99%;
+}
+
+.jimu-widget-map-filter .rowHeader {
+	background-color: #485566;
+	color: #ffffff;
 }
 
 .jimu-widget-map-filter .tableRow {
@@ -44,7 +59,9 @@
 }
 
 .jimu-widget-map-filter .tdValue {
-
+	height: 20px;
+	font-size: 10pt;
+	padding-left: 15px;
 }
 
 .jimu-widget-map-filter .tdConjunction {
@@ -52,24 +69,39 @@
 }
 
 .jimu-widget-map-filter .tdRemove {
-	width: 24px;
+	width: 20px;
 }
 
+.jimu-widget-map-filter .deleteCell {
+    content: url("../images/delete.png");
+    width: 16px;
+    height: 16px;
+    cursor: hand;
+    cursor: pointer;
+}
+
+.jimu-widget-map-filter .deleteCell:hover {
+    content: url("../images/delete_hover.png");
+    width: 16px;
+    height: 16px;
+    cursor: hand;
+    cursor: pointer;
+}
 
 .jimu-widget-map-filter .filter-add-criteria {
 	position: absolute;
-	left: 5px;
-	bottom: 5px;
+	left: 0px;
+	bottom: 0px;
 }
 
 .jimu-widget-map-filter .filter-button-apply {
 	position: absolute;
-	right: 50px;
-	bottom: 5px;
+	right: 100px;
+	bottom: 0px;
 }
 
 .jimu-widget-map-filter .filter-button-cancel {
 	position: absolute;
-	right: 5px;
-	bottom: 5px;
+	right: 0px;
+	bottom: 0px;
 }

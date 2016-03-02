@@ -153,7 +153,8 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
     removeTableRow: function(pCell,pRow,pCount) {
       if(pCount !== 2) {
         var dsNode = domConstruct.create("div",{
-          innerHTML: 'delete'
+          'class': 'deleteCell',
+          innerHTML: ''
         });
         on(dsNode,'click',lang.hitch(this, function() {
           domConstruct.destroy(pRow);

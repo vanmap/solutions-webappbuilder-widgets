@@ -1,0 +1,21 @@
+<div>
+	<div data-dojo-attach-point="widgetIntro">Filter the Map By</div>
+	<div class="container" data-dojo-attach-point="filterBlock" id="filterBlock">
+		<div class="group-picker" data-dojo-attach-point="groupPicker" id="groupPicker"></div>
+		<div class="filter-block" data-dojo-attach-point="filterBlock" id="filterBlock">
+			<table id="tblPredicates" width="100%" border=1>
+				<tr class="tableHeader">
+					<td class="tdOperatorHide"></td>
+					<td class="tdValue">filter value</td>
+					<td class="tdConjunction"> conjunc</td>
+					<td class="tdRemove">action</td>
+				</tr>
+			</table>
+		</div>
+
+
+	</div>
+	<div class="filter-add-criteria" data-dojo-attach-event="click:createNewRow">Add Criteria</div>
+	<div class="filter-button-apply" data-dojo-attach-event="click:cleanEmptyValues">Apply</div>
+	<div class="filter-button-cancel" data-dojo-attach-event="click:resetLayerDef">Cancel</div>
+</div>

@@ -1,13 +1,5 @@
 <div>
 	<div data-dojo-attach-point="widgetIntro">
-		<table class="headerTable" cellpadding="0" cellspacing="0">
-			<tr>
-				<td width="75%">Filter the Map By</td>
-				<td width="25%" id="filterMessage"></td>
-			</tr>
-		</table>
-	</div>
-	<div class="container" data-dojo-attach-point="filterBlock" id="filterBlock">
 		<div class="group-picker">
 			<table width="100%">
 				<tr>
@@ -16,6 +8,9 @@
 				</tr>
 			</table>
 		</div>
+	</div>
+
+	<div class="container" data-dojo-attach-point="filterBlock" id="filterBlock">
 		<div class="filter-block" data-dojo-attach-point="filterBlock" id="filterBlock">
 			<table id="tblPredicates" class="tableFormat" border=0 cellspacing="0" cellpadding="0">
 				<tr class="rowHeader">
@@ -26,11 +21,9 @@
 				</tr>
 			</table>
 		</div>
-
-
 	</div>
 	<div class="spacer"></div>
-	<div class="jimu-btn filter-add-criteria" data-dojo-attach-point="btnClear" data-dojo-attach-event="click:createNewRow">Add Criteria</div>
-	<div class="jimu-btn filter-button-apply" data-dojo-attach-point="btnClear" data-dojo-attach-event="click:cleanEmptyValues">Apply</div>
-	<div class="jimu-btn filter-button-cancel" data-dojo-attach-point="btnClear" data-dojo-attach-event="click:resetLayerDef">Cancel</div>
+	<div class="jimu-btn filter-add-criteria" data-dojo-attach-event="click:createNewRow">Add Criteria</div>
+	<div class="jimu-btn filter-button-apply" data-dojo-attach-event="click:cleanEmptyValues">Apply</div>
+	<div class="jimu-btn filter-button-cancel" data-dojo-attach-event="click:resetLayerDef">Cancel</div>
 </div>

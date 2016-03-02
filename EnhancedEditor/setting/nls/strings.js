@@ -1,11 +1,5 @@
 define({
   root: ({
-    enableUndoRedo: "Enable Undo/Redo",
-    toolbarVisible: "Toolbar Visible",
-    toolbarOptions: "Toolbar Options",
-    mergeVisible: "Merge",
-    cutVisible: "Cut",
-    reshapeVisible: "Reshape",
     back: "Back",
     label: "Layer",
     edit: "Editable",
@@ -18,8 +12,6 @@ define({
     editpageEditable: "Editable",
     noLayers: "No editable feature layers are available",
     configureFields: "Configure Layer Fields",
-    useFilterEdit: "Use Filter Edit",
-    useEnhancedEditFeatures: "Use Enhanced Edit Features",
     display: "Display"
   }),
   "ar": 1,

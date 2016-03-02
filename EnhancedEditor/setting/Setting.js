@@ -62,17 +62,7 @@ define([
       },
 
       _init: function() {
-        this._initToolbar();
         this._initLayersTable();
-      },
-
-      _initToolbar: function() {
-        this.toolbarVisible.set('checked', this.config.editor.toolbarVisible);
-        this.enableUndoRedo.set('checked', this.config.editor.enableUndoRedo);
-        this.mergeVisible.set('checked', this.config.editor.toolbarOptions.mergeVisible);
-        this.cutVisible.set('checked', this.config.editor.toolbarOptions.cutVisible);
-        this.reshapeVisible.set('checked', this.config.editor.toolbarOptions.reshapeVisible);
-        this._onToolbarSelected();
       },
 
       _initLayersTable: function() {
@@ -270,30 +260,7 @@ define([
         }
       },
 
-      _onToolbarSelected: function() {
-        if (!this.toolbarVisible.checked) {
-          //html.setStyle(this.toolbarOptionsTr, 'display', 'none');
-          html.setStyle(this.toolbarOptionsLabel, 'display', 'none');
-          html.setStyle(this.toolbarOptionsTd, 'display', 'none');
-        } else {
-          //html.setStyle(this.toolbarOptionsTr, 'display', 'table-row');
-          html.setStyle(this.toolbarOptionsLabel, 'display', 'table-cell');
-          html.setStyle(this.toolbarOptionsTd, 'display', 'table-cell');
-        }
-      },
-
-      _resetToolbarConfig: function() {
-        this.config.editor.toolbarVisible = this.toolbarVisible.checked;
-        this.config.editor.enableUndoRedo = this.enableUndoRedo.checked;
-        this.config.editor.toolbarOptions.mergeVisible = this.mergeVisible.checked;
-        this.config.editor.toolbarOptions.cutVisible = this.cutVisible.checked;
-        this.config.editor.toolbarOptions.reshapeVisible = this.reshapeVisible.checked;
-      },
-
       getConfig: function() {
-        // get toolbar config
-        this._resetToolbarConfig();
-
         // get layerInfos config
         var checkedLayerInfos = [];
         var layersTableData =  this._layersTable.getData();

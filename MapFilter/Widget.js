@@ -27,10 +27,9 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
 
     layerList: null,
     grpSelect: null,
-    filterList: [],
-    filterConjunction: [],
     groupCounter: 0,
     defaultDef: [],
+    runTimeConfig: null,
 
     postCreate: function() {
       this.inherited(arguments);
@@ -106,24 +105,23 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
 
         this.grpSelect.startup();
         this.own(on(this.grpSelect, "change", lang.hitch(this, function(val) {
-          //handle change
+          this.resetLayerDef();
+          this.removeAllRows();
         })));
     },
 
     createOperatorSelection: function(pCell) {
-      //if(pCounter > 1) {
         var ObjList = [
-          {'value': '=', 'label': 'EQUAL'},
-          {'value': '<', 'label': 'GREATER THAN'},
-          {'value': '<=', 'label': 'GREATER THAN EQUAL'},
-          {'value': '>=', 'label': 'LESS THAN EQUAL'}
+          {'value': '=', 'label': 'EQ'},
+          {'value': '>', 'label': 'GT'},
+          {'value': '>=', 'label': 'GTE'},
+          {'value': '<=', 'label': 'LT'},
+          {'value': '<=', 'label': 'LTE'}
         ];
         var grpSelect = new Select({
           options: ObjList,
         }).placeAt(pCell);
          grpSelect.startup();
-        //this.filterConjunction.push(grpSelect);
-      //}
     },
 
     createTextBoxFilter: function(pCell) {
@@ -132,22 +130,18 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           placeHolder: "Type in a Value"
       }).placeAt(pCell);
       txtFilterParam.startup();
-      this.filterList.push(txtFilterParam);
     },
 
     createConditionSelection: function(pCell) {
       domConstruct.empty(pCell);
-      //if(pCounter > 1) {
         var ObjList = [
-          {'value': 'AND', 'label': 'AND'},
-          {'value': 'OR', 'label': 'OR'}
+          {'value': 'OR', 'label': 'OR'},
+          {'value': 'AND', 'label': 'AND'}
         ];
         var grpSelect = new Select({
           options: ObjList,
         }).placeAt(pCell);
         grpSelect.startup();
-        this.filterConjunction.push(grpSelect);
-      //}
     },
 
     removeTableRow: function(pCell,pRow,pCount) {
@@ -165,6 +159,16 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           }
         }));
         domConstruct.place(dsNode, pCell);
+      }
+    },
+
+    removeAllRows: function() {
+      var table = dom.byId("tblPredicates");
+      if(table.rows.length > 1) {
+          domConstruct.destroy(table.rows[1]);
+          this.removeAllRows();
+      } else {
+        this.createNewRow();
       }
     },
 
@@ -198,8 +202,8 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           if(this.grpSelect.value === group.name) {
             array.forEach(group.layers, lang.hitch(this, function(grpLayer) {
               if(layer.id === grpLayer.layer) {
-                console.log(layer);
                 var expr = '';
+                group.def = [];
                 array.forEach(sqlParams, lang.hitch(this, function(p,i) {
                   array.forEach(layer.layerObject.fields, lang.hitch(this, function(field) {
                     if(field.name === grpLayer.field) {
@@ -208,6 +212,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
                       } else {
                         expr = expr + grpLayer.field + " " + p.operator + " " + p.userValue + " " + p.conjunc + " ";
                       }
+                      group.def.push({value: p.userValue, operator: p.operator, conjunc: p.conjunc});
                     }
                   }));
                 }));
@@ -232,24 +237,6 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           }
         }));
       }));
-    },
-
-    cleanEmptyValues: function() {
-      if(this.filterConjunction.length >= 0) {
-        array.forEach(this.filterConjunction, lang.hitch(this, function(conJunc,i) {
-          if(this.filterList[i].value === '' ) {
-            this.filterList.splice((i), 1);
-            this.filterConjunction.splice(i,1);
-          }
-        }));
-        this.setFilterLayerDef();
-      } else {
-        if(typeof(this.filterList[0].value) === 'undefined' ) {
-          alert("no input value");
-        } else {
-          this.setFilterLayerDef();
-        }
-      }
     },
 
     onOpen: function(){

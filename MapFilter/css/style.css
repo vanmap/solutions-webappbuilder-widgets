@@ -54,16 +54,18 @@
 
 .jimu-widget-map-filter .tdOperatorHide {
 	display: none;
+	width: 100px;
 }
 
 .jimu-widget-map-filter .tdValue {
+	width: 200px;
 	height: 20px;
 	font-size: 10pt;
 	padding-left: 15px;
 }
 
 .jimu-widget-map-filter .tdConjunction {
-	width: 100px;
+	width: 70px;
 }
 
 .jimu-widget-map-filter .tdRemove {

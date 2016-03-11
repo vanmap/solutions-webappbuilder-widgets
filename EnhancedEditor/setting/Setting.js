@@ -61,7 +61,8 @@ define([
           }));
       },
 
-      _init: function() {
+      _init: function () {
+        this._initSettings();
         this._initLayersTable();
       },
 
@@ -99,6 +100,12 @@ define([
         this.own(on(this._layersTable,
           'actions-edit',
           lang.hitch(this, this._onEditFieldInfoClick)));
+      },
+
+      _initSettings: function () {
+        this.showDeleteButton.set('checked', this.config.editor.showDeleteButton);
+        this.displayPromptOnSave.set('checked', this.config.editor.displayPromptOnSave);
+        this.displayPromptOnDelete.set('checked', this.config.editor.displayPromptOnDelete);
       },
 
       setConfig: function() {
@@ -260,7 +267,15 @@ define([
         }
       },
 
-      getConfig: function() {
+      _resetSettingsConfig: function () {
+        this.config.editor.showDeleteButton = this.showDeleteButton.checked;
+        this.config.editor.displayPromptOnSave = this.displayPromptOnSave.checked;
+        this.config.editor.displayPromptOnDelete = this.displayPromptOnDelete.checked;
+      },
+
+      getConfig: function () {
+        this._resetSettingsConfig();
+
         // get layerInfos config
         var checkedLayerInfos = [];
         var layersTableData =  this._layersTable.getData();

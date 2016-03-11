@@ -1,5 +1,8 @@
 {
   "editor": {
-    "layerInfos": []
+    "showDeleteButton":  true,
+    "prompOnSave": false,
+    "promptOnDelete": true,
+    "layerInfos": [ ]
   }
 }

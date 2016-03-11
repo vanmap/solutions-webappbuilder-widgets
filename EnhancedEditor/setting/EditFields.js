@@ -18,7 +18,7 @@ define(
     Table,
     Popup) {
     return declare([BaseWidgetSetting, _TemplatedMixin], {
-      baseClass: "jimu-widget-edit-setting-fields",
+      baseClass: "jimu-widget-enhancedEditor-setting-fields",
       templateString: template,
       _layerInfo: null,
 
@@ -70,6 +70,12 @@ define(
           type: 'text',
           editable: true
         }, {
+          name: 'canPresetValue',
+          title: this.nls.canPresetValue,
+          type: 'checkbox',
+          'class': 'presetValue',
+          width: '150px'
+        }, {
           name: 'actions',
           title: this.nls.actions,
           type: 'actions',
@@ -94,6 +100,7 @@ define(
           this._fieldsTable.addRow({
             fieldName: fieldInfo.fieldName,
             isEditable: fieldInfo.isEditable,
+            canPresetValue: fieldInfo.canPresetValue,
             label: fieldInfo.label
           });
         }, this);
@@ -106,6 +113,7 @@ define(
           newFieldInfos.push({
             "fieldName": fieldData.fieldName,
             "label": fieldData.label,
+            "canPresetValue": fieldData.canPresetValue,
             "isEditable": fieldData.isEditable
           });
         });

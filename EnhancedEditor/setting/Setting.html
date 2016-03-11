@@ -1,5 +1,35 @@
 <div style="width:100%;">
   <div data-dojo-attach-point="firstPageDiv">
+    <table class="setting-table input-table" cellspacing="0">
+      <tbody>
+        <tr>
+          <td class="first jimu-trailing-padding1">${nls.showDeleteButton}</td>
+          <td class="second jimu-leading-padding1">
+            <div class="" style="">
+              <input data-dojo-attach-point="showDeleteButton"
+                     data-dojo-type="dijit/form/CheckBox" />
+            </div>
+          </td>
+        </tr>  
+        <tr class="prompt-options-tr">
+          <td class="first jimu-trailing-padding1 prompt-options-td">${nls.displayPrompt}</td>
+          <td class="second jimu-leading-padding1 prompt-options-td">
+            <span class="jimu-trailing-margin05 jimu-float-leading">${nls.promptOnSave}</span>
+            <div class="jimu-trailing-margin2 jimu-float-leading">
+              <input data-dojo-attach-point="displayPromptOnSave"
+                     data-dojo-type="dijit/form/CheckBox" />
+            </div>
+
+            <span class="jimu-trailing-margin05 jimu-float-leading">${nls.promptOnDelete}</span>
+            <div class="jimu-trailing-margin2 jimu-float-leading">
+              <input data-dojo-attach-point="displayPromptOnDelete"
+                     data-dojo-type="dijit/form/CheckBox" />
+            </div>
+          </td>
+          <td><div style="height: 40px;"></div></td>
+        </tr>
+      </tbody>
+    </table>
     <div data-dojo-attach-point="tableLayerInfos"></div>
     <div data-dojo-attach-point="tableLayerInfosError" style="display:none; padding: 5px;"></div>
   </div>

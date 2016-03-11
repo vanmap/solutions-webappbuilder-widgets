@@ -9,10 +9,14 @@ define({
     featureLayers: "Feature Layers1",
     searchTemplates: "Search Templates",
     noAvailableTempaltes: "No available templates",
+    editorCache: " - Editor Cache",
     del: "Delete",
-    submit: "Submit",
+    submit: "Save",
     reset: "Reset",
-    cancel: "Cancel"
+    cancel: "Cancel",
+    presetFieldAlias: "Field Alias",
+    presetValue: "Preset Value",
+    savePresetValues: "Save Preset Values"
   }),
   "ar": 1,
   "cs": 1,

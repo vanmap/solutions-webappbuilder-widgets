@@ -40,7 +40,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       this.inherited(arguments);
       //this.mapIdNode.innerHTML = 'map id:' + this.map.id;
       //this.createDivsForFilter();
-      this.createNewRow();
+      this.createNewRow({operator:"=",value:"",conjunc:"OR"});
     },
 
     createMapLayerList: function() {
@@ -60,15 +60,15 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         }));
     },
 
-    createNewRow: function() {
+    createNewRow: function(pValue) {
       var table = dom.byId("tblPredicates");
       if(table.rows.length > 2) {
         var prevRowConjunCell = table.rows[(table.rows.length-1)].cells[2];
-        this.createConditionSelection(prevRowConjunCell);
+        this.createConditionSelection(prevRowConjunCell, pValue);
       } else {
         if(table.rows.length === 2) {
           var prevRowConjunCell = table.rows[(table.rows.length-1)].cells[2];
-          this.createConditionSelection(prevRowConjunCell);
+          this.createConditionSelection(prevRowConjunCell, pValue);
         }
       }
       var row = table.insertRow(-1);
@@ -82,8 +82,8 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         //domClass.add(row, "tableRow");
       //}
 
-      this.createOperatorSelection(cell_operator);
-      this.createTextBoxFilter(cell_value);
+      this.createOperatorSelection(cell_operator,pValue);
+      this.createTextBoxFilter(cell_value,pValue);
       this.removeTableRow(cell_remove,row,table.rows.length);
 
       //document.getElementById("myTable").deleteRow(0);
@@ -107,10 +107,11 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         this.own(on(this.grpSelect, "change", lang.hitch(this, function(val) {
           this.resetLayerDef();
           this.removeAllRows();
+          this.reconstructRows(val);
         })));
     },
 
-    createOperatorSelection: function(pCell) {
+    createOperatorSelection: function(pCell, pValue) {
         var ObjList = [
           {'value': '=', 'label': 'EQ'},
           {'value': '>', 'label': 'GT'},
@@ -124,15 +125,15 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
          grpSelect.startup();
     },
 
-    createTextBoxFilter: function(pCell) {
+    createTextBoxFilter: function(pCell, pValue) {
       var txtFilterParam = new TextBox({
-          value: "" /* no or empty value! */,
+          value: pValue.value /* no or empty value! */,
           placeHolder: "Type in a Value"
       }).placeAt(pCell);
       txtFilterParam.startup();
     },
 
-    createConditionSelection: function(pCell) {
+    createConditionSelection: function(pCell, pValue) {
       domConstruct.empty(pCell);
         var ObjList = [
           {'value': 'OR', 'label': 'OR'},
@@ -167,9 +168,21 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       if(table.rows.length > 1) {
           domConstruct.destroy(table.rows[1]);
           this.removeAllRows();
-      } else {
-        this.createNewRow();
       }
+    },
+    
+    reconstructRows: function(pValue) {
+      array.forEach(this.config.groups, lang.hitch(this, function(group) {  
+        if (group.name === pValue) {
+          if(typeof(group.def) !== 'undefined') {
+            array.forEach(group.def, lang.hitch(this, function(def) { 
+              this.createNewRow({value: def.value, operator: def.operator, conjunc: def.conjunc});    
+            })); 
+          } else {
+            this.createNewRow({operator:"=",value:"",conjunc:"OR"});
+          }  
+        }  
+      }));    
     },
 
     parseTable: function() {
@@ -221,8 +234,8 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
                   layer.layerObject.setDefinitionExpression(expr);
                 }
               }
-              //layer.layerObject.setDefinitionExpression(def.definition);
             }));
+          this._publishData(group);  
           }
         }));
       }));
@@ -237,6 +250,13 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           }
         }));
       }));
+    },
+
+    // for W2W communication
+    _publishData: function(pValue) {
+      this.publishData({
+        message: pValue
+      });
     },
 
     onOpen: function(){

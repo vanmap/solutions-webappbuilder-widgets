@@ -61,7 +61,9 @@ define([
             break;
             // todo: check for more types
           case "esriFieldTypeSmallInteger":
-          case "esriFieldtypeDouble":
+          case "esriFieldTypeInteger":
+          case "esriFieldTypeLong":
+          case "esriFieldTypeDouble":
             node = domConstruct.create("div", {
               innerHTML: lang.replace(
                 "<input class='ee-presetValue-input' name='{replace}' type='number'/>",

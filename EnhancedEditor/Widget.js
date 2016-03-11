@@ -76,7 +76,9 @@ define([
       updateFeature: null,
       attrInspIsCurrentlyDisplayed: false, 
 
-      postCreate: function(){
+      postCreate: function () {
+        this.inherited(arguments);
+
         this._init();
         LayerInfos.getInstance(this.map, this.map.itemInfo)
         .then(lang.hitch(this, function (operLayerInfos) {
@@ -84,7 +86,7 @@ define([
           setTimeout(lang.hitch(this, function () {
             this.widgetManager.activateWidget(this);
             this._createEditor();
-          }), 1);
+          }), 50);
         }));
       },
 
@@ -116,7 +118,7 @@ define([
       _init: function () {
         this._layerEventHandlers = [];
         //this._presetFieldInfos = [];
-        this._initPresetFieldsTable();
+        //this._initPresetFieldsTable();
         this._configEditor = lang.clone(this.config.editor);
       },
 
@@ -191,19 +193,6 @@ define([
         }));
         this._showTemplate(false);
       },
-
-      //_applyPresetValuesToTemplates: function (layer) {
-      //  if (this._presetFieldInfos && this._presetFieldInfos.length > 0) {
-      //    layer.templates.forEach(lang.hitch(this, function (t) {
-      //      var attrs = t.prototype.attributes;
-      //      this._presetFieldInfos.forEach(function (fi) {
-      //        if (attrs.hasOwnProperty(fi.fieldName)) {
-      //          attrs[fi.fieldName] = fi.presetValue;
-      //        }
-      //      });
-      //    }));
-      //  }
-      //},
 
       _cancelEditingFeature: function () {
         this.map.infoWindow.hide();
@@ -463,7 +452,13 @@ define([
         }));
 
         // set preset values table
-        this._fillPresetValueTable();
+        if (this._hasPresetValueFields()) {
+          this._initPresetFieldsTable();
+          this._fillPresetValueTable();
+          query(".presetFieldsTableDiv")[0].style.display = "block";
+        } else {
+          query(".presetFieldsTableDiv")[0].style.display = "none";
+        }
       },
 
       _deleteFeature: function(){
@@ -492,6 +487,18 @@ define([
           }
         });
         this._layerEventHandlers = [];
+      },
+
+      _hasPresetValueFields: function () {
+        for (var i = 0; i < this.settings.layerInfos.length; i++) {
+          var found = this.settings.layerInfos[i].fieldInfos.some(function (fi) {
+            return fi.canPresetValue === true;
+          });
+          if (found) {
+            return true;
+          }
+        }
+        return false;
       },
 
       _fillPresetValueTable: function () {
@@ -548,7 +555,6 @@ define([
             { fieldAlias: presetFieldInfo.label }), aliasColumnNode);
 
           var presetValueNode = editUtils.createPresetFieldContentNode(presetFieldInfo);
-          var presetValueNode = this._createPresetFieldContentNode(presetFieldInfo);
 
           var valueColumnNode = domConstruct.create("td",
             { "class": "ee-presetValue-table-cell preset-value-editable" }, row);
@@ -557,55 +563,6 @@ define([
 
           query("#eePresetValueBody")[0].appendChild(row);
         }));
-      },
-
-      _createPresetFieldContentNode: function (fieldInfo) {
-        var node = null;
-        if (fieldInfo.type === "esriFieldTypeDate") {
-          node = domConstruct.create("div", {
-            innerHTML: lang.replace(
-              "<input class='ee-presetValue-input' name='{replace}' type='date'/>",
-              { replace: fieldInfo.fieldName })
-          });
-        } else {
-          if (fieldInfo.domain) {
-            // todo: when domain is not codedValue type
-            // that is when the domain.type = codedValue
-            var domainValues = fieldInfo.domain.codedValues; 
-            node = domConstruct.create("select",
-              { "class": "ee-presetValue-input", "name": fieldInfo.fieldName });
-            // select options
-            array.forEach(domainValues, function (dv) {
-              domConstruct.place(lang.replace(
-                "<option value='{replace}'>{replace}</option>",
-                { replace: dv.name }), node); // or dv.code?
-            });
-          } else {
-            switch (fieldInfo.type) {
-              case "esriFieldTypeString":
-                node = domConstruct.create("div", {
-                  innerHTML: lang.replace(
-                    "<input class='ee-presetValue-input' name='{replace}' type='text'/>",
-                    {replace: fieldInfo.fieldName})
-                });
-                break;
-                // todo: check for more types
-              case "esriFieldTypeSmallInteger":
-              case "esriFieldtypeDouble":
-                node = domConstruct.create("div", {
-                  innerHTML: lang.replace(
-                    "<input class='ee-presetValue-input' name='{replace}' type='number'/>",
-                    {replace: fieldInfo.fieldName})
-                });
-                break;
-              default:
-                node = domConstruct.create("div",
-                  { "class": "ee-presetValue-empty", innerHTML: "N/A" });
-                break;
-            }
-          }
-        }
-        return node;
       },
 
       _formatErrorFields: function (errObject) {

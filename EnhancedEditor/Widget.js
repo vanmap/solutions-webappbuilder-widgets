@@ -78,20 +78,16 @@ define([
 
       postCreate: function () {
         this.inherited(arguments);
-
         this._init();
-        LayerInfos.getInstance(this.map, this.map.itemInfo)
-        .then(lang.hitch(this, function (operLayerInfos) {
-          this._jimuLayerInfos = operLayerInfos;
-          setTimeout(lang.hitch(this, function () {
-            this.widgetManager.activateWidget(this);
-            this._createEditor();
-          }), 50);
-        }));
       },
 
       startup: function() {
         this.inherited(arguments);
+        LayerInfos.getInstance(this.map, this.map.itemInfo)
+        .then(lang.hitch(this, function (operLayerInfos) {
+          this._jimuLayerInfos = operLayerInfos;  
+          this._createEditor();
+        }));
       },
 
       destroy: function () {

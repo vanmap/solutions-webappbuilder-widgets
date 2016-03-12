@@ -40,7 +40,11 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       this.inherited(arguments);
       //this.mapIdNode.innerHTML = 'map id:' + this.map.id;
       //this.createDivsForFilter();
-      this.createNewRow({operator:"=",value:"",conjunc:"OR"});
+      this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
+    },
+    
+    btnNewRowAction: function() {
+      this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"}); 
     },
 
     createMapLayerList: function() {
@@ -62,13 +66,16 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
 
     createNewRow: function(pValue) {
       var table = dom.byId("tblPredicates");
-      if(table.rows.length > 2) {
-        var prevRowConjunCell = table.rows[(table.rows.length-1)].cells[2];
-        this.createConditionSelection(prevRowConjunCell, pValue);
-      } else {
-        if(table.rows.length === 2) {
+      
+      if(pValue.state === "new") {
+        if(table.rows.length > 2) {
           var prevRowConjunCell = table.rows[(table.rows.length-1)].cells[2];
           this.createConditionSelection(prevRowConjunCell, pValue);
+        } else {
+          if(table.rows.length === 2) {
+            var prevRowConjunCell = table.rows[(table.rows.length-1)].cells[2];
+            this.createConditionSelection(prevRowConjunCell, pValue);
+          }
         }
       }
       var row = table.insertRow(-1);
@@ -86,7 +93,13 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       this.createTextBoxFilter(cell_value,pValue);
       this.removeTableRow(cell_remove,row,table.rows.length);
 
-      //document.getElementById("myTable").deleteRow(0);
+      if(pValue.state === "reload") {
+        if(pValue.conjunc !== "") {
+          var currRowConjunCell = table.rows[(table.rows.length-1)].cells[2];
+          this.createConditionSelection(currRowConjunCell, pValue);
+        }
+      }
+
     },
 
     createGroupSelection: function() {
@@ -123,6 +136,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           options: ObjList,
         }).placeAt(pCell);
          grpSelect.startup();
+         grpSelect.set('value', pValue.operator);
     },
 
     createTextBoxFilter: function(pCell, pValue) {
@@ -143,6 +157,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           options: ObjList,
         }).placeAt(pCell);
         grpSelect.startup();
+        grpSelect.set('value', pValue.conjunc);
     },
 
     removeTableRow: function(pCell,pRow,pCount) {
@@ -176,10 +191,10 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         if (group.name === pValue) {
           if(typeof(group.def) !== 'undefined') {
             array.forEach(group.def, lang.hitch(this, function(def) { 
-              this.createNewRow({value: def.value, operator: def.operator, conjunc: def.conjunc});    
+              this.createNewRow({value: def.value, operator: def.operator, conjunc: def.conjunc, state:"reload"});    
             })); 
           } else {
-            this.createNewRow({operator:"=",value:"",conjunc:"OR"});
+            this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
           }  
         }  
       }));    

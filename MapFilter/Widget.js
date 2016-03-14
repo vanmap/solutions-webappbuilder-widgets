@@ -18,10 +18,6 @@ define([
 function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domConstruct, domClass, on, query, lang, array, Select, TextBox, registry, LayerInfos) {
   //To create a widget, you need to derive from BaseWidget.
   return declare([BaseWidget, _WidgetsInTemplateMixin], {
-    // DemoWidget code goes here
-
-    //please note that this property is be set by the framework when widget is loaded.
-    //templateString: template,
 
     baseClass: 'jimu-widget-map-filter',
 
@@ -30,6 +26,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
     groupCounter: 0,
     defaultDef: [],
     runTimeConfig: null,
+    isAdvMode: false,
 
     postCreate: function() {
       this.inherited(arguments);
@@ -42,9 +39,9 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       //this.createDivsForFilter();
       this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
     },
-    
+
     btnNewRowAction: function() {
-      this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"}); 
+      this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
     },
 
     createMapLayerList: function() {
@@ -54,9 +51,9 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
             this.layerList = operLayerInfos._layerInfos;
             array.forEach(operLayerInfos._layerInfos, lang.hitch(this, function(layer) {
               if(typeof(layer.layerObject.getDefinitionExpression()) !== 'undefined' ) {
-                this.defaultDef.push({layer: layer.id, definition: layer.layerObject.getDefinitionExpression()});
+                this.defaultDef.push({layer: layer.id, definition: layer.layerObject.getDefinitionExpression(), visible: layer.layerObject.visible});
               } else {
-                this.defaultDef.push({layer: layer.id, definition: null});
+                this.defaultDef.push({layer: layer.id, definition: null, visible: layer.layerObject.visible});
               }
             }));
             this.createGroupSelection();
@@ -66,7 +63,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
 
     createNewRow: function(pValue) {
       var table = dom.byId("tblPredicates");
-      
+
       if(pValue.state === "new") {
         if(table.rows.length > 2) {
           var prevRowConjunCell = table.rows[(table.rows.length-1)].cells[2];
@@ -85,6 +82,10 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       var cell_remove = row.insertCell(3);
 
       domClass.add(cell_operator, "tdOperatorHide");
+      if(this.isAdvMode) {
+        this.showAdvMode(this.isAdvMode);
+      }
+      //this.addStyleToCell(cell_operator, "tdOperatorHide");
       //if((table.rows.length % 2) === 0) {
         //domClass.add(row, "tableRow");
       //}
@@ -100,6 +101,10 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         }
       }
 
+    },
+
+    addStyleToCell: function(pCell, pCSS) {
+      domClass.add(pCell, pCSS);
     },
 
     createGroupSelection: function() {
@@ -185,19 +190,23 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           this.removeAllRows();
       }
     },
-    
+
     reconstructRows: function(pValue) {
-      array.forEach(this.config.groups, lang.hitch(this, function(group) {  
-        if (group.name === pValue) {
-          if(typeof(group.def) !== 'undefined') {
-            array.forEach(group.def, lang.hitch(this, function(def) { 
-              this.createNewRow({value: def.value, operator: def.operator, conjunc: def.conjunc, state:"reload"});    
-            })); 
-          } else {
-            this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
-          }  
-        }  
-      }));    
+      if(pValue !== "") {
+        array.forEach(this.config.groups, lang.hitch(this, function(group) {
+          if (group.name === pValue) {
+            if(typeof(group.def) !== 'undefined') {
+              array.forEach(group.def, lang.hitch(this, function(def) {
+                this.createNewRow({value: def.value, operator: def.operator, conjunc: def.conjunc, state:"reload"});
+              }));
+            } else {
+              this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
+            }
+          }
+        }));
+      } else {
+        this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
+      }
     },
 
     parseTable: function() {
@@ -247,10 +256,11 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
                 console.log(expr);
                 if(expr !== "") {
                   layer.layerObject.setDefinitionExpression(expr);
+                  layer.layerObject.setVisibility(true);
                 }
               }
             }));
-          this._publishData(group);  
+          this._publishData(group);
           }
         }));
       }));
@@ -261,25 +271,86 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         array.forEach(this.defaultDef, lang.hitch(this, function(def) {
           if(def.layer === layer.id ) {
             layer.layerObject.setDefinitionExpression(def.definition);
+            layer.layerObject.setVisibility(def.visible);
             //this.defaultDef.push({layer: layer.id, definition: layer.layerObject.defaultDefinitionExpression});
           }
         }));
       }));
     },
 
-    // for W2W communication
+    //BEGIN: advance filter options
+    toggleAdvMode: function() {
+      var advNode = query(".advModeClose");
+      if(advNode.length > 0) {
+        domClass.replace(advNode[0], "advModeOpen", "advModeClose");
+        this.isAdvMode = true;
+        this.showAdvMode(this.isAdvMode);
+      } else {
+        var basicNode = query(".advModeOpen");
+        if(basicNode.length > 0) {
+          domClass.replace(basicNode[0], "advModeClose", "advModeOpen");
+          this.isAdvMode = false;
+          this.showAdvMode(this.isAdvMode);
+        }
+      }
+    },
+
+    showAdvMode: function(pState) {
+      if(pState) {
+        var operNode = query(".tdOperatorHide");
+        if(operNode.length > 0) {
+          operNode.style("display", "block");
+        }
+      } else {
+        var operNode = query(".tdOperatorHide");
+        if(operNode.length > 0) {
+          operNode.style("display", "none");
+        }
+      }
+    },
+    //END: advance filter options
+
+    //START: saving functions
+    toggleSaveFilter: function() {
+      var saveNode = query(".saveTD");
+      if(saveNode.length > 0) {
+        var containerNode = query(".container");
+        if(containerNode.length > 0) {
+          domClass.replace(dom.byId("saveTD"), "saveTDClose", "saveTD");
+          containerNode.style("height", "55%");
+          query(".saveContainer").style("display", "block");
+        }
+      } else {
+        var basicNode = query(".saveTDClose");
+        if(basicNode.length > 0) {
+          domClass.replace(basicNode[0], "saveTD", "saveTDClose");
+          var containerNode = query(".container");
+          if(containerNode.length > 0) {
+            domClass.replace(dom.byId("saveTD"), "saveTD", "saveTDClose");
+            containerNode.style("height", "75%");
+            query(".saveContainer").style("display", "none");
+          }
+        }
+      }
+    },
+    //END: saving functions
+
+    //BEGIN: W2W communication
     _publishData: function(pValue) {
       this.publishData({
         message: pValue
       });
     },
+    //END: W2W communication
 
     onOpen: function(){
       console.log('onOpen');
     },
 
     onClose: function(){
-
+      this.resetLayerDef();
+      this.removeAllRows();
+      this.reconstructRows("");
     },
 
     onMinimize: function(){

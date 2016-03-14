@@ -5,23 +5,40 @@
 				<tr>
 					<td><div data-dojo-attach-point="groupPicker" id="groupPicker"></div></td>
 					<td class="groupHeader">Select a group to filter</td>
+					<td class="saveTD" id="saveTD" data-dojo-attach-event="click:toggleSaveFilter"></td>
 				</tr>
 			</table>
 		</div>
 	</div>
 
 	<div class="container" data-dojo-attach-point="filterBlock" id="filterBlock">
-		<div class="filter-block" data-dojo-attach-point="filterBlock" id="filterBlock">
+		<div class="filter-block" data-dojo-attach-point="filterBlockInner" id="filterBlockInner">
 			<table id="tblPredicates" class="tableFormat" border=0 cellspacing="0" cellpadding="0">
 				<tr class="rowHeader">
 					<td class="tdOperatorHide"></td>
-					<td class="tdValue">Filter Criteria</td>
+					<td class="tdValue"><a class="advModeClose" data-dojo-attach-event="click:toggleAdvMode"></a> Filter Criteria</td>
 					<td class="tdConjunction"></td>
 					<td class="tdRemove"></td>
 				</tr>
 			</table>
 		</div>
 	</div>
+
+	<div class="saveContainer" data-dojo-attach-point="saveBlock" id="saveBlock">
+		<div class="save-block" data-dojo-attach-point="saveBlockInner" id="saveBlockInner">
+			<table id="tblSave" class="tableFormat" border=0 cellspacing="0" cellpadding="0">
+				<tr class="rowHeader">
+					<td>Upload a Saved File</td>
+					<td>Save Current Settings</td>
+				</tr>
+				<tr>
+					<td><input type="file"></td>
+					<td><div class="jimu-btn" >Save</div></td>
+				</tr>
+			</table>
+		</div>
+	</div>
+
 	<div class="spacer"></div>
 	<div class="jimu-btn filter-add-criteria" data-dojo-attach-event="click:btnNewRowAction">Add Criteria</div>
 	<div class="jimu-btn filter-button-apply" data-dojo-attach-event="click:setFilterLayerDef">Apply</div>

@@ -47,7 +47,19 @@
     cursor: pointer;
 }
 
+.jimu-widget-map-filter .saveTD:after {
+	content: url("../images/save.png");
+    cursor: hand;
+    cursor: pointer;
+}
+
 .jimu-widget-map-filter .saveTDClose {
+	content: url("../images/save.png");
+    cursor: hand;
+    cursor: pointer;
+}
+
+.jimu-widget-map-filter .saveTDClose:after {
 	content: url("../images/save.png");
     cursor: hand;
     cursor: pointer;
@@ -102,21 +114,75 @@
 	width: 20px;
 }
 
-.jimu-widget-map-filter .advModeClose {
-    content: url("../images/setting_disabled.png");
-    padding-right: 10px;
-    cursor: hand;
-    cursor: pointer;
+.jimu-widget-map-filter .tdLoad {
+	text-align: left;
+	padding-left: 5px;
+	width: 45%;
 }
 
-.jimu-widget-map-filter .advModeOpen {
+.jimu-widget-map-filter .tdSave {
+	text-align: right;
+	padding-right: 5px;
+	width: 45%;
+}
+
+.jimu-widget-map-filter .loadProgressHeader {
+	display: none;
+	width: 16px;
+}
+
+.jimu-widget-map-filter .loadProgressShow {
+	content: url("../images/validating.gif");
+	display: none;
+	width: 16px;
+}
+
+.jimu-widget-map-filter .loadProgressShow:after {
+	content: url("../images/validating.gif");
+	display: none;
+	width: 16px;
+}
+
+.jimu-widget-map-filter .advModeOffset {
     content: url("../images/setting_default.png");
     padding-right: 10px;
     cursor: hand;
     cursor: pointer;
 }
 
+.jimu-widget-map-filter .advModeClose {
+    content: url("../images/setting_disabled.png");
+    cursor: hand;
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
+.jimu-widget-map-filter .advModeClose:after {
+    content: url("../images/setting_disabled.png");
+    cursor: hand;
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
+.jimu-widget-map-filter .advModeOpen {
+	content: url("");
+    cursor: hand;
+    cursor: pointer;
+    width: 16px;
+    height: 16px;
+}
+
 .jimu-widget-map-filter .deleteCell {
+    content: url("../images/delete.png");
+    width: 16px;
+    height: 16px;
+    cursor: hand;
+    cursor: pointer;
+}
+
+.jimu-widget-map-filter .deleteCell:after {
     content: url("../images/delete.png");
     width: 16px;
     height: 16px;

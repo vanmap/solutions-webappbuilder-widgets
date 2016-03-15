@@ -13,9 +13,11 @@ define([
   'dijit/form/Select',
   'dijit/form/TextBox',
   'dijit/registry',
-  'jimu/LayerInfos/LayerInfos'
+  'jimu/LayerInfos/LayerInfos',
+  './SaveJson',
+  './ReadJson'
 ],
-function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domConstruct, domClass, on, query, lang, array, Select, TextBox, registry, LayerInfos) {
+function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domConstruct, domClass, on, query, lang, array, Select, TextBox, registry, LayerInfos, saveJson, readJson) {
   //To create a widget, you need to derive from BaseWidget.
   return declare([BaseWidget, _WidgetsInTemplateMixin], {
 
@@ -310,7 +312,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
     },
     //END: advance filter options
 
-    //START: saving functions
+    //START: saving/reading functions
     toggleSaveFilter: function() {
       var saveNode = query(".saveTD");
       if(saveNode.length > 0) {
@@ -333,7 +335,36 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         }
       }
     },
-    //END: saving functions
+
+    saveJsonToFile: function() {
+      saveDef = new saveJson({
+        "config" : this.config
+      });
+      on(saveDef, "complete", lang.hitch(this, function() {
+        console.log("save done");
+      }));
+      saveDef.exportsJson("MapFilterSettings.json", this.config);
+    },
+
+    readJsonToConfig: function() {
+      query(".loadProgressHeader").style("display", "block");
+      query(".loadProgressShow").style("display", "block");
+
+      readDef =  new readJson({
+        "config": this.config,
+        "jsonFile": this.jsonFileInput.files
+      });
+      on(readDef, "complete", lang.hitch(this, function(results) {
+        this.config = JSON.parse(results.UserSettings);
+          this.resetLayerDef();
+          this.removeAllRows();
+          this.reconstructRows(this.grpSelect.value);
+          query(".loadProgressHeader").style("display", "none");
+          query(".loadProgressShow").style("display", "none");
+      }));
+      readDef.checkFileReader();
+    },
+    //END: saving/reading functions
 
     //BEGIN: W2W communication
     _publishData: function(pValue) {

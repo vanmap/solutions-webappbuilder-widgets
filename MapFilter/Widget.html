@@ -15,7 +15,7 @@
 		<div class="filter-block" data-dojo-attach-point="filterBlockInner" id="filterBlockInner">
 			<table id="tblPredicates" class="tableFormat" border=0 cellspacing="0" cellpadding="0">
 				<tr class="rowHeader">
-					<td class="tdOperatorHide"></td>
+					<td class="tdOperatorHide"><a class="advModeOffset" data-dojo-attach-event="click:toggleAdvMode"></a></td>
 					<td class="tdValue"><a class="advModeClose" data-dojo-attach-event="click:toggleAdvMode"></a> Filter Criteria</td>
 					<td class="tdConjunction"></td>
 					<td class="tdRemove"></td>
@@ -28,12 +28,14 @@
 		<div class="save-block" data-dojo-attach-point="saveBlockInner" id="saveBlockInner">
 			<table id="tblSave" class="tableFormat" border=0 cellspacing="0" cellpadding="0">
 				<tr class="rowHeader">
-					<td>Upload a Saved File</td>
-					<td>Save Current Settings</td>
+					<td class="loadProgressHeader"></td>
+					<td class="tdLoad">Upload a Saved File</td>
+					<td class="tdSave">Save Current Settings</td>
 				</tr>
 				<tr>
-					<td><input type="file"></td>
-					<td><div class="jimu-btn" >Save</div></td>
+					<td class="loadProgressShow" id="tdProgress"></td>
+					<td class="tdLoad"><input type="file" id="jsonFileInput" data-dojo-attach-point="jsonFileInput" data-dojo-attach-event="change:readJsonToConfig" accept=".json"></td>
+					<td class="tdSave"><div class="jimu-btn" data-dojo-attach-event="click:saveJsonToFile" >Save</div></td>
 				</tr>
 			</table>
 		</div>

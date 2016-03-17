@@ -1,0 +1,101 @@
+.jimu-widget-cost-analysis-setting {
+    margin: 0;
+    padding: 0;
+    font-size: 15px;
+}
+
+.jimu-widget-cost-analysis-setting .editable {
+    width: 100px;
+}
+
+.jimu-widget-cost-analysis-setting .update {
+    width: 200px;
+}
+
+.jimu-widget-cost-analysis-setting .setting-table > thead > tr > th,
+.jimu-widget-cost-analysis-setting .setting-table > tbody > tr > td {
+    height: 40px;
+    line-height: 40px;
+    vertical-align: middle;
+}
+
+.jimu-widget-cost-analysis-setting .input-table > tbody > tr > .first {
+    width: auto;
+    text-align: right;
+}
+
+.jimu-rtl .jimu-widget-cost-analysis-setting .input-table > tbody > tr > .first {
+    text-align: left;
+}
+
+.jimu-widget-cost-analysis-setting .input-table > tbody > tr > .second {
+    width: 500px;
+}
+
+.jimu-widget-cost-analysis-setting .input-table > tbody > tr > .second > span {
+    display: inline-block;
+    height: 40px;
+    line-height: 40px;
+}
+
+.jimu-widget-cost-analysis-setting .dijitArrowButtonContainer {
+    width: 17px;
+}
+
+.jimu-widget-cost-analysis-setting .dijitSelect {
+    height: 30px;
+    width: 100%;
+}
+
+.jimu-widget-cost-analysis-setting .smallSelect .dijitSelectLabel {
+    width: 130px;
+    overflow: hidden;
+    text-align: left;
+}
+
+.hide {
+    display: none;
+}
+
+.jimu-widget-cost-analysis-setting .btn-add-stat-section {
+    display: inline-block;
+    overflow: hidden;
+    height: 24px;
+    margin-left: 1px;
+    margin-bottom: 3px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #538ec8;
+    margin-top: 8px;
+}
+
+.jimu-widget-cost-analysis-setting .btn-add-stat-section .btn-add-stat-icon {
+    float: left;
+    height: 100%;
+    width: 14px;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-image: url(images/add.png);
+}
+
+.jimu-widget-cost-analysis-setting .btn-add-stat-section .btn-add-stat-label {
+    float: left;
+    height: 100%;
+    line-height: 24px;
+    vertical-align: middle;
+    margin-left: 7px;
+    text-decoration: underline;
+}
+
+.settings-error {
+    font-size: 1.1em;
+    color: orangered;
+}
+
+.jimu-widget-cost-analysis-setting .control-section {
+    margin-top: 5px;
+}
+
+.jimu-widget-cost-analysis-setting .control-option {
+    margin-bottom: 10px;
+}

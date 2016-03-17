@@ -1,0 +1,1760 @@
+/* ========================================
+
+     Selection Method Page
+
+========================================== */
+
+
+/* title panel */
+
+.claro .dijitTitlePaneContentInner {
+    padding: 0px;
+}
+
+.dijitArrowNode {
+    float: right;
+}
+
+.claro .dijitTitlePaneTitleOpen,
+.claro .dijitTitlePaneTitleFixedOpen {
+    background-color: #E9EEF4;
+    color: Black;
+}
+
+.dijitTitlePane {
+    background-color: #fff;
+}
+
+.claro .dijitTitlePaneTitle {
+    background-color: #efefef;
+    background-image: none;
+    background-repeat: repeat-x;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-top: 1px solid #b5bcc7;
+    color: #494949;
+    min-height: 17px;
+    padding: 7px 15px;
+    margin-top: 0;
+}
+
+.claro .dijitTitlePaneContentOuter {
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-top: 1px solid #b5bcc7;
+    padding: 0 10px;
+}
+
+.dijitheadPaneTitle {
+    background-color: #ccc;
+    background-image: none;
+    background-repeat: repeat-x;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+    border-top: 1px solid #b5bcc7;
+    color: #494949;
+    min-height: 17px;
+}
+
+.jimu-widget-cost-analysis .lastTitlePaneNodeBorder {
+    border-bottom: 1px solid #b5bcc7;
+}
+
+.jimu-widget-cost-analysis .lastTitlePane {}
+
+.jimu-widget-cost-analysis .selectionMethodPanel {
+    clear: both;
+    position: relative;
+    width: 100%;
+}
+
+.jimu-widget-frame.jimu-container {
+    background-color: white;
+    overflow: auto;
+    padding: 0px;
+    position: relative;
+}
+
+
+/*Table inside the Panel*/
+
+.jimu-widget-cost-analysis .selection-method-table {
+    margin-left: 10px;
+}
+
+.jimu-widget-cost-analysis .selection-method-table > thead > tr > th,
+.jimu-widget-cost-analysis .selection-method-table > tbody > tr > td {
+    height: 20px;
+    line-height: 20px;
+    vertical-align: middle;
+}
+
+
+/* Filtering Select */
+
+.claro .dijitComboBox>div.dijitArrowButton.dijitDownArrowButton {
+    width: 20px;
+    height: 100%;
+}
+
+.jimu-widget-cost-analysis .dijitReset.dijitRight.dijitButtonNode.dijitArrowButton.dijitDownArrowButton.dijitArrowButtonContainer {
+    padding-left: 0;
+}
+
+.jimu-widget-cost-analysis .dijitArrowButton.dijitDownArrowButton {
+    width: 20px;
+    height: 100%;
+}
+
+.jimu-widget-cost-analysis .dijitArrowButton.dijitDownArrowButton>input {
+    padding: 0;
+    border: 0;
+    display: inline-block;
+    height: 100%;
+    height: 100% !important;
+}
+
+.jimu-widget-cost-analysis .row-padding {
+    padding-right: 2em;
+}
+
+.jimu-widget-cost-analysis .userInput {
+    display: inline-block;
+    width: 100%;
+    min-width: 325px;
+}
+
+.jimu-widget-cost-analysis .createProjectBtn {
+    margin: 5px 0 10px 0;
+    height: 30px;
+    float: right;
+    border: none !important;
+}
+
+.jimu-widget-cost-analysis .loadProjectBtn {
+    margin-top: 10px;
+    margin-right: 0;
+    height: 30px;
+    float: right;
+    border: none !important;
+}
+
+.jimu-widget-cost-analysis .deleteProjectBtn {
+    margin-top: 10px;
+    margin-right: 10px;
+    height: 30px;
+    float: right;
+    border: none !important;
+}
+
+.jimu-widget-cost-analysis .viewProjectInMapBtn {
+    margin-top: 10px;
+    margin-right: 10px;
+    height: 30px;
+    float: right;
+    border: none !important;
+}
+
+
+/* ========================================
+
+     Main Widget Page
+
+========================================== */
+
+.jimu-widget-cost-analysis .esriAttributeInspector .atiField {
+    width: 220px;
+}
+
+.jimu-widget-cost-analysis .clearAllSelectionBtn {
+    background-position: center;
+    background-repeat: no-repeat;
+    background-image: url(images/clearAllSelection.png);
+    width: 16px;
+    height: 16px;
+}
+
+.jimu-widget-cost-analysis .buttonSave {
+    margin-left: 50px;
+    margin-top: 0px;
+}
+
+.jimu-widget-cost-analysis .esriAttributeInspector .atiLayerName {
+    font-size: 16px;
+}
+
+.jimu-widget-cost-analysis .dojoxGridRowTable {
+    /*width: 312px;*/
+}
+
+.jimu-widget-cost-analysis .templatePicker .grid .groupLabel {
+    font-size: 12px;
+    text-align: left;
+    /*display:none;     color:blue;*/
+}
+
+.jimu-widget-cost-analysis .dojoxGrid {
+    background-color: #FFFFFF;
+    /*dojo data grid background color white*/
+}
+
+.jimu-widget-cost-analysis .dojoxGridScrollbox {
+    /*overflow-x: auto;*/
+    overflow-x: hidden;
+}
+
+.jimu-widget-cost-analysis #assetGrid .dojoxGridHeader,
+.jimu-widget-cost-analysis #assetGrid .dojoxGridHeader .dojoxGridCell {
+    color: #FFFFFF;
+    background: #528CC9;
+    font-weight: bold;
+    display: none;
+    /*hide cell header*/
+}
+
+.jimu-widget-cost-analysis #assetGrid .dojoxGridRowOver .dojoxGridCell {
+    background-color: #F0F8FF;
+}
+
+.jimu-table tr {
+    background-color: #FFFFFF;
+}
+
+.jimu-table tr:hover {
+    background-color: #F0F8FF;
+}
+
+.jimu-table .count {
+    float: right;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.center {
+    width: 50%;
+    margin: 0 auto;
+}
+
+.inline {
+    display: inline;
+}
+
+.loading {
+    width: 40px;
+    height: 40px;
+    float: right;
+    background-image: url(images/loading.gif);
+}
+
+.hide {
+    visibility: hidden;
+}
+
+.jimu-widget-cost-analysis .asset-description {
+    border: 1px #C4E3FD solid;
+    margin-top: 10px;
+    margin-left: 2px;
+    margin-right: 2px;
+    vertical-align: middle;
+    padding-top: 10px;
+    padding-right: 10px;
+    padding-bottom: 7px;
+}
+
+.jimu-widget-cost-analysis .asset-description-header {
+    position: relative;
+    width: 100%;
+    display: inline-block;
+    overflow: hidden;
+    height: 30px;
+    margin-bottom: 2px;
+    margin-top: 2px;
+}
+
+.jimu-widget-cost-analysis .asset-description-header .asset-description-icon {
+    float: left;
+    height: 100%;
+    width: 60px;
+    background-repeat: no-repeat;
+    background-position: left;
+    background-image: url(images/assetsDescription.png);
+}
+
+.jimu-rtl .jimu-widget-cost-analysis .asset-description-header .asset-description-icon {
+    float: left;
+    height: 100%;
+    width: 60px;
+    background-repeat: no-repeat;
+    background-position: left;
+    background-image: url(images/assetsDescription.png);
+}
+
+.jimu-widget-cost-analysis .asset-description-header .asset-description-title {
+    font-size: 16px;
+    height: 100%;
+    line-height: 24px;
+    vertical-align: middle;
+    margin-left: 7px;
+    margin-top: 5px;
+}
+
+.jimu-widget-cost-analysis .asset-description-header .asset-description-move-load-orphan-data-page {
+    float: right;
+    height: 100%;
+    width: 32px;
+    background-repeat: no-repeat;
+    background-position: left;
+    background-image: url(images/orphanData.png);
+    cursor: pointer;
+}
+
+.jimu-widget-cost-analysis .asset-description-header .asset-description-move-detail-asset-description-page {
+    float: right;
+    height: 100%;
+    width: 24px;
+    background-repeat: no-repeat;
+    background-position: left;
+    background-image: url(images/moveNextPage.png);
+    cursor: pointer;
+}
+
+.jimu-widget-cost-analysis .asset-statistics {
+    border: 1px #C4E3FD solid;
+    margin-top: 10px;
+    margin-left: 2px;
+    margin-right: 2px;
+    vertical-align: middle;
+    padding-top: 10px;
+    padding-right: 10px;
+    padding-bottom: 7px;
+}
+
+.jimu-widget-cost-analysis .asset-statistics-header {
+    position: relative;
+    width: 100%;
+    display: inline-block;
+    overflow: hidden;
+    height: 30px;
+    margin-bottom: 2px;
+    margin-top: 2px;
+}
+
+.jimu-widget-cost-analysis .asset-statistics-header .asset-statistics-icon {
+    float: left;
+    height: 100%;
+    width: 60px;
+    background-repeat: no-repeat;
+    background-position: left;
+    background-image: url(images/assetStatistics.png);
+}
+
+.jimu-rtl .jimu-widget-cost-analysis .asset-statistics-header .asset-statistics-icon {
+    float: left;
+    height: 100%;
+    width: 60px;
+    background-repeat: no-repeat;
+    background-position: left;
+    background-image: url(images/assetStatistics.png);
+}
+
+.jimu-widget-cost-analysis .asset-statistics-header .asset-statistics-title {
+    font-size: 16px;
+    height: 100%;
+    line-height: 24px;
+    vertical-align: middle;
+    margin-left: 7px;
+    margin-top: 5px;
+}
+
+.jimu-widget-cost-analysis .asset-statistics-header .asset-statistics-move-add-new-statistics-page {
+    float: right;
+    height: 100%;
+    width: 32px;
+    background-repeat: no-repeat;
+    background-position: left;
+    background-image: url(images/moreStatistics.png);
+    cursor: pointer;
+}
+
+.jimu-widget-cost-analysis .asset-statistics-header .asset-statistics-move-detail-statistics-page {
+    float: right;
+    height: 100%;
+    width: 24px;
+    background-repeat: no-repeat;
+    background-position: left;
+    background-image: url(images/moveNextPage.png);
+    cursor: pointer;
+}
+
+.jimu-widget-cost-analysis .project-summary {
+    border: 1px #C4E3FD solid;
+    margin-top: 10px;
+    margin-left: 2px;
+    margin-right: 2px;
+    vertical-align: middle;
+    padding-top: 10px;
+    padding-right: 10px;
+    padding-bottom: 7px;
+}
+
+.jimu-widget-cost-analysis .project-summary-header {
+    position: relative;
+    width: 100%;
+    display: inline-block;
+    overflow: hidden;
+    height: 30px;
+    margin-bottom: 2px;
+    margin-top: 2px;
+}
+
+.jimu-widget-cost-analysis .project-summary-header .project-summary-icon {
+    float: left;
+    height: 100%;
+    width: 60px;
+    background-repeat: no-repeat;
+    background-position: left;
+    background-image: url(images/projectSummary.png);
+}
+
+.jimu-rtl .jimu-widget-cost-analysis .project-summary-header .project-summary-icon {
+    float: left;
+    height: 100%;
+    width: 60px;
+    background-repeat: no-repeat;
+    background-position: left;
+    background-image: url(images/projectSummary.png);
+}
+
+.jimu-widget-cost-analysis .project-summary-header .project-summary-title {
+    font-size: 16px;
+    height: 100%;
+    line-height: 24px;
+    vertical-align: middle;
+    margin-left: 7px;
+    margin-top: 5px;
+}
+
+.jimu-widget-cost-analysis .project-summary-header .project-summary-move-edit-project-attributes-page {
+    float: right;
+    height: 100%;
+    width: 32px;
+    background-repeat: no-repeat;
+    background-position: left;
+    background-image: url(images/projectAttributes.png);
+    cursor: pointer;
+}
+
+.jimu-widget-cost-analysis .project-summary-header .project-summary-move-cost-escalation-page {
+    float: right;
+    height: 100%;
+    width: 24px;
+    background-repeat: no-repeat;
+    background-position: left;
+    background-image: url(images/moveNextPage.png);
+    cursor: pointer;
+}
+
+
+/*Previous,
+Clear and Save Button*/
+
+.jimu-widget-cost-analysis .saveBtn {
+    margin-top: 10px;
+    margin-right: 10px;
+    height: 30px;
+    float: right;
+    border: none !important;
+}
+
+.jimu-widget-cost-analysis .clearSessionBtn {
+    margin-top: 10px;
+    margin-right: 10px;
+    height: 30px;
+    float: right;
+    border: none !important;
+}
+
+.jimu-widget-cost-analysis .previousBtn {
+    margin-top: 10px;
+    margin-right: 10px;
+    height: 30px;
+    float: right;
+    border: none !important;
+}
+
+
+/* ========================================
+
+   Create Popup for Selecting Cost Equation
+
+========================================== */
+
+.jimu-widget-equation-type {
+    height: 100%;
+    overflow-y: auto;
+}
+
+
+/*
+.jimu-widget-equation-type .cost-equation-type-table {
+    margin: 5px 5px;
+    border-spacing: 10px;
+    border-collapse: separate;
+}
+*/
+
+.jimu-widget-equation-type .cost-equation-type-table > thead > tr > th,
+.jimu-widget-equation-type .cost-equation-type-table > tbody > tr > td {
+    height: 40px;
+    line-height: 40px;
+    vertical-align: middle;
+}
+
+.jimu-widget-equation-type .input-table > tbody > tr > .first {
+    width: auto;
+    text-align: right;
+    padding-right: 15px;
+    white-space: nowrap;
+}
+
+.jimu-widget-equation-type .input-table > tbody > tr > .second {
+    width: 200px;
+}
+
+.jimu-widget-equation-type .dijitArrowButtonContainer {
+    width: 17px;
+}
+
+.jimu-widget-equation-type .dijitSelect {
+    height: 30px;
+    width: 100%;
+}
+
+
+/* ========================================
+
+   Project Multiplier Additional Cost Page
+
+========================================== */
+
+.jimu-widget-cost-analysis .cost-escalation-tip {
+    font-size: 14px;
+    color: #66699c;
+    font-weight: bold;
+    padding-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 20px;
+}
+
+.jimu-simple-table .head-section {
+    width: 100%;
+    height: 40px;
+    background-color: #518dca;
+    overflow: hidden;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+}
+
+
+/*.jimu-simple-table .body-section {
+    position: absolute;
+    top: 40px;
+    bottom: 0;
+    width: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+    background-color: #fff;
+    border: 0 none;
+    color: #6d6e70;
+    border-top: none;
+    border-left: none;
+    border-right: none;
+    border-bottom: none;
+}*/
+
+.jimu-widget-cost-analysis .row-option {
+    width: auto;
+    border-collapse: collapse;
+    margin-top: 10px;
+    margin-left: 20px;
+}
+
+.jimu-widget-cost-analysis .btn-add-row-section {
+    display: inline-block;
+    overflow: hidden;
+    height: 24px;
+    margin-bottom: 3px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #538ec8;
+    outline: solid 1px #D9DDE0;
+    -moz-outline-radius: 5px;
+    -webkit-outline-radius: 5px;
+    outline-radius: 5px;
+    height: 36px;
+    width: 36px;
+}
+
+.jimu-widget-cost-analysis .btn-add-row-section:hover {
+    background: rgb(192, 192, 192);
+}
+
+.jimu-widget-cost-analysis .btn-add-row-section .btn-add-row-icon {
+    float: left;
+    height: 100%;
+    width: 100%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-image: url(images/addRow.png);
+}
+
+.jimu-widget-cost-analysis .btn-delete-row-section {
+    display: inline-block;
+    overflow: hidden;
+    height: 24px;
+    margin-bottom: 3px;
+    margin-left: 15px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #538ec8;
+    outline: solid 1px #D9DDE0;
+    -moz-outline-radius: 5px;
+    -webkit-outline-radius: 5px;
+    outline-radius: 5px;
+    height: 36px;
+    width: 36px;
+}
+
+.jimu-widget-cost-analysis .btn-delete-row-section:hover {
+    background: rgb(192, 192, 192);
+}
+
+.jimu-widget-cost-analysis .btn-delete-row-section .btn-delete-row-icon {
+    float: left;
+    height: 100%;
+    width: 100%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-image: url(images/deleteRow.png);
+}
+
+.jimu-widget-cost-analysis .btn-up-row-section {
+    display: inline-block;
+    overflow: hidden;
+    height: 24px;
+    margin-bottom: 3px;
+    margin-left: 15px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #538ec8;
+    outline: solid 1px #D9DDE0;
+    -moz-outline-radius: 5px;
+    -webkit-outline-radius: 5px;
+    outline-radius: 5px;
+    height: 36px;
+    width: 36px;
+}
+
+.jimu-widget-cost-analysis .btn-up-row-section:hover {
+    background: rgb(192, 192, 192);
+}
+
+.jimu-widget-cost-analysis .btn-up-row-section .btn-up-row-icon {
+    float: left;
+    height: 100%;
+    width: 100%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-image: url(images/upRow.png);
+}
+
+.jimu-widget-cost-analysis .btn-down-row-section {
+    display: inline-block;
+    overflow: hidden;
+    height: 24px;
+    margin-bottom: 3px;
+    margin-left: 15px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #538ec8;
+    outline: solid 1px #D9DDE0;
+    -moz-outline-radius: 5px;
+    -webkit-outline-radius: 5px;
+    outline-radius: 5px;
+    height: 36px;
+    width: 36px;
+}
+
+.jimu-widget-cost-analysis .btn-down-row-section:hover {
+    background: rgb(192, 192, 192);
+}
+
+.jimu-widget-cost-analysis .btn-down-row-section .btn-down-row-icon {
+    float: left;
+    height: 100%;
+    width: 100%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-image: url(images/downRow.png);
+}
+
+.jimu-table .cost {
+    float: left;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+.jimu-widget-cost-analysis .OKCostEslBtn {
+    margin-top: 10px;
+    margin-right: 10px;
+    height: 30px;
+    float: right;
+    border: none !important;
+}
+
+
+/* ========================================
+
+   Load Orphan Asset Page
+
+========================================== */
+
+.jimu-widget-cost-analysis .orphan-asset-tip {
+    font-size: 14px;
+    color: #66699c;
+    font-weight: bold;
+    padding-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 20px;
+}
+
+.jimu-widget-cost-analysis .orphan-asset-option {
+    width: auto;
+    border-collapse: collapse;
+    margin-top: 10px;
+    margin-left: 20px;
+}
+
+.jimu-widget-cost-analysis .btn-add-current-extent-section {
+    display: inline-block;
+    overflow: hidden;
+    margin-left: 9px;
+    margin-bottom: 15px;
+    margin-top: 15px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #538ec8;
+    outline: solid 1px #D9DDE0;
+    -moz-outline-radius: 5px;
+    -webkit-outline-radius: 5px;
+    outline-radius: 5px;
+    height: 36px;
+    width: 36px;
+}
+
+.jimu-widget-cost-analysis .btn-add-current-extent-section:hover {
+    background: rgb(192, 192, 192);
+}
+
+.jimu-widget-cost-analysis .btn-add-current-extent-section .btn-add-current-extent-icon {
+    float: left;
+    height: 100%;
+    width: 100%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-image: url(images/currentExtent.png);
+}
+
+.jimu-widget-cost-analysis .draw-graphic-select-asset {
+    margin-top: 5px;
+    margin-left: 0;
+}
+
+.jimu-widget-cost-analysis .jimu-draw-box .draw-items .draw-item {
+    margin: 7px;
+}
+
+
+/*Cancel,
+Load and Clear Button*/
+
+.jimu-widget-cost-analysis .cancelLoadOrphanDataBtn {
+    margin-top: 10px;
+    margin-right: 10px;
+    height: 30px;
+    float: right;
+    border: none !important;
+}
+
+.jimu-widget-cost-analysis .loadOrphanDataBtn {
+    margin-top: 10px;
+    margin-right: 10px;
+    height: 30px;
+    float: right;
+    border: none !important;
+}
+
+.jimu-widget-cost-analysis .clearOrphanDataBtn {
+    margin-top: 10px;
+    margin-right: 10px;
+    height: 30px;
+    float: right;
+    border: none !important;
+}
+
+
+/* ========================================
+
+   Detail Statistics Page
+
+========================================== */
+
+.jimu-widget-cost-analysis .detail-staticstics-tip {
+    font-size: 14px;
+    color: #66699c;
+    font-weight: bold;
+    padding-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 20px;
+}
+
+
+/*Table inside the Panel*/
+
+.jimu-widget-cost-analysis .detail-statistics-table {
+    margin-left: 20px;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+.jimu-widget-cost-analysis .detail-statistics-table > thead > tr > th,
+.jimu-widget-cost-analysis .detail-statistics-table > tbody > tr > td {
+    height: 20px;
+    line-height: 20px;
+    vertical-align: middle;
+}
+
+.jimu-widget-cost-analysis .input-table > tbody > tr > .first {
+    width: 100px;
+    text-align: right;
+    padding-right: 15px;
+    white-space: nowrap;
+}
+
+.jimu-widget-cost-analysis .input-table > tbody > tr > .second {
+    width: auto;
+    text-align: left;
+}
+
+.jimu-widget-cost-analysis .statValueDisable {
+    display: inline-block;
+    width: 100%;
+    min-width: 315px;
+    background-color: #C0C0C0;
+    color: #C0C0C0;
+}
+
+.jimu-widget-cost-analysis .OKStatBtn {
+    margin-top: 10px;
+    margin-right: 10px;
+    height: 30px;
+    float: right;
+    border: none !important;
+}
+
+
+/* ========================================
+
+   Add new Statistics Page
+
+========================================== */
+
+.jimu-widget-cost-analysis .add-new-staticstics-tip {
+    font-size: 14px;
+    color: #66699c;
+    font-weight: bold;
+    padding-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 20px;
+}
+
+
+/*
+.jimu-widget-cost-analysis .jimu-simple-table .body-section .table-div {
+    overflow-x: scroll;
+}
+*/
+
+.jimu-widget-cost-analysis .smallSelect .dijitSelectLabel {
+    width: 40px;
+    overflow: hidden;
+    text-align: left;
+}
+
+.jimu-widget-cost-analysis .row-stat {
+    width: auto;
+    border-collapse: collapse;
+    margin-top: 10px;
+    margin-left: 20px;
+}
+
+.jimu-widget-cost-analysis .btn-add-stat-section {
+    display: inline-block;
+    overflow: hidden;
+    height: 24px;
+    margin-bottom: 3px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #538ec8;
+    outline: solid 1px #D9DDE0;
+    -moz-outline-radius: 5px;
+    -webkit-outline-radius: 5px;
+    outline-radius: 5px;
+    height: 36px;
+    width: 36px;
+}
+
+.jimu-widget-cost-analysis .btn-add-stat-section:hover {
+    background: rgb(192, 192, 192);
+}
+
+.jimu-widget-cost-analysis .btn-add-stat-section .btn-add-stat-icon {
+    float: left;
+    height: 100%;
+    width: 100%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-image: url(images/addRow.png);
+}
+
+.jimu-widget-cost-analysis .btn-delete-stat-section {
+    display: inline-block;
+    overflow: hidden;
+    height: 24px;
+    margin-bottom: 3px;
+    margin-left: 15px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #538ec8;
+    outline: solid 1px #D9DDE0;
+    -moz-outline-radius: 5px;
+    -webkit-outline-radius: 5px;
+    outline-radius: 5px;
+    height: 36px;
+    width: 36px;
+}
+
+.jimu-widget-cost-analysis .btn-delete-stat-section:hover {
+    background: rgb(192, 192, 192);
+}
+
+.jimu-widget-cost-analysis .btn-delete-stat-section .btn-delete-stat-icon {
+    float: left;
+    height: 100%;
+    width: 100%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-image: url(images/deleteRow.png);
+}
+
+.jimu-widget-cost-analysis .btn-up-stat-section {
+    display: inline-block;
+    overflow: hidden;
+    height: 24px;
+    margin-bottom: 3px;
+    margin-left: 15px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #538ec8;
+    outline: solid 1px #D9DDE0;
+    -moz-outline-radius: 5px;
+    -webkit-outline-radius: 5px;
+    outline-radius: 5px;
+    height: 36px;
+    width: 36px;
+}
+
+.jimu-widget-cost-analysis .btn-up-stat-section:hover {
+    background: rgb(192, 192, 192);
+}
+
+.jimu-widget-cost-analysis .btn-up-stat-section .btn-up-stat-icon {
+    float: left;
+    height: 100%;
+    width: 100%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-image: url(images/upRow.png);
+}
+
+.jimu-widget-cost-analysis .btn-down-stat-section {
+    display: inline-block;
+    overflow: hidden;
+    height: 24px;
+    margin-bottom: 3px;
+    margin-left: 15px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #538ec8;
+    outline: solid 1px #D9DDE0;
+    -moz-outline-radius: 5px;
+    -webkit-outline-radius: 5px;
+    outline-radius: 5px;
+    height: 36px;
+    width: 36px;
+}
+
+.jimu-widget-cost-analysis .btn-down-stat-section:hover {
+    background: rgb(192, 192, 192);
+}
+
+.jimu-widget-cost-analysis .btn-down-stat-section .btn-down-stat-icon {
+    float: left;
+    height: 100%;
+    width: 100%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-image: url(images/downRow.png);
+}
+
+.jimu-widget-cost-analysis .OKNewStatBtn {
+    margin-top: 10px;
+    margin-right: 10px;
+    height: 30px;
+    float: right;
+    border: none !important;
+}
+
+
+/* ========================================
+
+   Detail Asset Description Page
+
+========================================== */
+
+.jimu-widget-cost-analysis .detail-asset-description-tip {
+    font-size: 14px;
+    color: #66699c;
+    font-weight: bold;
+    padding-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 20px;
+}
+
+.jimu-widget-cost-analysis .navigation-option {
+    width: auto;
+    border-collapse: collapse;
+    margin-top: 10px;
+    margin-left: 20px;
+}
+
+
+/* zoom asset button */
+
+.jimu-widget-cost-analysis .btn-zoom-asset-section {
+    display: inline-block;
+    overflow: hidden;
+    height: 24px;
+    margin-bottom: 3px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #538ec8;
+    outline: solid 1px #D9DDE0;
+    -moz-outline-radius: 5px;
+    -webkit-outline-radius: 5px;
+    outline-radius: 5px;
+    height: 36px;
+    width: 36px;
+}
+
+.jimu-widget-cost-analysis .btn-zoom-asset-section:hover {
+    background: rgb(192, 192, 192);
+}
+
+.jimu-widget-cost-analysis .btn-zoom-asset-section .btn-zoom-asset-icon {
+    float: left;
+    height: 100%;
+    width: 100%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-image: url(images/zoomAsset.png);
+}
+
+
+/* select asset button */
+
+.jimu-widget-cost-analysis .btn-select-asset-section {
+    display: inline-block;
+    overflow: hidden;
+    height: 24px;
+    margin-bottom: 3px;
+    margin-left: 15px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #538ec8;
+    outline: solid 1px #D9DDE0;
+    -moz-outline-radius: 5px;
+    -webkit-outline-radius: 5px;
+    outline-radius: 5px;
+    height: 36px;
+    width: 36px;
+}
+
+.jimu-widget-cost-analysis .btn-select-asset-section:hover {
+    background: rgb(192, 192, 192);
+}
+
+.jimu-widget-cost-analysis .btn-select-asset-section .btn-select-asset-icon {
+    float: left;
+    height: 100%;
+    width: 100%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-image: url(images/selectAsset.png);
+}
+
+
+/* clear selection button */
+
+.jimu-widget-cost-analysis .btn-clear-select-section {
+    display: inline-block;
+    overflow: hidden;
+    height: 24px;
+    margin-bottom: 3px;
+    margin-left: 15px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #538ec8;
+    outline: solid 1px #D9DDE0;
+    -moz-outline-radius: 5px;
+    -webkit-outline-radius: 5px;
+    outline-radius: 5px;
+    height: 36px;
+    width: 36px;
+}
+
+.jimu-widget-cost-analysis .btn-clear-select-section:hover {
+    background: rgb(192, 192, 192);
+}
+
+.jimu-widget-cost-analysis .btn-clear-select-section .btn-clear-select-icon {
+    float: left;
+    height: 100%;
+    width: 100%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-image: url(images/clearSelect.png);
+}
+
+
+/* pan asset button*/
+
+.jimu-widget-cost-analysis .btn-pan-asset-section {
+    display: inline-block;
+    overflow: hidden;
+    height: 24px;
+    margin-bottom: 3px;
+    margin-left: 15px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #538ec8;
+    outline: solid 1px #D9DDE0;
+    -moz-outline-radius: 5px;
+    -webkit-outline-radius: 5px;
+    outline-radius: 5px;
+    height: 36px;
+    width: 36px;
+}
+
+.jimu-widget-cost-analysis .btn-pan-asset-section:hover {
+    background: rgb(192, 192, 192);
+}
+
+.jimu-widget-cost-analysis .btn-pan-asset-section .btn-pan-asset-icon {
+    float: left;
+    height: 100%;
+    width: 100%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-image: url(images/panAsset.png);
+}
+
+
+/* delete asset button*/
+
+.jimu-widget-cost-analysis .btn-delete-asset-section {
+    display: inline-block;
+    overflow: hidden;
+    height: 24px;
+    margin-bottom: 3px;
+    margin-left: 15px;
+    cursor: pointer;
+    font-size: 13px;
+    color: #538ec8;
+    outline: solid 1px #D9DDE0;
+    -moz-outline-radius: 5px;
+    -webkit-outline-radius: 5px;
+    outline-radius: 5px;
+    height: 36px;
+    width: 36px;
+}
+
+.jimu-widget-cost-analysis .btn-delete-asset-section:hover {
+    background: rgb(192, 192, 192);
+}
+
+.jimu-widget-cost-analysis .btn-delete-asset-section .btn-delete-asset-icon {
+    float: left;
+    height: 100%;
+    width: 100%;
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-image: url(images/deleteAsset.png);
+}
+
+.jimu-widget-cost-analysis .OKAssetDescBtn {
+    margin-top: 10px;
+    margin-right: 10px;
+    height: 30px;
+    float: right;
+    border: none !important;
+}
+
+
+/* ========================================
+
+   Edit Project Attribute Page
+
+========================================== */
+
+.jimu-widget-cost-analysis .edit-project-attribute-tip {
+    font-size: 14px;
+    color: #66699c;
+    font-weight: bold;
+    padding-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 20px;
+}
+
+
+/*Table inside the Panel*/
+
+.jimu-widget-cost-analysis .project-attrib-edit-table {
+    margin-left: 20px;
+    border-collapse: collapse;
+    border-spacing: 0;
+}
+
+.jimu-widget-cost-analysis .project-attrib-edit-table > thead > tr > th,
+.jimu-widget-cost-analysis .project-attrib-edit-table > tbody > tr > td {
+    height: 20px;
+    line-height: 20px;
+    vertical-align: middle;
+}
+
+.jimu-widget-cost-analysis .input-table > tbody > tr > .first {
+    width: 100px;
+    text-align: right;
+    padding-right: 15px;
+    white-space: nowrap;
+}
+
+.jimu-widget-cost-analysis .input-table > tbody > tr > .second {
+    width: auto;
+    text-align: left;
+}
+
+.jimu-widget-cost-analysis .projectAttribInput {
+    display: inline-block;
+    width: 100%;
+    min-width: 315px;
+}
+
+.jimu-widget-cost-analysis .projectAttribInputDisable {
+    display: inline-block;
+    width: 100%;
+    min-width: 315px;
+    background-color: #C0C0C0;
+    color: #C0C0C0;
+}
+
+.jimu-widget-cost-analysis .OKPrjAttrBtn {
+    margin-top: 10px;
+    margin-right: 23px;
+    height: 30px;
+    float: right;
+    border: none !important;
+}
+
+
+/* ========================================
+
+   Cost Equation Editor Page
+
+========================================== */
+
+.jimu-widget-cost-analysis .cost-equation-editor-tip {
+    font-size: 14px;
+    color: #66699c;
+    font-weight: bold;
+    padding-top: 10px;
+    margin-bottom: 10px;
+    margin-left: 20px;
+}
+
+.jimu-widget-cost-analysis .cost-equation-editor-table {
+    margin-left: 20px;
+    margin-right: 0;
+}
+
+.jimu-widget-cost-analysis .cost-equation-editor-table > thead > tr > th,
+.jimu-widget-cost-analysis .cost-equation-editor-table > tbody > tr > td {
+    height: 20px;
+    line-height: 20px;
+    vertical-align: middle;
+}
+
+
+/*Cancel
+ and OK Button*/
+
+.jimu-widget-cost-analysis .cancelCostEQTBtn {
+    margin-top: 10px;
+    margin-right: 10px;
+    height: 30px;
+    float: right;
+    border: none !important;
+}
+
+.jimu-widget-cost-analysis .OKCostEQTBtn {
+    margin-top: 10px;
+    margin-right: 10px;
+    height: 30px;
+    float: right;
+    border: none !important;
+}
+
+
+/* ========================================
+
+   Claro Grid For Detail Asset Description
+
+========================================== */
+
+.dj_ie .dojoxGridRtl .dojoxGridHeader table {
+    float: none;
+}
+
+.dojoxGridRtl .dojoxGridCell {
+    text-align: right;
+}
+
+.dj_ie8 .dojoxGridRtl .dojoxGridCell {
+    border-left: none;
+}
+
+
+/*
+.dj_ie .dojoxGridRtl .dojoxGridMasterView .dojoxGridRowTable {
+    border-left: #e5dac8 1px solid;
+}
+*/
+
+.dojoxGridRtl .dojoxGridArrowButtonNode {
+    float: left;
+}
+
+
+/*.jimu-widget-cost-analysis .dojoxGrid {
+    margin: 0px;
+    padding: 0px;
+    border-collapse: collapse;
+    background-color: #fff;
+    border: 1px solid #DBDBDB;
+}*/
+
+.jimu-widget-cost-analysis .dojoxGridMasterMessages {
+    background-color: #fefefe;
+}
+
+.jimu-widget-cost-analysis .dojoxGridLoading,
+.jimu-widget-cost-analysis .dojoxGridError {
+    background-position: left center;
+    background-repeat: no-repeat;
+    padding-left: 25px;
+}
+
+.jimu-widget-cost-analysis .dojoxGridLoading {
+    background-image: url("http://js.arcgis.com/3.14/dijit/themes/claro/images/loadingAnimation.gif");
+}
+
+.jimu-widget-cost-analysis .dojoxGridError {
+    background-image: url('http://js.arcgis.com/3.14/dijit/themes/claro/images/commonIconsObjActEnabled.png');
+    background-position: -496px;
+    width: 16px;
+    height: 16px;
+}
+
+.jimu-widget-cost-analysis .dojoxGridHeader {
+    background: transparent;
+    margin-left: -2px;
+}
+
+.jimu-widget-cost-analysis .dojoxGridHeader .dojoxGridCell {
+    padding: 2px 5px;
+    vertical-align: top;
+    background: transparent;
+    border-style: solid;
+    border-width: 1px;
+    border-color: #FFFFFF #BCBCBC #BCBCBC #FFFFFF;
+}
+
+.dj_ie6 .jimu-widget-cost-analysis .dojoxGridHeader .dojoxGridCell {
+    border-color: #BCBCBC #BCBCBC #BCBCBC #e5edf4;
+}
+
+.jimu-widget-cost-analysis .dojoxGridHeader .dojoxGridCellOver {
+    background: #9dcfff;
+}
+
+.jimu-widget-cost-analysis .dojoxGridSortNode {
+    text-decoration: none;
+    display: block;
+    white-space: normal;
+    background: none;
+    border: none;
+    padding: 0;
+}
+
+.jimu-widget-cost-analysis .dojoxGridCellOver .dojoxGridSortNode {
+    background-color: #9dcfff;
+}
+
+.jimu-widget-cost-analysis .dojoxGridArrowButtonChar {
+    display: none;
+    float: right;
+}
+
+.jimu-widget-cost-analysis .dojoxGridArrowButtonNode {
+    background: transparent url("http://js.arcgis.com/3.14/dijit/themes/claro/images/spriteArrows.png") no-repeat scroll left center;
+    display: block;
+    float: right;
+    height: 1em;
+    margin: 2px 4px 0 5px;
+    padding-left: 0;
+    width: 7px;
+}
+
+.jimu-widget-cost-analysis .dojoxGridSortUp .dojoxGridArrowButtonNode {
+    background-position: -21px 50%;
+}
+
+.jimu-widget-cost-analysis .dojoxGridMasterHeader {
+    background: url("images/header.png") #EDF2F7 repeat-x bottom;
+    background: -moz-linear-gradient(top, #EDF2F7, #D0DFEA);
+    background: -webkit-gradient(linear, left top, left bottom, from(#EDF2F7), to(#D0DFEA));
+    filter: progid: DXImageTransform.Microsoft.gradient(startColorstr=#FFEDF2F7, endColorstr=#FFD0DFEA);
+    border: 1px solid #FFFFFF;
+    border-right: none;
+}
+
+
+/*
+    .jimu-widget-cost-analysis .dojoxGridMasterHeader .dojoxGridRowTable {
+        border-left: 1px solid #BCBCBC;
+        border-right: 1px solid #FFFFFF;
+        background-color: transparent;
+    }
+*/
+
+
+/*
+.dj_ie .jimu-widget-cost-analysis .dojoxGridHeader .dojoxGridRowTable {
+    border-collapse: separate;
+}
+
+.dj_ie6 .jimu-widget-cost-analysis .dojoxGridHeader .dojoxGridRowTable, .dj_ie7 .jimu-widget-cost-analysis .dojoxGridHeader .dojoxGridRowTable {
+    border-collapse: collapse;
+    border-right: 0px;
+}
+
+.jimu-widget-cost-analysis .dojoxGridHeader .dojoxGridRowTable tr {
+    background: none;
+}
+*/
+
+.jimu-widget-cost-analysis .dojoxGridHeader tr:first-child .dojoxGridCell {
+    border-top: 1px solid transparent;
+}
+
+
+/*
+
+.jimu-widget-cost-analysis .dojoxGridHeader:first-child .dojoxGridRowTable {
+    border-left-width: 0;
+}
+*/
+
+.jimu-widget-cost-analysis .dojoxGridHeader:first-child {
+    margin-left: -1px;
+}
+
+
+/*.jimu-widget-cost-analysis .dojoxGridScrollbox {
+    background-color: #fefefe;
+}*/
+
+.jimu-widget-cost-analysis .dojoxGridRowbar {
+    background: url("images/header.png") #e5edf4 repeat-x top;
+    border: none;
+    border-right: 1px solid #BCBCBC;
+}
+
+.jimu-widget-cost-analysis .dojoxGridRowbarTable {
+    background: transparent url("images/header_shadow.png") repeat-x scroll center bottom;
+}
+
+.dj_ie6 .jimu-widget-cost-analysis .dojoxGridRowbar,
+.dj_ie6 .jimu-widget-cost-analysis .dojoxGridRowbarTable {
+    background-image: none;
+}
+
+.jimu-widget-cost-analysis .dojoxGridRowbarInner {
+    border: none;
+    border-bottom: 1px solid #ccc;
+}
+
+.jimu-widget-cost-analysis .dojoxGridRowbarOver .dojoxGridRowbarTable {
+    background-color: #abd5fd;
+}
+
+.jimu-widget-cost-analysis .dojoxGridRowbarSelected {
+    background-color: #abd5fd;
+    border-right: 1px solid #ccc;
+}
+
+.jimu-widget-cost-analysis .dojoxGridRow {
+    border: none;
+    background-color: #fff;
+}
+
+
+/*
+.dj_ie .jimu-widget-cost-analysis .dojoxGridMasterView .dojoxGridRowTable {
+    border-collapse: separate;
+}
+
+.dj_ie6 .jimu-widget-cost-analysis .dojoxGridMasterView .dojoxGridRowTable, .dj_ie7 .jimu-widget-cost-analysis .dojoxGridMasterView .dojoxGridRowTable {
+    border-collapse: collapse;
+}
+
+.jimu-widget-cost-analysis .dojoxGridRowTable tr {
+    background: url("images/row_back.png") #fff repeat-x;
+}
+
+.jimu-widget-cost-analysis .dojoxGridRowOdd .dojoxGridRowTable tr {
+    background-color: #f7fcff;
+}
+
+.jimu-widget-cost-analysis .dojoxGridRowSelected .dojoxGridRowTable tr {
+    background-color: #cee6fa;
+}
+*/
+
+
+/*
+.jimu-widget-cost-analysis .dojoxGrid .dojoxGridCell {
+    outline: none;
+    padding: 3px 5px;
+    border: 1px solid transparent;
+    border-color: transparent #E5DAC8 #E5DAC8 transparent;
+}
+*/
+
+
+/*.dj_ie7 .jimu-widget-cost-analysis .dojoxGridCell, .dj_ie7 .jimu-widget-cost-analysis .dojoxGridHeader .dojoxGridCell {
+    border-left: 0px;
+}*/
+
+.dj_ie6 .jimu-widget-cost-analysis .dojoxGridCell {
+    border-color: #F5F5F5;
+}
+
+.dj_ie6 .jimu-widget-cost-analysis .dojoxGridRowOdd .dojoxGridCell {
+    border-left-color: #f4f9fd;
+    border-right-color: #f4f9fd;
+}
+
+.dj_ie6 .jimu-widget-cost-analysis .dojoxGridRowSelected .dojoxGridCell {
+    border-left-color: #d3e9fb;
+    border-right-color: #d3e9fb;
+}
+
+.jimu-widget-cost-analysis .dojoxGridRowSelected .dojoxGridCell {
+    border-top: 1px solid #BFD6EB;
+    border-bottom: 1px solid #BFD6EB;
+}
+
+
+/*
+.jimu-widget-cost-analysis .dojoxGridCellFocus {
+    outline: none;
+    border: 1px dashed darkblue !important;
+}
+*/
+
+
+/*.jimu-widget-cost-analysis .dojoxGridRowOver .dojoxGridCell {
+    background: url("images/row_back.png") #ABD6FF repeat-x;
+    border-top: 1px solid #769DC0;
+    border-bottom: 1px solid #769DC0;
+}*/
+
+
+/*.dj_ie6 .jimu-widget-cost-analysis .dojoxGridRowOver .dojoxGridCell, .dj_ie7 .jimu-widget-cost-analysis .dojoxGridRowOver .dojoxGridCell {
+    border-right: 1px solid #ABD6FF;
+}*/
+
+
+/*
+.jimu-widget-cost-analysis .dojoxGridRowActive .dojoxGridCell {
+    background: url("images/td_button_down.png") #7DBEFA repeat-x;
+}
+
+.dj_ie6 .jimu-widget-cost-analysis .dojoxGridRowActive .dojoxGridCell, .dj_ie7 .jimu-widget-cost-analysis .dojoxGridRowActive .dojoxGridCell {
+    border-left: 1px solid #7DBEFA;
+    border-right: 1px solid #7DBEFA;
+}
+*/
+
+.jimu-widget-cost-analysis .dojoxGridDoubleAffordance .dojoxGridRowOver .dojoxGridCellOver {
+    border: solid 1px #769dc0;
+    background-color: #93cafe;
+    border-collapse: separate;
+}
+
+.jimu-widget-cost-analysis .dojoxGridDoubleAffordance .dojoxGridRowActive .dojoxGridCell {
+    background-image: url("images/row_back.png");
+}
+
+.jimu-widget-cost-analysis .dojoxGridDoubleAffordance .dojoxGridRowActive .dojoxGridCellActive {
+    background: url("images/td_button_down.png") #93cafe repeat-x;
+}
+
+.dj_ie6 .jimu-widget-cost-analysis .dojoxGridCell {
+    background-image: none !important;
+}
+
+.jimu-widget-cost-analysis .dojoxGridRowEditing td {
+    background-color: #cee6fa;
+}
+
+.jimu-widget-cost-analysis .dojoxGridRow-inserting td {
+    background-color: #F4FFF4;
+}
+
+.jimu-widget-cost-analysis .dojoxGridRow-inflight td {
+    background-color: #F2F7B7;
+}
+
+.jimu-widget-cost-analysis .dojoxGridRow-error td {
+    background-color: #F8B8B6;
+}
+
+.jimu-widget-cost-analysis .dojoxGrid .dojoDndItemBefore {
+    border-left-color: #3559ac;
+}
+
+.jimu-widget-cost-analysis .dojoxGrid .dojoDndItemAfter {
+    border-right-color: #3559ac;
+}
+
+.jimu-widget-cost-analysis .dojoxGridExpando {
+    float: left;
+    height: 18px;
+    width: 18px;
+    text-align: center;
+    margin-top: -3px;
+}
+
+.dijitRtl .jimu-widget-cost-analysis .dojoxGridExpando {
+    float: right;
+}
+
+.jimu-widget-cost-analysis .dojoxGridExpandoCell {
+    padding-top: 5px;
+    background-position: left top !important;
+}
+
+.jimu-widget-cost-analysis .dojoxGridExpandoNode {
+    background-image: url('http://js.arcgis.com/3.14/dijit/themes/claro/images/treeExpandImages.png');
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    background-position: 1px 0px;
+}
+
+.dj_ie6 .jimu-widget-cost-analysis .dojoxGridExpandoNode {
+    background-image: url('http://js.arcgis.com/3.14/dijit/themes/claro/images/treeExpandImages8bit.png');
+}
+
+.jimu-widget-cost-analysis .dojoxGridRowOver .dojoxGridExpandoNode {
+    background-position: -17px 0px;
+}
+
+.jimu-widget-cost-analysis .dojoxGridExpandoOpened .dojoxGridExpandoNode {
+    background-position: -35px 0px;
+}
+
+.jimu-widget-cost-analysis .dojoxGridRowOver .dojoxGridExpandoOpened .dojoxGridExpandoNode {
+    background-position: -53px 0px;
+}
+
+.jimu-widget-cost-analysis .dojoxGridExpandoLoading .dojoxGridExpandoNode {
+    background-image: url('http://js.arcgis.com/3.14/dijit/themes/claro/images/loadingAnimation.gif');
+}
+
+.jimu-widget-cost-analysis .dojoxGridTreeModel .dojoxGridNoChildren .dojoxGridExpando {
+    visibility: visible !important;
+    width: 18px !important;
+}
+
+.jimu-widget-cost-analysis .dojoxGridTreeModel .dojoxGridNoChildren .dojoxGridExpandoNode,
+.dj_ie6 .jimu-widget-cost-analysis .dojoxGridTreeModel .dojoxGridNoChildren .dojoxGridExpandoNode {
+    background-image: none;
+}
+
+.jimu-widget-cost-analysis .dojoxGridExpandoNodeInner {
+    visibility: hidden;
+}
+
+.dijit_a11y .dojoxGridExpandoNodeInner {
+    visibility: visible;
+}
+
+.jimu-widget-cost-analysis .dojoxGridSummaryRow .dojoxGridCell {
+    border: 1px solid transparent;
+}
+
+.dj_ie6 .jimu-widget-cost-analysis .dojoxGridSummaryRow .dojoxGridCell {
+    border-color: #fff;
+}
+
+.jimu-widget-cost-analysis tr.dojoxGridSubRowAlt {
+    background-color: #f4f9fd;
+}
+
+.jimu-widget-cost-analysis .dojoxGridRowOdd tr.dojoxGridSubRowAlt {
+    background-color: #fff;
+}
+
+
+/*
+.jimu-widget-cost-analysis .dojoxGridRow .dojoxGridRowTable tr.dojoxGridRowSelected {
+    background-color: #cee6fa;
+}
+*/

@@ -1,0 +1,27 @@
+<div>
+	<div style="font-weight:bold;">
+	    ${nls.mapBook}:
+	</div>
+	<div data-dojo-type="dijit/form/Form" data-dojo-attach-point="mapBookFormDijit">
+	    <table cellspacing="5">
+	        <tr>
+	            <td>
+	                ${nls.mapBookLayer}:
+	            </td>
+	            <td>
+	                <input type="select" id="mapBookDijit" data-dojo-type="dijit/form/Select" data-dojo-props="name:'mapBookDijit',style:'width:100%;'" data-dojo-attach-point="mapBookDijit" data-dojo-attach-event="onChange:_queryFeatures"/>
+	            </td>
+	        </tr>
+	    </table>
+
+		<div id="divMapBookPages" style="overflow-y: auto; width:95%">
+	    	<table id="mapBook_Pages" data-dojo-attach-point="mapBook_Pages">
+	    		<tr>
+	    			<td width="25"></td>
+	    			<td></td>
+	    		</tr>
+	    	</table>
+	    </div>
+
+	</div>
+</div>

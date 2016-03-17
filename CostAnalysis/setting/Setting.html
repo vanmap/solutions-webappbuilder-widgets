@@ -1,112 +1,192 @@
-﻿<div style="width: 100%;">
-    <!--Configuration Settings-->
-    <table class="setting-table input-table">
-        <tbody>
-            <!-- Lookup Table-->
-            <tr>
-                <td class="first jimu-trailing-padding1">
-                    ${nls.lookupTable}
-                </td>
-                <td class="second jimu-leading-padding1">
-                    <select data-dojo-attach-point="lookupTableChooser" id="lookupTableChooser" name="lookupTableChooser"
-                        data-dojo-type="dijit/form/Select">
-                    </select>
-                </td>
-            </tr>
-            <!-- Project Group Costing Info Table-->
-            <tr>
-                <td class="first jimu-trailing-padding1">
-                    ${nls.projectGroupCostingInfo}
-                </td>
-                <td class="second jimu-leading-padding1">
-                    <select data-dojo-attach-point="projectGroupCostingInfoChooser" id="projectGroupCostingInfoChooser"
-                        name="projectGroupCostingInfoChooser" data-dojo-type="dijit/form/Select">
-                    </select>
-                </td>
-            </tr>
-            <!-- Project Group Costing Info Table-->
-            <tr>
-                <td class="first jimu-trailing-padding1">
-                    ${nls.projectLayer}
-                </td>
-                <td class="second jimu-leading-padding1">
-                    <select data-dojo-attach-point="projectLayerChooser" id="projectLayerChooser" name="projectLayerChooser"
-                        data-dojo-type="dijit/form/Select">
-                    </select>
-                </td>
-            </tr>
-            <!--LengthUnit-->
-            <tr>
-                <td class="first jimu-trailing-padding1">
-                    ${nls.lengthUnit}
-                </td>
-                <td class="second jimu-leading-padding1">
-                    <select data-dojo-attach-point="lengthUnitChooser" data-dojo-type="dijit/form/Select">
-                        <option value="UNIT_FOOT" selected="selected">${nls.feet}</option>
-                        <option value="UNIT_METER">${nls.meters}</option>
-                        <option value="UNIT_STATUTE_MILE">${nls.miles}</option>
-                        <option value="UNIT_KILOMETER">${nls.kilometers}</option>
-                    </select>
-                </td>
-            </tr>
-            <!--AreaAndLengthUnit-->
-            <tr>
-                <td class="first jimu-trailing-padding1">
-                    ${nls.areaAndLengthUnit}
-                </td>
-                <td class="second jimu-leading-padding1">
-                    <select data-dojo-attach-point="areaAndLengthUnitChooser" data-dojo-type="dijit/form/Select">
-                        <option value="UNIT_SQUARE_FEET">${nls.squareFeet}</option>
-                        <option value="UNIT_SQUARE_METERS">${nls.squareMeters}</option>
-                        <option value="UNIT_SQUARE_MILES">${nls.squareMiles}</option>
-                        <option value="UNIT_SQUARE_KILOMETERS">${nls.squareKilometers}</option>
-                    </select>
-                </td>
-            </tr>
-            <!-- CurrencyUnit-->
-            <tr>
-                <td class="first jimu-trailing-padding1">
-                    ${nls.currency}
-                </td>
-                <td class="second jimu-leading-padding1">
-                    <input data-dojo-type="dijit/form/ValidationTextBox" data-dojo-props="required: true"
-                        data-dojo-attach-point="currencyUnitInput" />
-                </td>
-            </tr>
-            <!-- ConvexHullBufferDistance-->
-            <tr>
-                <td class="first jimu-trailing-padding1">
-                    ${nls.convexHullBufferDistance}
-                </td>
-                <td class="second jimu-leading-padding1">
-                    <input data-dojo-type="dijit/form/ValidationTextBox" data-dojo-props="regExp: '[\\d]+',
-                               required: true,
-                               invalidMessage: 'Invalid number.'" data-dojo-attach-point="cHullBufferDistanceInput" />
-                    <div style="display: inline;" data-dojo-attach-point="cHullBufferDistanceUnit">
-                    </div>
-                </td>
-            </tr>
-            <!--Edit Toolbar Options-->
-            <tr style="display: none">
-                <td class="first jimu-trailing-padding1">
-                    ${nls.toolbarVisible}
-                </td>
-                <td class="second jimu-leading-padding1">
-                    <div class="" style="">
-                        <input data-dojo-attach-point="toolbarVisible" data-dojo-type="dijit/form/CheckBox"
-                            disabled="disabled" checked="checked" />
-                    </div>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-    <br>
-    <!--Feature Layer and project layer-->
-    <div data-dojo-attach-point="tableLayerInfos">
+<div style="width: 100%;">
+    <div data-dojo-attach-point="settingTabDiv">
+        <div data-dojo-attach-point="generalSettingsTabNode">
+            <!--Configuration Settings-->
+            <table class="setting-table input-table">
+                <tbody>
+                    <!-- Lookup Table-->
+                    <tr>
+                        <td class="first jimu-trailing-padding1">
+                            ${nls.lookupTable}
+                        </td>
+                        <td class="second jimu-leading-padding1">
+                            <select data-dojo-attach-point="lookupTableChooser" id="lookupTableChooser" name="lookupTableChooser" data-dojo-type="dijit/form/Select">
+                            </select>
+                        </td>
+                    </tr>
+                    <!-- Project Group Costing Info Table-->
+                    <tr>
+                        <td class="first jimu-trailing-padding1">
+                            ${nls.projectGroupCostingInfo}
+                        </td>
+                        <td class="second jimu-leading-padding1">
+                            <select data-dojo-attach-point="projectGroupCostingInfoChooser" id="projectGroupCostingInfoChooser" name="projectGroupCostingInfoChooser" data-dojo-type="dijit/form/Select">
+                            </select>
+                        </td>
+                    </tr>
+                    <!-- Project Multiplier and Additional Cost Table-->
+                    <tr>
+                        <td class="first jimu-trailing-padding1">
+                            ${nls.projectMultiplierAdditionalCostTable}
+                        </td>
+                        <td class="second jimu-leading-padding1">
+                            <select data-dojo-attach-point="projectMultiplierAdditionalCostTableChooser" id="projectMultiplierAdditionalCostTableChooser" name="projectMultiplierAdditionalCostTableChooser" data-dojo-type="dijit/form/Select">
+                            </select>
+                        </td>
+                    </tr>
+                    <!-- Costing Geometery Layer-->
+                    <tr>
+                        <td class="first jimu-trailing-padding1">
+                            ${nls.costingGeometryLayer}
+                        </td>
+                        <td class="second jimu-leading-padding1">
+                            <select data-dojo-attach-point="costingGeometryLayerChooser" id="costingGeometryLayerChooser" name="costingGeometryLayerChooser" data-dojo-type="dijit/form/Select">
+                            </select>
+                        </td>
+                    </tr>
+                    <!-- Project Layer-->
+                    <tr>
+                        <td class="first jimu-trailing-padding1">
+                            ${nls.projectLayer}
+                        </td>
+                        <td class="second jimu-leading-padding1">
+                            <select data-dojo-attach-point="projectLayerChooser" id="projectLayerChooser" name="projectLayerChooser" data-dojo-type="dijit/form/Select">
+                            </select>
+                        </td>
+                        <td class="jimu-leading-margin3" style="padding-top:5px;padding-left:5px; margin-bottom: 10px;margin-top: 5px;">
+                            <div data-dojo-attach-point="configureFields" data-dojo-type="jimu/dijit/CheckBox" data-dojo-props='checked:false' data-dojo-attach-event="onStateChange:_showHideProjectLayerFieldConfigTable">
+                            </div>
+                        </td>
+                        <td>
+                            ${nls.configureFields}
+                        </td>
+                    </tr>
+                    <!-- Project Layer fields-->
+                    <tr id="fieldConfig" data-dojo-attach-point="fieldConfig" style="display:none">
+                        <td class="first jimu-trailing-padding1">
+                        </td>
+                        <td class="second jimu-leading-padding1">
+                            <div data-dojo-attach-point="projectLayerFieldConfigTable" data-dojo-type="jimu/dijit/SimpleTable" data-dojo-props='fields:[{name:"configField", title:"${nls.configField}", "class":"label", type:"empty"},
+				 {name:"layerField",title:"${nls.layerField}","class":"label",type:"empty"}]'> </div>
+                        </td>
+                    </tr>
+                    <!--LengthUnit-->
+                    <tr>
+                        <td class="first jimu-trailing-padding1">
+                            ${nls.lengthUnit}
+                        </td>
+                        <td class="second jimu-leading-padding1">
+                            <select data-dojo-attach-point="lengthUnitChooser" data-dojo-type="dijit/form/Select">
+                                <option value="UNIT_FOOT" selected="selected">${nls.feet}</option>
+                                <option value="UNIT_METER">${nls.meters}</option>
+                                <option value="UNIT_STATUTE_MILE">${nls.statuteMiles}</option>
+                                <option value="UNIT_KILOMETER">${nls.kilometers}</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <!--AreaAndLengthUnit-->
+                    <tr>
+                        <td class="first jimu-trailing-padding1">
+                            ${nls.areaAndLengthUnit}
+                        </td>
+                        <td class="second jimu-leading-padding1">
+                            <select data-dojo-attach-point="areaAndLengthUnitChooser" data-dojo-type="dijit/form/Select">
+                                <option value="UNIT_SQUARE_FEET">${nls.squareFeet}</option>
+                                <option value="UNIT_SQUARE_METERS">${nls.squareMeters}</option>
+                                <option value="UNIT_SQUARE_MILES">${nls.squareMiles}</option>
+                                <option value="UNIT_SQUARE_KILOMETERS">${nls.squareKilometers}</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <!-- CurrencyUnit-->
+                    <tr>
+                        <td class="first jimu-trailing-padding1">
+                            ${nls.currency}
+                        </td>
+                        <td class="second jimu-leading-padding1">
+                            <input data-dojo-type="dijit/form/ValidationTextBox" data-dojo-props="required: true" data-dojo-attach-point="currencyUnitInput" style="width:100%" />
+                        </td>
+                    </tr>
+                    <!-- RoundCost-->
+                    <tr>
+                        <td class="first jimu-trailing-padding1">
+                            ${nls.roundCost}
+                        </td>
+                        <td class="second jimu-leading-padding1">
+                            <select data-dojo-attach-point="roundCostChooser" id="roundCostChooser" data-dojo-type="dijit/form/Select">
+                                <option value="TWO_DECIMAL_POINT">${nls.twoDecimalPoint}</option>
+                                <option value="NEAREST_WHOLE_NUMBER">${nls.nearestWholeNumber}</option>
+                                <option value="NEAREST_TEN">${nls.nearestTen}</option>
+                                <option value="NEAREST_HUNDRED">${nls.nearestHundred}</option>
+                                <option value="NEAREST_THOUSANDS">${nls.nearestThousands}</option>
+                                <option value="NEAREST_TEN_THOUSANDS">${nls.nearestTenThousands}</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <!-- Project Area Type-->
+                    <tr>
+                        <td class="first jimu-trailing-padding1">
+                            ${nls.projectAreaType}
+                        </td>
+                        <td class="second jimu-leading-padding1">
+                            <select data-dojo-attach-point="projectAreaChooser" id="projectAreaChooser" data-dojo-type="dijit/form/Select">
+                                <option value="CONVEX_HULL">${nls.convexHullType}</option>
+                                <option value="BUFFER_OUTLINE">${nls.bufferOutlineType}</option>
+                            </select>
+                        </td>
+                    </tr>
+                    <!-- ConvexHullBufferDistance-->
+                    <tr>
+                        <td class="first jimu-trailing-padding1">
+                            ${nls.bufferDistance}
+                        </td>
+                        <td class="second jimu-leading-padding1">
+                            <input data-dojo-type="dijit/form/ValidationTextBox" data-dojo-props="regExp: '(^0\\.\\d+$)|(^[1-9]\\d*(\\.\\d+)?$)',
+                               required: true, invalidMessage: 'Invalid number.'" data-dojo-attach-point="cHullBufferDistanceInput" style="width:100%" disabled="disabled" />
+
+                        </td>
+                        <td>
+                            <div style="display: inline;" data-dojo-attach-point="cHullBufferDistanceUnit">
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+        <div data-dojo-attach-point="editableLayerSettingTabNode">
+            <table class="setting-table input-table" style="margin-top:5px;">
+                <tbody>
+                    <!--Edit Toolbar Options-->
+                    <tr style="display: none">
+                        <td class="first jimu-trailing-padding1">
+                            ${nls.toolbarVisible}
+                        </td>
+                        <td class="second jimu-leading-padding1">
+                            <div class="" style="">
+                                <input type="checkbox" data-dojo-attach-point="toolbarVisible" data-dojo-type="dijit/form/CheckBox" disabled="disabled" checked="checked" />>
+                            </div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+            <!--Feature Layer and project layer-->
+            <div data-dojo-attach-point="tableLayerInfos">
+            </div>
+            <div data-dojo-attach-point="tableLayerInfosError" style="display: none; padding: 5px;">
+            </div>
+        </div>
+        <div data-dojo-attach-point="statisticsSettingTabNode">
+            <div class="btn-add-stat-section" data-dojo-attach-point="btnAddStatistics">
+                <span class="btn-add-stat-icon"></span>
+                <span class="btn-add-stat-label">${nls.addStatistics}</span>
+            </div>
+            <br/>
+            <div data-dojo-attach-point="statisticsSettingTable" data-dojo-type="jimu/dijit/SimpleTable" data-dojo-props='fields:[{name:"layer",title:"${nls.layerName}","class":"label",type:"empty"},{name:"type",title:"${nls.statType}","class":"label",type:"empty"},
+{name:"field",title:"${nls.fieldName}","class":"label",type:"empty"},
+{name:"label",title:"${nls.statLabel}","class":"label",type:"empty"},
+{name:"actions",title:"${nls.actions}","class":"actions",type:"actions",actions:["up","down","delete"]}]'></div>
+        </div>
     </div>
-    <div data-dojo-attach-point="tableLayerInfosError" style="display: none; padding: 5px;">
-    </div>
-    <br />
     <span class="settings-error" data-dojo-attach-point="settingsPageSaveError" style="display: none">
         ${nls.errorOnOk}</span>
 </div>

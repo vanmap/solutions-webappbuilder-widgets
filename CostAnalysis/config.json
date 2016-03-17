@@ -1,27 +1,41 @@
 {
-  "lookupTableName":"StormwaterNetwork - CostingTable",
+    "lookupTableName": "StormwaterNetwork - CostingTable",
+    "projectGroupCostingInfoTableName": "StormwaterNetwork - ProjectGroupCostingInfo",
+    "projectMultiplierAdditionalCostTableName": "StormwaterNetwork - ProjectMultiplerAddtiontionalCost",
+    "costingGeometryLayerName": "StormwaterNetwork - CostingGeometry",
+    "projectCostLayerName": "StormwaterNetwork - ProjectCost",
+    "projectLayerConfigFields": {},
 
- "projectGroupCostingInfoTableName":"StormwaterNetwork - ProjectGroupCostingInfo",
+    "lengthUnit": {
+        "value": "UNIT_FOOT",
+        "label": "ft."
+    },
 
- "projectLayerName":"StormwaterNetwork - ProjectCost",
+    "areaAndLengthUnit": {
+        "value": "UNIT_SQUARE_FEET",
+        "label": "Sq. ft."
+    },
 
-"lengthUnit": {
-    "value": "UNIT_FOOT",
-    "label": "ft."
-  },
+    "currencyUnit": "$",
 
-  "areaAndLengthUnit": {
-    "value": "UNIT_SQUARE_FEET",
-    "label": "Sq. ft."
-  },
- 
-  "currencyUnit": "$",
+    "roundCostType": {
+        "value": "TWO_DECIMAL_POINT",
+        "label": "Two Decimal Point"
+    },
 
-  "cHullBufferDistance": "5",
+    "projectAreaType": {
+        "value": "CONVEX_HULL",
+        "label": "Convex Hull"
+    },
 
-  "editor": {
-    "layerInfos": []
-  }
+    "cHullBufferDistance": "5",
 
-  
+    "editor": {
+        "toolbarVisible": true,
+        "layerInfos": []
+    },
+
+    "statisticsLayer": {},
+    "mapFeatureLayers": []
+
 }

@@ -97,7 +97,12 @@
 
 .claro .dijitComboBox>div.dijitArrowButton.dijitDownArrowButton {
     width: 20px;
-    height: 100%;
+    height: 0;
+}
+
+.jimu-widget-cost-analysis .dijitArrowButton.dijitDownArrowButton {
+    width: 20px;
+    height: 0;
 }
 
 .jimu-widget-cost-analysis .dijitReset.dijitRight.dijitButtonNode.dijitArrowButton.dijitDownArrowButton.dijitArrowButtonContainer {
@@ -124,22 +129,22 @@
 .jimu-widget-cost-analysis .userInput {
     display: inline-block;
     width: 100%;
-    min-width: 325px;
+    min-width: 315px;
 }
 
 .jimu-widget-cost-analysis .createProjectBtn {
-    margin: 5px 0 10px 0;
+    margin: 5px 3px 10px 0;
     height: 30px;
     float: right;
-    border: none !important;
+    border: 1px solid #D8D3D3 !important;
 }
 
 .jimu-widget-cost-analysis .loadProjectBtn {
     margin-top: 10px;
-    margin-right: 0;
+    margin-right: 3px;
     height: 30px;
     float: right;
-    border: none !important;
+    border: 1px solid #D8D3D3 !important;
 }
 
 .jimu-widget-cost-analysis .deleteProjectBtn {
@@ -147,7 +152,7 @@
     margin-right: 10px;
     height: 30px;
     float: right;
-    border: none !important;
+    border: 1px solid #D8D3D3 !important;
 }
 
 .jimu-widget-cost-analysis .viewProjectInMapBtn {
@@ -155,7 +160,7 @@
     margin-right: 10px;
     height: 30px;
     float: right;
-    border: none !important;
+    border: 1px solid #D8D3D3 !important;
 }
 
 
@@ -172,7 +177,7 @@
 .jimu-widget-cost-analysis .clearAllSelectionBtn {
     background-position: center;
     background-repeat: no-repeat;
-    background-image: url(images/clearAllSelection.png);
+    background-image: url(../images/clearAllSelection.png);
     width: 16px;
     height: 16px;
 }
@@ -229,7 +234,7 @@
 
 .jimu-table .count {
     float: right;
-    padding-top: 5px;
+    padding-top: 12px;
     padding-bottom: 5px;
 }
 
@@ -246,7 +251,7 @@
     width: 40px;
     height: 40px;
     float: right;
-    background-image: url(images/loading.gif);
+    background-image: url(../images/loading.gif);
 }
 
 .hide {
@@ -280,7 +285,7 @@
     width: 60px;
     background-repeat: no-repeat;
     background-position: left;
-    background-image: url(images/assetsDescription.png);
+    background-image: url(../images/assetsDescription.png);
 }
 
 .jimu-rtl .jimu-widget-cost-analysis .asset-description-header .asset-description-icon {
@@ -289,7 +294,7 @@
     width: 60px;
     background-repeat: no-repeat;
     background-position: left;
-    background-image: url(images/assetsDescription.png);
+    background-image: url(../images/assetsDescription.png);
 }
 
 .jimu-widget-cost-analysis .asset-description-header .asset-description-title {
@@ -307,7 +312,7 @@
     width: 32px;
     background-repeat: no-repeat;
     background-position: left;
-    background-image: url(images/orphanData.png);
+    background-image: url(../images/orphanData.png);
     cursor: pointer;
 }
 
@@ -317,7 +322,7 @@
     width: 24px;
     background-repeat: no-repeat;
     background-position: left;
-    background-image: url(images/moveNextPage.png);
+    background-image: url(../images/moveNextPage.png);
     cursor: pointer;
 }
 
@@ -348,7 +353,7 @@
     width: 60px;
     background-repeat: no-repeat;
     background-position: left;
-    background-image: url(images/assetStatistics.png);
+    background-image: url(../images/assetStatistics.png);
 }
 
 .jimu-rtl .jimu-widget-cost-analysis .asset-statistics-header .asset-statistics-icon {
@@ -357,7 +362,7 @@
     width: 60px;
     background-repeat: no-repeat;
     background-position: left;
-    background-image: url(images/assetStatistics.png);
+    background-image: url(../images/assetStatistics.png);
 }
 
 .jimu-widget-cost-analysis .asset-statistics-header .asset-statistics-title {
@@ -375,7 +380,7 @@
     width: 32px;
     background-repeat: no-repeat;
     background-position: left;
-    background-image: url(images/moreStatistics.png);
+    background-image: url(../images/moreStatistics.png);
     cursor: pointer;
 }
 
@@ -385,7 +390,7 @@
     width: 24px;
     background-repeat: no-repeat;
     background-position: left;
-    background-image: url(images/moveNextPage.png);
+    background-image: url(../images/moveNextPage.png);
     cursor: pointer;
 }
 
@@ -416,7 +421,7 @@
     width: 60px;
     background-repeat: no-repeat;
     background-position: left;
-    background-image: url(images/projectSummary.png);
+    background-image: url(../images/projectSummary.png);
 }
 
 .jimu-rtl .jimu-widget-cost-analysis .project-summary-header .project-summary-icon {
@@ -425,7 +430,7 @@
     width: 60px;
     background-repeat: no-repeat;
     background-position: left;
-    background-image: url(images/projectSummary.png);
+    background-image: url(../images/projectSummary.png);
 }
 
 .jimu-widget-cost-analysis .project-summary-header .project-summary-title {
@@ -443,7 +448,7 @@
     width: 32px;
     background-repeat: no-repeat;
     background-position: left;
-    background-image: url(images/projectAttributes.png);
+    background-image: url(../images/projectAttributes.png);
     cursor: pointer;
 }
 
@@ -453,7 +458,7 @@
     width: 24px;
     background-repeat: no-repeat;
     background-position: left;
-    background-image: url(images/moveNextPage.png);
+    background-image: url(../images/moveNextPage.png);
     cursor: pointer;
 }
 
@@ -462,27 +467,27 @@
 Clear and Save Button*/
 
 .jimu-widget-cost-analysis .saveBtn {
-    margin-top: 10px;
+    margin-top: 5px;
     margin-right: 10px;
     height: 30px;
     float: right;
-    border: none !important;
+    border: 1px solid #D8D3D3 !important;
 }
 
 .jimu-widget-cost-analysis .clearSessionBtn {
-    margin-top: 10px;
+    margin-top: 5px;
     margin-right: 10px;
     height: 30px;
     float: right;
-    border: none !important;
+    border: 1px solid #D8D3D3 !important;
 }
 
 .jimu-widget-cost-analysis .previousBtn {
-    margin-top: 10px;
+    margin-top: 5px;
     margin-right: 10px;
     height: 30px;
     float: right;
-    border: none !important;
+    border: 1px solid #D8D3D3 !important;
 }
 
 
@@ -546,7 +551,18 @@ Clear and Save Button*/
     font-weight: bold;
     padding-top: 10px;
     margin-bottom: 10px;
-    margin-left: 20px;
+    margin-left: 10px;
+}
+
+.jimu-widget-cost-analysis .dijitSelect .dijitButtonContents,
+.jimu-widget-cost-analysis .dijitSelect .dijitArrowButton {
+    padding: 1px;
+}
+
+.jimu-widget-cost-analysis .jimu-simple-table .simple-table-field,
+.jimu-simple-table .simple-table-cell {
+    padding-left: 10px;
+    padding-right: 10px;
 }
 
 .jimu-simple-table .head-section {
@@ -559,8 +575,7 @@ Clear and Save Button*/
     border-right: none;
 }
 
-
-/*.jimu-simple-table .body-section {
+.jimu-simple-table .body-section {
     position: absolute;
     top: 40px;
     bottom: 0;
@@ -570,17 +585,17 @@ Clear and Save Button*/
     background-color: #fff;
     border: 0 none;
     color: #6d6e70;
-    border-top: none;
-    border-left: none;
-    border-right: none;
-    border-bottom: none;
-}*/
+    border-top: 1px solid #eef2f5;
+    border-left: 1px solid #eef2f5;
+    border-right: 1px solid #eef2f5;
+    border-bottom: 1px solid #eef2f5;
+}
 
 .jimu-widget-cost-analysis .row-option {
     width: auto;
     border-collapse: collapse;
     margin-top: 10px;
-    margin-left: 20px;
+    margin-left: 10px;
 }
 
 .jimu-widget-cost-analysis .btn-add-row-section {
@@ -609,7 +624,7 @@ Clear and Save Button*/
     width: 100%;
     background-repeat: no-repeat;
     background-position: center center;
-    background-image: url(images/addRow.png);
+    background-image: url(../images/addRow.png);
 }
 
 .jimu-widget-cost-analysis .btn-delete-row-section {
@@ -639,7 +654,7 @@ Clear and Save Button*/
     width: 100%;
     background-repeat: no-repeat;
     background-position: center center;
-    background-image: url(images/deleteRow.png);
+    background-image: url(../images/deleteRow.png);
 }
 
 .jimu-widget-cost-analysis .btn-up-row-section {
@@ -669,7 +684,7 @@ Clear and Save Button*/
     width: 100%;
     background-repeat: no-repeat;
     background-position: center center;
-    background-image: url(images/upRow.png);
+    background-image: url(../images/upRow.png);
 }
 
 .jimu-widget-cost-analysis .btn-down-row-section {
@@ -699,12 +714,12 @@ Clear and Save Button*/
     width: 100%;
     background-repeat: no-repeat;
     background-position: center center;
-    background-image: url(images/downRow.png);
+    background-image: url(../images/downRow.png);
 }
 
 .jimu-table .cost {
-    float: left;
-    padding-top: 5px;
+    float: right;
+    padding-top: 12px;
     padding-bottom: 5px;
 }
 
@@ -713,7 +728,7 @@ Clear and Save Button*/
     margin-right: 10px;
     height: 30px;
     float: right;
-    border: none !important;
+    border: 1px solid #D8D3D3 !important;
 }
 
 
@@ -729,14 +744,14 @@ Clear and Save Button*/
     font-weight: bold;
     padding-top: 10px;
     margin-bottom: 10px;
-    margin-left: 20px;
+    margin-left: 10px;
 }
 
 .jimu-widget-cost-analysis .orphan-asset-option {
     width: auto;
     border-collapse: collapse;
     margin-top: 10px;
-    margin-left: 20px;
+    margin-left: 10px;
 }
 
 .jimu-widget-cost-analysis .btn-add-current-extent-section {
@@ -752,8 +767,8 @@ Clear and Save Button*/
     -moz-outline-radius: 5px;
     -webkit-outline-radius: 5px;
     outline-radius: 5px;
-    height: 36px;
-    width: 36px;
+    height: 26px;
+    width: 26px;
 }
 
 .jimu-widget-cost-analysis .btn-add-current-extent-section:hover {
@@ -766,7 +781,7 @@ Clear and Save Button*/
     width: 100%;
     background-repeat: no-repeat;
     background-position: center center;
-    background-image: url(images/currentExtent.png);
+    background-image: url(../images/currentExtent.png);
 }
 
 .jimu-widget-cost-analysis .draw-graphic-select-asset {
@@ -787,7 +802,7 @@ Load and Clear Button*/
     margin-right: 10px;
     height: 30px;
     float: right;
-    border: none !important;
+    border: 1px solid #D8D3D3 !important;
 }
 
 .jimu-widget-cost-analysis .loadOrphanDataBtn {
@@ -795,7 +810,7 @@ Load and Clear Button*/
     margin-right: 10px;
     height: 30px;
     float: right;
-    border: none !important;
+    border: 1px solid #D8D3D3 !important;
 }
 
 .jimu-widget-cost-analysis .clearOrphanDataBtn {
@@ -803,7 +818,7 @@ Load and Clear Button*/
     margin-right: 10px;
     height: 30px;
     float: right;
-    border: none !important;
+    border: 1px solid #D8D3D3 !important;
 }
 
 
@@ -819,14 +834,14 @@ Load and Clear Button*/
     font-weight: bold;
     padding-top: 10px;
     margin-bottom: 10px;
-    margin-left: 20px;
+    margin-left: 10px;
 }
 
 
 /*Table inside the Panel*/
 
 .jimu-widget-cost-analysis .detail-statistics-table {
-    margin-left: 20px;
+    margin-left: 10px;
     border-collapse: collapse;
     border-spacing: 0;
 }
@@ -859,11 +874,11 @@ Load and Clear Button*/
 }
 
 .jimu-widget-cost-analysis .OKStatBtn {
-    margin-top: 10px;
+    margin-top: 5px;
     margin-right: 10px;
     height: 30px;
     float: right;
-    border: none !important;
+    border: 1px solid #D8D3D3 !important;
 }
 
 
@@ -879,7 +894,7 @@ Load and Clear Button*/
     font-weight: bold;
     padding-top: 10px;
     margin-bottom: 10px;
-    margin-left: 20px;
+    margin-left: 10px;
 }
 
 
@@ -890,16 +905,15 @@ Load and Clear Button*/
 */
 
 .jimu-widget-cost-analysis .smallSelect .dijitSelectLabel {
-    width: 40px;
+    width: 30px;
     overflow: hidden;
-    text-align: left;
 }
 
 .jimu-widget-cost-analysis .row-stat {
     width: auto;
     border-collapse: collapse;
     margin-top: 10px;
-    margin-left: 20px;
+    margin-left: 10px;
 }
 
 .jimu-widget-cost-analysis .btn-add-stat-section {
@@ -928,7 +942,7 @@ Load and Clear Button*/
     width: 100%;
     background-repeat: no-repeat;
     background-position: center center;
-    background-image: url(images/addRow.png);
+    background-image: url(../images/addRow.png);
 }
 
 .jimu-widget-cost-analysis .btn-delete-stat-section {
@@ -958,7 +972,7 @@ Load and Clear Button*/
     width: 100%;
     background-repeat: no-repeat;
     background-position: center center;
-    background-image: url(images/deleteRow.png);
+    background-image: url(../images/deleteRow.png);
 }
 
 .jimu-widget-cost-analysis .btn-up-stat-section {
@@ -988,7 +1002,7 @@ Load and Clear Button*/
     width: 100%;
     background-repeat: no-repeat;
     background-position: center center;
-    background-image: url(images/upRow.png);
+    background-image: url(../images/upRow.png);
 }
 
 .jimu-widget-cost-analysis .btn-down-stat-section {
@@ -1018,7 +1032,7 @@ Load and Clear Button*/
     width: 100%;
     background-repeat: no-repeat;
     background-position: center center;
-    background-image: url(images/downRow.png);
+    background-image: url(../images/downRow.png);
 }
 
 .jimu-widget-cost-analysis .OKNewStatBtn {
@@ -1026,7 +1040,7 @@ Load and Clear Button*/
     margin-right: 10px;
     height: 30px;
     float: right;
-    border: none !important;
+    border: 1px solid #D8D3D3 !important;
 }
 
 
@@ -1042,14 +1056,14 @@ Load and Clear Button*/
     font-weight: bold;
     padding-top: 10px;
     margin-bottom: 10px;
-    margin-left: 20px;
+    margin-left: 10px;
 }
 
 .jimu-widget-cost-analysis .navigation-option {
     width: auto;
     border-collapse: collapse;
     margin-top: 10px;
-    margin-left: 20px;
+    margin-left: 10px;
 }
 
 
@@ -1081,7 +1095,7 @@ Load and Clear Button*/
     width: 100%;
     background-repeat: no-repeat;
     background-position: center center;
-    background-image: url(images/zoomAsset.png);
+    background-image: url(../images/zoomAsset.png);
 }
 
 
@@ -1114,7 +1128,7 @@ Load and Clear Button*/
     width: 100%;
     background-repeat: no-repeat;
     background-position: center center;
-    background-image: url(images/selectAsset.png);
+    background-image: url(../images/selectAsset.png);
 }
 
 
@@ -1147,7 +1161,7 @@ Load and Clear Button*/
     width: 100%;
     background-repeat: no-repeat;
     background-position: center center;
-    background-image: url(images/clearSelect.png);
+    background-image: url(../images/clearSelect.png);
 }
 
 
@@ -1180,7 +1194,7 @@ Load and Clear Button*/
     width: 100%;
     background-repeat: no-repeat;
     background-position: center center;
-    background-image: url(images/panAsset.png);
+    background-image: url(../images/panAsset.png);
 }
 
 
@@ -1213,7 +1227,7 @@ Load and Clear Button*/
     width: 100%;
     background-repeat: no-repeat;
     background-position: center center;
-    background-image: url(images/deleteAsset.png);
+    background-image: url(../images/deleteAsset.png);
 }
 
 .jimu-widget-cost-analysis .OKAssetDescBtn {
@@ -1221,7 +1235,7 @@ Load and Clear Button*/
     margin-right: 10px;
     height: 30px;
     float: right;
-    border: none !important;
+    border: 1px solid #D8D3D3 !important;
 }
 
 
@@ -1237,14 +1251,14 @@ Load and Clear Button*/
     font-weight: bold;
     padding-top: 10px;
     margin-bottom: 10px;
-    margin-left: 20px;
+    margin-left: 10px;
 }
 
 
 /*Table inside the Panel*/
 
 .jimu-widget-cost-analysis .project-attrib-edit-table {
-    margin-left: 20px;
+    margin-left: 10px;
     border-collapse: collapse;
     border-spacing: 0;
 }
@@ -1283,11 +1297,11 @@ Load and Clear Button*/
 }
 
 .jimu-widget-cost-analysis .OKPrjAttrBtn {
-    margin-top: 10px;
-    margin-right: 23px;
+    margin-top: 5px;
+    margin-right: 10px;
     height: 30px;
     float: right;
-    border: none !important;
+    border: 1px solid #D8D3D3 !important;
 }
 
 
@@ -1303,12 +1317,12 @@ Load and Clear Button*/
     font-weight: bold;
     padding-top: 10px;
     margin-bottom: 10px;
-    margin-left: 20px;
+    margin-left: 10px;
 }
 
 .jimu-widget-cost-analysis .cost-equation-editor-table {
-    margin-left: 20px;
-    margin-right: 0;
+    margin-left: 10px;
+    margin-right: 5px;
 }
 
 .jimu-widget-cost-analysis .cost-equation-editor-table > thead > tr > th,
@@ -1335,7 +1349,7 @@ Load and Clear Button*/
     margin-right: 10px;
     height: 30px;
     float: right;
-    border: none !important;
+    border: 1px solid #D8D3D3 !important;
 }
 
 
@@ -1454,7 +1468,7 @@ Load and Clear Button*/
 }
 
 .jimu-widget-cost-analysis .dojoxGridMasterHeader {
-    background: url("images/header.png") #EDF2F7 repeat-x bottom;
+    background: url("../images/header.png") #EDF2F7 repeat-x bottom;
     background: -moz-linear-gradient(top, #EDF2F7, #D0DFEA);
     background: -webkit-gradient(linear, left top, left bottom, from(#EDF2F7), to(#D0DFEA));
     filter: progid: DXImageTransform.Microsoft.gradient(startColorstr=#FFEDF2F7, endColorstr=#FFD0DFEA);
@@ -1509,13 +1523,13 @@ Load and Clear Button*/
 }*/
 
 .jimu-widget-cost-analysis .dojoxGridRowbar {
-    background: url("images/header.png") #e5edf4 repeat-x top;
+    background: url("../images/header.png") #e5edf4 repeat-x top;
     border: none;
     border-right: 1px solid #BCBCBC;
 }
 
 .jimu-widget-cost-analysis .dojoxGridRowbarTable {
-    background: transparent url("images/header_shadow.png") repeat-x scroll center bottom;
+    background: transparent url("../images/header_shadow.png") repeat-x scroll center bottom;
 }
 
 .dj_ie6 .jimu-widget-cost-analysis .dojoxGridRowbar,
@@ -1553,7 +1567,7 @@ Load and Clear Button*/
 }
 
 .jimu-widget-cost-analysis .dojoxGridRowTable tr {
-    background: url("images/row_back.png") #fff repeat-x;
+    background: url("../images/row_back.png") #fff repeat-x;
 }
 
 .jimu-widget-cost-analysis .dojoxGridRowOdd .dojoxGridRowTable tr {
@@ -1609,7 +1623,7 @@ Load and Clear Button*/
 
 
 /*.jimu-widget-cost-analysis .dojoxGridRowOver .dojoxGridCell {
-    background: url("images/row_back.png") #ABD6FF repeat-x;
+    background: url("../images/row_back.png") #ABD6FF repeat-x;
     border-top: 1px solid #769DC0;
     border-bottom: 1px solid #769DC0;
 }*/
@@ -1622,7 +1636,7 @@ Load and Clear Button*/
 
 /*
 .jimu-widget-cost-analysis .dojoxGridRowActive .dojoxGridCell {
-    background: url("images/td_button_down.png") #7DBEFA repeat-x;
+    background: url("../images/td_button_down.png") #7DBEFA repeat-x;
 }
 
 .dj_ie6 .jimu-widget-cost-analysis .dojoxGridRowActive .dojoxGridCell, .dj_ie7 .jimu-widget-cost-analysis .dojoxGridRowActive .dojoxGridCell {
@@ -1638,11 +1652,11 @@ Load and Clear Button*/
 }
 
 .jimu-widget-cost-analysis .dojoxGridDoubleAffordance .dojoxGridRowActive .dojoxGridCell {
-    background-image: url("images/row_back.png");
+    background-image: url("../images/row_back.png");
 }
 
 .jimu-widget-cost-analysis .dojoxGridDoubleAffordance .dojoxGridRowActive .dojoxGridCellActive {
-    background: url("images/td_button_down.png") #93cafe repeat-x;
+    background: url("../images/td_button_down.png") #93cafe repeat-x;
 }
 
 .dj_ie6 .jimu-widget-cost-analysis .dojoxGridCell {

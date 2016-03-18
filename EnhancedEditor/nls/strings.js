@@ -14,7 +14,9 @@ define({
     submit: "Save",
     reset: "Reset",
     cancel: "Cancel",
-    presetFieldAlias: "Field Alias",
+    saveAll: "Save All",
+    presetValueTitle: "Enter preset values (New features only)",
+    presetFieldAlias: "Field",
     presetValue: "Preset Value",
     savePresetValues: "Save Preset Values"
   }),

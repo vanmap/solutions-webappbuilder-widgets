@@ -129,7 +129,7 @@
 }
 
 .jimu-widget-enhancedEditor .esriAttributeInspector .deleteButton,
-.jimu-widget-enhancedEditor .esriAttributeInspector .validateButton,
+.jimu-widget-enhancedEditor .esriAttributeInspector .saveAllButton,
 .jimu-widget-enhancedEditor .savePresetFieldsButton
  {
     float: right;
@@ -156,4 +156,23 @@
 
 .jimu-widget-enhancedEditor .ee-presetValue-input {
     width: 100%;
+}
+
+.jimu-widget-enhancedEditor .mblSwitchBgLeft {
+  background: -webkit-gradient(linear, left top, left bottom,
+                               from(#28B159), to(#75FBAC),
+                               color-stop(0.5, #3FEB84),
+                               color-stop(0.5, #4CEE8E));
+}
+.jimu-widget-enhancedEditor .mblSwitchBgRight {
+  background: -webkit-gradient(linear, left top, left bottom,
+                               from(#CECECE), to(#FDFDFD),
+                               color-stop(0.5, #EEEEEE),
+                               color-stop(0.5, #F8F8F8));
+}
+.jimu-widget-enhancedEditor .mblSwitchKnob {
+  background: -webkit-gradient(linear, left top, left bottom,
+                               from(#999999), to(#FAFAFA),
+                               color-stop(0.5, #BBBBBB),
+                               color-stop(0.5, #CACACA));
 }

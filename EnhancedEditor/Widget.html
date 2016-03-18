@@ -8,10 +8,15 @@
     </div>
     <br/>
     <div class="presetFieldsTableDiv">
+      <div>${nls.presetValueTitle}<br/><br/></div>
       <div class="presetFieldsTable" data-dojo-attach-point="presetFieldsTableNode"></div>
       <div class="spacer"></div>
-      <div class="jimu-btn savePresetFieldsButton" 
-           data-dojo-attach-event="click:_savePresetFieldInfos">${nls.savePresetValues}</div>
+      <div id="savePresetValueSwitch" data-dojo-type="dojox/mobile/Switch"
+           class="mblSwDefaultShape"
+           leftLabel="ON" rightLabel="OFF" value="on"
+           data-dojo-attach-event="stateChanged:_savePresetFieldInfos"></div>
+      <!--<div class="jimu-btn savePresetFieldsButton" 
+           data-dojo-attach-event="click:_savePresetFieldInfos">${nls.savePresetValues}</div>-->
     </div>
   </div>
   

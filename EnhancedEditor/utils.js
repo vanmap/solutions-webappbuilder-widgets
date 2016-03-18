@@ -19,14 +19,25 @@ email: contracts@esri.com
 define([
   'dojo/_base/lang',
   'dojo/_base/array',
-  'dojo/dom-construct'
-], function(lang, array, domConstruct) {
+  'dojo/dom-construct',
+  'esri/geometry/Extent'
+], function(lang, array, domConstruct, Extent) {
 
   var mo = {};
 
   mo.checkIfFieldAliasAlreadyExists = function(origText, alias){
     var strArray = origText.split(",");
     return strArray.indexOf(alias) >= 0 ;
+  };
+
+  mo.pointToExtent = function (map, point, toleranceInPixel) {
+    var pixelWidth = map.extent.getWidth() / map.width;
+    var toleranceInMapCoords = toleranceInPixel * pixelWidth;
+    return new Extent(point.x - toleranceInMapCoords,
+                      point.y - toleranceInMapCoords,
+                      point.x + toleranceInMapCoords,
+                      point.y + toleranceInMapCoords,
+                      map.spatialReference);
   };
 
   mo.createPresetFieldContentNode = function (fieldInfo) {

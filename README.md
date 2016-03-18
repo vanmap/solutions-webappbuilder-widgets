@@ -14,7 +14,6 @@ The ArcGIS Solutions Builder Widgets is a set of widgets for use with the Web Ap
 ## Features
 The Widget Repository currently includes:
 
-* [Batch Attribute Editor](./BatchAttributeEditor/README.md) | WAB 1.2 | 1.0
 * [Bomb Threat Tool](./BombThreat/README.md) | WAB 1.2 | 1.0
 * [Coordinate Tool](./CoordinateTool/ReadMe.md) | WAB 1.2
 * [Filter Editor](./FilterEditor/README.md) | WAB 1.2 | 1.0

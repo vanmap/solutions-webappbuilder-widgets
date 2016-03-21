@@ -286,31 +286,6 @@ define([
           "class": "validateButton jimu-btn"
         }, cancelButton, "after");
 
-        // save all button will not be created for local feature layer
-        if (layerInfos.length > 1) {
-          var saveAllButton = domConstruct.create("div", {
-            innerHTML: this.nls.saveAll,
-            "class": "saveAllButton jimu-btn"
-          }, validateButton, "after");
-
-          on(saveAllButton, "click", lang.hitch(this, function () {
-            var deferreds = [];
-            
-            this.updateFeatures.forEach(lang.hitch(this, function (feature) {
-              // set the feature to the currentFeature for subsequence processes
-              //this.currentFeature = feature;
-              var deferred = this._saveEdit(feature);
-
-              deferreds.push(deferred);
-            }));
-
-            all(deferreds).then(lang.hitch(this, function () {
-              this.selectedTemplate = null;
-              this._showTemplate(true);
-            }));
-          }));
-        } // end  of Save All button
-
         // create delete button if specified in the config
         if (this._configEditor.showDeleteButton) {
           if (query(".jimu-widget-enhancedEditor .deleteButton").length < 1) {
@@ -361,27 +336,12 @@ define([
           }
         }));
 
-        //on(resetButton, "click", lang.hitch(this, function () {
-        //  if (this.currentFeature) {
-        //    var objId = this.currentFeature.attributes["OBJECTID"];
-        //    var atts = JSON.parse(JSON.stringify(this.currentFeature.original.attributes));
-
-        //    this.currentFeature.attributes = atts;
-        //    this.currentFeature.attributes["OBJECTID"] = objId;
-
-        //    this.currentFeature.getLayer().refresh(); //?
-        //    attrInspector.refresh();
-
-        //    //this.isDirty = false;
-        //  }
-        //}));
-
         on(validateButton, "click", lang.hitch(this, function () {
           //if (!this.isDirty) { return; }
           if (this.map.infoWindow.isShowing) {
             this.map.infoWindow.hide();
           }
-          this._saveEdit(this.currentFeature, true);
+          this._saveEdit(this.currentFeature);
         }));
 
         // attribute inspector events
@@ -483,17 +443,6 @@ define([
         }
         //this.isDirty = false;
       },
-
-      //_disconnectLayerEventHandler: function () {
-      //  if (!this._layerEventHandlers) { return; }
-
-      //  array.forEach(this._layerEventHandlers, function (layerEventHandler) {
-      //    if (layerEventHandler && layerEventHandler.remove) {
-      //      layerEventHandler.remove();
-      //    }
-      //  });
-      //  this._layerEventHandlers = [];
-      //},
 
       _fillPresetValueTable: function () {
         var presetFieldInfos = [];
@@ -763,12 +712,8 @@ define([
                 lang.hitch(this, function (e) {
                   // sometimes a successfully update returns an empty array
                   //if (e && e.length > 0 && e[0].success) {
-                  feature.getLayer().clearSelection();
+                  //feature.getLayer().clearSelection();
                   feature.getLayer().refresh();
-
-                  // reset
-                  //feature = null;
-                  //this.selectedTemplate = null;
 
                   deferred.resolve("success");
                   //}
@@ -779,9 +724,7 @@ define([
                 });
             } else {
               // no attribute update
-              feature.getLayer().clearSelection();
-              // reset
-              //this.currentFeature = null;
+              //feature.getLayer().clearSelection();
             }
           } // end of applying edit for update
         }
@@ -823,7 +766,7 @@ define([
             this._setSelectionSymbol(layer);
 
             var selectQuery = new Query();
-            selectQuery.geometry = editUtils.pointToExtent(this.map, evt.mapPoint, 20);
+            selectQuery.geometry = editUtils.pointToExtent(this.map, evt.mapPoint, 40);
 
             var deferred = layer.selectFeatures(selectQuery,
               FeatureLayer.SELECTION_NEW,
@@ -838,13 +781,6 @@ define([
 
           all(deferreds).then(lang.hitch(this, function () {
             this.updateFeatures = updateFeatures;
-            //show/hide the Save All button
-            if (this.updateFeatures && this.updateFeatures.length > 1) {
-              query(".jimu-widget-enhancedEditor .saveAllButton")[0].style.visibility = "visible";
-            } else {
-              query(".jimu-widget-enhancedEditor .saveAllButton")[0].style.visibility = "hidden";
-            }
-           
             this._showTemplate(false);
           }));
         }

@@ -13,7 +13,7 @@ define({
     del: "Delete",
     submit: "Save",
     reset: "Reset",
-    cancel: "Cancel",
+    cancel: "Close",
     saveAll: "Save All",
     presetValueTitle: "Enter preset values (New features only)",
     presetFieldAlias: "Field",

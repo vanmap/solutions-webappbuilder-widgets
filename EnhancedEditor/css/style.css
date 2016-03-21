@@ -129,7 +129,7 @@
 }
 
 .jimu-widget-enhancedEditor .esriAttributeInspector .deleteButton,
-.jimu-widget-enhancedEditor .esriAttributeInspector .saveAllButton,
+.jimu-widget-enhancedEditor .esriAttributeInspector .validateButton,
 .jimu-widget-enhancedEditor .savePresetFieldsButton
  {
     float: right;
@@ -142,10 +142,10 @@
     width: 100%;
 }
 .jimu-widget-enhancedEditor .ee-presetValueHeaderTable{
-    color: #ffffff;
+    color: #000000;
     font-size: 14px;
     padding: 8px;
-    background-color: #518dca;
+    background-color:  #E3E3E3;
     vertical-align: middle;
     width: 100%;
 }

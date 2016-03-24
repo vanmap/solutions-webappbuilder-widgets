@@ -14,10 +14,11 @@ define([
   'dijit/form/TextBox',
   'dijit/registry',
   'jimu/LayerInfos/LayerInfos',
+  'jimu/utils',
   './SaveJson',
   './ReadJson'
 ],
-function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domConstruct, domClass, on, query, lang, array, Select, TextBox, registry, LayerInfos, saveJson, readJson) {
+function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domConstruct, domClass, on, query, lang, array, Select, TextBox, registry, LayerInfos, utils, saveJson, readJson) {
   //To create a widget, you need to derive from BaseWidget.
   return declare([BaseWidget, _WidgetsInTemplateMixin], {
 
@@ -247,11 +248,11 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
                   array.forEach(layer.layerObject.fields, lang.hitch(this, function(field) {
                     if(field.name === grpLayer.field) {
                       if((field.type).indexOf("String") > -1) {
-                        expr = expr + grpLayer.field + " " + p.operator + " '" + p.userValue + "' " + p.conjunc + " ";
+                        expr = expr + grpLayer.field + " " + p.operator + " '" + utils.sanitizeHTML(p.userValue) + "' " + p.conjunc + " ";
                       } else {
-                        expr = expr + grpLayer.field + " " + p.operator + " " + p.userValue + " " + p.conjunc + " ";
+                        expr = expr + grpLayer.field + " " + p.operator + " " + utils.sanitizeHTML(p.userValue) + " " + p.conjunc + " ";
                       }
-                      group.def.push({value: p.userValue, operator: p.operator, conjunc: p.conjunc});
+                      group.def.push({value: utils.sanitizeHTML(p.userValue), operator: p.operator, conjunc: p.conjunc});
                     }
                   }));
                 }));
@@ -359,6 +360,11 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           this.resetLayerDef();
           this.removeAllRows();
           this.reconstructRows(this.grpSelect.value);
+          query(".loadProgressHeader").style("display", "none");
+          query(".loadProgressShow").style("display", "none");
+      }));
+      on(readDef, "error", lang.hitch(this, function(results) {
+          this.jsonFileInput.value = null;
           query(".loadProgressHeader").style("display", "none");
           query(".loadProgressShow").style("display", "none");
       }));

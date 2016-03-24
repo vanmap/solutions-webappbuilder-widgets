@@ -15,7 +15,7 @@
 }
 
 .jimu-widget-map-filter .layer-Mapping-Block-add {
-	margin-top: 5px;
+	margin-top: 10px;
 	margin-bottom: 5px;
 }
 
@@ -26,8 +26,29 @@
 
 .jimu-widget-map-filter .group-block-delete{
 	position: absolute;
-	top: 0px;
+	top: 5px;
 	right: 5px;
+	cursor: pointer;
+	cursor: hand;
+    content: url("../../images/delete.png");
+}
+
+.jimu-widget-map-filter .group-block-delete:after{
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	cursor: pointer;
+	cursor: hand;
+    content: url("../../images/delete.png");
+}
+
+.jimu-widget-map-filter .group-block-delete:hover{
+	position: absolute;
+	top: 5px;
+	right: 5px;
+	cursor: pointer;
+	cursor: hand;
+    content: url("../../images/delete_hover.png");
 }
 
 .jimu-widget-map-filter .group-block-layer-select {
@@ -43,5 +64,30 @@
 .jimu-widget-map-filter .group-block-add-layer {
 	margin-top: 5px;
 	margin-bottom: 5px;
+	margin-left: 10px;
+	margin-right: 10px;
+}
+
+.jimu-widget-map-filter .groupName-textbox {
+	margin-top: 5px;
+	margin-bottom: 5px;
+	margin-left: 10px;
+	margin-right: 10px;
+	width: 175px;
+}
+
+.jimu-widget-map-filter .groupName-Desctextbox {
+	margin-top: 5px;
+	margin-bottom: 5px;
+	margin-left: 10px;
+	margin-right: 10px;
+	width: 450px;
+}
+
+.jimu-widget-map-filter .layer-tables {
+	margin-top: 5px;
+	margin-bottom: 5px;
+	width: 98%;
+	margin-left: 10px;
 }
 

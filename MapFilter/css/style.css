@@ -150,6 +150,13 @@
     cursor: pointer;
 }
 
+.jimu-widget-map-filter .advModeOffset:after {
+    content: url("../images/setting_default.png");
+    padding-right: 10px;
+    cursor: hand;
+    cursor: pointer;
+}
+
 .jimu-widget-map-filter .advModeClose {
     content: url("../images/setting_disabled.png");
     cursor: hand;

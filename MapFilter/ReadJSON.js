@@ -5,9 +5,10 @@ define([
   'dojo/_base/html',
   'dojo/has',
   'dojo/_base/lang',
-  'jimu/utils'
+  'jimu/utils',
+  'jimu/dijit/Message'
 ],
-function (Evented, declare, Deferred, html, has, utils, lang) {
+function (Evented, declare, Deferred, html, has, lang, utils, Message) {
 return declare([Evented], {
   declaredClass : 'readJson',
   config : null,
@@ -50,13 +51,10 @@ return declare([Evented], {
           */
         }
       } else {
-        /*
         new Message({
-          message : this.nls.error.notCSVFile
+          message : 'Not a json file'
         });
-        domClass.remove(this.showFileDialogBtn, 'jimu-state-disabled');
-        this.clearCSVResults();
-        */
+        context.errorPrompt('error');
       }
     }
   },
@@ -65,16 +63,17 @@ return declare([Evented], {
     //console.log('Reading CSV: ', file, ', ', file.name, ', ', file.type, ', ', file.size);
     if (this.supportHTML5()) {
       var reader = new FileReader();
-      /*
-      reader.onload = function() {
-        this.completePrompt(reader.result);
-        console.log(reader.result);
-      };
-      */
       reader.onload = (function(context) {
         return function(e) {
-          //console.log(reader.result);
-          context.completePrompt(reader.result);
+          if(reader.result.indexOf("groups") > -1) {
+            context.completePrompt(reader.result);
+          } else {
+            new Message({
+              message : 'json file is Invalid'
+            });
+            context.errorPrompt('error');
+          }
+
         };
       })(this);
       reader.readAsText(file);
@@ -126,6 +125,10 @@ return declare([Evented], {
 
   completePrompt: function(pSettings) {
     this.emit("complete", {'UserSettings':pSettings});
+  },
+
+  errorPrompt: function(pSettings) {
+    this.emit("error", {'UserSettings':'error'});
   }
 
 });

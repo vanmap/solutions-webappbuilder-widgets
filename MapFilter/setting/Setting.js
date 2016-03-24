@@ -27,9 +27,13 @@ define([
   'dojo/_base/array',
   'dijit/form/Select',
   'dijit/form/TextBox',
-  'jimu/LayerInfos/LayerInfos'
+  'dijit/form/ValidationTextBox',
+  'dijit/registry',
+  'jimu/utils',
+  'jimu/LayerInfos/LayerInfos',
+  'jimu/dijit/Message'
 ],
-  function(declare, BaseWidgetSetting, _WidgetsInTemplateMixin, SimpleTable, dom, domConstruct, on, query, lang, array, Select, TextBox, LayerInfos) {
+  function(declare, BaseWidgetSetting, _WidgetsInTemplateMixin, SimpleTable, dom, domConstruct, on, query, lang, array, Select, TextBox, ValidationTextBox, registry, utils, LayerInfos, Message) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
 
       //these two properties is defined in the BaseWidget
@@ -38,41 +42,55 @@ define([
       groupCounter: 0,
       groupLayerContainer: [],
       groupLayerName: [],
+      groupLayerDesc: [],
       layerCounter: 0,
       layerList: null,
 
       postCreate: function() {
         this.inherited(arguments);
-        this.createMapLayerList();
       },
 
       startup: function() {
         this.inherited(arguments);
-        //this.setConfig(this.config);
+        this.setConfig(this.config);
       },
 
       setConfig: function(config) {
         this.config = config;
-
+        this.groupLayerContainer = [];
+        this.groupLayerName = [];
+        this.groupLayerDesc = [];
+        this.createMapLayerList();
       },
 
       getConfig: function() {
-        array.forEach(this.groupLayerName, lang.hitch(this, function(groupName, i) {
-          if(groupName !== null) {
-            var groupObj = {};
-            groupObj.name = groupName.value;
-            groupObj.layers = [];
+        var validGroups = this.validateNoGroups();
+        var validGroupsNames = this.validateNoGroupsName();
 
-            var result = array.forEach(this.groupLayerContainer[i].getRows(), lang.hitch(this, function(row) {
-              groupObj.layers.push({
-                'layer': row.layerCol.value,
-                'field': row.fieldCol.value
-              });
-            }));
-            this.config.groups.push(groupObj);
-          }
-        }));
-        return this.config;
+        if(validGroups && validGroupsNames) {
+          this.config.groups = [];
+          array.forEach(this.groupLayerName, lang.hitch(this, function(groupName, i) {
+            if(groupName !== null) {
+              if(this.groupLayerContainer[i] !== null) {
+                var groupObj = {};
+                groupObj.name = utils.sanitizeHTML(groupName.value);
+                groupObj.layers = [];
+
+                var result = array.forEach(this.groupLayerContainer[i].getRows(), lang.hitch(this, function(row) {
+                  groupObj.layers.push({
+                    'layer': row.layerCol.value,
+                    'field': row.fieldCol.value
+                  });
+                }));
+                this.config.groups.push(groupObj);
+              }
+            }
+          }));
+          return this.config;
+        } else {
+          return false;
+        }
+
       },
 
       createMapLayerList: function() {
@@ -80,12 +98,18 @@ define([
           .then(lang.hitch(this, function(operLayerInfos) {
             if(operLayerInfos._layerInfos && operLayerInfos._layerInfos.length > 0) {
               this.layerList = operLayerInfos._layerInfos;
-              this.createGroupBlock();
+              if(this.config.groups.length > 0) {
+                array.forEach(this.config.groups, lang.hitch(this, function(group) {
+                  this.createGroupBlock({group: group});
+                }));
+              } else {
+                this.createGroupBlock({group: null});
+              }
             }
           }));
       },
 
-      createGroupBlock: function() {
+      createGroupBlock: function(pParam) {
         this.groupCounter++;
 
         var dsNode = domConstruct.create("div",{
@@ -94,11 +118,28 @@ define([
         });
         domConstruct.place(dsNode, this.layerMappingBlock);
 
-        var addNameNode = domConstruct.create("div",{
-          id: 'addGroupName_' + this.groupCounter,
-          'class': 'group-block-add-layer'
+        var addNameLabelNode = domConstruct.create("a",{
+          id: 'addGroupNameLabel_' + this.groupCounter,
+          'class': 'group-block-add-layer',
+          innerHTML: 'Group Name:'
         });
-        domConstruct.place(addNameNode, dom.byId('grpDiv_' + this.groupCounter));
+        domConstruct.place(addNameLabelNode, dom.byId('grpDiv_' + this.groupCounter));
+
+        var addNameNode = domConstruct.create("div",{
+          id: 'addGroupName_' + this.groupCounter
+        });
+        domConstruct.place(addNameNode, dom.byId('addGroupNameLabel_' + this.groupCounter));
+
+        var addDescLabelNode = domConstruct.create("a",{
+          id: 'addGroupNameLabel_' + this.groupCounter,
+          innerHTML: 'Description:'
+        });
+        domConstruct.place(addDescLabelNode, dom.byId('addGroupNameLabel_' + this.groupCounter));
+
+        var addNameNode = domConstruct.create("div",{
+          id: 'addGroupDesc_' + this.groupCounter
+        });
+        domConstruct.place(addNameNode, dom.byId('addGroupNameLabel_' + this.groupCounter));
 
         var deleteNameNode = domConstruct.create("div",{
           id: 'addGroupDelete_' + this.groupCounter,
@@ -111,19 +152,33 @@ define([
         domConstruct.place(deleteNameNode, dom.byId('grpDiv_' + this.groupCounter));
         dom.byId('addGroupDelete_' + this.groupCounter).innerHTML = "delete";
 
+        var groupName = '';
+        if(typeof(pParam.group) !== 'undefined' && pParam.group !== null) {
+          groupName =  pParam.group.name;
+        }
 
-        var txtGroupName = new TextBox({
+        var txtGroupName = new ValidationTextBox({
             name: "txtGroupName",
-            value: "" /* no or empty value! */,
-            placeHolder: "Give your group a name"
+            value: groupName,
+            'class': 'groupName-textbox',
+            placeHolder: "Give your group a name",
+            required: "true"
         }, dom.byId('addGroupName_' + this.groupCounter));
         this.groupLayerName.push(txtGroupName);
 
-        this.createTableObject();
+        var txtGroupDesc = new TextBox({
+            name: "txtGroupDesc",
+            value: groupName,
+            'class': 'groupName-Desctextbox',
+            placeHolder: "Description for your group"
+        }, dom.byId('addGroupDesc_' + this.groupCounter));
+        this.groupLayerDesc.push(txtGroupDesc);
+
+        this.createTableObject(pParam);
 
         var addLayerNode = domConstruct.create("div",{
           id: 'addLyrDiv_' + this.groupCounter,
-          'class': 'group-block-add-layer'
+          'class': 'jimu-btn group-block-add-layer'
         });
         this.own(on(addLayerNode, "click", lang.hitch(this, function(evt) {
           this.addLayerRow(addLayerNode.id);
@@ -133,11 +188,11 @@ define([
 
       },
 
-      createTableObject: function() {
+      createTableObject: function(pParam) {
         var fields = null;
         fields = [{
           name: "layerCol",
-          title: "Layer",
+          title: "Layers",
           "class": "label",
           type: "empty"
         }, {
@@ -154,31 +209,37 @@ define([
         }];
 
         var args = {
-          fields: fields
+          fields: fields,
+          'class': 'layer-tables'
         };
         var layerTable = new SimpleTable(args);
         layerTable.placeAt(dom.byId('grpDiv_' + this.groupCounter));
         this.groupLayerContainer.push(layerTable);
 
-        this.addLayerRow(dom.byId('grpDiv_' + this.groupCounter).id);
+        if(typeof(pParam.group) !== 'undefined' && pParam.group !== null) {
+          array.forEach(pParam.group.layers, lang.hitch(this, function(layer) {
+            this.addLayerRow(dom.byId('grpDiv_' + this.groupCounter).id, layer);
+          }));
+        } else {
+          this.addLayerRow(dom.byId('grpDiv_' + this.groupCounter).id, pParam);
+        }
 
         //this.createLayerSelection();
       },
 
-      addLayerRow: function(pBlock) {
+      addLayerRow: function(pBlock, pParam) {
         var numPart = pBlock.substring(pBlock.indexOf('_')+1);
-
         var result = this.groupLayerContainer[numPart-1].addRow({});
         if (result.success && result.tr) {
           var tr = result.tr;
-          this.createLayerSelection(tr);
+          this.createLayerSelection(tr, pParam);
           // if (domClass.contains(this.btnOk, 'jimu-state-disabled')) {
           //   html.removeClass(this.btnOk, 'jimu-state-disabled');
           // }
         }
       },
 
-      createLayerSelection: function(tr) {
+      createLayerSelection: function(tr, pParam) {
         var ctlLayerList = [];
         array.forEach(this.layerList, lang.hitch(this, function(layer) {
           var lryObject = {};
@@ -195,17 +256,22 @@ define([
           }).placeAt(td);
 
           lyrSelect.startup();
-tr.layerCol = lyrSelect;
+          tr.layerCol = lyrSelect;
           this.own(on(lyrSelect, "change", lang.hitch(this, function(val) {
-            this.createFieldSelection(val, tr);
+            this.createFieldSelection(val, tr, pParam);
           })));
+
+          if(typeof(pParam) !== 'undefined') {
+            lyrSelect.set('value', pParam.layer);
+          }
+
         }
 
-        this.createFieldSelection(this.layerList[0].id, tr);
+        this.createFieldSelection(this.layerList[0].id, tr, pParam);
 
       },
 
-      createFieldSelection: function(pLayer, pTR) {
+      createFieldSelection: function(pLayer, pTR, pParam) {
         var ctlfieldList = [];
         array.forEach(this.layerList, lang.hitch(this, function(layer) {
           if(layer.id === pLayer) {
@@ -228,18 +294,60 @@ tr.layerCol = lyrSelect;
 
           fieldSelect.startup();
           pTR.fieldCol = fieldSelect;
+
+          if(typeof(pParam) !== 'undefined') {
+            fieldSelect.set('value', pParam.field);
+          }
+
         }
 
+      },
+
+      validateNoGroups: function(){
+        var validForm = false;
+        var message = 'You need atleast one group.';
+        array.forEach(this.groupLayerName, lang.hitch(this, function(groupName) {
+          if(groupName !== null) {
+            validForm = true;
+          }
+        }));
+        if(!validForm) {
+          new Message({
+            message : message
+          });
+          return false;
+        } else {
+          return true;
+        }
+      },
+
+      validateNoGroupsName: function(){
+        var validForm = true;
+        var message = 'One or more Group Names are missing.';
+        array.forEach(this.groupLayerName, lang.hitch(this, function(groupName) {
+          if(groupName !== null) {
+            if(!groupName.get('value')) {
+              new Message({
+                message : message
+              });
+              validForm = false;
+            }
+          }
+        }));
+        return validForm;
       },
 
       removeGroup: function(pBlock) {
         var numPart = pBlock.substring(pBlock.indexOf('_')+1);
         this.groupLayerContainer[numPart-1] = null;
         this.groupLayerName[numPart-1] = null;
-        //var result = this.groupLayerContainer[numPart-1].addRow({});
+        this.groupLayerDesc[numPart-1] = null;
+        dijit.byId('addGroupName_' + numPart).destroyRecursive(true);
+        dijit.byId('addGroupDesc_' + numPart).destroyRecursive(true);
+        domConstruct.destroy(dom.byId('addGroupDelete_' + numPart));
+        domConstruct.destroy(dom.byId('addLyrDiv_' + numPart));
         domConstruct.destroy(dom.byId('grpDiv_' + numPart));
       }
-
 
     });
   });

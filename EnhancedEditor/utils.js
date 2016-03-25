@@ -45,16 +45,20 @@ define([
     if (fieldInfo.type === "esriFieldTypeDate") {
       node = domConstruct.create("div", {
         innerHTML: lang.replace(
-          "<input class='ee-presetValue-input' name='{replace}' type='date'/>",
-          { replace: fieldInfo.fieldName })
+          "<input class='dijitReset dijitInputField dijitInputInner' name='{replace}' type='date'/>",
+          { replace: fieldInfo.fieldName }),
+        "class": "dijitReset atiField dijitTextBox"
       });
     } else {
       if (fieldInfo.domain) {
         // todo: when domain is not codedValue type
         // that is when the domain.type = codedValue
-        var domainValues = fieldInfo.domain.codedValues; 
-        node = domConstruct.create("select",
-          { "class": "ee-presetValue-input", "name": fieldInfo.fieldName });
+        var domainValues = fieldInfo.domain.codedValues;
+
+        node = domConstruct.create("select", {
+          "class": "dijitReset atiField dijitTextBox dijitInputField dijitInputInner", "name": fieldInfo.fieldName,
+        });
+          //{ "class": "dijitReset atiField dijitTextBox dijitInputInner", "name": fieldInfo.fieldName });
         // select options
         array.forEach(domainValues, function (dv) {
           domConstruct.place(lang.replace(
@@ -66,8 +70,9 @@ define([
           case "esriFieldTypeString":
             node = domConstruct.create("div", {
               innerHTML: lang.replace(
-                "<input class='ee-presetValue-input' name='{replace}' type='text'/>",
-                {replace: fieldInfo.fieldName})
+                "<input class='dijitReset dijitInputField dijitInputInner' name='{replace}' type='text'/>",
+                { replace: fieldInfo.fieldName }),
+              "class": "dijitReset atiField dijitTextBox"
             });
             break;
             // todo: check for more types
@@ -77,20 +82,20 @@ define([
           case "esriFieldTypeDouble":
             node = domConstruct.create("div", {
               innerHTML: lang.replace(
-                "<input class='ee-presetValue-input' name='{replace}' type='number'/>",
-                {replace: fieldInfo.fieldName})
+                "<input class='dijitReset dijitInputField dijitInputInner' name='{replace}' type='number'/>",
+                { replace: fieldInfo.fieldName }),
+              "class": "dijitReset atiField dijitTextBox"
             });
             break;
           default:
             node = domConstruct.create("div",
-              { "class": "ee-presetValue-empty", innerHTML: "N/A" });
+              { "class": "dijitReset atiField dijitTextBox", innerHTML: "N/A" });
             break;
         }
       }
     }
     return node;
   };
-
 
   mo.filterOnlyUpdatedAttributes = function (attributes, origAttributes) {
     if (!attributes || attributes.length < 1 ||

@@ -11,18 +11,15 @@
       <div>${nls.presetValueTitle}<br/><br/></div>
       <div class="presetFieldsTable" data-dojo-attach-point="presetFieldsTableNode"></div>
       <div class="spacer"></div>
-      <div id="savePresetValueSwitch" data-dojo-type="dojox/mobile/Switch"
-           class="mblSwDefaultShape"
-           leftLabel="ON" rightLabel="OFF" value="on"
-           data-dojo-attach-event="stateChanged:_savePresetFieldInfos"></div>
-      <!--<div class="jimu-btn savePresetFieldsButton" 
-           data-dojo-attach-event="click:_savePresetFieldInfos">${nls.savePresetValues}</div>-->
+      <div id="savePresetValueSwitch" data-dojo-type="dijit/form/ToggleButton"
+           label=${nls.disablePresetValues} showLabel="true"
+           checked="false" data-dojo-props="iconClass:'dijitCheckBoxIcon'"
+           data-dojo-attach-event="Change:_savePresetFieldInfos"></div>
     </div>
   </div>
   
   <div class="attributeInspectorMainDiv hide">
     <div class="topButtonsRowDiv"></div>
-    <!--<div class="jimu-btn deleteButton" data-dojo-attach-event="click:_savePresetFieldInfos">${nls.del}</div>-->
     <div class="spacer"></div>
     <div class="attributeInspectorDiv">
       <div class="eeAttributeInspector" data-dojo-attach-point="attributeInspectorNode"></div>

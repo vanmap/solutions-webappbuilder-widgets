@@ -112,6 +112,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
 
     createGroupSelection: function() {
         var ObjList = [];
+        var descLabel = '';
         array.forEach(this.config.groups, lang.hitch(this, function(group) {
           var grpObj = {};
           grpObj.value = group.name;
@@ -129,16 +130,22 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           this.resetLayerDef();
           this.removeAllRows();
           this.reconstructRows(val);
+          this.updateGroupDesc(val);
         })));
+        
+        if(typeof(this.config.groups[0]) !== 'undefined') {
+          descLabel = this.config.groups[0].desc;
+          this.groupDesc.innerHTML = descLabel; 
+        }
     },
 
     createOperatorSelection: function(pCell, pValue) {
         var ObjList = [
-          {'value': '=', 'label': 'EQ'},
-          {'value': '>', 'label': 'GT'},
-          {'value': '>=', 'label': 'GTE'},
-          {'value': '<=', 'label': 'LT'},
-          {'value': '<=', 'label': 'LTE'}
+          {'value': '=', 'label': this.nls.inputs.optionEQUAL},
+          {'value': '>', 'label': this.nls.inputs.optionGREATERTHAN},
+          {'value': '>=', 'label': this.nls.inputs.optionGREATERTHANEQUAL},
+          {'value': '<=', 'label': this.nls.inputs.optionLESSTHAN},
+          {'value': '<=', 'label': this.nls.inputs.optionLESSTHANEQUAL}
         ];
         var grpSelect = new Select({
           options: ObjList,
@@ -158,8 +165,8 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
     createConditionSelection: function(pCell, pValue) {
       domConstruct.empty(pCell);
         var ObjList = [
-          {'value': 'OR', 'label': 'OR'},
-          {'value': 'AND', 'label': 'AND'}
+          {'value': 'OR', 'label': this.nls.inputs.optionOR},
+          {'value': 'AND', 'label': this.nls.inputs.optionAND}
         ];
         var grpSelect = new Select({
           options: ObjList,
@@ -281,6 +288,14 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       }));
     },
 
+    updateGroupDesc: function(pParam) {
+      array.forEach(this.config.groups, lang.hitch(this, function(group) {
+        if(group.name === pParam) {
+          this.groupDesc.innerHTML = group.desc;  
+        }  
+      }));    
+    },
+
     //BEGIN: advance filter options
     toggleAdvMode: function() {
       var advNode = query(".advModeClose");
@@ -320,7 +335,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         var containerNode = query(".container");
         if(containerNode.length > 0) {
           domClass.replace(dom.byId("saveTD"), "saveTDClose", "saveTD");
-          containerNode.style("height", "55%");
+          containerNode.style("height", "50%");
           query(".saveContainer").style("display", "block");
         }
       } else {
@@ -330,7 +345,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           var containerNode = query(".container");
           if(containerNode.length > 0) {
             domClass.replace(dom.byId("saveTD"), "saveTD", "saveTDClose");
-            containerNode.style("height", "75%");
+            containerNode.style("height", "70%");
             query(".saveContainer").style("display", "none");
           }
         }
@@ -344,7 +359,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       on(saveDef, "complete", lang.hitch(this, function() {
         console.log("save done");
       }));
-      saveDef.exportsJson("MapFilterSettings.json", this.config);
+      saveDef.exportsJson(this.nls.files.jsonFile + ".json", this.config);
     },
 
     readJsonToConfig: function() {

@@ -1,7 +1,31 @@
 define({
   root: ({
     _widgetLabel: "Map Filter",
-    label1: "Map filtering widget"
+    label1: "Map filtering widget",
+    labels: {
+      selectGroup: "Select a group to filter",
+      criteriaHeading: "Filter Criteria",
+      uploadHeading: "Upload a Saved File",
+      saveHeading: "Save Current Settings"
+    },
+    buttons: {
+      save: "Save",
+      addCriteria: "Add Criteria",
+      applyCriteria: "Apply",
+      removeCriteria: "Cancel"
+    },
+    inputs: {
+      optionOR: "OR",
+      optionAND: "AND",
+      optionEQUAL: "EQ",
+      optionGREATERTHAN: "GT",
+      optionGREATERTHANEQUAL: "GTE",
+      optionLESSTHAN: "LT",
+      optionLESSTHANEQUAL: "LTE"
+    },
+    files: {
+      jsonFile: "MapFilterSettings"
+    }
   }),
   "ar": 0,
   "cs": 0,

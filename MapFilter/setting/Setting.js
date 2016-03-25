@@ -74,6 +74,7 @@ define([
               if(this.groupLayerContainer[i] !== null) {
                 var groupObj = {};
                 groupObj.name = utils.sanitizeHTML(groupName.value);
+                groupObj.desc = utils.sanitizeHTML(this.groupLayerDesc[i].value);
                 groupObj.layers = [];
 
                 var result = array.forEach(this.groupLayerContainer[i].getRows(), lang.hitch(this, function(row) {
@@ -153,24 +154,26 @@ define([
         dom.byId('addGroupDelete_' + this.groupCounter).innerHTML = "delete";
 
         var groupName = '';
+        var groupDesc = '';
         if(typeof(pParam.group) !== 'undefined' && pParam.group !== null) {
-          groupName =  pParam.group.name;
+          groupName = pParam.group.name;
+          groupDesc = pParam.group.desc;
         }
 
         var txtGroupName = new ValidationTextBox({
             name: "txtGroupName",
             value: groupName,
             'class': 'groupName-textbox',
-            placeHolder: "Give your group a name",
+            placeHolder: this.nls.inputs.groupName,
             required: "true"
         }, dom.byId('addGroupName_' + this.groupCounter));
         this.groupLayerName.push(txtGroupName);
 
         var txtGroupDesc = new TextBox({
             name: "txtGroupDesc",
-            value: groupName,
+            value: groupDesc,
             'class': 'groupName-Desctextbox',
-            placeHolder: "Description for your group"
+            placeHolder: this.nls.inputs.groupDesc
         }, dom.byId('addGroupDesc_' + this.groupCounter));
         this.groupLayerDesc.push(txtGroupDesc);
 
@@ -184,7 +187,7 @@ define([
           this.addLayerRow(addLayerNode.id);
         })));
         domConstruct.place(addLayerNode, dom.byId('grpDiv_' + this.groupCounter));
-        dom.byId('addLyrDiv_' + this.groupCounter).innerHTML = "Add Layer";
+        dom.byId('addLyrDiv_' + this.groupCounter).innerHTML = this.nls.buttons.addLayer;
 
       },
 
@@ -192,17 +195,17 @@ define([
         var fields = null;
         fields = [{
           name: "layerCol",
-          title: "Layers",
+          title: this.nls.tables.layer,
           "class": "label",
           type: "empty"
         }, {
           name: "fieldCol",
-          title: 'Fields',
+          title: this.nls.tables.field,
           "class": "label",
           type: "empty"
         }, {
           name: "actions",
-          title: "Actions",
+          title: this.nls.tables.action,
           type: "actions",
           actions: ["delete"],
           width: "125px"

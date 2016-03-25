@@ -9,7 +9,7 @@
 	border-width: 2px;
 	border-radius: 5px;
 	width: 100%;
-	height: 75%;
+	height: 70%;
 	position:relative;
 	overflow-y: auto;
 }
@@ -88,6 +88,10 @@
 .jimu-widget-map-filter .rowHeader {
 	background-color: #485566;
 	color: #ffffff;
+}
+
+.jimu-widget-map-filter .saveFunction {
+	margin-top: 5px;	
 }
 
 .jimu-widget-map-filter .tableRow {

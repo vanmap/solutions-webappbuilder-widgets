@@ -15,7 +15,12 @@ define({
 		tables: {
 		  layer: "Layers",
 		  field: "Fields",
+		  domain: "Use Domain",
 		  action: "Actions"
+		},
+		errors: {
+		  noGroups: "You need atleast one group.",
+		  noGroupName: "One or more Group Names are missing."
 		}
   })
 });

@@ -28,12 +28,13 @@ define([
   'dijit/form/Select',
   'dijit/form/TextBox',
   'dijit/form/ValidationTextBox',
+  'dijit/form/RadioButton',
   'dijit/registry',
   'jimu/utils',
   'jimu/LayerInfos/LayerInfos',
   'jimu/dijit/Message'
 ],
-  function(declare, BaseWidgetSetting, _WidgetsInTemplateMixin, SimpleTable, dom, domConstruct, on, query, lang, array, Select, TextBox, ValidationTextBox, registry, utils, LayerInfos, Message) {
+  function(declare, BaseWidgetSetting, _WidgetsInTemplateMixin, SimpleTable, dom, domConstruct, on, query, lang, array, Select, TextBox, ValidationTextBox, RadioButton, registry, utils, LayerInfos, Message) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
 
       //these two properties is defined in the BaseWidget
@@ -78,10 +79,22 @@ define([
                 groupObj.layers = [];
 
                 var result = array.forEach(this.groupLayerContainer[i].getRows(), lang.hitch(this, function(row) {
-                  groupObj.layers.push({
-                    'layer': row.layerCol.value,
-                    'field': row.fieldCol.value
-                  });
+                  var layerStruct = {};
+                  if(typeof(row.domainCol) !== 'undefined') {
+                    layerStruct.layer = row.layerCol.value;
+                    layerStruct.field = row.fieldCol.value;
+                    if(row.domainCol.checked) {                    
+                      layerStruct.useDomain = row.domainCol.value;
+                    } else {
+                      layerStruct.useDomain = '';  
+                    }
+                  } else {
+                    layerStruct.layer = row.layerCol.value;
+                    layerStruct.field = row.fieldCol.value;
+                    layerStruct.useDomain = '';                 
+                  }
+                  
+                  groupObj.layers.push(layerStruct);
                 }));
                 this.config.groups.push(groupObj);
               }
@@ -204,6 +217,11 @@ define([
           "class": "label",
           type: "empty"
         }, {
+          name: "domainCol",
+          title: this.nls.tables.domain,
+          "class": "label",
+          type: "empty"
+        }, {
           name: "actions",
           title: this.nls.tables.action,
           type: "actions",
@@ -235,14 +253,14 @@ define([
         var result = this.groupLayerContainer[numPart-1].addRow({});
         if (result.success && result.tr) {
           var tr = result.tr;
-          this.createLayerSelection(tr, pParam);
+          this.createLayerSelection(tr, pParam, numPart);
           // if (domClass.contains(this.btnOk, 'jimu-state-disabled')) {
           //   html.removeClass(this.btnOk, 'jimu-state-disabled');
           // }
         }
       },
 
-      createLayerSelection: function(tr, pParam) {
+      createLayerSelection: function(tr, pParam, pCounter) {
         var ctlLayerList = [];
         array.forEach(this.layerList, lang.hitch(this, function(layer) {
           var lryObject = {};
@@ -261,7 +279,7 @@ define([
           lyrSelect.startup();
           tr.layerCol = lyrSelect;
           this.own(on(lyrSelect, "change", lang.hitch(this, function(val) {
-            this.createFieldSelection(val, tr, pParam);
+            this.createFieldSelection(val, tr, pParam, pCounter);
           })));
 
           if(typeof(pParam) !== 'undefined') {
@@ -270,11 +288,11 @@ define([
 
         }
 
-        this.createFieldSelection(this.layerList[0].id, tr, pParam);
+        this.createFieldSelection(this.layerList[0].id, tr, pParam, pCounter);
 
       },
 
-      createFieldSelection: function(pLayer, pTR, pParam) {
+      createFieldSelection: function(pLayer, pTR, pParam, pCounter) {
         var ctlfieldList = [];
         array.forEach(this.layerList, lang.hitch(this, function(layer) {
           if(layer.id === pLayer) {
@@ -298,17 +316,78 @@ define([
           fieldSelect.startup();
           pTR.fieldCol = fieldSelect;
 
+          this.own(on(fieldSelect, "change", lang.hitch(this, function(val) {
+            this.domainRadio({layer: pLayer, field: val, row: pTR, param: pParam, counter: pCounter});
+          })));
+
           if(typeof(pParam) !== 'undefined') {
             fieldSelect.set('value', pParam.field);
           }
-
         }
+        this.domainRadio({
+          layer: pLayer, 
+          field: this.layerList[0].layerObject.fields[0], 
+          row: pTR, 
+          param: pParam,
+          counter: pCounter
+        });
 
       },
 
+      domainRadio: function(pParam) {
+        array.forEach(this.layerList, lang.hitch(this, function(layer) {
+          if(layer.id === pParam.layer) {
+            array.forEach(layer.layerObject.fields, lang.hitch(this, function(field) {
+              if(field.name === pParam.field) {
+                if(typeof(field.domain) !== 'undefined') {
+                  var td = query('.simple-table-cell', pParam.row)[2];
+                  if (td) {
+                    var content = query('.dijit', td)[0];
+                    if(content){
+                      existRadio = registry.byNode(content);                     
+                      dijit.byId(existRadio.id).destroyRecursive(true);                      
+                    }
+                    domConstruct.empty(td);
+                    var domainRadio = new RadioButton({
+                      name: 'useDomain' + pParam.counter
+                    }).placeAt(td);
+          
+                    domainRadio.startup();
+                    pParam.row.domainCol = domainRadio;
+          
+                    if(typeof(pParam) !== 'undefined') {
+                      if(typeof(pParam.param) !== 'undefined') {
+                        if(pParam.param.useDomain !== '') {  
+                          domainRadio.set('value', pParam.param.useDomain);
+                        }
+                      }
+                    }
+                  }                  
+                } else {
+                  
+                  
+                  var td = query('.simple-table-cell', pParam.row)[2];
+                  if (td) {
+                    var content = query('.dijit', td)[0];
+                    if(content){
+                      existRadio = registry.byNode(content);                     
+                      dijit.byId(existRadio.id).destroyRecursive(true);                      
+                    }                  
+                  }
+                  domConstruct.empty(td);
+                  
+                }    
+              }  
+            }));
+          }
+        })); 
+        
+      },
+
+
       validateNoGroups: function(){
         var validForm = false;
-        var message = 'You need atleast one group.';
+        var message = this.nls.errors.noGroups;
         array.forEach(this.groupLayerName, lang.hitch(this, function(groupName) {
           if(groupName !== null) {
             validForm = true;
@@ -326,7 +405,7 @@ define([
 
       validateNoGroupsName: function(){
         var validForm = true;
-        var message = 'One or more Group Names are missing.';
+        var message = this.nls.errors.noGroupName;
         array.forEach(this.groupLayerName, lang.hitch(this, function(groupName) {
           if(groupName !== null) {
             if(!groupName.get('value')) {

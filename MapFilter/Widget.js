@@ -30,6 +30,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
     defaultDef: [],
     runTimeConfig: null,
     isAdvMode: false,
+    useDomain: null,
 
     postCreate: function() {
       this.inherited(arguments);
@@ -62,6 +63,29 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
             this.createGroupSelection();
           }
         }));
+    },
+    
+    checkDomainUse: function(pParam) {
+      this.useDomain = null;
+      array.forEach(this.config.groups, lang.hitch(this, function(group) {
+        if(group.name === pParam.group) {
+          array.forEach(group.layers, lang.hitch(this, function(grpLayer) { 
+            array.forEach(this.layerList, lang.hitch(this, function(layer) {
+              if(grpLayer.layer === layer.id) {
+                array.forEach(layer.layerObject.fields, lang.hitch(this, function(field) {
+                  if(field.name === grpLayer.field) {
+                    if(grpLayer.useDomain !== "") {
+                      if(typeof(field.domain) !== 'undefined') {
+                        this.useDomain = field.domain;  
+                      }
+                    }
+                  }
+                }));
+              }    
+            }));  
+          }));   
+        }
+      }));      
     },
 
     createNewRow: function(pValue) {
@@ -129,9 +153,11 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         this.own(on(this.grpSelect, "change", lang.hitch(this, function(val) {
           this.resetLayerDef();
           this.removeAllRows();
+          this.checkDomainUse({group: val});
           this.reconstructRows(val);
           this.updateGroupDesc(val);
         })));
+        this.checkDomainUse({group: this.grpSelect.value});
         
         if(typeof(this.config.groups[0]) !== 'undefined') {
           descLabel = this.config.groups[0].desc;
@@ -155,11 +181,24 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
     },
 
     createTextBoxFilter: function(pCell, pValue) {
-      var txtFilterParam = new TextBox({
-          value: pValue.value /* no or empty value! */,
-          placeHolder: "Type in a Value"
-      }).placeAt(pCell);
-      txtFilterParam.startup();
+      if(this.useDomain !== null) {
+        domConstruct.empty(pCell);
+        var ObjList = [];
+        array.forEach(this.useDomain.codedValues, lang.hitch(this, function(codedVal) {
+          ObjList.push({'value': codedVal.code, 'label': codedVal.name});
+        }));
+        var domainSelect = new Select({
+          options: ObjList,
+        }).placeAt(pCell);
+        domainSelect.startup();
+        domainSelect.set('value', pValue.value);          
+      } else {
+        var txtFilterParam = new TextBox({
+            value: pValue.value /* no or empty value! */,
+            placeHolder: "Type in a Value"
+        }).placeAt(pCell);
+        txtFilterParam.startup();
+      }
     },
 
     createConditionSelection: function(pCell, pValue) {

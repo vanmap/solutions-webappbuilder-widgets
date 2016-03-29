@@ -67,8 +67,9 @@ define([
       getConfig: function() {
         var validGroups = this.validateNoGroups();
         var validGroupsNames = this.validateNoGroupsName();
+        var validTables = this.validateTableRows();
 
-        if(validGroups && validGroupsNames) {
+        if(validGroups && validGroupsNames && validTables) {
           this.config.groups = [];
           array.forEach(this.groupLayerName, lang.hitch(this, function(groupName, i) {
             if(groupName !== null) {
@@ -81,7 +82,6 @@ define([
                 var result = array.forEach(this.groupLayerContainer[i].getRows(), lang.hitch(this, function(row) {
                   var layerStruct = {};
                   if(typeof(row.domainCol) !== 'undefined') {
-                    console.log(row.domainCol);
                     layerStruct.layer = row.layerCol.value;
                     layerStruct.field = row.fieldCol.value;
                     if(row.domainCol.checked) {
@@ -422,6 +422,21 @@ define([
               validForm = false;
             }
           }
+        }));
+        return validForm;
+      },
+
+      validateTableRows: function() {
+        var validForm = true;
+        array.forEach(this.groupLayerContainer, lang.hitch(this, function(group) {
+        if(group !== null) {
+          if((group.getRows()).length <= 0) {
+            new Message({
+              message : this.nls.errors.noRows
+            });
+            validForm = false;
+          }
+        }
         }));
         return validForm;
       },

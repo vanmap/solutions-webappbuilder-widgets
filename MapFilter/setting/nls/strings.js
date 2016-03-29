@@ -2,7 +2,7 @@ define({
 	root: ({
 		configText: "Define Your Filter Groups Below",
 		labels: {
-		  
+
 		},
 		buttons: {
 		  addNewGroup: "Add a New Group",
@@ -20,7 +20,8 @@ define({
 		},
 		errors: {
 		  noGroups: "You need atleast one group.",
-		  noGroupName: "One or more Group Names are missing."
+		  noGroupName: "One or more Group Names are missing.",
+		  noRows: "You need atleast one row in the table."
 		}
   })
 });

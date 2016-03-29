@@ -81,19 +81,20 @@ define([
                 var result = array.forEach(this.groupLayerContainer[i].getRows(), lang.hitch(this, function(row) {
                   var layerStruct = {};
                   if(typeof(row.domainCol) !== 'undefined') {
+                    console.log(row.domainCol);
                     layerStruct.layer = row.layerCol.value;
                     layerStruct.field = row.fieldCol.value;
-                    if(row.domainCol.checked) {                    
+                    if(row.domainCol.checked) {
                       layerStruct.useDomain = row.domainCol.value;
                     } else {
-                      layerStruct.useDomain = '';  
+                      layerStruct.useDomain = '';
                     }
                   } else {
                     layerStruct.layer = row.layerCol.value;
                     layerStruct.field = row.fieldCol.value;
-                    layerStruct.useDomain = '';                 
+                    layerStruct.useDomain = '';
                   }
-                  
+
                   groupObj.layers.push(layerStruct);
                 }));
                 this.config.groups.push(groupObj);
@@ -110,6 +111,7 @@ define([
       createMapLayerList: function() {
         LayerInfos.getInstance(this.map, this.map.itemInfo)
           .then(lang.hitch(this, function(operLayerInfos) {
+            console.log(operLayerInfos);
             if(operLayerInfos._layerInfos && operLayerInfos._layerInfos.length > 0) {
               this.layerList = operLayerInfos._layerInfos;
               if(this.config.groups.length > 0) {
@@ -325,9 +327,9 @@ define([
           }
         }
         this.domainRadio({
-          layer: pLayer, 
-          field: this.layerList[0].layerObject.fields[0], 
-          row: pTR, 
+          layer: pLayer,
+          field: this.layerList[0].layerObject.fields[0],
+          row: pTR,
           param: pParam,
           counter: pCounter
         });
@@ -340,48 +342,53 @@ define([
             array.forEach(layer.layerObject.fields, lang.hitch(this, function(field) {
               if(field.name === pParam.field) {
                 if(typeof(field.domain) !== 'undefined') {
-                  var td = query('.simple-table-cell', pParam.row)[2];
-                  if (td) {
-                    var content = query('.dijit', td)[0];
-                    if(content){
-                      existRadio = registry.byNode(content);                     
-                      dijit.byId(existRadio.id).destroyRecursive(true);                      
-                    }
-                    domConstruct.empty(td);
-                    var domainRadio = new RadioButton({
-                      name: 'useDomain' + pParam.counter
-                    }).placeAt(td);
-          
-                    domainRadio.startup();
-                    pParam.row.domainCol = domainRadio;
-          
-                    if(typeof(pParam) !== 'undefined') {
-                      if(typeof(pParam.param) !== 'undefined') {
-                        if(pParam.param.useDomain !== '') {  
-                          domainRadio.set('value', pParam.param.useDomain);
+                  if(field.domain.type === 'codedValue') {
+                    var td = query('.simple-table-cell', pParam.row)[2];
+                    if (td) {
+                      var content = query('.dijit', td)[0];
+                      if(content){
+                        existRadio = registry.byNode(content);
+                        dijit.byId(existRadio.id).destroyRecursive();
+                      }
+                      domConstruct.empty(td);
+                      var domainRadio = new RadioButton({
+                        name: 'useDomain' + pParam.counter
+                      }).placeAt(td);
+
+                      domainRadio.startup();
+                      pParam.row.domainCol = domainRadio;
+
+                      if(typeof(pParam) !== 'undefined') {
+                        if(typeof(pParam.param) !== 'undefined') {
+                          if(pParam.param.useDomain !== '') {
+                            domainRadio.set('value', pParam.param.useDomain);
+                          }
                         }
                       }
                     }
-                  }                  
+                  }
                 } else {
-                  
-                  
+                  var row = pParam.row;
+                  if(typeof(row.domainCol) !== 'undefined') {
+                    row.domainCol.value = '';
+                  }
                   var td = query('.simple-table-cell', pParam.row)[2];
                   if (td) {
                     var content = query('.dijit', td)[0];
                     if(content){
-                      existRadio = registry.byNode(content);                     
-                      dijit.byId(existRadio.id).destroyRecursive(true);                      
-                    }                  
+                      existRadio = registry.byNode(content);
+                      dijit.byId(existRadio.id).destroyRecursive();
+                    }
                   }
-                  domConstruct.empty(td);
-                  
-                }    
-              }  
+                  //domConstruct.empty(td);
+
+
+                }
+              }
             }));
           }
-        })); 
-        
+        }));
+
       },
 
 

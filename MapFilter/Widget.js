@@ -64,28 +64,28 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           }
         }));
     },
-    
+
     checkDomainUse: function(pParam) {
       this.useDomain = null;
       array.forEach(this.config.groups, lang.hitch(this, function(group) {
         if(group.name === pParam.group) {
-          array.forEach(group.layers, lang.hitch(this, function(grpLayer) { 
+          array.forEach(group.layers, lang.hitch(this, function(grpLayer) {
             array.forEach(this.layerList, lang.hitch(this, function(layer) {
               if(grpLayer.layer === layer.id) {
                 array.forEach(layer.layerObject.fields, lang.hitch(this, function(field) {
                   if(field.name === grpLayer.field) {
                     if(grpLayer.useDomain !== "") {
                       if(typeof(field.domain) !== 'undefined') {
-                        this.useDomain = field.domain;  
+                        this.useDomain = field.domain;
                       }
                     }
                   }
                 }));
-              }    
-            }));  
-          }));   
+              }
+            }));
+          }));
         }
-      }));      
+      }));
     },
 
     createNewRow: function(pValue) {
@@ -158,10 +158,10 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           this.updateGroupDesc(val);
         })));
         this.checkDomainUse({group: this.grpSelect.value});
-        
+
         if(typeof(this.config.groups[0]) !== 'undefined') {
           descLabel = this.config.groups[0].desc;
-          this.groupDesc.innerHTML = descLabel; 
+          this.groupDesc.innerHTML = descLabel;
         }
     },
 
@@ -191,7 +191,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           options: ObjList,
         }).placeAt(pCell);
         domainSelect.startup();
-        domainSelect.set('value', pValue.value);          
+        domainSelect.set('value', pValue.value);
       } else {
         var txtFilterParam = new TextBox({
             value: pValue.value /* no or empty value! */,
@@ -293,10 +293,10 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
                 array.forEach(sqlParams, lang.hitch(this, function(p,i) {
                   array.forEach(layer.layerObject.fields, lang.hitch(this, function(field) {
                     if(field.name === grpLayer.field) {
-                      if((field.type).indexOf("String") > -1) {
-                        expr = expr + grpLayer.field + " " + p.operator + " '" + utils.sanitizeHTML(p.userValue) + "' " + p.conjunc + " ";
-                      } else {
+                      if(((field.type).indexOf("Integer") > -1) || (field.type).indexOf("Double") > -1) {
                         expr = expr + grpLayer.field + " " + p.operator + " " + utils.sanitizeHTML(p.userValue) + " " + p.conjunc + " ";
+                      } else {
+                        expr = expr + grpLayer.field + " " + p.operator + " '" + utils.sanitizeHTML(p.userValue) + "' " + p.conjunc + " ";
                       }
                       group.def.push({value: utils.sanitizeHTML(p.userValue), operator: p.operator, conjunc: p.conjunc});
                     }
@@ -330,9 +330,9 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
     updateGroupDesc: function(pParam) {
       array.forEach(this.config.groups, lang.hitch(this, function(group) {
         if(group.name === pParam) {
-          this.groupDesc.innerHTML = group.desc;  
-        }  
-      }));    
+          this.groupDesc.innerHTML = group.desc;
+        }
+      }));
     },
 
     //BEGIN: advance filter options

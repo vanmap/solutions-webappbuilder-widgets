@@ -34,14 +34,15 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
 
     postCreate: function() {
       this.inherited(arguments);
-      this.createMapLayerList();
+
     },
 
     startup: function() {
       this.inherited(arguments);
       //this.mapIdNode.innerHTML = 'map id:' + this.map.id;
       //this.createDivsForFilter();
-      this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
+      this.createMapLayerList();
+      //this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
     },
 
     btnNewRowAction: function() {
@@ -54,13 +55,18 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           if(operLayerInfos._layerInfos && operLayerInfos._layerInfos.length > 0) {
             this.layerList = operLayerInfos._layerInfos;
             array.forEach(operLayerInfos._layerInfos, lang.hitch(this, function(layer) {
-              if(typeof(layer.layerObject.getDefinitionExpression()) !== 'undefined' ) {
-                this.defaultDef.push({layer: layer.id, definition: layer.layerObject.getDefinitionExpression(), visible: layer.layerObject.visible});
+              if(layer.originOperLayer.layerType !== 'ArcGISTiledMapServiceLayer') {
+                if(typeof(layer.layerObject.getDefinitionExpression()) !== 'undefined' ) {
+                  this.defaultDef.push({layer: layer.id, definition: layer.layerObject.getDefinitionExpression(), visible: layer.layerObject.visible});
+                } else {
+                  this.defaultDef.push({layer: layer.id, definition: null, visible: layer.layerObject.visible});
+                }
               } else {
                 this.defaultDef.push({layer: layer.id, definition: null, visible: layer.layerObject.visible});
               }
             }));
             this.createGroupSelection();
+            this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
           }
         }));
     },
@@ -319,8 +325,14 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       array.forEach(this.layerList, lang.hitch(this, function(layer) {
         array.forEach(this.defaultDef, lang.hitch(this, function(def) {
           if(def.layer === layer.id ) {
-            layer.layerObject.setDefinitionExpression(def.definition);
-            layer.layerObject.setVisibility(def.visible);
+
+
+            if(layer.originOperLayer.layerType !== 'ArcGISTiledMapServiceLayer') {
+              layer.layerObject.setDefinitionExpression(def.definition);
+              layer.layerObject.setVisibility(def.visible);
+            } else {
+              layer.layerObject.setVisibility(def.visible);
+            }
             //this.defaultDef.push({layer: layer.id, definition: layer.layerObject.defaultDefinitionExpression});
           }
         }));

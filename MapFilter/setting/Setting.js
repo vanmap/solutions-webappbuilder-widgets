@@ -113,14 +113,14 @@ define([
           .then(lang.hitch(this, function(operLayerInfos) {
             console.log(operLayerInfos);
             if(operLayerInfos._layerInfos && operLayerInfos._layerInfos.length > 0) {
-              this.layerList = operLayerInfos._layerInfos;
-              if(this.config.groups.length > 0) {
-                array.forEach(this.config.groups, lang.hitch(this, function(group) {
-                  this.createGroupBlock({group: group});
-                }));
-              } else {
-                this.createGroupBlock({group: null});
-              }
+                this.layerList = operLayerInfos._layerInfos;
+                if(this.config.groups.length > 0) {
+                  array.forEach(this.config.groups, lang.hitch(this, function(group) {
+                    this.createGroupBlock({group: group});
+                  }));
+                } else {
+                  this.createGroupBlock({group: null});
+                }
             }
           }));
       },
@@ -222,7 +222,8 @@ define([
           name: "domainCol",
           title: this.nls.tables.domain,
           "class": "label",
-          type: "empty"
+          type: "empty",
+          width: "150px"
         }, {
           name: "actions",
           title: this.nls.tables.action,
@@ -265,11 +266,13 @@ define([
       createLayerSelection: function(tr, pParam, pCounter) {
         var ctlLayerList = [];
         array.forEach(this.layerList, lang.hitch(this, function(layer) {
+          if(layer.originOperLayer.layerType !== 'ArcGISTiledMapServiceLayer') {
           var lryObject = {};
           lryObject.value = layer.id;
           lryObject.label = layer.title;
           lryObject.selected = false;
           ctlLayerList.push(lryObject);
+          }
         }));
 
         var td = query('.simple-table-cell', tr)[0];
@@ -290,7 +293,7 @@ define([
 
         }
 
-        this.createFieldSelection(this.layerList[0].id, tr, pParam, pCounter);
+        this.createFieldSelection(lyrSelect.value, tr, pParam, pCounter);
 
       },
 
@@ -328,7 +331,7 @@ define([
         }
         this.domainRadio({
           layer: pLayer,
-          field: this.layerList[0].layerObject.fields[0],
+          field: fieldSelect.value,
           row: pTR,
           param: pParam,
           counter: pCounter

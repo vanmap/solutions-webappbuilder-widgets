@@ -8,13 +8,14 @@
     </div>
     <br/>
     <div class="presetFieldsTableDiv">
-      <div>${nls.presetValueTitle}<br/><br/></div>
+      <div>${nls.presetValueTitle}<br /><br /></div>
       <div class="presetFieldsTable" data-dojo-attach-point="presetFieldsTableNode"></div>
       <div class="spacer"></div>
-      <div id="savePresetValueSwitch" data-dojo-type="dijit/form/ToggleButton"
-           label=${nls.disablePresetValues} showLabel="true"
-           checked="false" data-dojo-props="iconClass:'dijitCheckBoxIcon'"
-           data-dojo-attach-event="Change:_savePresetFieldInfos"></div>
+      <div>
+        <input id="savePresetValueSwitch" data-dojo-type="dijit/form/CheckBox"
+               data-dojo-attach-event="change:_savePresetFieldInfos" />
+        <label for="savePresetValueSwitch">${nls.usePresetValues}</label>
+      </div>
     </div>
   </div>
   

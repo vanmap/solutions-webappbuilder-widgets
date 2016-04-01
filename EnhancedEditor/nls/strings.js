@@ -14,10 +14,8 @@ define({
     presetValueTitle: "Enter preset values (New features only)",
     presetFieldAlias: "Field",
     presetValue: "Preset Value",
-    enablePresetValues: "ENABLED",
-    disablePresetValues: "DISABLED",
-    enableGeometryEdit: "Enable Geometry Edit",
-    disableGeometryEdit: "Disable Geometry Edit"
+    usePresetValues: " Use Preset Values",
+    editGeometry: " Edit Geometry"
   }),
   "ar": 1,
   "cs": 1,

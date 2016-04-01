@@ -45,13 +45,20 @@ define([
     "dijit/registry",
 
     "./utils",
-    "dijit/form/ToggleButton"
+    "dijit/form/CheckBox",
+    'dijit/form/DateTextBox',
+  'dijit/form/NumberTextBox',
+  'dijit/form/FilteringSelect',
+  'dijit/form/TextBox',
+  'dojo/store/Memory'
+    //"dijit/form/ToggleButton"
   ],
   function(declare, event, lang, array, html, query, esriBundle, domConstruct, on, _WidgetsInTemplateMixin,
     BaseWidget, LayerInfos, TemplatePicker,
     AttributeInspector, Draw, Edit, Query, Graphic, FeatureLayer, ConfirmDialog, all, Deferred,
     SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, Color, registry,
-    editUtils, ToggleButton) {
+    editUtils, CheckBox, DateTextBox, NumberTextBox,
+  FilteringSelect, TextBox, Memory) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
       name: 'Edit',
       baseClass: 'jimu-widget-enhancedEditor', 
@@ -62,7 +69,6 @@ define([
 
       //_presetFieldInfos: null, // may be used if want to write out
       _presetFieldsTable: null,
-      //_layerEventHandlers: [],
       settings: null,
       templatePicker: null,
       attrInspector: null,
@@ -92,7 +98,6 @@ define([
 
       destroy: function () {
         this.inherited(arguments);
-        //this._disconnectLayerEventHandler();
 
         if (this.attrInspector) {
           this.attrInspector.destroy();
@@ -112,7 +117,6 @@ define([
       },
 
       _init: function () {
-        //this._layerEventHandlers = [];
         //this._presetFieldInfos = [];
         this._configEditor = lang.clone(this.config.editor);
       },
@@ -126,29 +130,10 @@ define([
       onDeActive: function () {
         if (this.map) {
           this.map.setInfoWindowOnClick(true);
-          //// resove any pending changes
-          //if (this.isDirty) {
-          //  this._resolvePendingEdit(false).then(lang.hitch(this, function (e) {
-          //    this.map.setInfoWindowOnClick(true);
-          //    this._disconnectLayerEventHandler();
-          //  }));
-          //} else {
-          //  this.map.setInfoWindowOnClick(true);
-          //  this._disconnectLayerEventHandler();
-          //}
         }
       },
 
       onOpen: function () {
-        //this._init();
-        //LayerInfos.getInstance(this.map, this.map.itemInfo)
-        //  .then(lang.hitch(this, function(operLayerInfos) {
-        //    this._jimuLayerInfos = operLayerInfos;
-        //    setTimeout(lang.hitch(this, function() {
-        //      this.widgetManager.activateWidget(this);
-        //      this._createEditor();
-        //    }), 1);
-        //  }));
       },
 
       _activateEditToolbar: function (feature) {
@@ -209,6 +194,16 @@ define([
       },
 
       _cancelEditingFeature: function () {
+        //this.updateFeatures.forEach(function (updateFeature) {
+        //  var layer = updateFeature.getLayer();
+        //  if (layer.originalLayerId) {
+        //    layer.clear();
+        //  }
+        //  layer.clearSelection();
+        //  layer.refresh();
+        //  updateFeature = null;
+        //});
+
         this.updateFeatures.forEach(function (updateFeature) {
           var layer = updateFeature.getLayer();
           if (layer.originalLayerId) {
@@ -217,7 +212,7 @@ define([
           layer.clearSelection();
           layer.refresh();
           updateFeature = null;
-        });
+        }, this);
 
         this.updateFeatures = [];
         this.currentFeature = null;
@@ -290,6 +285,15 @@ define([
         attrInspector.placeAt(this.attributeInspectorNode);
         attrInspector.startup();
 
+        // edit geometry toggle button
+        var editGeomSwitch = new CheckBox({
+          id: "editGeometrySwitch"
+        }, domConstruct.create("div"));
+
+        domConstruct.place(editGeomSwitch.domNode, attrInspector.deleteBtn.domNode, "before");
+        domConstruct.place(lang.replace("<label for='editGeometrySwitch'>{replace}</label></br></br>",
+          { replace: this.nls.editGeometry }), editGeomSwitch.domNode, "after");
+
         //add close/cancel/switch to template button
         var cancelButton = domConstruct.create("div", {
           innerHTML: this.nls.cancel,
@@ -301,19 +305,6 @@ define([
           innerHTML: this.nls.submit,
           "class": "validateButton jimu-btn"
         }, cancelButton, "after");
-
-        // edit geometry toggle button
-        var editGeomToggleButton = new ToggleButton({
-          id: "editGeometryToggleButton",
-          label: this.nls.disableGeometryEdit,
-          "class": "editGeomToggleBtn",
-          iconClass: "dijitCheckBoxIcon",
-          showLabel: true,
-          checked: false,
-        }, html.create("div"));
-
-        html.place(editGeomToggleButton.domNode, 
-          validateButton, "after");
 
         // create delete button if specified in the config
         if (this._configEditor.showDeleteButton) {
@@ -374,7 +365,7 @@ define([
           this._saveEdit(this.currentFeature);
         })));
 
-        this.own(on(editGeomToggleButton, 'Change', lang.hitch(this, this._editGeometry)));
+        this.own(on(editGeomSwitch, 'Change', lang.hitch(this, this._editGeometry)));
 
         // attribute inspector events
         this.own(on(attrInspector, "attribute-change", lang.hitch(this, function (evt) {
@@ -406,40 +397,6 @@ define([
 
         //
         this.editToolbar = new Edit(this.map);
-        //this.editToolbar.on("deactivate", function (evt) {
-        //  //evt.graphic.getLayer().applyEdits(null, [evt.graphic], null);
-        //  var x = evt.graphic;
-        //});
-
-        //layers.forEach(lang.hitch(this, function (layer) {
-        //  var editingEnabled = false;
-        //  var layerEvent = layer.on("dbl-click", lang.hitch(this, function (evt) {
-        //    event.stop(evt);
-        //    if (this.map.infoWindow.isShowing) {
-        //      this.map.infoWindow.hide();
-        //    }
-        //    if (editingEnabled === false) {
-        //      editingEnabled = true;
-        //      this._activateEditToolbar(layer, evt.graphic);
-        //      //this.editToolbar.activate(Edit.MOVE, evt.graphic);
-        //    } else {
-        //      currentLayer = this;
-        //      this.editToolbar.deactivate();
-        //      editingEnabled = false;
-        //    }
-        //  }));
-
-        //  //layer.on("click", function (evt) {
-        //  //  event.stop(evt);
-        //  //  if (evt.ctrlKey === true || evt.metaKey === true) {  //delete feature if ctrl key is depressed
-        //  //    layer.applyEdits(null, null, [evt.graphic]);
-        //  //    currentLayer = this;
-        //  //    this.editToolbar.deactivate();
-        //  //    editingEnabled = false;
-        //  //  }
-        //  //});
-        //  this._layerEventHandlers.push(layerEvent);
-        //}));
 
         //
         on(this.map, "click", lang.hitch(this, this._onMapClick));
@@ -461,10 +418,6 @@ define([
         this.templatePicker.on("selection-change", lang.hitch(this, function () {
           if (this.templatePicker.getSelected()) {
             this.selectedTemplate = this.templatePicker.getSelected();
-
-            //if (this.map) {
-            //  this.map.setInfoWindowOnClick(false);
-            //}
 
             switch (this.selectedTemplate.featureLayer.geometryType) {
               case "esriGeometryPoint":
@@ -496,42 +449,99 @@ define([
         }
       },
 
+      _createPresetFieldContentNode: function (fieldInfo) {
+        var node = null;
+        if (fieldInfo.type === "esriFieldTypeDate") {
+          node = new DateTextBox({
+            class: "ee-inputField",
+            onChange: this._turnPresetValueToggleOff,
+            name: fieldInfo.fieldName
+          }, domConstruct.create("div"));
+
+        } else {
+          if (fieldInfo.domain) {
+            // todo: when domain is not codedValue type
+            // that is when the domain.type = codedValue
+            var domainValues = fieldInfo.domain.codedValues;
+
+            var options = [];
+            array.forEach(domainValues, function (dv) {
+              options.push({ name: dv.name, id: dv.name });
+            });
+
+            node = new FilteringSelect({
+              class: "ee-inputField",
+              name: fieldInfo.fieldName,
+              onChange: this._turnPresetValueToggleOff,
+              store: new Memory({ data: options }),
+              searchAttr: "name"
+            }, domConstruct.create("div"));
+
+          } else {
+            switch (fieldInfo.type) {
+              case "esriFieldTypeString":
+                node = new TextBox({
+                  class: "ee-inputField",
+                  onChange: this._turnPresetValueToggleOff,
+                  name: fieldInfo.fieldName
+                }, domConstruct.create("div"));
+
+                break;
+                // todo: check for more types
+              case "esriFieldTypeSmallInteger":
+              case "esriFieldTypeInteger":
+              case "esriFieldTypeLong":
+              case "esriFieldTypeDouble":
+                node = new NumberTextBox({
+                  class: "ee-inputField",
+                  onChange: this._turnPresetValueToggleOff,
+                  name: fieldInfo.fieldName
+                }, domConstruct.create("div"));
+
+                break;
+              default:
+                node = new TextBox({
+                  class: "ee-unsupportField",
+                  name: fieldInfo.fieldName,
+                  value: "N/A",
+                  readOnly: true
+                }, domConstruct.create("div"));
+
+                break;
+            }
+          }
+        }
+        return node.domNode;
+      },
+
       _deleteFeature: function(){
         if(!this.currentFeature) { return; }
 
         var layer = this.currentFeature.getLayer();
         if (layer.url === null) {
           layer.clear();
+          this._turnEditGeometryToggleOff();
           this._showTemplate(true);
+          this.currentFeature = null; // ?
 
         } else {
           this.progressBar.domNode.style.display =  "block";
           layer.applyEdits(null, null, [this.currentFeature], lang.hitch(this, function (e) {
             this.progressBar.domNode.style.display = "none";
+            this._turnEditGeometryToggleOff();
             this._showTemplate(true);
-            //this.currentFeature = null;
+            this.currentFeature = null; //?
           }));
         }
         //this.isDirty = false;
       },
 
-      //_disconnectLayerEventHandler: function () {
-      //  if (!this._layerEventHandlers) { return; }
-
-      //  array.forEach(this._layerEventHandlers, function (layerEventHandler) {
-      //    if (layerEventHandler && layerEventHandler.remove) {
-      //      layerEventHandler.remove();
-      //    }
-      //  });
-      //  this._layerEventHandlers = [];
-      //},
-
       _editGeometry: function () {
         if (this._ignoreEditGeometryToggle) { return; }
 
-        var toggleBtn = registry.byId("editGeometryToggleButton");
+        var sw = registry.byId("editGeometrySwitch");
 
-        if (toggleBtn && toggleBtn.checked) {
+        if (sw && sw.checked) {
           this.map.setInfoWindowOnClick(false);
 
           if (this.map.infoWindow.isShowing) {
@@ -551,8 +561,6 @@ define([
           this.editToolbar.deactivate();
           this._editingEnabled = false;
         }
-        toggleBtn.set('label', toggleBtn.checked ? 
-          this.nls.enableGeometryEdit : this.nls.disableGeometryEdit);
       },
 
       _fillPresetValueTable: function () {
@@ -609,7 +617,7 @@ define([
             "<div class='alias-text-div' title='{fieldAlias}'>{fieldAlias}</div>",
             { fieldAlias: presetFieldInfo.label }), aliasColumnNode);
 
-          var presetValueNode = editUtils.createPresetFieldContentNode(presetFieldInfo);
+          var presetValueNode = this._createPresetFieldContentNode(presetFieldInfo);
 
           var valueColumnNode = domConstruct.create("td",
             { "class": "ee-presetValue-table-cell preset-value-editable" }, row);
@@ -618,10 +626,6 @@ define([
 
           query("#eePresetValueBody")[0].appendChild(row);
         }));
-
-        // register onchange event for editable fields in the preset values table
-        query(".preset-value-editable .dijitInputInner").on('change',
-          lang.hitch(this, this._turnPresetValueToggleOff));
       },
 
       _formatErrorFields: function (errObject) {
@@ -716,11 +720,11 @@ define([
         var headerRow = domConstruct.place("<tr></tr>", header);
 
         domConstruct.place(lang.replace(
-          "<th title='Field Alias' class='ee-presetValue-header-field'>{replace}</th>",
+          "<th title='Field Alias' class='ee-presetValue-label-header-field'>{replace}</th>",
           { replace: this.nls.presetFieldAlias }), headerRow);
 
         domConstruct.place(lang.replace(
-          "<th title='Preset Value' class='ee-presetValue-header-field'>{replace}</th>", 
+          "<th title='Preset Value' class='ee-presetValue-value-header-field'>{replace}</th>", 
           { replace: this.nls.presetValue }), headerRow);
 
         var bodyTable = domConstruct.create("table",
@@ -781,8 +785,7 @@ define([
       },
 
       _onMapClick: function (evt) {
-        if (!this._attrInspIsCurrentlyDisplayed) {
-        //if(evt.graphic){
+        if (!this._attrInspIsCurrentlyDisplayed && evt.graphic) {
           this._processOnMapClick(evt);
         }
       },
@@ -801,9 +804,10 @@ define([
               feature.attributes["OBJECTID"] = null;
               feature.symbol = null;
               featureLayer.applyEdits([feature]);
-              featureLayer.clearSelection();
+              //featureLayer.clearSelection(); // since after save, keep att Inspect displayed
+              //todo: select the feature
 
-              feature.getLayer().clear();
+              //feature.getLayer().clear();  //?
               feature = null;
               this.selectedTemplate = null;
 
@@ -903,6 +907,7 @@ define([
 
           all(deferreds).then(lang.hitch(this, function () {
             this.updateFeatures = updateFeatures;
+            this.currentFeature = this.updateFeatures[0]; //?
             this._showTemplate(false);
           }));
         }
@@ -916,7 +921,7 @@ define([
           content: "Would you like to save the current feature?",
           style: "width: 400px",
           onExecute: lang.hitch(this, function () {
-            this._saveEdit(switchToTemplate).then(function () {
+            this._saveEdit(this.currentFeature, switchToTemplate).then(function () {
               deferred.resolve();
             });
           }),
@@ -977,6 +982,7 @@ define([
               this._showTemplate(switchToTemplate);
             }
             //this.isDirty = false;
+            this._editingEnabled = false;
             this.editToolbar.deactivate();
             this._turnEditGeometryToggleOff();
             this.map.setInfoWindowOnClick(true);
@@ -991,15 +997,16 @@ define([
         return deferred.promise;
       },
 
-      _savePresetFieldInfos: function () {
+      _savePresetFieldInfos_usingToggleButton: function () {
         if (this._ignorePresetValueToggle) { return; }
 
-        var toggleBtn = registry.byId("savePresetValueSwitch");
+        //var toggleBtn = registry.byId("savePresetValueSwitch");
+        var sw = query("savePresetValueSwitch")[0];
         
         var presetValueTable = query("#eePresetValueBody")[0];
         if (presetValueTable) {
           var inputElements = presetValueTable.getElementsByClassName("dijitInputInner");
-          if (toggleBtn.checked) {
+          if (sw.checked) {
             array.forEach(inputElements, lang.hitch(this, function (element) {
               if (element.value) {
                 //// store to a memeber variable
@@ -1019,7 +1026,7 @@ define([
                 });
               }
             }));
-          } // end of toggleBtn.checked
+          } // end of sw.checked
           else {
             array.forEach(inputElements, lang.hitch(this, function (element) {
               if (element.value) {
@@ -1035,20 +1042,27 @@ define([
                 });
               }
             }));
-          }// end of toggleBtn.checked === false
-
-          toggleBtn.set('label', toggleBtn.checked ? this.nls.enablePresetValues : this.nls.disablePresetValues);
+          }// end of sw.checked === false
         }
       },
 
-      _savePresetFieldInfos_usingMobileSwitch: function () {
+      _savePresetFieldInfos: function () {
         var sw = registry.byId("savePresetValueSwitch");
         var presetValueTable = query("#eePresetValueBody")[0];
+
         if (presetValueTable) {
-          var inputElements = presetValueTable.getElementsByClassName("dijitInputInner");
-          if (sw.value === "on") {
-            array.forEach(inputElements, lang.hitch(this, function (element) {
-              if (element.value) {
+          var inputElements = query(".preset-value-editable .ee-inputField");
+          //var inputElements = presetValueTable.getElementsByClassName("ee-inputField");
+          if (sw.checked) {
+            //array.forEach(inputElements, lang.hitch(this, function (element) {
+            array.forEach(inputElements, lang.hitch(this, function (ele) {
+              // get deeper
+              var element = query("input[type='hidden']", ele);
+              if (!element || element.length === 0) {
+                element = query("input", ele);
+              }
+
+              if (element[0].value) {
                 //// store to a memeber variable
                 //this._presetFieldInfos.push({
                 //  "fieldName": fieldData.fieldName,
@@ -1059,8 +1073,8 @@ define([
                 // store to the settings
                 array.forEach(this.settings.layerInfos, function (layerInfo) {
                   for (var i = 0; i < layerInfo.featureLayer.templates.length; i++) {
-                    if (layerInfo.featureLayer.templates[i].prototype.attributes.hasOwnProperty(element.name)) {
-                      layerInfo.featureLayer.templates[i].prototype.attributes[element.name] = element.value;
+                    if (layerInfo.featureLayer.templates[i].prototype.attributes.hasOwnProperty(element[0].name)) {
+                      layerInfo.featureLayer.templates[i].prototype.attributes[element[0].name] = element[0].value;
                     }
                   }
                 });
@@ -1070,15 +1084,20 @@ define([
           } // end of sw.value === "on"
           else {
             // sw.value === "off"
-            array.forEach(inputElements, lang.hitch(this, function (element) {
-              if (element.value) {
+            array.forEach(inputElements, lang.hitch(this, function (ele) {
+              var element = query("input[type='hidden']", ele);
+              if (!element || element.length === 0) {
+                element = query("input", ele);
+              }
+
+              if (element[0].value) {
                 //// store to a memeber variable
 
                 // store to the settings
                 array.forEach(this.settings.layerInfos, function (layerInfo) {
                   for (var i = 0; i < layerInfo.featureLayer.templates.length; i++) {
-                    if (layerInfo.featureLayer.templates[i].prototype.attributes.hasOwnProperty(element.name)) {
-                      layerInfo.featureLayer.templates[i].prototype.attributes[element.name] = "";
+                    if (layerInfo.featureLayer.templates[i].prototype.attributes.hasOwnProperty(element[0].name)) {
+                      layerInfo.featureLayer.templates[i].prototype.attributes[element[0].name] = "";
                     }
                   }
                 });
@@ -1120,9 +1139,11 @@ define([
           //this.templatePicker.update();
           this.currentFeature = null;
           this.updateFeatures = [];
+          this.selectedTemplate = null; //?
 
           // 
           this.editToolbar.deactivate();
+          this._editingEnabled = false;
 
           this.map.setInfoWindowOnClick(false);
 
@@ -1144,31 +1165,24 @@ define([
       },
 
       _turnEditGeometryToggleOff: function () {
-        var toggleButton = registry.byId("editGeometryToggleButton");
-        if (toggleButton && toggleButton.checked) {
+        var sw = registry.byId("editGeometrySwitch");
+        if (sw && sw.checked) {
           this._ignoreEditGeometryToggle = true;
-          toggleButton.set("label", this.nls.disableGeometryEdit);
-          toggleButton.set("checked", false);
+          sw.set("checked", false);
           setTimeout(lang.hitch(this, function () {
             this._ignoreEditGeometryToggle = false;
-          }), 1);
+          }), 2);
         }
       },
 
       _turnPresetValueToggleOff: function () {
-        //// using dojox/mobile/switch
-        //var sw = registry.byId("savePresetValueSwitch");
-        //if (sw.value === "on") {
-        //  sw.set("value", "off");
-        //}
-        var toggleButton = registry.byId("savePresetValueSwitch");
-        if (toggleButton && toggleButton.checked) {
+        var sw = registry.byId("savePresetValueSwitch");
+        if (sw && sw.checked) {
           this._ignorePresetValueToggle = true;
-          toggleButton.set("label", this.nls.disablePresetValues);
-          toggleButton.set("checked", false);
+          sw.set("checked", false);
           setTimeout(lang.hitch(this, function () {
             this._ignorePresetValueToggle = false;
-          }), 1);
+          }), 2);
         }
       },
 

@@ -61,3 +61,17 @@
 .jimu-widget-enhancedEditor .ee-presetValueBodyTable {
     width: 100%;
 }
+
+.jimu-widget-enhancedEditor .ee-presetValue-label-header-field,
+.jimu-widget-enhancedEditor .field-alias-label {
+    width: 40%;
+}
+
+.jimu-widget-enhancedEditor .ee-presetValue-value-header-field ,
+.jimu-widget-enhancedEditor .preset-value-editable {
+    width:60%;
+}
+
+.jimu-widget-enhancedEditor .ee-inputField{
+    width: 100%;
+}

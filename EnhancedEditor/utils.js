@@ -21,7 +21,7 @@ define([
   'dojo/_base/array',
   'dojo/dom-construct',
   'esri/geometry/Extent'
-], function(lang, array, domConstruct, Extent) {
+], function (lang, array, domConstruct, Extent) {
 
   var mo = {};
 
@@ -38,63 +38,6 @@ define([
                       point.x + toleranceInMapCoords,
                       point.y + toleranceInMapCoords,
                       map.spatialReference);
-  };
-
-  mo.createPresetFieldContentNode = function (fieldInfo) {
-    var node = null;
-    if (fieldInfo.type === "esriFieldTypeDate") {
-      node = domConstruct.create("div", {
-        innerHTML: lang.replace(
-          "<input class='dijitReset dijitInputField dijitInputInner' name='{replace}' type='date'/>",
-          { replace: fieldInfo.fieldName }),
-        "class": "dijitReset atiField dijitTextBox"
-      });
-    } else {
-      if (fieldInfo.domain) {
-        // todo: when domain is not codedValue type
-        // that is when the domain.type = codedValue
-        var domainValues = fieldInfo.domain.codedValues;
-
-        node = domConstruct.create("select", {
-          "class": "dijitReset atiField dijitTextBox dijitInputField dijitInputInner", "name": fieldInfo.fieldName,
-        });
-          //{ "class": "dijitReset atiField dijitTextBox dijitInputInner", "name": fieldInfo.fieldName });
-        // select options
-        array.forEach(domainValues, function (dv) {
-          domConstruct.place(lang.replace(
-            "<option value='{replace}'>{replace}</option>",
-            { replace: dv.name }), node); // or dv.code?
-        });
-      } else {
-        switch (fieldInfo.type) {
-          case "esriFieldTypeString":
-            node = domConstruct.create("div", {
-              innerHTML: lang.replace(
-                "<input class='dijitReset dijitInputField dijitInputInner' name='{replace}' type='text'/>",
-                { replace: fieldInfo.fieldName }),
-              "class": "dijitReset atiField dijitTextBox"
-            });
-            break;
-            // todo: check for more types
-          case "esriFieldTypeSmallInteger":
-          case "esriFieldTypeInteger":
-          case "esriFieldTypeLong":
-          case "esriFieldTypeDouble":
-            node = domConstruct.create("div", {
-              innerHTML: lang.replace(
-                "<input class='dijitReset dijitInputField dijitInputInner' name='{replace}' type='number'/>",
-                { replace: fieldInfo.fieldName }),
-              "class": "dijitReset atiField dijitTextBox"
-            });
-            break;
-          default:
-            node = domConstruct.create("div",
-              { "class": "dijitReset atiField dijitTextBox", innerHTML: "N/A" });
-            break;
-        }
-      }
-    }
-    return node;
   };
 
   mo.filterOnlyUpdatedAttributes = function (attributes, origAttributes) {

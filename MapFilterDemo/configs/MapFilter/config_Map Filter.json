@@ -1,8 +1,8 @@
 {
   "groups": [
     {
-      "name": "Distribution by Circuit Name",
-      "desc": "Ex: Type in values RMT003 or RMT002",
+      "name": "Distribution By Circuit Name",
+      "desc": "Ex: Type values RMT003 or RMT002",
       "layers": [
         {
           "layer": "CircuitMap_8073",
@@ -43,7 +43,7 @@
     },
     {
       "name": "Distribution by Phase",
-      "desc": "Ex: Type in values 4 or 7",
+      "desc": "Ex: Type values 4 or 7",
       "layers": [
         {
           "layer": "CircuitMap_8073",
@@ -52,6 +52,11 @@
         },
         {
           "layer": "CircuitMap_1452",
+          "field": "PhaseDesignation",
+          "useDomain": ""
+        },
+        {
+          "layer": "CircuitMap_4599",
           "field": "PhaseDesignation",
           "useDomain": ""
         },
@@ -68,18 +73,18 @@
       ]
     },
     {
-      "name": "Conductor Type",
+      "name": "Conductor by Type",
       "desc": "Ex: Select a value from the drop down.",
       "layers": [
         {
           "layer": "CircuitMap_8073",
           "field": "ConductorType",
-          "useDomain": ""
+          "useDomain": "on"
         },
         {
           "layer": "CircuitMap_1452",
           "field": "ConductorType",
-          "useDomain": "on"
+          "useDomain": ""
         }
       ]
     }

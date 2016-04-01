@@ -84,11 +84,11 @@
         },
         "placeholderIndex": 1,
         "id": "_5",
-        "name": "MapFilter",
         "label": "Map Filter",
         "version": "1.4",
         "keepConfigAfterMapSwithched": false,
         "uri": "widgets/MapFilter/Widget",
+        "name": "MapFilter",
         "config": "configs/MapFilter/config_Map Filter.json"
       },
       {

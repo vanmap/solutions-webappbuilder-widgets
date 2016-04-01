@@ -1,0 +1,87 @@
+{
+  "groups": [
+    {
+      "name": "Distribution by Circuit Name",
+      "desc": "Ex: Type in values RMT003 or RMT002",
+      "layers": [
+        {
+          "layer": "CircuitMap_8073",
+          "field": "FeederID",
+          "useDomain": ""
+        },
+        {
+          "layer": "CircuitMap_1452",
+          "field": "FeederID",
+          "useDomain": ""
+        },
+        {
+          "layer": "CircuitMap_2256",
+          "field": "FeederID",
+          "useDomain": ""
+        },
+        {
+          "layer": "CircuitMap_1797",
+          "field": "FeederID",
+          "useDomain": ""
+        },
+        {
+          "layer": "CircuitMap_9282",
+          "field": "FeederID",
+          "useDomain": ""
+        },
+        {
+          "layer": "CircuitMap_7617",
+          "field": "FeederID",
+          "useDomain": ""
+        },
+        {
+          "layer": "CircuitMap_4599",
+          "field": "FeederID",
+          "useDomain": ""
+        }
+      ]
+    },
+    {
+      "name": "Distribution by Phase",
+      "desc": "Ex: Type in values 4 or 7",
+      "layers": [
+        {
+          "layer": "CircuitMap_8073",
+          "field": "PhaseDesignation",
+          "useDomain": ""
+        },
+        {
+          "layer": "CircuitMap_1452",
+          "field": "PhaseDesignation",
+          "useDomain": ""
+        },
+        {
+          "layer": "CircuitMap_9282",
+          "field": "PhaseDesignation",
+          "useDomain": ""
+        },
+        {
+          "layer": "CircuitMap_7617",
+          "field": "PhaseDesignation",
+          "useDomain": ""
+        }
+      ]
+    },
+    {
+      "name": "Conductor Type",
+      "desc": "Ex: Select a value from the drop down.",
+      "layers": [
+        {
+          "layer": "CircuitMap_8073",
+          "field": "ConductorType",
+          "useDomain": ""
+        },
+        {
+          "layer": "CircuitMap_1452",
+          "field": "ConductorType",
+          "useDomain": "on"
+        }
+      ]
+    }
+  ]
+}

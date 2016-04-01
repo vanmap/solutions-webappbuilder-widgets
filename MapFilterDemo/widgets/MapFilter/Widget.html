@@ -1,0 +1,51 @@
+<div>
+	<div data-dojo-attach-point="widgetIntro">
+		<div class="group-picker">
+			<table width="100%">
+				<tr>
+					<td class="groupHeader">${nls.labels.selectGroup}</td>
+					<td><div data-dojo-attach-point="groupPicker" id="groupPicker"></div></td>					
+					<td class="saveTD" id="saveTD" data-dojo-attach-event="click:toggleSaveFilter"></td>
+				</tr>
+				<tr>
+					<td colspan="3" id="groupDesc" data-dojo-attach-point="groupDesc"></td>
+				</tr>
+			</table>
+		</div>
+	</div>
+
+	<div class="container" data-dojo-attach-point="filterBlock" id="filterBlock">
+		<div class="filter-block" data-dojo-attach-point="filterBlockInner" id="filterBlockInner">
+			<table id="tblPredicates" class="tableFormat" border=0 cellspacing="0" cellpadding="0">
+				<tr class="rowHeader">
+					<td class="tdOperatorHide"><a class="advModeOffset" data-dojo-attach-event="click:toggleAdvMode"></a></td>
+					<td class="tdValue"><a class="advModeClose" data-dojo-attach-event="click:toggleAdvMode"></a> ${nls.labels.criteriaHeading}</td>
+					<td class="tdConjunction"></td>
+					<td class="tdRemove"></td>
+				</tr>
+			</table>
+		</div>
+	</div>
+
+	<div class="saveContainer" data-dojo-attach-point="saveBlock" id="saveBlock">
+		<div class="save-block" data-dojo-attach-point="saveBlockInner" id="saveBlockInner">
+			<table id="tblSave" class="tableFormat" border=0 cellspacing="0" cellpadding="0">
+				<tr class="rowHeader">
+					<td class="loadProgressHeader"></td>
+					<td class="tdLoad">${nls.labels.uploadHeading}</td>
+					<td class="tdSave">${nls.labels.saveHeading}</td>
+				</tr>
+				<tr>
+					<td class="loadProgressShow" id="tdProgress"></td>
+					<td class="tdLoad"><input type="file" id="jsonFileInput" data-dojo-attach-point="jsonFileInput" data-dojo-attach-event="change:readJsonToConfig" accept=".json"></td>
+					<td class="tdSave"><div class="jimu-btn saveFunction" data-dojo-attach-event="click:saveJsonToFile" >${nls.buttons.save}</div></td>
+				</tr>
+			</table>
+		</div>
+	</div>
+
+	<div class="spacer"></div>
+	<div class="jimu-btn filter-add-criteria" data-dojo-attach-event="click:btnNewRowAction">${nls.buttons.addCriteria}</div>
+	<div class="jimu-btn filter-button-apply" data-dojo-attach-event="click:setFilterLayerDef">${nls.buttons.applyCriteria}</div>
+	<div class="jimu-btn filter-button-cancel" data-dojo-attach-event="click:resetLayerDef">${nls.buttons.removeCriteria}</div>
+</div>

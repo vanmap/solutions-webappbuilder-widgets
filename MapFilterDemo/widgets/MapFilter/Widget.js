@@ -15,8 +15,8 @@ define([
   'dijit/registry',
   'jimu/LayerInfos/LayerInfos',
   'jimu/utils',
-  './SaveJson',
-  './ReadJson'
+  './SavJSON',
+  './ReadJSON'
 ],
 function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domConstruct, domClass, on, query, lang, array, Select, TextBox, registry, LayerInfos, utils, saveJson, readJson) {
   //To create a widget, you need to derive from BaseWidget.

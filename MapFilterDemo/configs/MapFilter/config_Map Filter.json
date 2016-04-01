@@ -42,37 +42,6 @@
       ]
     },
     {
-      "name": "Distribution by Phase",
-      "desc": "Ex: Type values 4 or 7",
-      "layers": [
-        {
-          "layer": "CircuitMap_8073",
-          "field": "PhaseDesignation",
-          "useDomain": ""
-        },
-        {
-          "layer": "CircuitMap_1452",
-          "field": "PhaseDesignation",
-          "useDomain": ""
-        },
-        {
-          "layer": "CircuitMap_4599",
-          "field": "PhaseDesignation",
-          "useDomain": ""
-        },
-        {
-          "layer": "CircuitMap_9282",
-          "field": "PhaseDesignation",
-          "useDomain": ""
-        },
-        {
-          "layer": "CircuitMap_7617",
-          "field": "PhaseDesignation",
-          "useDomain": ""
-        }
-      ]
-    },
-    {
       "name": "Conductor by Type",
       "desc": "Ex: Select a value from the drop down.",
       "layers": [

@@ -78,9 +78,9 @@ define([
       updateFeatures: [],
       currentFeature: null,
       _attrInspIsCurrentlyDisplayed: false,
-      _ignorePresetValueToggle: false,
       _ignoreEditGeometryToggle: false,
       _editingEnabled: false,
+      _presetValueDirty: false,
 
       postCreate: function () {
         this.inherited(arguments);
@@ -171,7 +171,7 @@ define([
 
           // preparation for a new attributeInspector for the local layer
           myLayer = this._cloneLayer(this.selectedTemplate.featureLayer);
-          this._setSelectionSymbol(myLayer);
+          myLayer.setSelectionSymbol(this._getSelectionSymbol(myLayer.geometryType, false));
 
           var localLayerInfo = this._getLayerInfoForLocalLayer(myLayer);
           var newTempLayerInfos = this._converConfiguredLayerInfos([localLayerInfo]);
@@ -376,7 +376,18 @@ define([
         })));
 
         this.own(on(attrInspector, "next", lang.hitch(this, function (evt) {
-          this.currentFeature = evt.feature;
+
+          if (this.updateFeatures && this.updateFeatures.length > 1) {
+            array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
+              feature.setSymbol(this._getSelectionSymbol(feature.getLayer().geometryType, false));
+            }));
+          }
+
+          if (evt.feature) {
+            this.currentFeature = evt.feature;
+
+            this.currentFeature.setSymbol(this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
+          }
         })));
 
         //remove default delete button
@@ -395,17 +406,15 @@ define([
 
         this._workBeforeCreate();
 
-        //
         this.editToolbar = new Edit(this.map);
 
-        //
         on(this.map, "click", lang.hitch(this, this._onMapClick));
 
         //create template picker
         this.templatePicker = new TemplatePicker({
           featureLayers: layers,
           rows: "auto",
-          columns: 2,
+          columns: "auto",
           grouping: true,
           style: "height: auto, overflow: auto;"
         }, html.create("div")); 
@@ -415,8 +424,13 @@ define([
         var drawToolbar = new Draw(this.map);
 
         // wire up events
-        this.templatePicker.on("selection-change", lang.hitch(this, function () {
+        this.own(on(this.templatePicker, "selection-change", lang.hitch(this, function(){
           if (this.templatePicker.getSelected()) {
+            // save the preset values if needed
+            if (this._presetValueDirty) {
+              this._savePresetFieldInfos();
+            }
+
             this.selectedTemplate = this.templatePicker.getSelected();
 
             switch (this.selectedTemplate.featureLayer.geometryType) {
@@ -431,7 +445,7 @@ define([
                 break;
             }
           }
-        }));
+        })));
 
         drawToolbar.on("draw-end", lang.hitch(this, function (evt) {
           drawToolbar.deactivate();
@@ -454,7 +468,7 @@ define([
         if (fieldInfo.type === "esriFieldTypeDate") {
           node = new DateTextBox({
             class: "ee-inputField",
-            onChange: this._turnPresetValueToggleOff,
+            onChange: lang.hitch(this, function(){this._presetValueDirty = true;}),
             name: fieldInfo.fieldName
           }, domConstruct.create("div"));
 
@@ -472,7 +486,7 @@ define([
             node = new FilteringSelect({
               class: "ee-inputField",
               name: fieldInfo.fieldName,
-              onChange: this._turnPresetValueToggleOff,
+              onChange: lang.hitch(this, function () { this._presetValueDirty = true; }),
               store: new Memory({ data: options }),
               searchAttr: "name"
             }, domConstruct.create("div"));
@@ -482,7 +496,7 @@ define([
               case "esriFieldTypeString":
                 node = new TextBox({
                   class: "ee-inputField",
-                  onChange: this._turnPresetValueToggleOff,
+                  onChange: lang.hitch(this, function () { this._presetValueDirty = true; }),
                   name: fieldInfo.fieldName
                 }, domConstruct.create("div"));
 
@@ -494,7 +508,7 @@ define([
               case "esriFieldTypeDouble":
                 node = new NumberTextBox({
                   class: "ee-inputField",
-                  onChange: this._turnPresetValueToggleOff,
+                  onChange: lang.hitch(this, function () { this._presetValueDirty = true; }),
                   name: fieldInfo.fieldName
                 }, domConstruct.create("div"));
 
@@ -692,6 +706,51 @@ define([
         return layerInfo;
       },
 
+      _getSelectionSymbol: function (geometryType, highlight) {
+        if (!geometryType || geometryType === "") { return null; }
+
+        var selectionSymbol;
+        switch (geometryType) {
+          case "esriGeometryPoint":
+            if (highlight) {
+              selectionSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE,
+                                20,
+                                new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
+                                    new Color([0, 255, 255, 1]), 2),
+                                new Color([0, 255, 0, 0.15]));
+            } else {
+              selectionSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE,
+                                20,
+                                new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
+                                    new Color([255, 0, 0]), 1),
+                                new Color([0, 255, 0, 0.15]));
+            }
+            break;
+          case "esriGeometryPolyline":
+            if (highlight) {
+              selectionSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
+                                    new Color([0, 255, 255, 1]), 2);
+            } else {
+              selectionSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
+                                    new Color([255, 0, 0]), 1);
+            }
+            break;
+          case "esriGeometryPolygon":
+            selectionSymbol = new SimpleFillSymbol().setColor(new Color([255, 255, 0, 0.5]));
+            var line;
+            if (highlight) {
+              line = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
+              new Color([0, 255, 255, 1]), 2);
+            } else {
+              line = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
+              new Color([92, 92, 92, 1]), 1);
+            }
+            selectionSymbol.setOutline(line);
+            break;
+        }
+        return selectionSymbol;
+      },
+
       _hasPresetValueFields: function () {
         for (var i = 0; i < this.settings.layerInfos.length; i++) {
           var found = this.settings.layerInfos[i].fieldInfos.some(function (fi) {
@@ -802,13 +861,12 @@ define([
             if (featureLayer) {
               // modify some attributes before calling applyEdits
               feature.attributes["OBJECTID"] = null;
-              feature.symbol = null;
               featureLayer.applyEdits([feature]);
               //featureLayer.clearSelection(); // since after save, keep att Inspect displayed
               //todo: select the feature
 
               //feature.getLayer().clear();  //?
-              feature = null;
+              //feature = null;  // ?
               this.selectedTemplate = null;
 
               deferred.resolve("success");
@@ -885,10 +943,11 @@ define([
 
           var updateFeatures = [];
           var deferreds = [];
+          this.currentFeature = null;
 
           layers.forEach(lang.hitch(this, function (layer) {
             // set selection symbol
-            this._setSelectionSymbol(layer);
+            layer.setSelectionSymbol(this._getSelectionSymbol(layer.geometryType, false));
 
             var selectQuery = new Query();
             selectQuery.geometry = editUtils.pointToExtent(this.map, evt.mapPoint, 40);
@@ -907,7 +966,6 @@ define([
 
           all(deferreds).then(lang.hitch(this, function () {
             this.updateFeatures = updateFeatures;
-            this.currentFeature = this.updateFeatures[0]; //?
             this._showTemplate(false);
           }));
         }
@@ -976,8 +1034,10 @@ define([
         var errorObj = this._validateRequiredFields();
 
         if (editUtils.isObjectEmpty(errorObj)) {
+          this.progressBar.domNode.style.display = "block";
           // call applyEdit
           this._postChanges(feature).then(lang.hitch(this, function () {
+            this.progressBar.domNode.style.display = "none";
             if (switchToTemplate !== undefined) {
               this._showTemplate(switchToTemplate);
             }
@@ -997,66 +1057,16 @@ define([
         return deferred.promise;
       },
 
-      _savePresetFieldInfos_usingToggleButton: function () {
-        if (this._ignorePresetValueToggle) { return; }
-
-        //var toggleBtn = registry.byId("savePresetValueSwitch");
-        var sw = query("savePresetValueSwitch")[0];
-        
-        var presetValueTable = query("#eePresetValueBody")[0];
-        if (presetValueTable) {
-          var inputElements = presetValueTable.getElementsByClassName("dijitInputInner");
-          if (sw.checked) {
-            array.forEach(inputElements, lang.hitch(this, function (element) {
-              if (element.value) {
-                //// store to a memeber variable
-                //this._presetFieldInfos.push({
-                //  "fieldName": fieldData.fieldName,
-                //  "label": fieldData.label,
-                //  "presetValue": fieldData.presetValue
-                //});
-
-                // store to the settings
-                array.forEach(this.settings.layerInfos, function (layerInfo) {
-                  for (var i = 0; i < layerInfo.featureLayer.templates.length; i++) {
-                    if (layerInfo.featureLayer.templates[i].prototype.attributes.hasOwnProperty(element.name)) {
-                      layerInfo.featureLayer.templates[i].prototype.attributes[element.name] = element.value;
-                    }
-                  }
-                });
-              }
-            }));
-          } // end of sw.checked
-          else {
-            array.forEach(inputElements, lang.hitch(this, function (element) {
-              if (element.value) {
-                //// store to a memeber variable
-
-                // store to the settings
-                array.forEach(this.settings.layerInfos, function (layerInfo) {
-                  for (var i = 0; i < layerInfo.featureLayer.templates.length; i++) {
-                    if (layerInfo.featureLayer.templates[i].prototype.attributes.hasOwnProperty(element.name)) {
-                      layerInfo.featureLayer.templates[i].prototype.attributes[element.name] = "";
-                    }
-                  }
-                });
-              }
-            }));
-          }// end of sw.checked === false
-        }
-      },
-
       _savePresetFieldInfos: function () {
         var sw = registry.byId("savePresetValueSwitch");
         var presetValueTable = query("#eePresetValueBody")[0];
 
         if (presetValueTable) {
           var inputElements = query(".preset-value-editable .ee-inputField");
-          //var inputElements = presetValueTable.getElementsByClassName("ee-inputField");
           if (sw.checked) {
-            //array.forEach(inputElements, lang.hitch(this, function (element) {
             array.forEach(inputElements, lang.hitch(this, function (ele) {
-              // get deeper
+              // for some dijit controls, value is in the input of type hidden,
+              // some not
               var element = query("input[type='hidden']", ele);
               if (!element || element.length === 0) {
                 element = query("input", ele);
@@ -1080,10 +1090,8 @@ define([
                 });
               }
             }));
-            //sw.set("value", "on");
           } // end of sw.value === "on"
           else {
-            // sw.value === "off"
             array.forEach(inputElements, lang.hitch(this, function (ele) {
               var element = query("input[type='hidden']", ele);
               if (!element || element.length === 0) {
@@ -1104,30 +1112,9 @@ define([
               }
             }));
           }// end of sw.value === "off"
+          //
+          this._presetValueDirty = false;
         }
-      },
-
-      _setSelectionSymbol: function (layer) {
-        if (!layer) { return; }
-
-        var selectionSymbol;
-        switch (layer.geometryType) {
-          case "esriGeometryPoint":
-            selectionSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE,
-                              20,
-                              new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
-                                  new Color([255, 0, 0]), 1),
-                              new Color([0, 255, 0, 0.15]));
-            break;
-          case "esriGeometryPolyline":
-            selectionSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
-                                  new Color([255, 0, 0]), 1);
-            break;
-          case "esriGeometryPolygon":
-            selectionSymbol = new SimpleFillSymbol().setColor(new Color([255, 255, 0, 0.5]));
-            break;
-        }
-        layer.setSelectionSymbol(selectionSymbol);
       },
 
       _showTemplate: function (showTemplate) {
@@ -1141,7 +1128,6 @@ define([
           this.updateFeatures = [];
           this.selectedTemplate = null; //?
 
-          // 
           this.editToolbar.deactivate();
           this._editingEnabled = false;
 
@@ -1171,17 +1157,6 @@ define([
           sw.set("checked", false);
           setTimeout(lang.hitch(this, function () {
             this._ignoreEditGeometryToggle = false;
-          }), 2);
-        }
-      },
-
-      _turnPresetValueToggleOff: function () {
-        var sw = registry.byId("savePresetValueSwitch");
-        if (sw && sw.checked) {
-          this._ignorePresetValueToggle = true;
-          sw.set("checked", false);
-          setTimeout(lang.hitch(this, function () {
-            this._ignorePresetValueToggle = false;
           }), 2);
         }
       },

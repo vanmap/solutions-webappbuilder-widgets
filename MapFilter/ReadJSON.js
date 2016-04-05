@@ -10,7 +10,7 @@ define([
 ],
 function (Evented, declare, Deferred, html, has, lang, utils, Message) {
 return declare([Evented], {
-  declaredClass : 'readJson',
+  declaredClass : 'readJSON',
   config : null,
   jsonFile: null,
 

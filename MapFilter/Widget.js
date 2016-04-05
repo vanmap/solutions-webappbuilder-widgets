@@ -15,10 +15,11 @@ define([
   'dijit/registry',
   'jimu/LayerInfos/LayerInfos',
   'jimu/utils',
-  './SaveJson',
-  './ReadJson'
+  './SaveJSON',
+  './ReadJSON',
+  './LayersHandler'
 ],
-function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domConstruct, domClass, on, query, lang, array, Select, TextBox, registry, LayerInfos, utils, saveJson, readJson) {
+function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domConstruct, domClass, on, query, lang, array, Select, TextBox, registry, LayerInfos, utils, saveJson, readJson, LayersHandler) {
   //To create a widget, you need to derive from BaseWidget.
   return declare([BaseWidget, _WidgetsInTemplateMixin], {
 
@@ -54,19 +55,27 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         .then(lang.hitch(this, function(operLayerInfos) {
           if(operLayerInfos._layerInfos && operLayerInfos._layerInfos.length > 0) {
             this.layerList = operLayerInfos._layerInfos;
-            array.forEach(operLayerInfos._layerInfos, lang.hitch(this, function(layer) {
-              if(layer.originOperLayer.layerType !== 'ArcGISTiledMapServiceLayer') {
-                if(typeof(layer.layerObject.getDefinitionExpression()) !== 'undefined' ) {
-                  this.defaultDef.push({layer: layer.id, definition: layer.layerObject.getDefinitionExpression(), visible: layer.layerObject.visible});
-                } else {
-                  this.defaultDef.push({layer: layer.id, definition: null, visible: layer.layerObject.visible});
-                }
-              } else {
-                this.defaultDef.push({layer: layer.id, definition: null, visible: layer.layerObject.visible});
-              }
-            }));
-            this.createGroupSelection();
-            this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
+
+                array.forEach(this.layerList, lang.hitch(this, function(layer) {
+
+                  if(typeof(layer.layerObject.defaultDefinitionExpression) !== 'undefined' &&
+                    typeof(layer.layerObject.getDefinitionExpression()) === 'function' ) {
+                    this.defaultDef.push({layer: layer.id, definition: layer.layerObject.getDefinitionExpression(), visible: layer.layerObject.visible});
+                  }
+                  else if(typeof(layer.layerObject.layerDefinitions) !== 'undefined') {
+                    this.defaultDef.push({layer: layer.id, definition: layer.layerObject.layerDefinitions, visible: layer._visible});
+                  }
+                  else {
+                    this.defaultDef.push({layer: layer.id, definition: "1=1", visible: layer.layerObject.visible});
+                  }
+
+                                  console.log(layer);
+                console.log(this.defaultDef);
+
+
+                }));
+                this.createGroupSelection();
+                this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
           }
         }));
     },
@@ -292,10 +301,13 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       array.forEach(this.layerList, lang.hitch(this, function(layer) {
         array.forEach(this.config.groups, lang.hitch(this, function(group) {
           if(this.grpSelect.value === group.name) {
+            var msExpr = [];
             array.forEach(group.layers, lang.hitch(this, function(grpLayer) {
+              var expr = '';
+              var filterType = "";
+              group.def = [];
               if(layer.id === grpLayer.layer) {
-                var expr = '';
-                group.def = [];
+                filterType = "FeatureLayer";
                 array.forEach(sqlParams, lang.hitch(this, function(p,i) {
                   array.forEach(layer.layerObject.fields, lang.hitch(this, function(field) {
                     if(field.name === grpLayer.field) {
@@ -308,11 +320,38 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
                     }
                   }));
                 }));
+              }
+              else if(grpLayer.layer.indexOf(layer.id) >= 0) {  //if it's a map service, sublayers .x is appended. so check if the root layerID is there
+                filterType = "MapService";
+                var msSubs = (grpLayer.layer).split(".");
+                array.forEach(sqlParams, lang.hitch(this, function(p) {
+                  if(((grpLayer.dataType).indexOf("Integer") > -1) || (grpLayer.dataType).indexOf("Double") > -1) {
+                    expr = expr + grpLayer.field + " " + p.operator + " " + utils.sanitizeHTML(p.userValue) + " " + p.conjunc + " ";
+                  } else {
+                    expr = expr + grpLayer.field + " " + p.operator + " '" + utils.sanitizeHTML(p.userValue) + "' " + p.conjunc + " ";
+                  }
+
+                  group.def.push({value: utils.sanitizeHTML(p.userValue), operator: p.operator, conjunc: p.conjunc});
+                }));
+                msExpr[msSubs[1]] = expr.trim();
+              }
+              else {
+
+              }
+              if(filterType === "FeatureLayer") {
                 console.log(expr);
                 if(expr !== "") {
-                  layer.layerObject.setDefinitionExpression(expr);
+                  layer.layerObject.setDefinitionExpression(expr.trim());
                   layer.layerObject.setVisibility(true);
                 }
+              } else if(filterType === "MapService") {
+                console.log(msExpr);
+                if(msExpr.length > 0) {
+                  layer.layerObject.setLayerDefinitions(msExpr);
+                  layer.layerObject.setVisibility(true);
+                }
+              } else {
+                //do nothing, not a valid service
               }
             }));
           this._publishData(group);
@@ -326,13 +365,17 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         array.forEach(this.defaultDef, lang.hitch(this, function(def) {
           if(def.layer === layer.id ) {
 
-
-            if(layer.originOperLayer.layerType !== 'ArcGISTiledMapServiceLayer') {
+            if(typeof(layer.layerObject.defaultDefinitionExpression) !== 'undefined'){
               layer.layerObject.setDefinitionExpression(def.definition);
-              layer.layerObject.setVisibility(def.visible);
-            } else {
-              layer.layerObject.setVisibility(def.visible);
             }
+            else if(typeof(layer.layerObject.layerDefinitions) !== 'undefined') {
+              layer.layerObject.setDefaultLayerDefinitions();
+            }
+            else {
+
+            }
+
+            layer.layerObject.setVisibility(def.visible);
             //this.defaultDef.push({layer: layer.id, definition: layer.layerObject.defaultDefinitionExpression});
           }
         }));

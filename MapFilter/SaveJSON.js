@@ -8,7 +8,7 @@ define([
 ],
 function (Evented, declare, Deferred, html, has, jimuUtils) {
 return declare([Evented], {
-  declaredClass : 'saveJson',
+  declaredClass : 'saveJSON',
   config : null,
 
   constructor: function(/*Object*/args) {

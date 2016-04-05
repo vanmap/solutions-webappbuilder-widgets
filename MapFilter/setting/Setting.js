@@ -32,9 +32,10 @@ define([
   'dijit/registry',
   'jimu/utils',
   'jimu/LayerInfos/LayerInfos',
-  'jimu/dijit/Message'
+  'jimu/dijit/Message',
+  '../LayersHandler'
 ],
-  function(declare, BaseWidgetSetting, _WidgetsInTemplateMixin, SimpleTable, dom, domConstruct, on, query, lang, array, Select, TextBox, ValidationTextBox, RadioButton, registry, utils, LayerInfos, Message) {
+  function(declare, BaseWidgetSetting, _WidgetsInTemplateMixin, SimpleTable, dom, domConstruct, on, query, lang, array, Select, TextBox, ValidationTextBox, RadioButton, registry, utils, LayerInfos, Message, LayersHandler) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
 
       //these two properties is defined in the BaseWidget
@@ -84,6 +85,7 @@ define([
                   if(typeof(row.domainCol) !== 'undefined') {
                     layerStruct.layer = row.layerCol.value;
                     layerStruct.field = row.fieldCol.value;
+                    layerStruct.dataType = row.dataTypeCol.attr('displayedValue');
                     if(row.domainCol.checked) {
                       layerStruct.useDomain = row.domainCol.value;
                     } else {
@@ -92,6 +94,7 @@ define([
                   } else {
                     layerStruct.layer = row.layerCol.value;
                     layerStruct.field = row.fieldCol.value;
+                    layerStruct.dataType = row.dataTypeCol.attr('displayedValue');
                     layerStruct.useDomain = '';
                   }
 
@@ -111,9 +114,16 @@ define([
       createMapLayerList: function() {
         LayerInfos.getInstance(this.map, this.map.itemInfo)
           .then(lang.hitch(this, function(operLayerInfos) {
-            console.log(operLayerInfos);
+            //console.log(operLayerInfos);
             if(operLayerInfos._layerInfos && operLayerInfos._layerInfos.length > 0) {
-                this.layerList = operLayerInfos._layerInfos;
+              //this.layerList = operLayerInfos._layerInfos;
+
+
+              layerHandle =  new LayersHandler({
+                "layers": operLayerInfos._layerInfos
+              });
+              this.own(on(layerHandle, "complete", lang.hitch(this, function(results) {
+                this.layerList = results.data.items;
                 if(this.config.groups.length > 0) {
                   array.forEach(this.config.groups, lang.hitch(this, function(group) {
                     this.createGroupBlock({group: group});
@@ -121,8 +131,16 @@ define([
                 } else {
                   this.createGroupBlock({group: null});
                 }
+              })));
+              this.own(on(layerHandle, "error", lang.hitch(this, function(results) {
+                console.log("error");
+              })));
+              layerHandle.getAllMapLayers();
+
+
             }
           }));
+
       },
 
       createGroupBlock: function(pParam) {
@@ -230,6 +248,11 @@ define([
           type: "actions",
           actions: ["delete"],
           width: "125px"
+        }, {
+          name : 'dataTypeCol',
+          type : 'empty',
+          hidden : true,
+          width : 0
         }];
 
         var args = {
@@ -266,12 +289,20 @@ define([
       createLayerSelection: function(tr, pParam, pCounter) {
         var ctlLayerList = [];
         array.forEach(this.layerList, lang.hitch(this, function(layer) {
-          if(layer.originOperLayer.layerType !== 'ArcGISTiledMapServiceLayer') {
-          var lryObject = {};
-          lryObject.value = layer.id;
-          lryObject.label = layer.title;
-          lryObject.selected = false;
-          ctlLayerList.push(lryObject);
+          if(layer.children.length > 0) {
+            array.forEach(layer.children, lang.hitch(this, function(child) {
+              var lryObject = {};
+              lryObject.value = child.id;
+              lryObject.label = child.label;
+              lryObject.selected = false;
+              ctlLayerList.push(lryObject);
+            }));
+          } else {
+            var lryObject = {};
+            lryObject.value = layer.id;
+            lryObject.label = layer.label;
+            lryObject.selected = false;
+            ctlLayerList.push(lryObject);
           }
         }));
 
@@ -299,34 +330,71 @@ define([
 
       createFieldSelection: function(pLayer, pTR, pParam, pCounter) {
         var ctlfieldList = [];
+        var ctlfieldDataType = [];
         array.forEach(this.layerList, lang.hitch(this, function(layer) {
-          if(layer.id === pLayer) {
-            array.forEach(layer.layerObject.fields, lang.hitch(this, function(field) {
-              var fieldObject = {};
-              fieldObject.value = field.name;
-              fieldObject.label = field.alias;
-              fieldObject.selected = false;
-              ctlfieldList.push(fieldObject);
+          if(layer.children.length > 0) {
+            array.forEach(layer.children, lang.hitch(this, function(child) {
+              if(child.id === pLayer) {
+                array.forEach(child.children, lang.hitch(this, function(field) {
+                  var fieldObject = {};
+                  fieldObject.value = field.name;
+                  fieldObject.label = field.label;
+                  fieldObject.selected = false;
+                  ctlfieldList.push(fieldObject);
+
+                  var fieldDataType = {};
+                  fieldDataType.value = field.name;
+                  fieldDataType.label = field.fieldType;
+                  fieldDataType.selected = false;
+                  ctlfieldDataType.push(fieldDataType);
+                }));
+              }
             }));
+          } else {
+            if(layer.id === pLayer) {
+              array.forEach(layer.layer.fields, lang.hitch(this, function(field) {
+                var fieldObject = {};
+                fieldObject.value = field.name;
+                fieldObject.label = field.alias;
+                fieldObject.selected = false;
+                ctlfieldList.push(fieldObject);
+
+                var fieldDataType = {};
+                fieldDataType.value = field.name;
+                fieldDataType.label = field.type;
+                fieldDataType.selected = false;
+                ctlfieldDataType.push(fieldDataType);
+              }));
+            }
           }
+
         }));
 
         var td = query('.simple-table-cell', pTR)[1];
+        var dataID = query('.simple-table-cell', pTR)[4];
         if (td) {
           domConstruct.empty(td);
           var fieldSelect = new Select({
             options: ctlfieldList
           }).placeAt(td);
-
           fieldSelect.startup();
           pTR.fieldCol = fieldSelect;
 
+          domConstruct.empty(dataID);
+          var dataTypeSelect = new Select({
+            options: ctlfieldDataType
+          }).placeAt(dataID);
+          dataTypeSelect.startup();
+          pTR.dataTypeCol = dataTypeSelect;
+
           this.own(on(fieldSelect, "change", lang.hitch(this, function(val) {
             this.domainRadio({layer: pLayer, field: val, row: pTR, param: pParam, counter: pCounter});
+            this.dataTypeSync({layer: pLayer, field: val, row: pTR, param: pParam, select: dataTypeSelect});
           })));
 
           if(typeof(pParam) !== 'undefined') {
             fieldSelect.set('value', pParam.field);
+            dataTypeSelect.set('value', pParam.field);
           }
         }
         this.domainRadio({
@@ -339,10 +407,17 @@ define([
 
       },
 
+      dataTypeSync: function(pParam) {
+        var dtSelection = pParam.select;
+        dtSelection.set('value', pParam.field);
+      },
+
       domainRadio: function(pParam) {
         array.forEach(this.layerList, lang.hitch(this, function(layer) {
+          //console.log(layer);
           if(layer.id === pParam.layer) {
-            array.forEach(layer.layerObject.fields, lang.hitch(this, function(field) {
+            array.forEach(layer.layer.fields, lang.hitch(this, function(field) {
+              console.log(field);
               if(field.name === pParam.field) {
                 if(typeof(field.domain) !== 'undefined') {
                   if(field.domain.type === 'codedValue') {

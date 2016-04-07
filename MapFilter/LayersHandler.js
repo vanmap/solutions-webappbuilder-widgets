@@ -56,19 +56,20 @@ function(Evented,
         if(!layer.featureCollection) {
           if ((typeof (layer.originOperLayer) !== 'undefined') &&
             layer.originOperLayer.layerType && layer.originOperLayer.layerType === 'ArcGISFeatureLayer') {
-            dataItem = {
-              label : layer.title,
-              id : layer.id,
-              url : layer.url,
-              fieldName : this.fieldName,
-              type : 'Feature Layer',
-              checked : false,
-              children : [],
-              layer: layer.layerObject
-            };
-            promises.push(this._getLayerInfo(dataItem));
-            this.layerStore.push(dataItem);
-            console.log(this.layerStore);
+            if(typeof(layer.originOperLayer.featureCollection) === 'undefined' ) {
+              dataItem = {
+                label : layer.title,
+                id : layer.id,
+                url : layer.url,
+                fieldName : this.fieldName,
+                type : 'Feature Layer',
+                checked : false,
+                children : [],
+                layer: layer.layerObject
+              };
+              promises.push(this._getLayerInfo(dataItem));
+              this.layerStore.push(dataItem);
+            }
           } else if (layer.newSubLayers.length > 0) {
             this.childList = [];
             if((typeof (layer.originOperLayer.layerType) !== 'undefined') &&

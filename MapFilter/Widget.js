@@ -12,6 +12,7 @@ define([
   'dojo/_base/array',
   'dijit/form/Select',
   'dijit/form/TextBox',
+  'dijit/form/DateTextBox',
   'dijit/registry',
   'jimu/LayerInfos/LayerInfos',
   'jimu/utils',
@@ -19,7 +20,7 @@ define([
   './ReadJSON',
   './LayersHandler'
 ],
-function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domConstruct, domClass, on, query, lang, array, Select, TextBox, registry, LayerInfos, utils, saveJson, readJson, LayersHandler) {
+function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domConstruct, domClass, on, query, lang, array, Select, TextBox, DateTextBox, registry, LayerInfos, utils, saveJson, readJson, LayersHandler) {
   //To create a widget, you need to derive from BaseWidget.
   return declare([BaseWidget, _WidgetsInTemplateMixin], {
 
@@ -32,6 +33,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
     runTimeConfig: null,
     isAdvMode: false,
     useDomain: null,
+    useDate: null,
 
     postCreate: function() {
       this.inherited(arguments);
@@ -57,21 +59,22 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
             this.layerList = operLayerInfos._layerInfos;
 
                 array.forEach(this.layerList, lang.hitch(this, function(layer) {
+                  if(layer.originOperLayer.layerType !== "ArcGISTiledMapServiceLayer" && typeof(layer.originOperLayer.featureCollection) === 'undefined') {
 
-                  if(typeof(layer.layerObject.defaultDefinitionExpression) !== 'undefined' &&
-                    typeof(layer.layerObject.getDefinitionExpression()) === 'function' ) {
-                    this.defaultDef.push({layer: layer.id, definition: layer.layerObject.getDefinitionExpression(), visible: layer.layerObject.visible});
+                    if(typeof(layer.layerObject._defnExpr) !== 'undefined') {
+                      this.defaultDef.push({layer: layer.id, definition: layer.layerObject._defnExpr, visible: layer.layerObject.visible});
+                    }
+                    else if(typeof(layer.layerObject.defaultDefinitionExpression) !== 'undefined' &&
+                      typeof(layer.layerObject.getDefinitionExpression()) === 'function' ) {
+                      this.defaultDef.push({layer: layer.id, definition: layer.layerObject.getDefinitionExpression(), visible: layer.layerObject.visible});
+                    }
+                    else if(typeof(layer.layerObject.layerDefinitions) !== 'undefined') {
+                      this.defaultDef.push({layer: layer.id, definition: layer.layerObject.layerDefinitions, visible: layer._visible});
+                    }
+                    else {
+                      this.defaultDef.push({layer: layer.id, definition: "1=1", visible: layer.layerObject.visible});
+                    }
                   }
-                  else if(typeof(layer.layerObject.layerDefinitions) !== 'undefined') {
-                    this.defaultDef.push({layer: layer.id, definition: layer.layerObject.layerDefinitions, visible: layer._visible});
-                  }
-                  else {
-                    this.defaultDef.push({layer: layer.id, definition: "1=1", visible: layer.layerObject.visible});
-                  }
-
-                                  console.log(layer);
-                console.log(this.defaultDef);
-
 
                 }));
                 this.createGroupSelection();
@@ -93,6 +96,27 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
                       if(typeof(field.domain) !== 'undefined') {
                         this.useDomain = field.domain;
                       }
+                    }
+                  }
+                }));
+              }
+            }));
+          }));
+        }
+      }));
+    },
+
+    checkDateUse: function(pParam) {
+      this.useDate = null;
+      array.forEach(this.config.groups, lang.hitch(this, function(group) {
+        if(group.name === pParam.group) {
+          array.forEach(group.layers, lang.hitch(this, function(grpLayer) {
+            array.forEach(this.layerList, lang.hitch(this, function(layer) {
+              if(grpLayer.layer === layer.id) {
+                array.forEach(layer.layerObject.fields, lang.hitch(this, function(field) {
+                  if(field.name === grpLayer.field) {
+                    if((field.type).indexOf("Date") >= 0) {
+                      this.useDate = true;
                     }
                   }
                 }));
@@ -169,10 +193,13 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           this.resetLayerDef();
           this.removeAllRows();
           this.checkDomainUse({group: val});
+          this.checkDateUse({group: val});
           this.reconstructRows(val);
           this.updateGroupDesc(val);
+          this.setFilterLayerDef();
         })));
         this.checkDomainUse({group: this.grpSelect.value});
+        this.checkDateUse({group: this.grpSelect.value});
 
         if(typeof(this.config.groups[0]) !== 'undefined') {
           descLabel = this.config.groups[0].desc;
@@ -207,10 +234,21 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         }).placeAt(pCell);
         domainSelect.startup();
         domainSelect.set('value', pValue.value);
+      } else if(this.useDate === true) {
+        var d = new Date();
+        var defaultDate = (d.getMonth()+1)  + "-" + d.getDate() + "-" + d.getFullYear();
+        if(pValue.value !== "") {
+          defaultDate = pValue.value;
+        }
+        var txtDate = new DateTextBox({
+          value: defaultDate,
+          placeHolder: defaultDate
+        }).placeAt(pCell);
+        txtDate.startup();
       } else {
         var txtFilterParam = new TextBox({
-            value: pValue.value /* no or empty value! */,
-            placeHolder: "Type in a Value"
+          value: pValue.value /* no or empty value! */,
+          placeHolder: "Type in a Value"
         }).placeAt(pCell);
         txtFilterParam.startup();
       }
@@ -260,9 +298,13 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         array.forEach(this.config.groups, lang.hitch(this, function(group) {
           if (group.name === pValue) {
             if(typeof(group.def) !== 'undefined') {
-              array.forEach(group.def, lang.hitch(this, function(def) {
-                this.createNewRow({value: def.value, operator: def.operator, conjunc: def.conjunc, state:"reload"});
-              }));
+              if(group.def.length > 0) {
+                array.forEach(group.def, lang.hitch(this, function(def) {
+                  this.createNewRow({value: def.value, operator: def.operator, conjunc: def.conjunc, state:"reload"});
+                }));
+              } else {
+                this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
+              }
             } else {
               this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
             }
@@ -305,39 +347,46 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
             array.forEach(group.layers, lang.hitch(this, function(grpLayer) {
               var expr = '';
               var filterType = "";
-              group.def = [];
               if(layer.id === grpLayer.layer) {
+                group.def = [];
                 filterType = "FeatureLayer";
-                array.forEach(sqlParams, lang.hitch(this, function(p,i) {
-                  array.forEach(layer.layerObject.fields, lang.hitch(this, function(field) {
-                    if(field.name === grpLayer.field) {
-                      if(((field.type).indexOf("Integer") > -1) || (field.type).indexOf("Double") > -1) {
-                        expr = expr + grpLayer.field + " " + p.operator + " " + utils.sanitizeHTML(p.userValue) + " " + p.conjunc + " ";
-                      } else {
-                        expr = expr + grpLayer.field + " " + p.operator + " '" + utils.sanitizeHTML(p.userValue) + "' " + p.conjunc + " ";
+                array.forEach(sqlParams, lang.hitch(this, function(p) {
+                  if(p.userValue !== "") {
+                    array.forEach(layer.layerObject.fields, lang.hitch(this, function(field) {
+                      if(field.name === grpLayer.field) {
+                        if(((field.type).indexOf("Integer") > -1) || (field.type).indexOf("Double") > -1) {
+                          expr = expr + grpLayer.field + " " + p.operator + " " + utils.sanitizeHTML(p.userValue) + " " + p.conjunc + " ";
+                        } else {
+                          expr = expr + grpLayer.field + " " + p.operator + " '" + utils.sanitizeHTML(p.userValue) + "' " + p.conjunc + " ";
+                        }
+                        group.def.push({value: utils.sanitizeHTML(p.userValue), operator: p.operator, conjunc: p.conjunc});
                       }
-                      group.def.push({value: utils.sanitizeHTML(p.userValue), operator: p.operator, conjunc: p.conjunc});
-                    }
-                  }));
+                    }));
+                  }
                 }));
               }
               else if(grpLayer.layer.indexOf(layer.id) >= 0) {  //if it's a map service, sublayers .x is appended. so check if the root layerID is there
+                group.def = [];
                 filterType = "MapService";
                 var msSubs = (grpLayer.layer).split(".");
                 array.forEach(sqlParams, lang.hitch(this, function(p) {
-                  if(((grpLayer.dataType).indexOf("Integer") > -1) || (grpLayer.dataType).indexOf("Double") > -1) {
-                    expr = expr + grpLayer.field + " " + p.operator + " " + utils.sanitizeHTML(p.userValue) + " " + p.conjunc + " ";
-                  } else {
-                    expr = expr + grpLayer.field + " " + p.operator + " '" + utils.sanitizeHTML(p.userValue) + "' " + p.conjunc + " ";
+                  if(p.userValue !== "") {
+                    if(((grpLayer.dataType).indexOf("Integer") > -1) || (grpLayer.dataType).indexOf("Double") > -1) {
+                      expr = expr + grpLayer.field + " " + p.operator + " " + utils.sanitizeHTML(p.userValue) + " " + p.conjunc + " ";
+                    } else {
+                      expr = expr + grpLayer.field + " " + p.operator + " '" + utils.sanitizeHTML(p.userValue) + "' " + p.conjunc + " ";
+                    }
+                    group.def.push({value: utils.sanitizeHTML(p.userValue), operator: p.operator, conjunc: p.conjunc});
                   }
-
-                  group.def.push({value: utils.sanitizeHTML(p.userValue), operator: p.operator, conjunc: p.conjunc});
                 }));
-                msExpr[msSubs[1]] = expr.trim();
+                if(expr !== "") {
+                  msExpr[msSubs[1]] = expr.trim();
+                }
               }
               else {
 
               }
+
               if(filterType === "FeatureLayer") {
                 console.log(expr);
                 if(expr !== "") {
@@ -372,7 +421,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
               layer.layerObject.setDefaultLayerDefinitions();
             }
             else {
-
+              layer.layerObject.setDefinitionExpression(def.definition);
             }
 
             layer.layerObject.setVisibility(def.visible);
@@ -468,7 +517,11 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         this.config = JSON.parse(results.UserSettings);
           this.resetLayerDef();
           this.removeAllRows();
+          this.checkDomainUse({group: this.grpSelect.value});
+          this.checkDateUse({group: this.grpSelect.value});
           this.reconstructRows(this.grpSelect.value);
+          this.updateGroupDesc(this.grpSelect.value);
+          this.setFilterLayerDef();
           query(".loadProgressHeader").style("display", "none");
           query(".loadProgressShow").style("display", "none");
       }));

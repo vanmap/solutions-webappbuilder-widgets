@@ -14,7 +14,7 @@
       "inPanel": true,
       "hasConfig": true,
       "hasUIFile": true,
-      "supportMultiInstance": false,
+      "supportMultiInstance": true,
       "keepConfigAfterMapSwithched": false
     }
 }

@@ -25,10 +25,10 @@
 
 /*.jimu-widget-enhancedEditor .dojoxGridRow {
   width: 100%;
-}
+}*/
 
 
-.jimu-widget-enhancedEditor .dojoxGridRowTable {
+/*.jimu-widget-enhancedEditor .dojoxGridRowTable {
   width: 100%;
 }*/
 
@@ -47,7 +47,7 @@
     border-radius: 4px;
 }
 
-/*********about attributeInspector*********
+/********about attributeInspector*********/
 .jimu-widget-enhancedEditor .esriAttributeInspector{
     height: 500px;
     width: 300px;
@@ -74,7 +74,7 @@
     float: right;
 }
 
-/*********about preset values table**********/
+/*********about preset values table*********/
 
 .jimu-widget-enhancedEditor .ee-presetValueTableDiv{
     height:100%;

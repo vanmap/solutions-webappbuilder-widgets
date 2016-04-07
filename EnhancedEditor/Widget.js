@@ -16,13 +16,13 @@
 
 define([
     'dojo/_base/declare',
-    'dojo/_base/event',
     'dojo/_base/lang',
     'dojo/_base/array',
     'dojo/_base/html',
     'dojo/query',
     'dojo/i18n!esri/nls/jsapi',
     'dojo/dom-construct',
+    'dojo/dom-class',
     'dojo/on',
     'dijit/_WidgetsInTemplateMixin',
     'jimu/BaseWidget',
@@ -42,6 +42,7 @@ define([
     "esri/symbols/SimpleLineSymbol",
     "esri/symbols/SimpleFillSymbol",
     "esri/Color",
+    "esri/geometry/jsonUtils",
     "dijit/registry",
 
     "./utils",
@@ -51,12 +52,12 @@ define([
   'dijit/form/FilteringSelect',
   'dijit/form/TextBox',
   'dojo/store/Memory'
-    //"dijit/form/ToggleButton"
   ],
-  function(declare, event, lang, array, html, query, esriBundle, domConstruct, on, _WidgetsInTemplateMixin,
+  function (declare, lang, array, html, query, esriBundle, domConstruct,
+    domClass, on, _WidgetsInTemplateMixin,
     BaseWidget, LayerInfos, TemplatePicker,
     AttributeInspector, Draw, Edit, Query, Graphic, FeatureLayer, ConfirmDialog, all, Deferred,
-    SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, Color, registry,
+    SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, Color, geometryJsonUtil, registry,
     editUtils, CheckBox, DateTextBox, NumberTextBox,
   FilteringSelect, TextBox, Memory) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
@@ -74,7 +75,7 @@ define([
       attrInspector: null,
       editToolbar: null,
       selectedTemplate: null,
-      //isDirty: false,
+      _isDirty: false,
       updateFeatures: [],
       currentFeature: null,
       _attrInspIsCurrentlyDisplayed: false,
@@ -91,7 +92,10 @@ define([
         this.inherited(arguments);
         LayerInfos.getInstance(this.map, this.map.itemInfo)
         .then(lang.hitch(this, function (operLayerInfos) {
-          this._jimuLayerInfos = operLayerInfos;  
+          this._jimuLayerInfos = operLayerInfos;
+          //setTimeout(lang.hitch(this, function () {
+          //  this._createEditor();
+          //}), 10);
           this._createEditor();
         }));
       },
@@ -158,8 +162,6 @@ define([
 
         var newAttributes = lang.mixin({}, this.selectedTemplate.template.prototype.attributes);
         var newGraphic = new Graphic(evt.geometry, null, newAttributes);
-        // store original graphic for latter use
-        //newGraphic.original = new Graphic(newGraphic.toJson()); 
         // store original attrs for later use
         newGraphic.preEditAttrs = JSON.parse(JSON.stringify(newGraphic.attributes));
 
@@ -171,7 +173,7 @@ define([
 
           // preparation for a new attributeInspector for the local layer
           myLayer = this._cloneLayer(this.selectedTemplate.featureLayer);
-          myLayer.setSelectionSymbol(this._getSelectionSymbol(myLayer.geometryType, false));
+          myLayer.setSelectionSymbol(this._getSelectionSymbol(myLayer.geometryType, true));
 
           var localLayerInfo = this._getLayerInfoForLocalLayer(myLayer);
           var newTempLayerInfos = this._converConfiguredLayerInfos([localLayerInfo]);
@@ -182,7 +184,7 @@ define([
         }
 
         myLayer.applyEdits([newGraphic], null, null, lang.hitch(this, function (e) {
-          //this.isDirty = true;
+          this._isDirty = true;
           var query = new Query();
           query.objectIds = [e[0].objectId];
           myLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
@@ -193,31 +195,30 @@ define([
         this._showTemplate(false);
       },
 
-      _cancelEditingFeature: function () {
-        //this.updateFeatures.forEach(function (updateFeature) {
-        //  var layer = updateFeature.getLayer();
-        //  if (layer.originalLayerId) {
-        //    layer.clear();
-        //  }
-        //  layer.clearSelection();
-        //  layer.refresh();
-        //  updateFeature = null;
-        //});
+      // cancel editing of the current feature
+      _cancelEditingFeature: function (showTemplatePicker) {
+        if (!this.currentFeature) { return; }
 
-        this.updateFeatures.forEach(function (updateFeature) {
-          var layer = updateFeature.getLayer();
-          if (layer.originalLayerId) {
-            layer.clear();
-          }
+        var layer = this.currentFeature.getLayer();
+        if (layer.originalLayerId) { // local layer
+          layer.clear();
+        }
+
+        if (showTemplatePicker) {
           layer.clearSelection();
           layer.refresh();
-          updateFeature = null;
-        }, this);
+          this._showTemplate(true);
 
-        this.updateFeatures = [];
-        this.currentFeature = null;
-        this.selectedTemplate = null;
-        //this.isDirty = false;
+        } else { // show attr inspector
+          // restore attributes & geometry
+          this.currentFeature.attributes = this.currentFeature.preEditAttrs;
+          this.currentFeature.geometry = geometryJsonUtil.fromJson(this.currentFeature.origGeom);
+          layer.refresh();
+          this.attrInspector.refresh();
+
+          //reset
+          this._resetEditingVariables();
+        }
       },
 
       _cloneLayer: function (layer) {
@@ -290,8 +291,11 @@ define([
           id: "editGeometrySwitch"
         }, domConstruct.create("div"));
 
+        domConstruct.place(domConstruct.create("div", { "class": "spacer" }),
+          attrInspector.deleteBtn.domNode, "before");
         domConstruct.place(editGeomSwitch.domNode, attrInspector.deleteBtn.domNode, "before");
-        domConstruct.place(lang.replace("<label for='editGeometrySwitch'>{replace}</label></br></br>",
+        domConstruct.place(lang.replace(
+          "<label for='editGeometrySwitch'>{replace}</label></br></br>",
           { replace: this.nls.editGeometry }), editGeomSwitch.domNode, "after");
 
         //add close/cancel/switch to template button
@@ -303,7 +307,7 @@ define([
         // save button
         var validateButton = domConstruct.create("div", {
           innerHTML: this.nls.submit,
-          "class": "validateButton jimu-btn"
+          "class": "validateButton jimu-btn" // jimu-state-disabled"
         }, cancelButton, "after");
 
         // create delete button if specified in the config
@@ -338,19 +342,16 @@ define([
           }
         } // end of delete button
 
-        //wire up the events
+        //wire up the button events
         this.own(on(cancelButton, "click", lang.hitch(this, function () {
           if (this.map.infoWindow.isShowing) {
             this.map.infoWindow.hide();
           }
 
-          if (this._configEditor.displayPromptOnSave) {
-            // todo: to use this fully, need to add isDirty
+          if (this._configEditor.displayPromptOnSave && this._isDirty) {
             this._promptToResolvePendingEdit(true);
           } else {
-            this._cancelEditingFeature();
-            this._turnEditGeometryToggleOff();
-            this._showTemplate(true);
+            this._cancelEditingFeature(true);
           }
           if (this.templatePicker) {
             this.templatePicker.clearSelection();
@@ -358,35 +359,56 @@ define([
         })));
 
         this.own(on(validateButton, "click", lang.hitch(this, function () {
-          //if (!this.isDirty) { return; }
+          if (!this._isDirty) { return; }
+
           if (this.map.infoWindow.isShowing) {
             this.map.infoWindow.hide();
           }
           this._saveEdit(this.currentFeature);
         })));
 
+        // edit geometry checkbox event
         this.own(on(editGeomSwitch, 'Change', lang.hitch(this, this._editGeometry)));
 
         // attribute inspector events
         this.own(on(attrInspector, "attribute-change", lang.hitch(this, function (evt) {
           if (this.currentFeature) {
             this.currentFeature.attributes[evt.fieldName] = evt.fieldValue;
-            //this.isDirty = true;
+            this._isDirty = true;
           }
         })));
 
         this.own(on(attrInspector, "next", lang.hitch(this, function (evt) {
+          // in case multiple featuers are selected, 
+          if (this._isDirty && this.currentFeature) {
+            // do not show templatePicker after saving
+            this._promptToResolvePendingEdit(false).then(lang.hitch(this, function () {
 
-          if (this.updateFeatures && this.updateFeatures.length > 1) {
-            array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
-              feature.setSymbol(this._getSelectionSymbol(feature.getLayer().geometryType, false));
+              if (this.updateFeatures && this.updateFeatures.length > 1) {
+                array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
+                  feature.setSymbol(this._getSelectionSymbol(feature.getLayer().geometryType, false));
+                }));
+              }
+
+              if (evt.feature) {
+                this.currentFeature = evt.feature;
+                this.currentFeature.setSymbol(
+                  this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
+              }
             }));
-          }
+          } else {
 
-          if (evt.feature) {
-            this.currentFeature = evt.feature;
+            if (this.updateFeatures && this.updateFeatures.length > 1) {
+              array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
+                feature.setSymbol(this._getSelectionSymbol(feature.getLayer().geometryType, false));
+              }));
+            }
 
-            this.currentFeature.setSymbol(this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
+            if (evt.feature) {
+              this.currentFeature = evt.feature;
+              this.currentFeature.setSymbol(
+                this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
+            }
           }
         })));
 
@@ -447,11 +469,19 @@ define([
           }
         })));
 
-        drawToolbar.on("draw-end", lang.hitch(this, function (evt) {
+        // edit events
+        this.own(on(this.editToolbar,
+          "graphic-move-stop, rotate-stop, scale-stop, vertex-move-stop, vertex-click",
+          lang.hitch(this, function () {
+            this._isDirty = true;
+        })));
+        
+        // draw event
+        this.own(on(drawToolbar, "draw-end", lang.hitch(this, function (evt) {
           drawToolbar.deactivate();
-          //this.editToolbar.deactivate();
+          this._isDirty = true; //?
           this._addGraphicToLocalLayer(evt);
-        }));
+        })));
 
         // set preset values table
         if (this._hasPresetValueFields()) {
@@ -464,10 +494,10 @@ define([
       },
 
       _createPresetFieldContentNode: function (fieldInfo) {
-        var node = null;
+        var node;
         if (fieldInfo.type === "esriFieldTypeDate") {
           node = new DateTextBox({
-            class: "ee-inputField",
+            "class": "ee-inputField",
             onChange: lang.hitch(this, function(){this._presetValueDirty = true;}),
             name: fieldInfo.fieldName
           }, domConstruct.create("div"));
@@ -484,7 +514,7 @@ define([
             });
 
             node = new FilteringSelect({
-              class: "ee-inputField",
+              "class": "ee-inputField",
               name: fieldInfo.fieldName,
               onChange: lang.hitch(this, function () { this._presetValueDirty = true; }),
               store: new Memory({ data: options }),
@@ -495,7 +525,7 @@ define([
             switch (fieldInfo.type) {
               case "esriFieldTypeString":
                 node = new TextBox({
-                  class: "ee-inputField",
+                  "class": "ee-inputField",
                   onChange: lang.hitch(this, function () { this._presetValueDirty = true; }),
                   name: fieldInfo.fieldName
                 }, domConstruct.create("div"));
@@ -507,7 +537,7 @@ define([
               case "esriFieldTypeLong":
               case "esriFieldTypeDouble":
                 node = new NumberTextBox({
-                  class: "ee-inputField",
+                  "class": "ee-inputField",
                   onChange: lang.hitch(this, function () { this._presetValueDirty = true; }),
                   name: fieldInfo.fieldName
                 }, domConstruct.create("div"));
@@ -515,7 +545,7 @@ define([
                 break;
               default:
                 node = new TextBox({
-                  class: "ee-unsupportField",
+                  "class": "ee-unsupportField",
                   name: fieldInfo.fieldName,
                   value: "N/A",
                   readOnly: true
@@ -531,23 +561,31 @@ define([
       _deleteFeature: function(){
         if(!this.currentFeature) { return; }
 
+        this._resetEditingVariables();
+
         var layer = this.currentFeature.getLayer();
         if (layer.url === null) {
           layer.clear();
-          this._turnEditGeometryToggleOff();
           this._showTemplate(true);
-          this.currentFeature = null; // ?
 
         } else {
           this.progressBar.domNode.style.display =  "block";
-          layer.applyEdits(null, null, [this.currentFeature], lang.hitch(this, function (e) {
+          layer.applyEdits(null, null, [this.currentFeature], lang.hitch(this, function () {
             this.progressBar.domNode.style.display = "none";
-            this._turnEditGeometryToggleOff();
-            this._showTemplate(true);
-            this.currentFeature = null; //?
+            this.currentFeature = null;
+            this.updateFeatures = layer.getSelectedFeatures();
+            if (this.updateFeatures && this.updateFeatures.length > 0) {
+              this.attrInspector.refresh();
+              this.attrInspector.first();
+            } else {
+              this._showTemplate(true);
+            }
           }));
         }
-        //this.isDirty = false;
+        //// not needed since we changed to support editing one feature at a time
+        //if (!this.updateFeatures || this.updateFeatures.length < 1) {
+        //  this._isDirty = false;
+        //}
       },
 
       _editGeometry: function () {
@@ -564,8 +602,9 @@ define([
 
           if (this._editingEnabled === false) {
             this._editingEnabled = true;
+            // store the original geometry for later use
+            this.currentFeature.origGeom = this.currentFeature.geometry.toJson();
             this._activateEditToolbar(this.currentFeature);
-
           } else {
             this.editToolbar.deactivate();
             this._editingEnabled = false;
@@ -594,7 +633,8 @@ define([
                   // found the same field name
                   fieldExists = true;
                   // concat fieldAlias if needed
-                  if (!editUtils.checkIfFieldAliasAlreadyExists(presetFieldInfos[i].label, fieldLabel)) {
+                  if (!editUtils.checkIfFieldAliasAlreadyExists(
+                    presetFieldInfos[i].label, fieldLabel)) {
                     presetFieldInfos[i].label = lang.replace("{alias},{anotherAlias}",
                     {
                       alias: presetFieldInfos[i].label,
@@ -717,13 +757,13 @@ define([
                                 20,
                                 new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
                                     new Color([0, 255, 255, 1]), 2),
-                                new Color([0, 255, 0, 0.15]));
+                                new Color([0, 230, 169, 0.5]));
             } else {
               selectionSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE,
                                 20,
                                 new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
-                                    new Color([255, 0, 0]), 1),
-                                new Color([0, 255, 0, 0.15]));
+                                    new Color([92, 92, 92, 1]), 1),
+                                new Color([0, 230, 169, 0.5]));
             }
             break;
           case "esriGeometryPolyline":
@@ -732,11 +772,11 @@ define([
                                     new Color([0, 255, 255, 1]), 2);
             } else {
               selectionSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
-                                    new Color([255, 0, 0]), 1);
+                                    new Color([0, 230, 169, 0.5]), 1);
             }
             break;
           case "esriGeometryPolygon":
-            selectionSymbol = new SimpleFillSymbol().setColor(new Color([255, 255, 0, 0.5]));
+            selectionSymbol = new SimpleFillSymbol().setColor(new Color([0, 230, 169, 0.5]));
             var line;
             if (highlight) {
               line = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
@@ -856,20 +896,23 @@ define([
         if (feature) {
           if (feature.getLayer().originalLayerId) {
 
-            // add a feature
+            // added feature
             var featureLayer = this.map.getLayer(feature.getLayer().originalLayerId);
             if (featureLayer) {
               // modify some attributes before calling applyEdits
               feature.attributes["OBJECTID"] = null;
-              featureLayer.applyEdits([feature]);
-              //featureLayer.clearSelection(); // since after save, keep att Inspect displayed
-              //todo: select the feature
+              feature.symbol = null; 
+              featureLayer.applyEdits([feature], null, null, lang.hitch(this, function (e) {
+                // since after save, keep att Inspect displayed
+                // reselect the feature
+                var query = new Query();
+                query.objectIds = [e[0].objectId];
+                featureLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
 
-              //feature.getLayer().clear();  //?
-              //feature = null;  // ?
-              this.selectedTemplate = null;
+                this.selectedTemplate = null;
 
-              deferred.resolve("success");
+                deferred.resolve("success");
+              }));
             } // if featureLayer not null
           } else {
             // update existing feature
@@ -880,16 +923,19 @@ define([
             if (newAttrs && !editUtils.isObjectEmpty(newAttrs)) {
               // there are changes in attributes
               feature.attributes = newAttrs;
+            } else {
+              feature.attributes = []; // ?
             }
             //todo: for now, save the change anyway in case geometry also being edited
 
             // modify some important attributes before calling applyEdits
             feature.attributes["OBJECTID"] = feature.preEditAttrs["OBJECTID"];
+            feature.symbol = null;
 
             // Since the new requirement is that: after a save, 
-            // continue to show attributeInspector, we can't 
+            // continue to show attributeInspector, 
             // save the preEdit attribute
-            feature.preEditAttrs = JSON.parse(JSON.stringify(feature.attributes))
+            feature.preEditAttrs = JSON.parse(JSON.stringify(feature.attributes));
 
             feature.getLayer().applyEdits(null, [feature], null,
               lang.hitch(this, function (e) {
@@ -956,7 +1002,6 @@ define([
               FeatureLayer.SELECTION_NEW,
               function (features) {
                 features.forEach(function (q) {
-                  //q.original = new Graphic(q.toJson()); 
                   q.preEditAttrs = JSON.parse(JSON.stringify(q.attributes));
                 });
               updateFeatures = updateFeatures.concat(features);
@@ -984,9 +1029,7 @@ define([
             });
           }),
           onCancel: lang.hitch(this, function () { // not saving
-            this._cancelEditingFeature();
-
-            this._showTemplate(switchToTemplate);
+            this._cancelEditingFeature(switchToTemplate); 
             deferred.resolve();
           })
         });
@@ -1027,31 +1070,57 @@ define([
         }));
       },
 
+      _resetEditingVariables: function(){
+        this._isDirty = false;
+        this._editingEnabled = false;
+        this.editToolbar.deactivate();
+        this._turnEditGeometryToggleOff();
+      },
+
       // perform validation then post the changes or formatting the UI if errors
       // no confirm dialog involved
       _saveEdit: function (feature, switchToTemplate) {
         var deferred = new Deferred();
+        // disable the save button until the validation/post edit is done
+        var vBtn = query(".validateButton")[0];
+        if(!domClass.contains(vBtn, "jimu-state-disabled")){
+          domClass.add(vBtn, "jimu-state-disabled");
+        }
+
         var errorObj = this._validateRequiredFields();
 
+        // all required fields are good, proceed with posting changes
         if (editUtils.isObjectEmpty(errorObj)) {
+
           this.progressBar.domNode.style.display = "block";
           // call applyEdit
           this._postChanges(feature).then(lang.hitch(this, function () {
-            this.progressBar.domNode.style.display = "none";
-            if (switchToTemplate !== undefined) {
-              this._showTemplate(switchToTemplate);
+            if (vBtn) {
+              domClass.remove(vBtn, "jimu-state-disabled");
             }
-            //this.isDirty = false;
-            this._editingEnabled = false;
-            this.editToolbar.deactivate();
-            this._turnEditGeometryToggleOff();
-            this.map.setInfoWindowOnClick(true);
+            this.progressBar.domNode.style.display = "none";
 
+            if (switchToTemplate && switchToTemplate === true) {
+              feature.getLayer().clearSelection();
+              this._showTemplate(true);
+
+            } else {
+              // reselect the feature
+              feature.setSymbol(this._getSelectionSymbol(
+                feature.getLayer().geometryType, true));
+
+              this._resetEditingVariables();
+
+              this.map.setInfoWindowOnClick(true);
+            }
             deferred.resolve("success");
           }));
         } else {
           this._formatErrorFields(errorObj);
           // todo: deactive edittoolbar as well?
+          if (vBtn) {
+            domClass.remove(vBtn, "jimu-state-disabled");
+          }
           deferred.resolve("failed");
         }
         return deferred.promise;
@@ -1123,13 +1192,13 @@ define([
           query(".jimu-widget-enhancedEditor .attributeInspectorMainDiv")[0].style.display = "none";
           query(".jimu-widget-enhancedEditor .templatePickerMainDiv")[0].style.display = "block";
 
-          //this.templatePicker.update();
+          this.templatePicker.update();
+
+          // reset
+          this._resetEditingVariables();
           this.currentFeature = null;
           this.updateFeatures = [];
           this.selectedTemplate = null; //?
-
-          this.editToolbar.deactivate();
-          this._editingEnabled = false;
 
           this.map.setInfoWindowOnClick(false);
 
@@ -1155,6 +1224,7 @@ define([
         if (sw && sw.checked) {
           this._ignoreEditGeometryToggle = true;
           sw.set("checked", false);
+          this.map.setInfoWindowOnClick(true);
           setTimeout(lang.hitch(this, function () {
             this._ignoreEditGeometryToggle = false;
           }), 2);

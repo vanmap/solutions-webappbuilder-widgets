@@ -41,7 +41,7 @@ define([
     editUtils) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
       //these two properties is defined in the BaseWidget
-      baseClass: 'jimu-widget-EnhancedEditor-setting',
+      baseClass: 'jimu-widget-enhancedEditor-setting',
       // selectLayer: null,
       // tooltipDialog: null,
       // featurelayers: [],

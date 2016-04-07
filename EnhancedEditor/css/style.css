@@ -3,6 +3,37 @@
 }
 
 /***********about templatePicker**************/
+
+.jimu-widget-enhancedEditor .grid {
+  height: 100% !important;
+}
+
+
+.jimu-widget-enhancedEditor .dojoxGridMasterHeader {
+  height: 0 !important;
+}
+    
+/*.jimu-widget-enhancedEditor .dojoxGridContent {
+  width: 100% !important;
+}*/
+
+
+
+.jimu-widget-enhancedEditor .dojoxGridContent div[role=presentation] {
+  right: 0;
+}
+
+/*.jimu-widget-enhancedEditor .dojoxGridRow {
+  width: 100%;
+}
+
+
+.jimu-widget-enhancedEditor .dojoxGridRowTable {
+  width: 100%;
+}*/
+
+
+
 .jimu-widget-enhancedEditor  .templatePicker .grid .dojoxGridCell {
   border: 0 solid #FFFFFF;
 }
@@ -16,7 +47,7 @@
     border-radius: 4px;
 }
 
-/*********about attributeInspector**********/
+/*********about attributeInspector*********
 .jimu-widget-enhancedEditor .esriAttributeInspector{
     height: 500px;
     width: 300px;
@@ -74,4 +105,8 @@
 
 .jimu-widget-enhancedEditor .ee-inputField{
     width: 100%;
+}
+
+.jimu-widget-enhancedEditor .spacer {
+    height: 12px;
 }

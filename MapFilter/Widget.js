@@ -50,6 +50,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
 
     btnNewRowAction: function() {
       this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
+      this.showAdvMode(this.isAdvMode);
     },
 
     createMapLayerList: function() {
@@ -211,12 +212,15 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         var ObjList = [
           {'value': '=', 'label': this.nls.inputs.optionEQUAL},
           {'value': '>', 'label': this.nls.inputs.optionGREATERTHAN},
-          {'value': '>=', 'label': this.nls.inputs.optionGREATERTHANEQUAL},
+          {'value': '>=', 'label': "Greater Than Equals"},
           {'value': '<=', 'label': this.nls.inputs.optionLESSTHAN},
           {'value': '<=', 'label': this.nls.inputs.optionLESSTHANEQUAL}
+
+          //{'value': '>=', 'label': this.nls.inputs.optionGREATERTHANEQUAL}
         ];
         var grpSelect = new Select({
           options: ObjList,
+          "class": "operatorSelect"
         }).placeAt(pCell);
          grpSelect.startup();
          grpSelect.set('value', pValue.operator);
@@ -231,6 +235,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         }));
         var domainSelect = new Select({
           options: ObjList,
+          "class": "userInputNormal"
         }).placeAt(pCell);
         domainSelect.startup();
         domainSelect.set('value', pValue.value);
@@ -242,13 +247,15 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         }
         var txtDate = new DateTextBox({
           value: defaultDate,
-          placeHolder: defaultDate
+          placeHolder: defaultDate,
+          "class": "userInputNormal"
         }).placeAt(pCell);
         txtDate.startup();
       } else {
         var txtFilterParam = new TextBox({
           value: pValue.value /* no or empty value! */,
-          placeHolder: "Type in a Value"
+          placeHolder: "Type in a Value",
+          "class": "userInputNormal"
         }).placeAt(pCell);
         txtFilterParam.startup();
       }
@@ -461,12 +468,35 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         var operNode = query(".tdOperatorHide");
         if(operNode.length > 0) {
           operNode.style("display", "block");
+          operNode.style("width", "175px");
         }
+        var inputNodes = query(".userInputNormal");
+        if(inputNodes.length > 0) {
+          inputNodes.style("width", "125px");
+        }
+
+        var inputNodes = query(".tdValue");
+        if(inputNodes.length > 0) {
+          inputNodes.style("width", "125px");
+        }
+
       } else {
         var operNode = query(".tdOperatorHide");
         if(operNode.length > 0) {
           operNode.style("display", "none");
+          operNode.style("width", "100px");
         }
+        var inputNodes = query(".userInputNormal");
+        if(inputNodes.length > 0) {
+          inputNodes.style("width", "200px");
+        }
+
+        var inputNodes = query(".tdValue");
+        if(inputNodes.length > 0) {
+          inputNodes.style("width", "200px");
+        }
+
+
       }
     },
     //END: advance filter options

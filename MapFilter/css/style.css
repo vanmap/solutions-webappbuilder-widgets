@@ -91,7 +91,7 @@
 }
 
 .jimu-widget-map-filter .saveFunction {
-	margin-top: 5px;	
+	margin-top: 5px;
 }
 
 .jimu-widget-map-filter .tableRow {
@@ -128,6 +128,14 @@
 	text-align: right;
 	padding-right: 5px;
 	width: 45%;
+}
+
+.jimu-widget-map-filter .operatorSelect {
+	font-size: 8pt;
+}
+
+.jimu-widget-map-filter .userInputNormal {
+	width: 200px;
 }
 
 .jimu-widget-map-filter .loadProgressHeader {

@@ -81,7 +81,7 @@ define([
       _attrInspIsCurrentlyDisplayed: false,
       _ignoreEditGeometryToggle: false,
       _editingEnabled: false,
-      _presetValueDirty: false,
+      _usePresetValues: false,
 
       postCreate: function () {
         this.inherited(arguments);
@@ -121,7 +121,6 @@ define([
       },
 
       _init: function () {
-        //this._presetFieldInfos = [];
         this._configEditor = lang.clone(this.config.editor);
       },
 
@@ -160,8 +159,13 @@ define([
       _addGraphicToLocalLayer: function (evt) {
         if (!this.selectedTemplate) { return; }
 
-        var newAttributes = lang.mixin({}, this.selectedTemplate.template.prototype.attributes);
+        var newAttributes = dojo.clone(this.selectedTemplate.template.prototype.attributes);
+        if (this._usePresetValues) {
+          this._modifyAttributesWithPresetValues(newAttributes);
+        }
+
         var newGraphic = new Graphic(evt.geometry, null, newAttributes);
+
         // store original attrs for later use
         newGraphic.preEditAttrs = JSON.parse(JSON.stringify(newGraphic.attributes));
 
@@ -448,11 +452,6 @@ define([
         // wire up events
         this.own(on(this.templatePicker, "selection-change", lang.hitch(this, function(){
           if (this.templatePicker.getSelected()) {
-            // save the preset values if needed
-            if (this._presetValueDirty) {
-              this._savePresetFieldInfos();
-            }
-
             this.selectedTemplate = this.templatePicker.getSelected();
 
             switch (this.selectedTemplate.featureLayer.geometryType) {
@@ -498,7 +497,6 @@ define([
         if (fieldInfo.type === "esriFieldTypeDate") {
           node = new DateTextBox({
             "class": "ee-inputField",
-            onChange: lang.hitch(this, function(){this._presetValueDirty = true;}),
             name: fieldInfo.fieldName
           }, domConstruct.create("div"));
 
@@ -516,7 +514,6 @@ define([
             node = new FilteringSelect({
               "class": "ee-inputField",
               name: fieldInfo.fieldName,
-              onChange: lang.hitch(this, function () { this._presetValueDirty = true; }),
               store: new Memory({ data: options }),
               searchAttr: "name"
             }, domConstruct.create("div"));
@@ -526,7 +523,6 @@ define([
               case "esriFieldTypeString":
                 node = new TextBox({
                   "class": "ee-inputField",
-                  onChange: lang.hitch(this, function () { this._presetValueDirty = true; }),
                   name: fieldInfo.fieldName
                 }, domConstruct.create("div"));
 
@@ -538,7 +534,6 @@ define([
               case "esriFieldTypeDouble":
                 node = new NumberTextBox({
                   "class": "ee-inputField",
-                  onChange: lang.hitch(this, function () { this._presetValueDirty = true; }),
                   name: fieldInfo.fieldName
                 }, domConstruct.create("div"));
 
@@ -582,10 +577,6 @@ define([
             }
           }));
         }
-        //// not needed since we changed to support editing one feature at a time
-        //if (!this.updateFeatures || this.updateFeatures.length < 1) {
-        //  this._isDirty = false;
-        //}
       },
 
       _editGeometry: function () {
@@ -831,6 +822,30 @@ define([
 
         domConstruct.create("tbody", { "class": "ee-presetValueBody", "id": "eePresetValueBody" },
           bodyTable, "first");
+      },
+
+      _modifyAttributesWithPresetValues: function (attributes) {
+        var presetValueTable = query("#eePresetValueBody")[0];
+
+        if (presetValueTable) {
+          var inputElements = query(".preset-value-editable .ee-inputField");
+          array.forEach(inputElements, lang.hitch(this, function (ele) {
+            // for some dijit controls, value is in the input of type hidden,
+            // some not
+            var element = query("input[type='hidden']", ele);
+            if (!element || element.length === 0) {
+              element = query("input", ele);
+            }
+
+            if (element[0].value) {
+              for (var attribute in attributes) {
+                if (attributes.hasOwnProperty(attribute) && attribute === element[0].name) {
+                  attributes[attribute] = element[0].value;
+                }
+              };
+            }
+          }));
+        }
       },
 
       // to add (*) to the label of required fields
@@ -1126,66 +1141,6 @@ define([
         return deferred.promise;
       },
 
-      _savePresetFieldInfos: function () {
-        var sw = registry.byId("savePresetValueSwitch");
-        var presetValueTable = query("#eePresetValueBody")[0];
-
-        if (presetValueTable) {
-          var inputElements = query(".preset-value-editable .ee-inputField");
-          if (sw.checked) {
-            array.forEach(inputElements, lang.hitch(this, function (ele) {
-              // for some dijit controls, value is in the input of type hidden,
-              // some not
-              var element = query("input[type='hidden']", ele);
-              if (!element || element.length === 0) {
-                element = query("input", ele);
-              }
-
-              if (element[0].value) {
-                //// store to a memeber variable
-                //this._presetFieldInfos.push({
-                //  "fieldName": fieldData.fieldName,
-                //  "label": fieldData.label,
-                //  "presetValue": fieldData.presetValue
-                //});
-
-                // store to the settings
-                array.forEach(this.settings.layerInfos, function (layerInfo) {
-                  for (var i = 0; i < layerInfo.featureLayer.templates.length; i++) {
-                    if (layerInfo.featureLayer.templates[i].prototype.attributes.hasOwnProperty(element[0].name)) {
-                      layerInfo.featureLayer.templates[i].prototype.attributes[element[0].name] = element[0].value;
-                    }
-                  }
-                });
-              }
-            }));
-          } // end of sw.value === "on"
-          else {
-            array.forEach(inputElements, lang.hitch(this, function (ele) {
-              var element = query("input[type='hidden']", ele);
-              if (!element || element.length === 0) {
-                element = query("input", ele);
-              }
-
-              if (element[0].value) {
-                //// store to a memeber variable
-
-                // store to the settings
-                array.forEach(this.settings.layerInfos, function (layerInfo) {
-                  for (var i = 0; i < layerInfo.featureLayer.templates.length; i++) {
-                    if (layerInfo.featureLayer.templates[i].prototype.attributes.hasOwnProperty(element[0].name)) {
-                      layerInfo.featureLayer.templates[i].prototype.attributes[element[0].name] = "";
-                    }
-                  }
-                });
-              }
-            }));
-          }// end of sw.value === "off"
-          //
-          this._presetValueDirty = false;
-        }
-      },
-
       _showTemplate: function (showTemplate) {
         if (showTemplate) {
           // show template picker
@@ -1217,6 +1172,11 @@ define([
           }
         }
         this._attrInspIsCurrentlyDisplayed = !showTemplate;
+      },
+
+      _toggleUsePresetValues: function () {
+        var sw = registry.byId("savePresetValueSwitch");
+        this._usePresetValues = sw.checked;
       },
 
       _turnEditGeometryToggleOff: function () {

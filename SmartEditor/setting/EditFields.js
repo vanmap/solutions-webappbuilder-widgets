@@ -18,7 +18,7 @@ define(
     Table,
     Popup) {
     return declare([BaseWidgetSetting, _TemplatedMixin], {
-      baseClass: "jimu-widget-enhancedEditor-setting-fields",
+      baseClass: "jimu-widget-smartEditor-setting-fields",
       templateString: template,
       _layerInfo: null,
 

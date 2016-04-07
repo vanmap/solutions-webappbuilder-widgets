@@ -62,7 +62,7 @@ define([
   FilteringSelect, TextBox, Memory) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
       name: 'Edit',
-      baseClass: 'jimu-widget-enhancedEditor', 
+      baseClass: 'jimu-widget-smartEditor', 
       _defaultStartStr: "",
       _defaultAddPointStr: "",
       _jimuLayerInfos: null,
@@ -316,11 +316,11 @@ define([
 
         // create delete button if specified in the config
         if (this._configEditor.showDeleteButton) {
-          if (query(".jimu-widget-enhancedEditor .deleteButton").length < 1) {
+          if (query(".jimu-widget-smartEditor .deleteButton").length < 1) {
             var deleteButton = domConstruct.create("div", {
               innerHTML: this.nls.del,
               "class": "deleteButton jimu-btn"
-            }, query(".jimu-widget-enhancedEditor .topButtonsRowDiv")[0], "first");
+            }, query(".jimu-widget-smartEditor .topButtonsRowDiv")[0], "first");
 
             on(deleteButton, "click", lang.hitch(this, function () {
               //if (this.currentFeature) {
@@ -1144,8 +1144,8 @@ define([
       _showTemplate: function (showTemplate) {
         if (showTemplate) {
           // show template picker
-          query(".jimu-widget-enhancedEditor .attributeInspectorMainDiv")[0].style.display = "none";
-          query(".jimu-widget-enhancedEditor .templatePickerMainDiv")[0].style.display = "block";
+          query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
+          query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "block";
 
           this.templatePicker.update();
 
@@ -1159,8 +1159,8 @@ define([
 
         } else {
           //show attribute inspector
-          query(".jimu-widget-enhancedEditor .templatePickerMainDiv")[0].style.display = "none";
-          query(".jimu-widget-enhancedEditor .attributeInspectorMainDiv")[0].style.display = "block";
+          query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "none";
+          query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "block";
 
           this.map.setInfoWindowOnClick(true);
         }

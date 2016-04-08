@@ -203,17 +203,19 @@ define([
       _cancelEditingFeature: function (showTemplatePicker) {
         if (!this.currentFeature) { return; }
 
-        var layer = this.currentFeature.getLayer();
-        if (layer.originalLayerId) { // local layer
-          layer.clear();
-        }
-
         if (showTemplatePicker) {
-          layer.clearSelection();
-          layer.refresh();
-          this._showTemplate(true);
+          array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
+            feature.getLayer().clearSelection().refresh();
+          }));
 
+          this._showTemplate(true);
         } else { // show attr inspector
+
+          var layer = this.currentFeature.getLayer();
+          if (layer.originalLayerId) { // local layer
+            layer.clear();
+          }
+
           // restore attributes & geometry
           this.currentFeature.attributes = this.currentFeature.preEditAttrs;
           this.currentFeature.geometry = geometryJsonUtil.fromJson(this.currentFeature.origGeom);
@@ -483,7 +485,7 @@ define([
         })));
 
         // set preset values table
-        if (this._hasPresetValueFields()) {
+        if (layers.length > 0 && this._hasPresetValueFields()) {
           this._initPresetFieldsTable();
           this._fillPresetValueTable();
           query(".presetFieldsTableDiv")[0].style.display = "block";
@@ -611,43 +613,46 @@ define([
         var presetFieldInfos = [];
 
         array.forEach(this.settings.layerInfos, function (layerInfo) {
-          array.forEach(layerInfo.fieldInfos, function (fieldInfo) {
-            if (fieldInfo.canPresetValue) {
-              var fieldExists = false;
-              // concat aliases if needed
-              var idx = fieldInfo.label.indexOf("<a ");
-              var fieldLabel = idx < 0 ?
-                fieldInfo.label : fieldInfo.label.substring(0, idx);
+          // ignore preset values for layer with update features only
+          if (!layerInfo.allowUpdateOnly) {
+            array.forEach(layerInfo.fieldInfos, function (fieldInfo) {
+              if (fieldInfo.canPresetValue) {
+                var fieldExists = false;
+                // concat aliases if needed
+                var idx = fieldInfo.label.indexOf("<a ");
+                var fieldLabel = idx < 0 ?
+                  fieldInfo.label : fieldInfo.label.substring(0, idx);
 
-              for (var i = 0; i < presetFieldInfos.length; i++) {
-                if (presetFieldInfos[i].fieldName === fieldInfo.fieldName) {
-                  // found the same field name
-                  fieldExists = true;
-                  // concat fieldAlias if needed
-                  if (!editUtils.checkIfFieldAliasAlreadyExists(
-                    presetFieldInfos[i].label, fieldLabel)) {
-                    presetFieldInfos[i].label = lang.replace("{alias},{anotherAlias}",
-                    {
-                      alias: presetFieldInfos[i].label,
-                      anotherAlias: fieldLabel
-                    });
-                    break;
-                  } 
-                } // 
-              }
+                for (var i = 0; i < presetFieldInfos.length; i++) {
+                  if (presetFieldInfos[i].fieldName === fieldInfo.fieldName) {
+                    // found the same field name
+                    fieldExists = true;
+                    // concat fieldAlias if needed
+                    if (!editUtils.checkIfFieldAliasAlreadyExists(
+                      presetFieldInfos[i].label, fieldLabel)) {
+                      presetFieldInfos[i].label = lang.replace("{alias},{anotherAlias}",
+                      {
+                        alias: presetFieldInfos[i].label,
+                        anotherAlias: fieldLabel
+                      });
+                      break;
+                    }
+                  } // 
+                }
 
-              // or add to the collection if new
-              if (!fieldExists) {
-                presetFieldInfos.push({
-                  fieldName: fieldInfo.fieldName,
-                  label: fieldLabel,
-                  presetValue: fieldInfo.presetValue,
-                  type: fieldInfo.type,
-                  domain: fieldInfo.domain
-                });
+                // or add to the collection if new
+                if (!fieldExists) {
+                  presetFieldInfos.push({
+                    fieldName: fieldInfo.fieldName,
+                    label: fieldLabel,
+                    presetValue: fieldInfo.presetValue,
+                    type: fieldInfo.type,
+                    domain: fieldInfo.domain
+                  });
+                }
               }
-            }
-          }, this);
+            }, this);
+          }
         });
 
         // fill the table
@@ -704,14 +709,17 @@ define([
       _getEditableLayers: function (layerInfos) {
         var layers = [];
         array.forEach(layerInfos, function (layerInfo) {
-          var layerObject = this.map.getLayer(layerInfo.featureLayer.id);
-          if (layerObject &&
-             layerObject.visible &&
-             layerObject.isEditable &&
-             layerObject.isEditable()) {
-            layers.push(layerObject);
+          if (!layerInfo.allowUpdateOnly) { //
+            var layerObject = this.map.getLayer(layerInfo.featureLayer.id);
+            if (layerObject &&
+               layerObject.visible &&
+               layerObject.isEditable &&
+               layerObject.isEditable()) {
+              layers.push(layerObject);
+            }
           }
-        }, this);
+          }, this);
+
         return layers;
       },
 
@@ -1276,6 +1284,7 @@ define([
             };
             layerInfo.featureLayer.id = layerObject.id;
             layerInfo.disableGeometryUpdate = false;
+            layerInfo.allowUpdateOnly = false; //
             fieldInfos = this._getDefaultFieldInfos(layerObject.id);
             if(fieldInfos && fieldInfos.length > 0) {
               layerInfo.fieldInfos = fieldInfos;

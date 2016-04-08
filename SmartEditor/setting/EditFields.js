@@ -26,7 +26,7 @@ define(
         this.inherited(arguments);
         this.nls = lang.mixin(this.nls, window.jimuNls.common);
         this._initFieldsTable();
-        this._setFiedsTabele(this._layerInfo.fieldInfos);
+        this._setFiedsTable(this._layerInfo.fieldInfos);
       },
 
       popupEditPage: function() {
@@ -95,7 +95,7 @@ define(
         this._fieldsTable.startup();
       },
 
-      _setFiedsTabele: function(fieldInfos) {
+      _setFiedsTable: function(fieldInfos) {
         array.forEach(fieldInfos, function(fieldInfo) {
           this._fieldsTable.addRow({
             fieldName: fieldInfo.fieldName,

@@ -77,6 +77,11 @@ define([
           title: this.nls.label,
           type: 'text'
         }, {
+          name: 'allowUpdateOnly',
+          title: this.nls.allowUpdateOnly,
+          type: 'checkbox',
+          'class': 'update'
+        }, {
           name: 'disableGeometryUpdate',
           title: this.nls.update,
           type: 'checkbox',
@@ -166,6 +171,7 @@ define([
             'id': layerObject.id
           },
           'disableGeometryUpdate': false,
+          'allowUpdateOnly': false,
           'fieldInfos': this._getSimpleFieldInfos(layerObject),
           '_editFlag': this.config.editor.layerInfos &&
                         this.config.editor.layerInfos.length === 0 ? true : false
@@ -179,6 +185,7 @@ define([
           var addRowResult = this._layersTable.addRow({
             label: _jimuLayerInfo.title,
             edit: layerInfo._editFlag,
+            allowUpdateOnly: layerInfo.allowUpdateOnly,
             disableGeometryUpdate: layerInfo.disableGeometryUpdate
           });
           addRowResult.tr._layerInfo = layerInfo;
@@ -281,6 +288,7 @@ define([
         var layersTableData =  this._layersTable.getData();
         array.forEach(this._editableLayerInfos, function(layerInfo, index) {
           layerInfo._editFlag = layersTableData[index].edit;
+          layerInfo.allowUpdateOnly = layersTableData[index].allowUpdateOnly;
           layerInfo.disableGeometryUpdate = layersTableData[index].disableGeometryUpdate;
           if(layerInfo._editFlag) {
             delete layerInfo._editFlag;

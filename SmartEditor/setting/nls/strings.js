@@ -4,6 +4,7 @@ define({
     label: "Layer",
     edit: "Editable",
     update: "Disable Update Geometry",
+    allowUpdateOnly: "Update Only",
     fields: "Fields",
     actions: "Actions",
     canPresetValue: "Can Preset Value",

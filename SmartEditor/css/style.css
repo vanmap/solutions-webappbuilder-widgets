@@ -3,36 +3,30 @@
 }
 
 /***********about templatePicker**************/
-.jimu-widget-smartEditor .templatePicker {
-    position: relative;
-  left: 0;
-  right: 0;
-  top: 18px;
-  bottom: 53px;
-  height: 400px; /*just for BoxTheme*/
-}
 
-.jimu-widget-smartEditor .templatePickerDiv {
-    padding-bottom: 10px;
+.jimu-widget-smartEditor .templatePicker {
+  position: relative;
+  
+  height: 300px; /*just for BoxTheme*/
 }
 
 .jimu-widget-smartEditor .grid {
   height: 100% !important;
 }
 
-
 .jimu-widget-smartEditor .dojoxGridMasterHeader {
   height: 0 !important;
 }
-    
+
 .jimu-widget-smartEditor .dojoxGridContent {
   width: 100% !important;
 }
 
-
-
 .jimu-widget-smartEditor .dojoxGridContent div[role=presentation] {
   right: 0;
+}
+.jimu-widget-smartEditor .dojoxGridRowTable {
+  width: 100%;   
 }
 
 .jimu-widget-smartEditor .dojoxGridRow {
@@ -40,24 +34,11 @@
 }
 
 
-.jimu-widget-smartEditor .dojoxGridRowTable {
-  width: 100%;
-}
-
-
-
-.jimu-widget-smartEditor  .templatePicker .grid .dojoxGridCell {
-  border: 0 solid #FFFFFF;
-}
-
-.jimu-widget-smartEditor .templatePicker .grid .selectedItem {
-    border: 1px solid #7EABCD !important;
-    background-color: #aec7e3 !important;
-    -o-border-radius: 4px;
-    -moz-border-radius: 4px;
-    -webkit-border-radius: 4px;
-    border-radius: 4px;
-}
+  /*  
+/*.jimu-widget-smartEditor .dojoxGridView {
+  width: 100% !important;   
+}*/
+    
 
 /********about attributeInspector*********/
 .jimu-widget-smartEditor .esriAttributeInspector{

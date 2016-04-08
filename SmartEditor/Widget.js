@@ -29,7 +29,7 @@ define([
     'jimu/LayerInfos/LayerInfos',
     "esri/dijit/editing/TemplatePicker",
 
-    "esri/dijit/AttributeInspector", 
+    "esri/dijit/AttributeInspector",
     "esri/toolbars/draw",
     "esri/toolbars/edit",
     "esri/tasks/query",
@@ -52,7 +52,7 @@ define([
   'dijit/form/FilteringSelect',
   'dijit/form/TextBox',
   'dojo/store/Memory'
-  ],
+],
   function (declare, lang, array, html, query, esriBundle, domConstruct,
     domClass, on, _WidgetsInTemplateMixin,
     BaseWidget, LayerInfos, TemplatePicker,
@@ -61,8 +61,8 @@ define([
     editUtils, CheckBox, DateTextBox, NumberTextBox,
   FilteringSelect, TextBox, Memory) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
-      name: 'Edit',
-      baseClass: 'jimu-widget-smartEditor', 
+      name: 'SmartEditor',
+      baseClass: 'jimu-widget-smartEditor',
       _defaultStartStr: "",
       _defaultAddPointStr: "",
       _jimuLayerInfos: null,
@@ -88,7 +88,7 @@ define([
         this._init();
       },
 
-      startup: function() {
+      startup: function () {
         this.inherited(arguments);
         LayerInfos.getInstance(this.map, this.map.itemInfo)
         .then(lang.hitch(this, function (operLayerInfos) {
@@ -113,8 +113,7 @@ define([
         }
         this.templatePicker = null;
 
-        if (this._presetFieldsTable)
-        {
+        if (this._presetFieldsTable) {
           this._presetFieldsTable.destroy();
         }
         this._presetFieldsTable = null;
@@ -197,16 +196,6 @@ define([
         }));
 
         this._showTemplate(false);
-      },
-      
-      _update: function () {
-        if (this.templatePicker) {
-          this.templatePicker.update();
-        }
-      },
-
-      resize: function () {
-        this._update();
       },
 
       // cancel editing of the current feature
@@ -451,21 +440,25 @@ define([
         //create template picker
         this.templatePicker = new TemplatePicker({
           featureLayers: layers,
-          rows: "auto",
-          columns: "4",
+          'class': 'esriTemplatePicker',
           grouping: true,
-          style: "height: auto, overflow: auto;"
-        }, html.create("div")); 
-        this.templatePicker.placeAt(this.templatePickerNode);
+          maxLabelLength: "25",
+          showTooltip: false,
+          columns: "auto",
+          rows: "auto"
+        }, this.templatePickerNode);
+        //this.templatePicker.placeAt(this.templatePickerNode);
         this.templatePicker.startup();
 
         var drawToolbar = new Draw(this.map);
 
         // wire up events
-        this.own(on(this.templatePicker, "selection-change", lang.hitch(this, function(){
-          if (this.templatePicker.getSelected()) {
-            this.selectedTemplate = this.templatePicker.getSelected();
+        this.own(on(this.templatePicker, "selection-change", lang.hitch(this, function () {
 
+          if (this.templatePicker.getSelected()) {
+
+            this.selectedTemplate = this.templatePicker.getSelected();
+            //domClass.add(this.selectedTemplate, "selectedItem");
             switch (this.selectedTemplate.featureLayer.geometryType) {
               case "esriGeometryPoint":
                 drawToolbar.activate(Draw.POINT);
@@ -478,6 +471,10 @@ define([
                 break;
             }
           }
+
+          else {
+            drawToolbar.deactivate();
+          }
         })));
 
         // edit events
@@ -485,8 +482,8 @@ define([
           "graphic-move-stop, rotate-stop, scale-stop, vertex-move-stop, vertex-click",
           lang.hitch(this, function () {
             this._isDirty = true;
-        })));
-        
+          })));
+
         // draw event
         this.own(on(drawToolbar, "draw-end", lang.hitch(this, function (evt) {
           drawToolbar.deactivate();
@@ -520,7 +517,7 @@ define([
 
             var options = [];
             array.forEach(domainValues, function (dv) {
-              options.push({ name: dv.name, id: dv.name });
+              options.push({ name: dv.name, id: dv.code });
             });
 
             node = new FilteringSelect({
@@ -565,8 +562,8 @@ define([
         return node.domNode;
       },
 
-      _deleteFeature: function(){
-        if(!this.currentFeature) { return; }
+      _deleteFeature: function () {
+        if (!this.currentFeature) { return; }
 
         this._resetEditingVariables();
 
@@ -576,7 +573,7 @@ define([
           this._showTemplate(true);
 
         } else {
-          this.progressBar.domNode.style.display =  "block";
+          this.progressBar.domNode.style.display = "block";
           layer.applyEdits(null, null, [this.currentFeature], lang.hitch(this, function () {
             this.progressBar.domNode.style.display = "none";
             this.currentFeature = null;
@@ -728,7 +725,7 @@ define([
               layers.push(layerObject);
             }
           }
-          }, this);
+        }, this);
 
         return layers;
       },
@@ -833,7 +830,7 @@ define([
           { replace: this.nls.presetFieldAlias }), headerRow);
 
         domConstruct.place(lang.replace(
-          "<th title='Preset Value' class='ee-presetValue-value-header-field'>{replace}</th>", 
+          "<th title='Preset Value' class='ee-presetValue-value-header-field'>{replace}</th>",
           { replace: this.nls.presetValue }), headerRow);
 
         var bodyTable = domConstruct.create("table",
@@ -902,7 +899,7 @@ define([
         } else { //this.attrInspector.layerInfos.length == 1
 
           var lflId = this.attrInspector.layerInfos[0].featureLayer.id;
-          if (lflId.indexOf("_lfl") > 0){ // attrInspector associated with a local feature
+          if (lflId.indexOf("_lfl") > 0) { // attrInspector associated with a local feature
             yes = lflId.indexOf(this.selectedTemplate.featureLayer.id) < 0;
           } else {
 
@@ -918,7 +915,7 @@ define([
       },
 
       _onMapClick: function (evt) {
-        if (!this._attrInspIsCurrentlyDisplayed && evt.graphic) {
+        if (!this._attrInspIsCurrentlyDisplayed && evt.graphic && !this.templatePicker.getSelected()) {
           this._processOnMapClick(evt);
         }
       },
@@ -935,7 +932,7 @@ define([
             if (featureLayer) {
               // modify some attributes before calling applyEdits
               feature.attributes["OBJECTID"] = null;
-              feature.symbol = null; 
+              feature.symbol = null;
               featureLayer.applyEdits([feature], null, null, lang.hitch(this, function (e) {
                 // since after save, keep att Inspect displayed
                 // reselect the feature
@@ -996,11 +993,12 @@ define([
         return deferred.promise;
       },
 
-      _processOnMapClick: function (evt){
-         // viewing/editing existing features
+      _processOnMapClick: function (evt) {
+        // viewing/editing existing features
         // The logic of adding new feature to local layer is handled
         // in the draw end event of the draw tool
-        if (!this.selectedTemplate) {
+        //if (!this.selectedTemplate) {
+        if (true) {
           this.map.infoWindow.hide();
           // recreate the attr inspector if needed
           if (!this.attrInspector) {
@@ -1038,8 +1036,8 @@ define([
                 features.forEach(function (q) {
                   q.preEditAttrs = JSON.parse(JSON.stringify(q.attributes));
                 });
-              updateFeatures = updateFeatures.concat(features);
-            });
+                updateFeatures = updateFeatures.concat(features);
+              });
             deferreds.push(deferred);
           }));
 
@@ -1063,7 +1061,7 @@ define([
             });
           }),
           onCancel: lang.hitch(this, function () { // not saving
-            this._cancelEditingFeature(switchToTemplate); 
+            this._cancelEditingFeature(switchToTemplate);
             deferred.resolve();
           })
         });
@@ -1104,7 +1102,7 @@ define([
         }));
       },
 
-      _resetEditingVariables: function(){
+      _resetEditingVariables: function () {
         this._isDirty = false;
         this._editingEnabled = false;
         this.editToolbar.deactivate();
@@ -1117,7 +1115,7 @@ define([
         var deferred = new Deferred();
         // disable the save button until the validation/post edit is done
         var vBtn = query(".validateButton")[0];
-        if(!domClass.contains(vBtn, "jimu-state-disabled")){
+        if (!domClass.contains(vBtn, "jimu-state-disabled")) {
           domClass.add(vBtn, "jimu-state-disabled");
         }
 
@@ -1211,7 +1209,7 @@ define([
       },
 
       // todo: modify to feature as input parameter?
-      _validateRequiredFields: function(){
+      _validateRequiredFields: function () {
         var errorObj = {};
 
         if (!this.currentFeature) { return errorObj; }
@@ -1270,24 +1268,24 @@ define([
         }
       },
 
-      _getDefaultFieldInfos: function(layerId) {
+      _getDefaultFieldInfos: function (layerId) {
         // summary:
         //  filter webmap fieldInfos.
         // description:
         //   return null if fieldInfos has not been configured in webmap.
         var fieldInfos = editUtils.getFieldInfosFromWebmap(layerId, this._jimuLayerInfos);
-        if(fieldInfos) {
-          fieldInfos = array.filter(fieldInfos, function(fieldInfo) {
+        if (fieldInfos) {
+          fieldInfos = array.filter(fieldInfos, function (fieldInfo) {
             return fieldInfo.visible || fieldInfo.isEditable;
           });
         }
         return fieldInfos;
       },
 
-      _getDefaultLayerInfos: function() {
+      _getDefaultLayerInfos: function () {
         var defaultLayerInfos = [];
         var fieldInfos;
-        for(var i = this.map.graphicsLayerIds.length - 1; i >= 0 ; i--) {
+        for (var i = this.map.graphicsLayerIds.length - 1; i >= 0 ; i--) {
           var layerObject = this.map.getLayer(this.map.graphicsLayerIds[i]);
           if (layerObject.type === "Feature Layer" && layerObject.url) {
             var layerInfo = {
@@ -1297,7 +1295,7 @@ define([
             layerInfo.disableGeometryUpdate = false;
             layerInfo.allowUpdateOnly = false; //
             fieldInfos = this._getDefaultFieldInfos(layerObject.id);
-            if(fieldInfos && fieldInfos.length > 0) {
+            if (fieldInfos && fieldInfos.length > 0) {
               layerInfo.fieldInfos = fieldInfos;
             }
             defaultLayerInfos.push(layerInfo);
@@ -1306,12 +1304,12 @@ define([
         return defaultLayerInfos;
       },
 
-      _converConfiguredLayerInfos: function(layerInfos) {
-        array.forEach(layerInfos, function(layerInfo) {
+      _converConfiguredLayerInfos: function (layerInfos) {
+        array.forEach(layerInfos, function (layerInfo) {
           // convert layerInfos to compatible with old version
-          if(!layerInfo.featureLayer.id && layerInfo.featureLayer.url) {
+          if (!layerInfo.featureLayer.id && layerInfo.featureLayer.url) {
             var layerObject = getLayerObjectFromMapByUrl(this.map, layerInfo.featureLayer.url);
-            if(layerObject) {
+            if (layerObject) {
               layerInfo.featureLayer.id = layerObject.id;
             }
           }
@@ -1320,15 +1318,15 @@ define([
           var newFieldInfos = [];
           var webmapFieldInfos =
             editUtils.getFieldInfosFromWebmap(layerInfo.featureLayer.id, this._jimuLayerInfos);
-          array.forEach(layerInfo.fieldInfos, function(fieldInfo) {
-            if(/*fieldInfo.isEditable &&*/
+          array.forEach(layerInfo.fieldInfos, function (fieldInfo) {
+            if (/*fieldInfo.isEditable &&*/
               // only for compitible with old version of config.
               // 'globalid' and 'objectid' can not appear in new app's config.
                fieldInfo.fieldName !== "globalid" &&
                fieldInfo.fieldName !== "objectid") {
               var webmapFieldInfo = getFieldInfoFromWebmapFieldInfos(webmapFieldInfos, fieldInfo);
-              if(webmapFieldInfo) {
-                if( webmapFieldInfo.isEditable ||
+              if (webmapFieldInfo) {
+                if (webmapFieldInfo.isEditable ||
                     webmapFieldInfo.isEditableSettingInWebmap ||
                     webmapFieldInfo.visible) {
                   newFieldInfos.push(webmapFieldInfo);
@@ -1339,7 +1337,7 @@ define([
             }
           }, this);
 
-          if(newFieldInfos.length !== 0) {
+          if (newFieldInfos.length !== 0) {
             layerInfo.fieldInfos = newFieldInfos;
           }
         }, this);
@@ -1347,9 +1345,9 @@ define([
 
         function getFieldInfoFromWebmapFieldInfos(webmapFieldInfos, fieldInfo) {
           var resultFieldInfo = null;
-          if(webmapFieldInfos) {
-            for(var i = 0; i < webmapFieldInfos.length; i++) {
-              if(fieldInfo.fieldName === webmapFieldInfos[i].fieldName) {
+          if (webmapFieldInfos) {
+            for (var i = 0; i < webmapFieldInfos.length; i++) {
+              if (fieldInfo.fieldName === webmapFieldInfos[i].fieldName) {
                 webmapFieldInfos[i].label = fieldInfo.label;
                 webmapFieldInfos[i].isEditableSettingInWebmap = webmapFieldInfos[i].isEditable;
                 webmapFieldInfos[i].isEditable = fieldInfo.isEditable;
@@ -1367,9 +1365,9 @@ define([
 
         function getLayerObjectFromMapByUrl(map, layerUrl) {
           var resultLayerObject = null;
-          for(var i = 0; i < map.graphicsLayerIds.length; i++) {
+          for (var i = 0; i < map.graphicsLayerIds.length; i++) {
             var layerObject = map.getLayer(map.graphicsLayerIds[i]);
-            if(layerObject.url.toLowerCase() === layerUrl.toLowerCase()) {
+            if (layerObject.url.toLowerCase() === layerUrl.toLowerCase()) {
               resultLayerObject = layerObject;
               break;
             }
@@ -1378,15 +1376,15 @@ define([
         }
       },
 
-      _getLayerInfosParam: function() {
+      _getLayerInfosParam: function () {
         // var retDef = new Deferred();
         // var defs = [];
         var layerInfos;
         var resultLayerInfosParam = [];
-        if(!this._configEditor.layerInfos) {
+        if (!this._configEditor.layerInfos) {
           // configured in setting page and no layers checked.
           layerInfos = [];
-        } else if(this._configEditor.layerInfos.length > 0)  {
+        } else if (this._configEditor.layerInfos.length > 0) {
           // configured and has been checked.
           layerInfos = this._converConfiguredLayerInfos(this._configEditor.layerInfos);
         } else {
@@ -1397,7 +1395,7 @@ define([
         //according to condition to filter
         array.forEach(layerInfos, function (layerInfo) {
           var layerObject = this.map.getLayer(layerInfo.featureLayer.id);
-          if(layerObject &&
+          if (layerObject &&
              layerObject.visible &&
              layerObject.isEditable &&
              layerObject.isEditable()) {
@@ -1416,7 +1414,7 @@ define([
         return resultLayerInfosParam;
       },
 
-      _getSettingsParam: function() {
+      _getSettingsParam: function () {
         var settings = {
           map: this.map
         };
@@ -1428,10 +1426,7 @@ define([
         return settings;
       },
 
-      resize: function() {
-      },
-
-      onClose: function() {
+      onClose: function () {
         //if (this.attrInspector) {
         //  this.attrInspector.destroy();
         //}
@@ -1453,15 +1448,37 @@ define([
         this._worksAfterClose();
       },
 
-      onNormalize: function(){
+
+      _update: function () {
+        if (this.templatePicker) {
+          this.templatePicker.update();
+        }
+      },
+
+      resize: function () {
+        this._update();
+      },
+      onNormalize: function () {
         setTimeout(lang.hitch(this, this._update), 100);
       },
 
-      onMinimize: function(){
+      onMinimize: function () {
       },
 
-      onMaximize: function(){
+      onMaximize: function () {
         setTimeout(lang.hitch(this, this._update), 100);
+      },
+      _simplify: function (geometry, callback) {
+        if (Polygon.prototype.isSelfIntersecting(geometry)) {
+          this._settings.geometryService.simplify([geometry], function (simplifiedGeometries) {
+            var geometry = (simplifiedGeometries && simplifiedGeometries.length) ? simplifiedGeometries[0] : geometry;
+            if (callback) {
+              callback(geometry);
+            }
+          });
+        } else if (callback) {
+          callback(geometry);
+        }
       }
     });
   });

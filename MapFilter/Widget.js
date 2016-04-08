@@ -46,6 +46,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       //this.createDivsForFilter();
       this.createMapLayerList();
       //this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
+      
     },
 
     btnNewRowAction: function() {
@@ -80,6 +81,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
                 }));
                 this.createGroupSelection();
                 this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
+                this.resize();
           }
         }));
     },
@@ -209,14 +211,19 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
     },
 
     createOperatorSelection: function(pCell, pValue) {
-        var ObjList = [
+      /*
           {'value': '=', 'label': this.nls.inputs.optionEQUAL},
           {'value': '>', 'label': this.nls.inputs.optionGREATERTHAN},
-          {'value': '>=', 'label': "Greater Than Equals"},
+          {'value': '>=', 'label': this.nls.inputs.optionGREATERTHANEQUAL},
           {'value': '<=', 'label': this.nls.inputs.optionLESSTHAN},
           {'value': '<=', 'label': this.nls.inputs.optionLESSTHANEQUAL}
-
-          //{'value': '>=', 'label': this.nls.inputs.optionGREATERTHANEQUAL}
+       */
+        var ObjList = [
+          {'value': '=', 'label': '='},
+          {'value': '>', 'label': '>'},
+          {'value': '>=', 'label': '>='},
+          {'value': '<=', 'label': '<'},
+          {'value': '<=', 'label': '<='}
         ];
         var grpSelect = new Select({
           options: ObjList,
@@ -269,6 +276,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         ];
         var grpSelect = new Select({
           options: ObjList,
+          "class": "conjuncSelect"
         }).placeAt(pCell);
         grpSelect.startup();
         grpSelect.set('value', pValue.conjunc);
@@ -464,40 +472,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
     },
 
     showAdvMode: function(pState) {
-      if(pState) {
-        var operNode = query(".tdOperatorHide");
-        if(operNode.length > 0) {
-          operNode.style("display", "block");
-          operNode.style("width", "175px");
-        }
-        var inputNodes = query(".userInputNormal");
-        if(inputNodes.length > 0) {
-          inputNodes.style("width", "125px");
-        }
-
-        var inputNodes = query(".tdValue");
-        if(inputNodes.length > 0) {
-          inputNodes.style("width", "125px");
-        }
-
-      } else {
-        var operNode = query(".tdOperatorHide");
-        if(operNode.length > 0) {
-          operNode.style("display", "none");
-          operNode.style("width", "100px");
-        }
-        var inputNodes = query(".userInputNormal");
-        if(inputNodes.length > 0) {
-          inputNodes.style("width", "200px");
-        }
-
-        var inputNodes = query(".tdValue");
-        if(inputNodes.length > 0) {
-          inputNodes.style("width", "200px");
-        }
-
-
-      }
+      this.resize();
     },
     //END: advance filter options
 
@@ -571,6 +546,48 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       });
     },
     //END: W2W communication
+
+    resize: function() {
+      var widgetWidth = this.domNode.clientWidth;
+      
+      if(this.isAdvMode) {
+        var operNode = query(".tdOperatorHide");
+        if(operNode.length > 0) {
+          operNode.style("display", "block");
+          operNode.style("width", "75px");
+        }
+        var inputNodes = query(".operatorSelect");
+        if(inputNodes.length > 0) {
+          inputNodes.style("width", "65px");
+        }        
+        
+        var inputNodes = query(".userInputNormal");
+        if(inputNodes.length > 0) {
+          inputNodes.style("width", "98%");
+        }
+
+        var inputNodes = query(".tdValue");
+        if(inputNodes.length > 0) {
+          inputNodes.style("width", (widgetWidth - 175) + "px");
+        }
+
+      } else {
+        var operNode = query(".tdOperatorHide");
+        if(operNode.length > 0) {
+          operNode.style("display", "none");
+          operNode.style("width", "50px");
+        }
+        var inputNodes = query(".userInputNormal");
+        if(inputNodes.length > 0) {
+          inputNodes.style("width", "95%");
+        }
+
+        var inputNodes = query(".tdValue");
+        if(inputNodes.length > 0) {
+          inputNodes.style("width", (widgetWidth - 135) + "px");
+        }      
+      }      
+    },
 
     onOpen: function(){
       console.log('onOpen');

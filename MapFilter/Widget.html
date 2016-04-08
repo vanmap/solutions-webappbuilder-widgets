@@ -44,8 +44,21 @@
 		</div>
 	</div>
 
-	<div class="spacer"></div>
-	<div class="jimu-btn filter-add-criteria" data-dojo-attach-event="click:btnNewRowAction">${nls.buttons.addCriteria}</div>
-	<div class="jimu-btn filter-button-apply" data-dojo-attach-event="click:setFilterLayerDef">${nls.buttons.applyCriteria}</div>
-	<div class="jimu-btn filter-button-cancel" data-dojo-attach-event="click:resetLayerDef">${nls.buttons.removeCriteria}</div>
+	
+	<div class="buttonContainer">
+		<table class="buttonContainerTable" border=0>
+			<tr>
+				<td class="filter-add-criteria"><div class="jimu-btn" data-dojo-attach-event="click:btnNewRowAction">${nls.buttons.addCriteria}</div></td>
+				<td>
+					<table class="buttonContainerSubtable" border=0>
+						<tr>
+							<td class="filter-button-apply"><div class="jimu-btn" data-dojo-attach-event="click:setFilterLayerDef">${nls.buttons.applyCriteria}</div></td>
+							<td class="filter-button-cancel"><div class="jimu-btn" data-dojo-attach-event="click:resetLayerDef">${nls.buttons.removeCriteria}</div></td>
+						</tr>
+					</table>
+				</td>
+			</tr>
+		</table>	
+	</div>
+	
 </div>

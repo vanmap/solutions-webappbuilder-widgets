@@ -12,6 +12,7 @@
 	height: 70%;
 	position:relative;
 	overflow-y: auto;
+	overflow-x: auto;
 }
 
 .jimu-widget-map-filter .saveContainer {
@@ -23,6 +24,7 @@
 	height: 20%;
 	position:relative;
 	overflow-y: auto;
+	overflow-x: auto;
 	display: none;
 }
 
@@ -54,13 +56,13 @@
 }
 
 .jimu-widget-map-filter .saveTDClose {
-	content: url("../images/save.png");
+	content: url("../images/save_active.png");
     cursor: hand;
     cursor: pointer;
 }
 
 .jimu-widget-map-filter .saveTDClose:after {
-	content: url("../images/save.png");
+	content: url("../images/save_active.png");
     cursor: hand;
     cursor: pointer;
 }
@@ -100,22 +102,34 @@
 
 .jimu-widget-map-filter .tdOperatorHide {
 	display: none;
-	width: 100px;
+	width: 75px;
+}
+
+.jimu-widget-map-filter .operatorSelect {
+	
 }
 
 .jimu-widget-map-filter .tdValue {
 	width: 200px;
 	height: 20px;
-	font-size: 10pt;
 	padding-left: 5px;
 }
 
+.jimu-widget-map-filter .userInputNormal {
+	width: 95%;
+}
+
 .jimu-widget-map-filter .tdConjunction {
-	width: 70px;
+	width: 75px;
+}
+
+.jimu-widget-map-filter .conjuncSelect {
+	width: 70px;	
 }
 
 .jimu-widget-map-filter .tdRemove {
-	width: 20px;
+	width: 16px;
+	text-align: right;
 }
 
 .jimu-widget-map-filter .tdLoad {
@@ -128,14 +142,6 @@
 	text-align: right;
 	padding-right: 5px;
 	width: 45%;
-}
-
-.jimu-widget-map-filter .operatorSelect {
-	font-size: 8pt;
-}
-
-.jimu-widget-map-filter .userInputNormal {
-	width: 200px;
 }
 
 .jimu-widget-map-filter .loadProgressHeader {
@@ -159,14 +165,14 @@
     content: url("../images/setting_default.png");
     padding-right: 10px;
     cursor: hand;
-    cursor: pointer;
+    cursor: pointer;   
 }
 
 .jimu-widget-map-filter .advModeOffset:after {
     content: url("../images/setting_default.png");
     padding-right: 10px;
     cursor: hand;
-    cursor: pointer;
+    cursor: pointer;    
 }
 
 .jimu-widget-map-filter .advModeClose {
@@ -217,20 +223,30 @@
     cursor: pointer;
 }
 
-.jimu-widget-map-filter .filter-add-criteria {
+.jimu-widget-map-filter .buttonContainer {
 	position: absolute;
 	left: 0px;
 	bottom: 0px;
+	width: 100%;	
+}
+
+.jimu-widget-map-filter .buttonContainerTable {
+	width: 100%;	
+}
+
+.jimu-widget-map-filter .buttonContainerSubtable {
+	float: right;	
+}
+
+.jimu-widget-map-filter .filter-add-criteria {
+	text-align: left;
 }
 
 .jimu-widget-map-filter .filter-button-apply {
-	position: absolute;
-	right: 100px;
-	bottom: 0px;
+	text-align: right;
+	padding-right: 5px;
 }
 
 .jimu-widget-map-filter .filter-button-cancel {
-	position: absolute;
-	right: 0px;
-	bottom: 0px;
+	text-align: right;
 }

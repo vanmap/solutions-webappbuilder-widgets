@@ -209,27 +209,25 @@ define([
         this._update();
       },
 
-      // cancel editing of the current feature
       _cancelEditingFeature: function (showTemplatePicker) {
         if (!this.currentFeature) { return; }
 
         if (showTemplatePicker) {
-          array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
-            feature.getLayer().clearSelection().refresh();
-          }));
-
+          // if local layer
+          if (this.currentFeature.getLayer().originalLayerId) {
+            this.currentFeature.getLayer().clear();
+          }
+          else {
+            array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
+              feature.getLayer().clearSelection().refresh();
+            }));
+          }
           this._showTemplate(true);
         } else { // show attr inspector
-
-          var layer = this.currentFeature.getLayer();
-          if (layer.originalLayerId) { // local layer
-            layer.clear();
-          }
-
           // restore attributes & geometry
           this.currentFeature.attributes = this.currentFeature.preEditAttrs;
           this.currentFeature.geometry = geometryJsonUtil.fromJson(this.currentFeature.origGeom);
-          layer.refresh();
+          this.currentFeature.getLayer().refresh();
           this.attrInspector.refresh();
 
           //reset
@@ -452,7 +450,7 @@ define([
         this.templatePicker = new TemplatePicker({
           featureLayers: layers,
           rows: "auto",
-          columns: "4",
+          columns: "auto",
           grouping: true,
           style: "height: auto, overflow: auto;"
         }, html.create("div")); 
@@ -765,32 +763,32 @@ define([
               selectionSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE,
                                 20,
                                 new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
-                                    new Color([0, 255, 255, 1]), 2),
+                                    new Color([0, 230, 169, 1]), 2),
                                 new Color([0, 230, 169, 0.5]));
             } else {
               selectionSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE,
                                 20,
                                 new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
                                     new Color([92, 92, 92, 1]), 1),
-                                new Color([0, 230, 169, 0.5]));
+                                new Color([255, 255, 0, 0.25]));
             }
             break;
           case "esriGeometryPolyline":
             if (highlight) {
               selectionSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
-                                    new Color([0, 255, 255, 1]), 2);
+                                    new Color([0, 230, 169, 1]), 2);
             } else {
               selectionSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
-                                    new Color([0, 230, 169, 0.5]), 1);
+                                    new Color([255, 255, 0, 1]), 1); 
             }
             break;
           case "esriGeometryPolygon":
             var line;
-            if (highlight) {
-              selectionSymbol = new SimpleFillSymbol().setColor(new Color([0, 230, 169, 0.5]));
+            if (highlight) { //cyan fill
+              selectionSymbol = new SimpleFillSymbol().setColor(new Color([0, 230, 169, 0.25]));
               line = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
-              new Color([0, 255, 255, 1]), 2);
-            } else {
+              new Color([0, 230, 169, 1]), 2);
+            } else { // yellow with black outline
               selectionSymbol = new SimpleFillSymbol().setColor(new Color([255, 255, 0, 0.25]));
               line = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
               new Color([92, 92, 92, 1]), 1);

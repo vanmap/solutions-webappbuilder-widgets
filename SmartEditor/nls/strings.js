@@ -11,9 +11,10 @@ define({
     del: "Delete",
     submit: "Save",
     cancel: "Close",
+    presetValueTitle: "Enter preset values (New features only)",
     presetFieldAlias: "Field",
     presetValue: "Preset Value",
-    usePresetValues: " Use Preset Values (New features only)",
+    usePresetValues: " Use Preset Values",
     editGeometry: " Edit Geometry"
   }),
   "ar": 1,

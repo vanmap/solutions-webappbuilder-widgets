@@ -460,18 +460,18 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       if(advNode.length > 0) {
         domClass.replace(advNode[0], "advModeOpen", "advModeClose");
         this.isAdvMode = true;
-        this.showAdvMode(this.isAdvMode);
+        this.showAdvMode();
       } else {
         var basicNode = query(".advModeOpen");
         if(basicNode.length > 0) {
           domClass.replace(basicNode[0], "advModeClose", "advModeOpen");
           this.isAdvMode = false;
-          this.showAdvMode(this.isAdvMode);
+          this.showAdvMode();
         }
       }
     },
 
-    showAdvMode: function(pState) {
+    showAdvMode: function() {
       this.resize();
     },
     //END: advance filter options

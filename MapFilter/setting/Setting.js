@@ -494,13 +494,15 @@ define([
         array.forEach(this.groupLayerName, lang.hitch(this, function(groupName) {
           if(groupName !== null) {
             if(!groupName.get('value')) {
-              new Message({
-                message : message
-              });
               validForm = false;
             }
           }
         }));
+        if(validForm === false) {
+          new Message({
+            message : message
+          });          
+        }
         return validForm;
       },
 
@@ -509,13 +511,15 @@ define([
         array.forEach(this.groupLayerContainer, lang.hitch(this, function(group) {
         if(group !== null) {
           if((group.getRows()).length <= 0) {
-            new Message({
-              message : this.nls.errors.noRows
-            });
             validForm = false;
           }
         }
         }));
+        if(validForm === false) {
+          new Message({
+            message : this.nls.errors.noRows
+          });          
+        }        
         return validForm;
       },
 

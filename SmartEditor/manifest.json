@@ -9,6 +9,6 @@
   "license": "http://www.apache.org/licenses/LICENSE-2.0",
   "properties": {
   	"keepConfigAfterMapSwithched": false,
-    "supportMultiInstance": false
+    "supportMultiInstance": true
   }
 }

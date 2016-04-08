@@ -198,6 +198,16 @@ define([
 
         this._showTemplate(false);
       },
+      
+      _update: function () {
+        if (this.templatePicker) {
+          this.templatePicker.update();
+        }
+      },
+
+      resize: function () {
+        this._update();
+      },
 
       // cancel editing of the current feature
       _cancelEditingFeature: function (showTemplatePicker) {
@@ -442,7 +452,7 @@ define([
         this.templatePicker = new TemplatePicker({
           featureLayers: layers,
           rows: "auto",
-          columns: "auto",
+          columns: "4",
           grouping: true,
           style: "height: auto, overflow: auto;"
         }, html.create("div")); 
@@ -775,12 +785,13 @@ define([
             }
             break;
           case "esriGeometryPolygon":
-            selectionSymbol = new SimpleFillSymbol().setColor(new Color([0, 230, 169, 0.5]));
             var line;
             if (highlight) {
+              selectionSymbol = new SimpleFillSymbol().setColor(new Color([0, 230, 169, 0.5]));
               line = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
               new Color([0, 255, 255, 1]), 2);
             } else {
+              selectionSymbol = new SimpleFillSymbol().setColor(new Color([255, 255, 0, 0.25]));
               line = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
               new Color([92, 92, 92, 1]), 1);
             }

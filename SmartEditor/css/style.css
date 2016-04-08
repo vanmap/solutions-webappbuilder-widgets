@@ -3,6 +3,18 @@
 }
 
 /***********about templatePicker**************/
+.jimu-widget-smartEditor .templatePicker {
+    position: relative;
+  left: 0;
+  right: 0;
+  top: 18px;
+  bottom: 53px;
+  height: 400px; /*just for BoxTheme*/
+}
+
+.jimu-widget-smartEditor .templatePickerDiv {
+    padding-bottom: 10px;
+}
 
 .jimu-widget-smartEditor .grid {
   height: 100% !important;
@@ -13,9 +25,9 @@
   height: 0 !important;
 }
     
-/*.jimu-widget-smartEditor .dojoxGridContent {
+.jimu-widget-smartEditor .dojoxGridContent {
   width: 100% !important;
-}*/
+}
 
 
 
@@ -23,14 +35,14 @@
   right: 0;
 }
 
-/*.jimu-widget-smartEditor .dojoxGridRow {
+.jimu-widget-smartEditor .dojoxGridRow {
   width: 100%;
-}*/
+}
 
 
-/*.jimu-widget-smartEditor .dojoxGridRowTable {
+.jimu-widget-smartEditor .dojoxGridRowTable {
   width: 100%;
-}*/
+}
 
 
 

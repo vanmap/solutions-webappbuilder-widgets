@@ -48,10 +48,10 @@ define([
     "./utils",
     "dijit/form/CheckBox",
     'dijit/form/DateTextBox',
-  'dijit/form/NumberTextBox',
-  'dijit/form/FilteringSelect',
-  'dijit/form/TextBox',
-  'dojo/store/Memory'
+    'dijit/form/NumberTextBox',
+    'dijit/form/FilteringSelect',
+    'dijit/form/TextBox',
+    'dojo/store/Memory'
 ],
   function (declare, lang, array, html, query, esriBundle, domConstruct,
     domClass, on, _WidgetsInTemplateMixin,
@@ -121,12 +121,14 @@ define([
 
       _init: function () {
         this._configEditor = lang.clone(this.config.editor);
+       
       },
 
       onActive: function () {
         if (this.map) {
           this.map.setInfoWindowOnClick(false);
         }
+        
       },
 
       onDeActive: function () {
@@ -136,6 +138,7 @@ define([
       },
 
       onOpen: function () {
+        this._update();
       },
 
       _activateEditToolbar: function (feature) {
@@ -223,7 +226,7 @@ define([
 
           //reset
           this._resetEditingVariables();
-        
+
         }
       },
 
@@ -430,7 +433,8 @@ define([
 
       _createEditor: function () {
         this.settings = this._getSettingsParam();
-        var layers = this._getEditableLayers(this.settings.layerInfos);
+        var layers = this._getEditableLayers(this.settings.layerInfos, false);
+        //this.allSelectedLayers = this._getEditableLayers(this.settings.layerInfos, true);
 
         this._workBeforeCreate();
 
@@ -714,10 +718,10 @@ define([
         }
       },
 
-      _getEditableLayers: function (layerInfos) {
+      _getEditableLayers: function (layerInfos,allLayers) {
         var layers = [];
         array.forEach(layerInfos, function (layerInfo) {
-          if (!layerInfo.allowUpdateOnly) { //
+          if (!layerInfo.allowUpdateOnly || allLayers) { //
             var layerObject = this.map.getLayer(layerInfo.featureLayer.id);
             if (layerObject &&
                layerObject.visible &&
@@ -759,39 +763,39 @@ define([
         var selectionSymbol;
         switch (geometryType) {
           case "esriGeometryPoint":
-            if (highlight) {
+            if (highlight == true) {
               selectionSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE,
                                 20,
                                 new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
                                     new Color([0, 230, 169, 1]), 2),
-                                new Color([0, 230, 169, 0.5]));
+                                new Color([0, 230, 169, 0.65]));
             } else {
               selectionSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE,
                                 20,
                                 new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
-                                    new Color([92, 92, 92, 1]), 1),
-                                 new Color([255, 255, 0, 0.25]));
+                                    new Color([92, 92, 92, 1]), 2),
+                                 new Color([255, 255, 0, 0.65]));
             }
             break;
           case "esriGeometryPolyline":
-            if (highlight) {
+            if (highlight == true) {
               selectionSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
-                                    new Color([0, 255, 255, 1]), 2);
+                                    new Color([0, 255, 255, .65]), 2);
             } else {
               selectionSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
-                                    new Color([0, 230, 169, 0.5]), 1);
+                                    new Color([0, 230, 169, 0.65]), 2);
             }
             break;
           case "esriGeometryPolygon":
             var line;
-            if (highlight) {
-              selectionSymbol = new SimpleFillSymbol().setColor(new Color([0, 230, 169, 0.25]));
+            if (highlight == true) {
+              selectionSymbol = new SimpleFillSymbol().setColor(new Color([0, 230, 169, 0.65]));
               line = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
-              new Color([0, 230, 169, 1]), 2);
-             } else { // yellow with black outline
-              selectionSymbol = new SimpleFillSymbol().setColor(new Color([255, 255, 0, 0.25]));
+              new Color([192, 192, 192, 1]), 2);
+            } else { // yellow with black outline
+              selectionSymbol = new SimpleFillSymbol().setColor(new Color([255, 255, 0, 0.65]));
               line = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
-              new Color([92, 92, 92, 1]), 1);
+              new Color([192, 192, 192, 1]), 2);
             }
             selectionSymbol.setOutline(line);
             break;
@@ -859,7 +863,7 @@ define([
                 if (attributes.hasOwnProperty(attribute) && attribute === element[0].name) {
                   attributes[attribute] = element[0].value;
                 }
-              };
+              }
             }
           }));
         }
@@ -1016,9 +1020,21 @@ define([
           }
 
           // todo: get layers from settings?
-          var layers = this.map.getLayersVisibleAtScale().filter(function (lyr) {
-            return lyr.type && lyr.type === "Feature Layer" && lyr.url;
-          });
+          var layers = this.map.getLayersVisibleAtScale().filter(lang.hitch(this,function (lyr) {
+            if (lyr.type && lyr.type === "Feature Layer" && lyr.url) {
+              return this.settings.layerInfos.some(function (lyrinfo) {
+                if (lyrinfo.layerId == lyr.id) {
+                  return true;
+                }
+                else {
+                  return false;
+                }
+              });
+            }
+            else {
+              return false;
+            }
+           }));
 
           var updateFeatures = [];
           var deferreds = [];
@@ -1452,7 +1468,17 @@ define([
 
       _update: function () {
         if (this.templatePicker) {
+
+          var widgetBox = html.getMarginBox(this.domNode);
+          var height = widgetBox.h;
+          var width = widgetBox.w;
+
+
+          var cols = Math.floor(width / 60);
+          this.templatePicker.attr('columns', cols);
           this.templatePicker.update();
+
+
         }
       },
 

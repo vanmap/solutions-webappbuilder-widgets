@@ -12,16 +12,16 @@ define({
       save: "Save",
       addCriteria: "Add Criteria",
       applyCriteria: "Apply",
-      removeCriteria: "Cancel"
+      removeCriteria: "Reset"
     },
     inputs: {
       optionOR: "OR",
       optionAND: "AND",
-      optionEQUAL: "EQ",
-      optionGREATERTHAN: "GT",
-      optionGREATERTHANEQUAL: "GTE",
-      optionLESSTHAN: "LT",
-      optionLESSTHANEQUAL: "LTE"
+      optionEQUAL: "=",
+      optionGREATERTHAN: ">",
+      optionGREATERTHANEQUAL: ">=",
+      optionLESSTHAN: "<",
+      optionLESSTHANEQUAL: "<="
     },
     files: {
       jsonFile: "MapFilterSettings"

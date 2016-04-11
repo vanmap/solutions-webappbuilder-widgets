@@ -10,9 +10,11 @@ define([
   'dojo/query',
   'dojo/_base/lang',
   'dojo/_base/array',
+  'dojo/date/locale',
   'dijit/form/Select',
   'dijit/form/TextBox',
   'dijit/form/DateTextBox',
+  'dijit/form/NumberTextBox',
   'dijit/registry',
   'jimu/LayerInfos/LayerInfos',
   'jimu/utils',
@@ -20,7 +22,7 @@ define([
   './ReadJSON',
   './LayersHandler'
 ],
-function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domConstruct, domClass, on, query, lang, array, Select, TextBox, DateTextBox, registry, LayerInfos, utils, saveJson, readJson, LayersHandler) {
+function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domConstruct, domClass, on, query, lang, array, locale, Select, TextBox, DateTextBox, NumberTextBox, registry, LayerInfos, utils, saveJson, readJson, LayersHandler) {
   //To create a widget, you need to derive from BaseWidget.
   return declare([BaseWidget, _WidgetsInTemplateMixin], {
 
@@ -46,7 +48,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       //this.createDivsForFilter();
       this.createMapLayerList();
       //this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
-      
+
     },
 
     btnNewRowAction: function() {
@@ -59,6 +61,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         .then(lang.hitch(this, function(operLayerInfos) {
           if(operLayerInfos._layerInfos && operLayerInfos._layerInfos.length > 0) {
             this.layerList = operLayerInfos._layerInfos;
+            console.log(this.layerList);
 
                 array.forEach(this.layerList, lang.hitch(this, function(layer) {
                   if(layer.originOperLayer.layerType !== "ArcGISTiledMapServiceLayer" && typeof(layer.originOperLayer.featureCollection) === 'undefined') {
@@ -160,7 +163,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       //}
 
       this.createOperatorSelection(cell_operator,pValue);
-      this.createTextBoxFilter(cell_value,pValue);
+      this.createInputFilter(cell_value,pValue);
       this.removeTableRow(cell_remove,row,table.rows.length);
 
       if(pValue.state === "reload") {
@@ -211,41 +214,42 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
     },
 
     createOperatorSelection: function(pCell, pValue) {
-      /*
-          {'value': '=', 'label': this.nls.inputs.optionEQUAL},
-          {'value': '>', 'label': this.nls.inputs.optionGREATERTHAN},
-          {'value': '>=', 'label': this.nls.inputs.optionGREATERTHANEQUAL},
-          {'value': '<=', 'label': this.nls.inputs.optionLESSTHAN},
-          {'value': '<=', 'label': this.nls.inputs.optionLESSTHANEQUAL}
-       */
-        var ObjList = [
-          {'value': '=', 'label': '='},
-          {'value': '>', 'label': '>'},
-          {'value': '>=', 'label': '>='},
-          {'value': '<=', 'label': '<'},
-          {'value': '<=', 'label': '<='}
-        ];
-        var grpSelect = new Select({
-          options: ObjList,
-          "class": "operatorSelect"
-        }).placeAt(pCell);
-         grpSelect.startup();
-         grpSelect.set('value', pValue.operator);
+      var ObjList = [
+        {'value': '=', 'label': this.nls.inputs.optionEQUAL},
+        {'value': '>', 'label': this.nls.inputs.optionGREATERTHAN},
+        {'value': '>=', 'label': this.nls.inputs.optionGREATERTHANEQUAL},
+        {'value': '<=', 'label': this.nls.inputs.optionLESSTHAN},
+        {'value': '<=', 'label': this.nls.inputs.optionLESSTHANEQUAL}
+      ];
+      var grpSelect = new Select({
+        options: ObjList,
+        "class": "operatorSelect"
+      }).placeAt(pCell);
+       grpSelect.startup();
+       grpSelect.set('value', pValue.operator);
     },
 
-    createTextBoxFilter: function(pCell, pValue) {
+    createInputFilter: function(pCell, pValue) {
       if(this.useDomain !== null) {
         domConstruct.empty(pCell);
-        var ObjList = [];
-        array.forEach(this.useDomain.codedValues, lang.hitch(this, function(codedVal) {
-          ObjList.push({'value': codedVal.code, 'label': codedVal.name});
-        }));
-        var domainSelect = new Select({
-          options: ObjList,
-          "class": "userInputNormal"
-        }).placeAt(pCell);
-        domainSelect.startup();
-        domainSelect.set('value', pValue.value);
+        if(typeof(this.useDomain.codedValues) !== 'undefined') {
+          var ObjList = [];
+          array.forEach(this.useDomain.codedValues, lang.hitch(this, function(codedVal) {
+            ObjList.push({'value': codedVal.code, 'label': codedVal.name});
+          }));
+          var domainSelect = new Select({
+            options: ObjList,
+            "class": "userInputNormal"
+          }).placeAt(pCell);
+          domainSelect.startup();
+          domainSelect.set('value', pValue.value);
+        } else {
+          var txtRange = new NumberTextBox({
+            value: pValue.value,
+            constraints: {min:this.useDomain.minValue,max:this.useDomain.maxValue}
+          }).placeAt(pCell);
+          txtRange.startup();
+        }
       } else if(this.useDate === true) {
         var d = new Date();
         var defaultDate = (d.getMonth()+1)  + "-" + d.getDate() + "-" + d.getFullYear();
@@ -371,7 +375,17 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
                       if(field.name === grpLayer.field) {
                         if(((field.type).indexOf("Integer") > -1) || (field.type).indexOf("Double") > -1) {
                           expr = expr + grpLayer.field + " " + p.operator + " " + utils.sanitizeHTML(p.userValue) + " " + p.conjunc + " ";
-                        } else {
+                        }
+                        else if ((field.type).indexOf("Date") > -1) {
+                          if(p.userValue !== "") {
+                            var newDate = new Date(utils.sanitizeHTML(p.userValue));
+                            expr = expr + grpLayer.field + " " + p.operator + " '" + locale.format(newDate,{datePattern: "MMMM d, yyyy", selector: "date"}) + "' " + p.conjunc + " ";
+                          }
+                          else {
+                            expr = expr + grpLayer.field + " " + p.operator + " '" + utils.sanitizeHTML(p.userValue) + "' " + p.conjunc + " ";
+                          }
+                        }
+                        else {
                           expr = expr + grpLayer.field + " " + p.operator + " '" + utils.sanitizeHTML(p.userValue) + "' " + p.conjunc + " ";
                         }
                         group.def.push({value: utils.sanitizeHTML(p.userValue), operator: p.operator, conjunc: p.conjunc});
@@ -388,7 +402,16 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
                   if(p.userValue !== "") {
                     if(((grpLayer.dataType).indexOf("Integer") > -1) || (grpLayer.dataType).indexOf("Double") > -1) {
                       expr = expr + grpLayer.field + " " + p.operator + " " + utils.sanitizeHTML(p.userValue) + " " + p.conjunc + " ";
-                    } else {
+                    }
+                    else if ((grpLayer.dataType).indexOf("Date") > -1) {
+                      if(p.userValue !== "") {
+                        var newDate = new Date(utils.sanitizeHTML(p.userValue));
+                        expr = expr + grpLayer.field + " " + p.operator + " '" + locale.format(newDate,{datePattern: "MMMM d, yyyy", selector: "date"}) + "' " + p.conjunc + " ";
+                      } else {
+                        expr = expr + grpLayer.field + " " + p.operator + " '" + utils.sanitizeHTML(p.userValue) + "' " + p.conjunc + " ";
+                      }
+                    }
+                    else {
                       expr = expr + grpLayer.field + " " + p.operator + " '" + utils.sanitizeHTML(p.userValue) + "' " + p.conjunc + " ";
                     }
                     group.def.push({value: utils.sanitizeHTML(p.userValue), operator: p.operator, conjunc: p.conjunc});
@@ -549,7 +572,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
 
     resize: function() {
       var widgetWidth = this.domNode.clientWidth;
-      
+
       if(this.isAdvMode) {
         var operNode = query(".tdOperatorHide");
         if(operNode.length > 0) {
@@ -559,8 +582,8 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         var inputNodes = query(".operatorSelect");
         if(inputNodes.length > 0) {
           inputNodes.style("width", "65px");
-        }        
-        
+        }
+
         var inputNodes = query(".userInputNormal");
         if(inputNodes.length > 0) {
           inputNodes.style("width", "98%");
@@ -585,8 +608,8 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         var inputNodes = query(".tdValue");
         if(inputNodes.length > 0) {
           inputNodes.style("width", (widgetWidth - 135) + "px");
-        }      
-      }      
+        }
+      }
     },
 
     onOpen: function(){

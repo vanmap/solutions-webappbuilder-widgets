@@ -420,7 +420,7 @@ define([
               console.log(field);
               if(field.name === pParam.field) {
                 if(typeof(field.domain) !== 'undefined') {
-                  if(field.domain.type === 'codedValue') {
+                  if(field.domain.type === 'codedValue' || field.domain.type === 'range') {
                     var td = query('.simple-table-cell', pParam.row)[2];
                     if (td) {
                       var content = query('.dijit', td)[0];
@@ -501,7 +501,7 @@ define([
         if(validForm === false) {
           new Message({
             message : message
-          });          
+          });
         }
         return validForm;
       },
@@ -518,8 +518,8 @@ define([
         if(validForm === false) {
           new Message({
             message : this.nls.errors.noRows
-          });          
-        }        
+          });
+        }
         return validForm;
       },
 

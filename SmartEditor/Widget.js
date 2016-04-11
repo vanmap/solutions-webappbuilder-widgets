@@ -1528,15 +1528,17 @@ define([
 
       _update: function () {
         if (this.templatePicker) {
-
-          var widgetBox = html.getMarginBox(this.domNode);
-          var height = widgetBox.h;
-          var width = widgetBox.w;
+          //comments out, this results in teh scroll bar disappearing, unsure why
 
 
-          var cols = Math.floor(width / 60);
-          this.templatePicker.attr('columns', cols);
-          this.templatePicker.update();
+          //var widgetBox = html.getMarginBox(this.domNode);
+          //var height = widgetBox.h;
+          //var width = widgetBox.w;
+
+
+          //var cols = Math.floor(width / 60);
+          //this.templatePicker.attr('columns', cols);
+          //this.templatePicker.update();
 
 
         }

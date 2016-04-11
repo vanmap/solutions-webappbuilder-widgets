@@ -6,7 +6,7 @@
 
     .jimu-widget-smartEditor .templatePicker {
         position: relative;
-        height: 300px; /*just for BoxTheme*/
+        height: 300px; 
     }
 
     .jimu-widget-smartEditor .grid {
@@ -32,13 +32,10 @@
     .jimu-widget-smartEditor .dojoxGridRow {
         width: 100%;
     }
-
-
-    /*  
-/*.jimu-widget-smartEditor .dojoxGridView {
-  width: 100% !important;   
-}*/
-
+    .jimu-widget-smartEditor .dojoxGridView {
+        width: 100% !important;
+    }
+    
 
     /********about attributeInspector*********/
     .jimu-widget-smartEditor .esriAttributeInspector {

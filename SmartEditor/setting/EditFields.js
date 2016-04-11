@@ -32,7 +32,7 @@ define(
       popupEditPage: function() {
         var fieldsPopup = new Popup({
           titleLabel: this.nls.configureFields,
-          width: 640,
+          width: 720,
           maxHeight: 600,
           autoHeight: true,
           content: this,
@@ -59,7 +59,8 @@ define(
           name: 'isEditable',
           title: this.nls.edit,
           type: 'checkbox',
-          'class': 'editable'
+          'class': 'editable',
+          width: '90px'
         }, {
           name: 'fieldName',
           title: this.nls.editpageName,
@@ -74,7 +75,7 @@ define(
           title: this.nls.canPresetValue,
           type: 'checkbox',
           'class': 'presetValue',
-          width: '150px'
+          width: '100px'
         }, {
           name: 'actions',
           title: this.nls.actions,

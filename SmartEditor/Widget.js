@@ -229,10 +229,26 @@ define([
 
         }
       },
+      _processFieldInfos: function (fields) {
+        //Function required to add the Range details to a range domain so the layer can be cloned
 
+        array.forEach(fields, function (layerFields) {
+          if (layerFields.domain !== undefined && layerFields.domain !== null) {
+            if (layerFields.domain.type !== undefined && layerFields.domain.type !== null) {
+              if (layerFields.domain.type === 'range') {
+                if (layerFields.domain.hasOwnProperty('range') == false) { 
+                  layerFields.domain.range = [layerFields.domain.minValue, layerFields.domain.maxValue]
+                }
+              }
+            }
+          }
+        });
+        return fields;
+        
+      },
       _cloneLayer: function (layer) {
         var cloneFeaturelayer;
-
+        var fieldsproc = this._processFieldInfos(layer.fields);
         var featureCollection = {
           layerDefinition: {
             "id": 0,
@@ -256,18 +272,20 @@ define([
             "objectIdField": layer.objectIdField,
             "globalIdField": layer.globalIdField,
             "typeIdField": layer.typeIdField,
-            "fields": layer.fields,
+            "fields": fieldsproc,
             "types": layer.types,
             "templates": layer.templates,
             "capabilities": "Query,Editing"
           }
         };
 
+        var outFields = layer.fields.map(function (f) {
+          return f.name;
+        });
+        //outFields = ["*"]
         cloneFeaturelayer = new FeatureLayer(featureCollection, {
           id: layer.id + "_lfl",
-          outFields: layer.fields.map(function (f) {
-            return f.name;
-          })
+          outFields: outFields
         });
         cloneFeaturelayer.visible = true;
         cloneFeaturelayer.renderer = layer.renderer;

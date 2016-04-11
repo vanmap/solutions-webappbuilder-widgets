@@ -7,7 +7,7 @@ define({
     allowUpdateOnly: "Update Only",
     fields: "Fields",
     actions: "Actions",
-    canPresetValue: "Can Preset Value",
+    canPresetValue: "Preset",
     editpageName: "Name",
     editpageAlias: "Alias",
     editpageVisible: "Visible",

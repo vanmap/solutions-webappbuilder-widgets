@@ -201,6 +201,8 @@ define([
           myLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
 
           this.currentFeature = this.updateFeatures[0] = newGraphic;
+
+          this._enableAttrInspectorSaveButton(true);
         }));
 
         this._showTemplate(false);
@@ -234,6 +236,7 @@ define([
 
         }
       },
+
       _processFieldInfos: function (fieldInfos) {
 
         array.forEach(fieldInfos, function (fieldInfo) {
@@ -364,7 +367,7 @@ define([
         // save button
         var validateButton = domConstruct.create("div", {
           innerHTML: this.nls.submit,
-          "class": "validateButton jimu-btn" // jimu-state-disabled"
+          "class": "validateButton jimu-btn jimu-state-disabled"
         }, cancelButton, "after");
 
         // create delete button if specified in the config
@@ -416,7 +419,10 @@ define([
         })));
 
         this.own(on(validateButton, "click", lang.hitch(this, function () {
-          if (!this._isDirty) { return; }
+          if (!this._isDirty) {
+            this._resetEditingVariables();
+            return;
+          }
 
           if (this.map.infoWindow.isShowing) {
             this.map.infoWindow.hide();
@@ -432,6 +438,7 @@ define([
           if (this.currentFeature) {
             this.currentFeature.attributes[evt.fieldName] = evt.fieldValue;
             this._isDirty = true;
+            this._enableAttrInspectorSaveButton(true);
           }
         })));
 
@@ -535,6 +542,7 @@ define([
         this.own(on(this.editToolbar,
           "graphic-move-stop, rotate-stop, scale-stop, vertex-move-stop, vertex-click",
           lang.hitch(this, function () {
+            this._enableAttrInspectorSaveButton(true);
             this._isDirty = true;
           })));
 
@@ -667,6 +675,21 @@ define([
           this.map.setInfoWindowOnClick(true);
           this.editToolbar.deactivate();
           this._editingEnabled = false;
+        }
+      },
+
+      _enableAttrInspectorSaveButton: function (enable) {
+        var saveBtn = query(".validateButton")[0];
+        if (!saveBtn) { return; }
+
+        if (enable) {
+          if (domClass.contains(saveBtn, "jimu-state-disabled")) {
+            domClass.remove(saveBtn, "jimu-state-disabled");
+          }
+        } else {
+          if (!domClass.contains(saveBtn, "jimu-state-disabled")) {
+            domClass.add(saveBtn, "jimu-state-disabled");
+          }
         }
       },
 
@@ -1189,11 +1212,8 @@ define([
       // no confirm dialog involved
       _saveEdit: function (feature, switchToTemplate) {
         var deferred = new Deferred();
-        // disable the save button until the validation/post edit is done
-        var vBtn = query(".validateButton")[0];
-        if (!domClass.contains(vBtn, "jimu-state-disabled")) {
-          domClass.add(vBtn, "jimu-state-disabled");
-        }
+        // disable the save button even if the saving is done
+        this._enableAttrInspectorSaveButton(false);
 
         var errorObj = this._validateRequiredFields();
 
@@ -1203,9 +1223,6 @@ define([
           this.progressBar.domNode.style.display = "block";
           // call applyEdit
           this._postChanges(feature).then(lang.hitch(this, function () {
-            if (vBtn) {
-              domClass.remove(vBtn, "jimu-state-disabled");
-            }
             this.progressBar.domNode.style.display = "none";
 
             if (switchToTemplate && switchToTemplate === true) {
@@ -1225,10 +1242,7 @@ define([
           }));
         } else {
           this._formatErrorFields(errorObj);
-          // todo: deactive edittoolbar as well?
-          if (vBtn) {
-            domClass.remove(vBtn, "jimu-state-disabled");
-          }
+
           deferred.resolve("failed");
         }
         return deferred.promise;

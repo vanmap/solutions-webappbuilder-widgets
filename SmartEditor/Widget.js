@@ -138,6 +138,10 @@ define([
       },
 
       onOpen: function () {
+        if (_attrInspIsCurrentlyDisplayed) {
+          this.map.setInfoWindowOnClick(true);
+        }
+        
         this._update();
       },
 
@@ -1110,6 +1114,10 @@ define([
 
           all(deferreds).then(lang.hitch(this, function () {
             this.updateFeatures = updateFeatures;
+            if (this.updateFeatures.length == 0)
+            {
+              return;
+            }
             this._showTemplate(false);
           }));
         }
@@ -1495,6 +1503,7 @@ define([
       },
 
       onClose: function () {
+        this.map.setInfoWindowOnClick(true);
         //if (this.attrInspector) {
         //  this.attrInspector.destroy();
         //}
@@ -1541,6 +1550,7 @@ define([
       },
 
       onMinimize: function () {
+        
       },
 
       onMaximize: function () {

@@ -236,31 +236,53 @@ define([
 
         }
       },
-
-      _processFieldInfos: function (fieldInfos) {
-
-        array.forEach(fieldInfos, function (fieldInfo) {
-          if (fieldInfo && fieldInfo.format && fieldInfo.format !==
-          null) {
-            if (fieldInfo.format.dateFormat && fieldInfo.format.dateFormat !==
-              null) {
-              if (fieldInfo.format.dateFormat ===
-                "shortDateShortTime" ||
-                fieldInfo.format.dateFormat ===
-                "shortDateLongTime" ||
-                fieldInfo.format.dateFormat ===
-                "shortDateShortTime24" ||
-                fieldInfo.format.dateFormat ===
-                "shortDateLEShortTime" ||
-                fieldInfo.format.dateFormat ===
-                "shortDateLEShortTime24") {
-                fieldInfo.format.time = true;
-              }
+      _addDateFormat: function (fieldInfo) {
+        if (fieldInfo && fieldInfo.format && fieldInfo.format !==
+           null) {
+          if (fieldInfo.format.dateFormat && fieldInfo.format.dateFormat !==
+            null) {
+            if (fieldInfo.format.dateFormat ===
+              "shortDateShortTime" ||
+              fieldInfo.format.dateFormat ===
+              "shortDateLongTime" ||
+              fieldInfo.format.dateFormat ===
+              "shortDateShortTime24" ||
+              fieldInfo.format.dateFormat ===
+              "shortDateLEShortTime" ||
+              fieldInfo.format.dateFormat ===
+              "shortDateLEShortTime24") {
+              fieldInfo.format.time = true;
             }
           }
-        });
+        }
+      
         //return fieldInfos;
       },
+      //_processFieldInfos: function (fieldInfos) {
+
+      //  array.forEach(fieldInfos, function (fieldInfo) {
+      //    if (fieldInfo && fieldInfo.format && fieldInfo.format !==
+      //    null) {
+      //      if (fieldInfo.format.dateFormat && fieldInfo.format.dateFormat !==
+      //        null) {
+      //        if (fieldInfo.format.dateFormat ===
+      //          "shortDateShortTime" ||
+      //          fieldInfo.format.dateFormat ===
+      //          "shortDateLongTime" ||
+      //          fieldInfo.format.dateFormat ===
+      //          "shortDateShortTime24" ||
+      //          fieldInfo.format.dateFormat ===
+      //          "shortDateLEShortTime" ||
+      //          fieldInfo.format.dateFormat ===
+      //          "shortDateLEShortTime24") {
+      //          fieldInfo.format.time = true;
+      //        }
+      //      }
+      //    }
+      //  });
+      //  //return fieldInfos;
+      //},
+
       _processLayerFields: function (fields) {
         //Function required to add the Range details to a range domain so the layer can be cloned
 
@@ -413,9 +435,10 @@ define([
           } else {
             this._cancelEditingFeature(true);
           }
-          if (this.templatePicker) {
-            this.templatePicker.clearSelection();
-          }
+          //if (this.templatePicker) {
+          //  this.templatePicker.clearSelection();
+          //}
+          this._activateTemplateToolbar();
         })));
 
         this.own(on(validateButton, "click", lang.hitch(this, function () {
@@ -486,7 +509,29 @@ define([
 
         return attrInspector;
       },
+      _activateTemplateToolbar: function () {
 
+        if (this.templatePicker.getSelected()) {
+
+          this.selectedTemplate = this.templatePicker.getSelected();
+          //domClass.add(this.selectedTemplate, "selectedItem");
+          switch (this.selectedTemplate.featureLayer.geometryType) {
+            case "esriGeometryPoint":
+              this.drawToolbar.activate(Draw.POINT);
+              break;
+            case "esriGeometryPolyline":
+              this.drawToolbar.activate(Draw.POLYLINE);
+              break;
+            case "esriGeometryPolygon":
+              this.drawToolbar.activate(Draw.POLYGON);
+              break;
+          }
+        }
+
+        else {
+          this.drawToolbar.deactivate();
+        }
+      },
       _createEditor: function () {
         this.settings = this._getSettingsParam();
         var layers = this._getEditableLayers(this.settings.layerInfos, false);
@@ -511,32 +556,10 @@ define([
         //this.templatePicker.placeAt(this.templatePickerNode);
         this.templatePicker.startup();
 
-        var drawToolbar = new Draw(this.map);
+        this.drawToolbar = new Draw(this.map);
 
         // wire up events
-        this.own(on(this.templatePicker, "selection-change", lang.hitch(this, function () {
-
-          if (this.templatePicker.getSelected()) {
-
-            this.selectedTemplate = this.templatePicker.getSelected();
-            //domClass.add(this.selectedTemplate, "selectedItem");
-            switch (this.selectedTemplate.featureLayer.geometryType) {
-              case "esriGeometryPoint":
-                drawToolbar.activate(Draw.POINT);
-                break;
-              case "esriGeometryPolyline":
-                drawToolbar.activate(Draw.POLYLINE);
-                break;
-              case "esriGeometryPolygon":
-                drawToolbar.activate(Draw.POLYGON);
-                break;
-            }
-          }
-
-          else {
-            drawToolbar.deactivate();
-          }
-        })));
+        this.own(on(this.templatePicker, "selection-change", lang.hitch(this, this._activateTemplateToolbar)));
 
         // edit events
         this.own(on(this.editToolbar,
@@ -547,8 +570,8 @@ define([
           })));
 
         // draw event
-        this.own(on(drawToolbar, "draw-end", lang.hitch(this, function (evt) {
-          drawToolbar.deactivate();
+        this.own(on(this.drawToolbar, "draw-end", lang.hitch(this, function (evt) {
+          this.drawToolbar.deactivate();
           this._isDirty = true; //?
           this._addGraphicToLocalLayer(evt);
         })));
@@ -965,13 +988,14 @@ define([
         }));
         //return layerInfo;
         // add the type for layer use, by the way
-        //layerInfo.fieldInfos.forEach(function (finfo) {
-        //  var field = layerObject.fields.find(function (f) {
-        //    return f.name === finfo.fieldName;
-        //  });
-        //  finfo.type = field.type;
-        //  finfo.domain = field.domain;
-        //});
+        layerInfo.fieldInfos.forEach(function (finfo) {
+          this._addDateFormat(finfo);
+          var field = layerObject.fields.find(function (f) {
+            return f.name === finfo.fieldName;
+          });
+          finfo.type = field.type;
+          finfo.domain = field.domain;
+        },this);
       },
 
       _newAttrInspectorNeeded: function () {
@@ -1205,6 +1229,7 @@ define([
         this._isDirty = false;
         this._editingEnabled = false;
         this.editToolbar.deactivate();
+       
         this._turnEditGeometryToggleOff();
       },
 
@@ -1260,9 +1285,11 @@ define([
           this._resetEditingVariables();
           this.currentFeature = null;
           this.updateFeatures = [];
+
           this.selectedTemplate = null; //?
 
           this.map.setInfoWindowOnClick(false);
+          this._activateTemplateToolbar();
 
         } else {
           //show attribute inspector
@@ -1498,7 +1525,7 @@ define([
             // modify field infos - removed as we should not modify the layer as it might effect other widgets
             //Mike
             this._modifyFieldInfosForEE(layerInfo);
-            this._processFieldInfos(layerInfo.fieldInfos);
+            //this._processFieldInfos(layerInfo.fieldInfos);
             layerInfo.featureLayer = layerObject;
             resultLayerInfosParam.push(layerInfo);
           }
@@ -1555,7 +1582,7 @@ define([
 
           //var cols = Math.floor(width / 60);
           //this.templatePicker.attr('columns', cols);
-          //this.templatePicker.update();
+          this.templatePicker.update();
 
 
         }

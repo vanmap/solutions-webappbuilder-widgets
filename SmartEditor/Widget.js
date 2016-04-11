@@ -138,7 +138,7 @@ define([
       },
 
       onOpen: function () {
-        if (_attrInspIsCurrentlyDisplayed) {
+        if (this._attrInspIsCurrentlyDisplayed) {
           this.map.setInfoWindowOnClick(true);
         }
         

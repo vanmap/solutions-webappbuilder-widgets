@@ -121,14 +121,14 @@ define([
 
       _init: function () {
         this._configEditor = lang.clone(this.config.editor);
-       
+
       },
 
       onActive: function () {
         if (this.map) {
           this.map.setInfoWindowOnClick(false);
         }
-        
+
       },
 
       onDeActive: function () {
@@ -182,6 +182,7 @@ define([
           myLayer.setSelectionSymbol(this._getSelectionSymbol(myLayer.geometryType, true));
 
           var localLayerInfo = this._getLayerInfoForLocalLayer(myLayer);
+
           var newTempLayerInfos = this._converConfiguredLayerInfos([localLayerInfo]);
 
           this.attrInspector = this._createAttributeInspector(newTempLayerInfos);
@@ -229,26 +230,51 @@ define([
 
         }
       },
-      _processFieldInfos: function (fields) {
-        //Function required to add the Range details to a range domain so the layer can be cloned
+      _processFieldInfos: function (fieldInfos) {
 
-        array.forEach(fields, function (layerFields) {
-          if (layerFields.domain !== undefined && layerFields.domain !== null) {
-            if (layerFields.domain.type !== undefined && layerFields.domain.type !== null) {
-              if (layerFields.domain.type === 'range') {
-                if (layerFields.domain.hasOwnProperty('range') == false) { 
-                  layerFields.domain.range = [layerFields.domain.minValue, layerFields.domain.maxValue]
-                }
+        array.forEach(fieldInfos, function (fieldInfo) {
+          if (fieldInfo && fieldInfo.format && fieldInfo.format !==
+          null) {
+            if (fieldInfo.format.dateFormat && fieldInfo.format.dateFormat !==
+              null) {
+              if (fieldInfo.format.dateFormat ===
+                "shortDateShortTime" ||
+                fieldInfo.format.dateFormat ===
+                "shortDateLongTime" ||
+                fieldInfo.format.dateFormat ===
+                "shortDateShortTime24" ||
+                fieldInfo.format.dateFormat ===
+                "shortDateLEShortTime" ||
+                fieldInfo.format.dateFormat ===
+                "shortDateLEShortTime24") {
+                fieldInfo.format.time = true;
               }
             }
           }
         });
+        return fieldInfos;
+      },
+      _processLayerFields: function (fields) {
+        //Function required to add the Range details to a range domain so the layer can be cloned
+
+        array.forEach(fields, function (field) {
+          if (field.domain !== undefined && field.domain !== null) {
+            if (field.domain.type !== undefined && field.domain.type !== null) {
+              if (field.domain.type === 'range') {
+                if (field.domain.hasOwnProperty('range') == false) {
+                  field.domain.range = [field.domain.minValue, field.domain.maxValue]
+                }
+              }
+            }
+
+          }
+        });
+
         return fields;
-        
       },
       _cloneLayer: function (layer) {
         var cloneFeaturelayer;
-        var fieldsproc = this._processFieldInfos(layer.fields);
+        var fieldsproc = this._processLayerFields(layer.fields);
         var featureCollection = {
           layerDefinition: {
             "id": 0,
@@ -736,7 +762,7 @@ define([
         }
       },
 
-      _getEditableLayers: function (layerInfos,allLayers) {
+      _getEditableLayers: function (layerInfos, allLayers) {
         var layers = [];
         array.forEach(layerInfos, function (layerInfo) {
           if (!layerInfo.allowUpdateOnly || allLayers) { //
@@ -754,17 +780,24 @@ define([
       },
 
       _getLayerInfoForLocalLayer: function (localLayer) {
+        var result = null;
+        var layerFound = this.settings.layerInfos.some(function (lyrinfo) {
+          return lyrinfo.featureLayer.id === localLayer.originalLayerId ? ((result = lyrinfo), true) : false;
+        });
+
         var layerInfo;
         var fieldInfos;
-        var layerObject = this.map.getLayer(localLayer.originalLayerId);
-        if (layerObject.type === "Feature Layer" && layerObject.url) {
+        //var layerObject = this.map.getLayer(localLayer.originalLayerId);
+        if (layerFound === true) {//(layerObject.type === "Feature Layer" && layerObject.url) {
           // get the fieldInfos
           layerInfo = {
             featureLayer: localLayer,
             disableGeometryUpdate: false
           };
 
-          fieldInfos = this._getDefaultFieldInfos(layerObject.id);
+          fieldInfos = lang.clone(result.fieldInfos);
+          fieldInfos = this._processFieldInfos(fieldInfos);
+          //  this._getDefaultFieldInfos(layerObject.id);
           if (fieldInfos && fieldInfos.length > 0) {
             layerInfo.fieldInfos = fieldInfos;
           }
@@ -774,7 +807,6 @@ define([
         }
         return layerInfo;
       },
-
       _getSelectionSymbol: function (geometryType, highlight) {
         if (!geometryType || geometryType === "") { return null; }
 
@@ -905,13 +937,13 @@ define([
         }));
 
         // add the type for layer use, by the way
-        layerInfo.fieldInfos.forEach(function (finfo) {
-          var field = layerObject.fields.find(function (f) {
-            return f.name === finfo.fieldName;
-          });
-          finfo.type = field.type;
-          finfo.domain = field.domain;
-        });
+        //layerInfo.fieldInfos.forEach(function (finfo) {
+        //  var field = layerObject.fields.find(function (f) {
+        //    return f.name === finfo.fieldName;
+        //  });
+        //  finfo.type = field.type;
+        //  finfo.domain = field.domain;
+        //});
       },
 
       _newAttrInspectorNeeded: function () {
@@ -1038,7 +1070,7 @@ define([
           }
 
           // todo: get layers from settings?
-          var layers = this.map.getLayersVisibleAtScale().filter(lang.hitch(this,function (lyr) {
+          var layers = this.map.getLayersVisibleAtScale().filter(lang.hitch(this, function (lyr) {
             if (lyr.type && lyr.type === "Feature Layer" && lyr.url) {
               return this.settings.layerInfos.some(function (lyrinfo) {
                 if (lyrinfo.layerId == lyr.id) {
@@ -1052,7 +1084,7 @@ define([
             else {
               return false;
             }
-           }));
+          }));
 
           var updateFeatures = [];
           var deferreds = [];
@@ -1308,7 +1340,7 @@ define([
         //  filter webmap fieldInfos.
         // description:
         //   return null if fieldInfos has not been configured in webmap.
-        var fieldInfos = editUtils.getFieldInfosFromWebmap(layerId, this._jimuLayerInfos);
+        var fieldInfos = editUtils.getFieldInfosFromWebmap(layerId, this._jimuLayerInfos);//
         if (fieldInfos) {
           fieldInfos = array.filter(fieldInfos, function (fieldInfo) {
             return fieldInfo.visible || fieldInfo.isEditable;
@@ -1438,8 +1470,9 @@ define([
             // modify templates with space in string fields
             this._removeSpacesInLayerTemplates(layerObject);
 
-            // modify field infos
-            this._modifyFieldInfosForEE(layerInfo);
+            // modify field infos - removed as we should not modify the layer as it might effect other widgets
+            //Mike
+            //this._modifyFieldInfosForEE(layerInfo);
 
             layerInfo.featureLayer = layerObject;
             resultLayerInfosParam.push(layerInfo);

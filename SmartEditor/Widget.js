@@ -48,6 +48,7 @@ define([
     "./utils",
     "dijit/form/CheckBox",
     'dijit/form/DateTextBox',
+    'dijit/form/NumberSpinner',
     'dijit/form/NumberTextBox',
     'dijit/form/FilteringSelect',
     'dijit/form/TextBox',
@@ -58,8 +59,8 @@ define([
     BaseWidget, LayerInfos, TemplatePicker,
     AttributeInspector, Draw, Edit, Query, Graphic, FeatureLayer, ConfirmDialog, all, Deferred,
     SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, Color, geometryJsonUtil, registry,
-    editUtils, CheckBox, DateTextBox, NumberTextBox,
-  FilteringSelect, TextBox, Memory) {
+    editUtils, CheckBox, DateTextBox, NumberSpinner, NumberTextBox,
+    FilteringSelect, TextBox, Memory) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
       name: 'SmartEditor',
       baseClass: 'jimu-widget-smartEditor',
@@ -236,6 +237,7 @@ define([
 
         }
       },
+
       _addDateFormat: function (fieldInfo) {
         if (fieldInfo && fieldInfo.format && fieldInfo.format !==
            null) {
@@ -301,6 +303,7 @@ define([
 
         return fields;
       },
+
       _cloneLayer: function (layer) {
         var cloneFeaturelayer;
         var fieldsproc = this._processLayerFields(layer.fields);
@@ -509,6 +512,7 @@ define([
 
         return attrInspector;
       },
+
       _activateTemplateToolbar: function () {
 
         if (this.templatePicker.getSelected()) {
@@ -532,6 +536,7 @@ define([
           this.drawToolbar.deactivate();
         }
       },
+
       _createEditor: function () {
         this.settings = this._getSettingsParam();
         var layers = this._getEditableLayers(this.settings.layerInfos, false);
@@ -596,22 +601,35 @@ define([
 
         } else {
           if (fieldInfo.domain) {
-            // todo: when domain is not codedValue type
-            // that is when the domain.type = codedValue
-            var domainValues = fieldInfo.domain.codedValues;
+            // domain.type = codedValue
+            if (fieldInfo.domain.type === "codedValue") {
+              var domainValues = fieldInfo.domain.codedValues;
 
-            var options = [];
-            array.forEach(domainValues, function (dv) {
-              options.push({ name: dv.name, id: dv.code });
-            });
+              var options = [];
+              array.forEach(domainValues, function (dv) {
+                options.push({ name: dv.name, id: dv.code });
+              });
 
-            node = new FilteringSelect({
-              "class": "ee-inputField",
-              name: fieldInfo.fieldName,
-              store: new Memory({ data: options }),
-              searchAttr: "name"
-            }, domConstruct.create("div"));
+              node = new FilteringSelect({
+                "class": "ee-inputField",
+                name: fieldInfo.fieldName,
+                store: new Memory({ data: options }),
+                searchAttr: "name"
+              }, domConstruct.create("div"));
 
+            } else { //domain.type = range
+              node = new NumberSpinner({
+                "class": "ee-inputField",
+                name: fieldInfo.fieldName,
+                smallDelta: 1,
+                constraints: {
+                  min: fieldInfo.domain.minValue,
+                  max: fieldInfo.domain.maxValue,
+                  place: 0
+                }
+              }, domConstruct.create("div"));
+
+            }
           } else {
             switch (fieldInfo.type) {
               case "esriFieldTypeString":
@@ -1022,7 +1040,8 @@ define([
       },
 
       _onMapClick: function (evt) {
-        if (!this._attrInspIsCurrentlyDisplayed && evt.graphic && !this.templatePicker.getSelected()) {
+        if (!this._attrInspIsCurrentlyDisplayed && evt.graphic &&
+          this.templatePicker && !this.templatePicker.getSelected()) {
           this._processOnMapClick(evt);
         }
       },

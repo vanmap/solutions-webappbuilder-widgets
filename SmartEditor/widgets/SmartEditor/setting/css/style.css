@@ -1,0 +1,52 @@
+.jimu-widget-smartEditor-setting{
+  margin:0;
+  padding:0;
+  font-size:15px;
+}
+.jimu-widget-smartEditor-setting .editable{
+  width: 100px;
+}
+
+.jimu-widget-smartEditor-setting .edit-fields{
+  width: 100px;
+}
+
+.jimu-widget-smartEditor-setting .update{
+  width: 200px;
+}
+
+.jimu-widget-smartEditor-setting .setting-table > thead > tr > th,
+.jimu-widget-smartEditor-setting .setting-table > tbody > tr > td{
+  height:40px;
+  line-height:40px;
+  vertical-align:middle;
+}
+
+.jimu-widget-smartEditor-setting .input-table > tbody > tr > .first{
+  width:auto;
+  min-width: 160px;
+  text-align: left;
+}
+
+.jimu-rtl .jimu-widget-smartEditor-setting .input-table > tbody > tr > .first{
+  text-align: right;
+}
+
+.jimu-widget-smartEditor-setting .input-table > tbody > tr > .second{
+  width: auto;
+}
+
+
+.jimu-widget-smartEditor-setting .input-table > tbody > tr > .second > span{
+  display: inline-block;
+  height: 40px;
+  line-height: 40px;
+}
+
+.jimu-widget-smartEditor-setting .dijitArrowButtonContainer{
+  width: 17px;
+}
+.jimu-widget-smartEditor-setting .dijitSelect{
+  height: 30px;
+  width: 100%;
+}

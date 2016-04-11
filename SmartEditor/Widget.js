@@ -138,7 +138,7 @@ define([
       },
 
       onOpen: function () {
-        if (_attrInspIsCurrentlyDisplayed) {
+        if (this._attrInspIsCurrentlyDisplayed) {
           this.map.setInfoWindowOnClick(true);
         }
         
@@ -256,7 +256,7 @@ define([
             }
           }
         });
-        return fieldInfos;
+        //return fieldInfos;
       },
       _processLayerFields: function (fields) {
         //Function required to add the Range details to a range domain so the layer can be cloned
@@ -435,6 +435,7 @@ define([
           }
         })));
 
+        
         this.own(on(attrInspector, "next", lang.hitch(this, function (evt) {
           // in case multiple featuers are selected, 
           if (this._isDirty && this.currentFeature) {
@@ -800,14 +801,14 @@ define([
           };
 
           fieldInfos = lang.clone(result.fieldInfos);
-          fieldInfos = this._processFieldInfos(fieldInfos);
+          //fieldInfos = this._processFieldInfos(fieldInfos);
           //  this._getDefaultFieldInfos(layerObject.id);
           if (fieldInfos && fieldInfos.length > 0) {
             layerInfo.fieldInfos = fieldInfos;
           }
 
           // modify field infos
-          this._modifyFieldInfosForEE(layerInfo);
+          //this._modifyFieldInfosForEE(layerInfo);
         }
         return layerInfo;
       },
@@ -927,7 +928,7 @@ define([
       // also add field type and domain to use in the preset values
       _modifyFieldInfosForEE: function (layerInfo) {
         if (!layerInfo) { return; }
-
+        //layerInfo = lang.clone(layerInfo);
         var layerObject = this.map.getLayer(layerInfo.featureLayer.id);
         layerObject.fields.filter(lang.hitch(this, function (field) {
           return field.nullable === false && field.editable === true;
@@ -939,7 +940,7 @@ define([
             }
           });
         }));
-
+        //return layerInfo;
         // add the type for layer use, by the way
         //layerInfo.fieldInfos.forEach(function (finfo) {
         //  var field = layerObject.fields.find(function (f) {
@@ -1415,6 +1416,8 @@ define([
           if (newFieldInfos.length !== 0) {
             layerInfo.fieldInfos = newFieldInfos;
           }
+          //layerInfo = this._modifyFieldInfosForEE(layerInfo);
+          //layerInfo.fieldInfo = this._processFieldInfos(layerInfo.fieldInfo);
         }, this);
         return layerInfos;
 
@@ -1480,8 +1483,8 @@ define([
 
             // modify field infos - removed as we should not modify the layer as it might effect other widgets
             //Mike
-            //this._modifyFieldInfosForEE(layerInfo);
-
+            this._modifyFieldInfosForEE(layerInfo);
+            this._processFieldInfos(layerInfo.fieldInfos);
             layerInfo.featureLayer = layerObject;
             resultLayerInfosParam.push(layerInfo);
           }

@@ -52,6 +52,7 @@ define([
     'dijit/form/NumberTextBox',
     'dijit/form/FilteringSelect',
     'dijit/form/TextBox',
+    'dijit/form/TimeTextBox',
     'dojo/store/Memory'
 ],
   function (declare, lang, array, html, query, esriBundle, domConstruct,
@@ -60,7 +61,7 @@ define([
     AttributeInspector, Draw, Edit, Query, Graphic, FeatureLayer, ConfirmDialog, all, Deferred,
     SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, Color, geometryJsonUtil, registry,
     editUtils, CheckBox, DateTextBox, NumberSpinner, NumberTextBox,
-    FilteringSelect, TextBox, Memory) {
+    FilteringSelect, TextBox, TimeTextBox, Memory) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
       name: 'SmartEditor',
       baseClass: 'jimu-widget-smartEditor',
@@ -592,77 +593,95 @@ define([
       },
 
       _createPresetFieldContentNode: function (fieldInfo) {
+        var nodes = [];
         var node;
-        if (fieldInfo.type === "esriFieldTypeDate") {
-          node = new DateTextBox({
-            "class": "ee-inputField",
-            name: fieldInfo.fieldName
-          }, domConstruct.create("div"));
+
+        if (fieldInfo.domain) {
+          // domain.type = codedValue
+          if (fieldInfo.domain.type === "codedValue") {
+            var domainValues = fieldInfo.domain.codedValues;
+
+            var options = [];
+            array.forEach(domainValues, function (dv) {
+              options.push({ name: dv.name, id: dv.code });
+            });
+
+            node = new FilteringSelect({
+              "class": "ee-inputField",
+              name: fieldInfo.fieldName,
+              store: new Memory({ data: options }),
+              searchAttr: "name"
+            }, domConstruct.create("div"));
+
+          } else { //domain.type = range
+            node = new NumberSpinner({
+              "class": "ee-inputField",
+              name: fieldInfo.fieldName,
+              smallDelta: 1,
+              constraints: {
+                min: fieldInfo.domain.minValue,
+                max: fieldInfo.domain.maxValue,
+                place: 0
+              }
+            }, domConstruct.create("div"));
+              
+          }
+
+          nodes.push(node.domNode);
 
         } else {
-          if (fieldInfo.domain) {
-            // domain.type = codedValue
-            if (fieldInfo.domain.type === "codedValue") {
-              var domainValues = fieldInfo.domain.codedValues;
-
-              var options = [];
-              array.forEach(domainValues, function (dv) {
-                options.push({ name: dv.name, id: dv.code });
-              });
-
-              node = new FilteringSelect({
+          switch (fieldInfo.type) {
+            case  "esriFieldTypeDate":
+              node = new DateTextBox({
                 "class": "ee-inputField",
-                name: fieldInfo.fieldName,
-                store: new Memory({ data: options }),
-                searchAttr: "name"
+                name: fieldInfo.fieldName
               }, domConstruct.create("div"));
 
-            } else { //domain.type = range
-              node = new NumberSpinner({
+              nodes.push(node.domNode);
+
+              // 
+              var timeNode = new TimeTextBox({
+                "class": "ee-inputField"
+              }, domConstruct.create("div"));
+              nodes.push(timeNode.domNode);
+
+              break;
+            case "esriFieldTypeString":
+              node = new TextBox({
                 "class": "ee-inputField",
-                name: fieldInfo.fieldName,
-                smallDelta: 1,
-                constraints: {
-                  min: fieldInfo.domain.minValue,
-                  max: fieldInfo.domain.maxValue,
-                  place: 0
-                }
+                name: fieldInfo.fieldName
               }, domConstruct.create("div"));
 
-            }
-          } else {
-            switch (fieldInfo.type) {
-              case "esriFieldTypeString":
-                node = new TextBox({
-                  "class": "ee-inputField",
-                  name: fieldInfo.fieldName
-                }, domConstruct.create("div"));
+              nodes.push(node.domNode);
 
-                break;
-                // todo: check for more types
-              case "esriFieldTypeSmallInteger":
-              case "esriFieldTypeInteger":
-              case "esriFieldTypeLong":
-              case "esriFieldTypeDouble":
-                node = new NumberTextBox({
-                  "class": "ee-inputField",
-                  name: fieldInfo.fieldName
-                }, domConstruct.create("div"));
+              break;
+              // todo: check for more types
+            case "esriFieldTypeSmallInteger":
+            case "esriFieldTypeInteger":
+            case "esriFieldTypeLong":
+            case "esriFieldTypeDouble":
+              node = new NumberTextBox({
+                "class": "ee-inputField",
+                name: fieldInfo.fieldName
+              }, domConstruct.create("div"));
 
-                break;
-              default:
-                node = new TextBox({
-                  "class": "ee-unsupportField",
-                  name: fieldInfo.fieldName,
-                  value: "N/A",
-                  readOnly: true
-                }, domConstruct.create("div"));
+              nodes.push(node.domNode);
 
-                break;
-            }
+              break;
+            default:
+              node = new TextBox({
+                "class": "ee-unsupportField",
+                name: fieldInfo.fieldName,
+                value: "N/A",
+                readOnly: true
+              }, domConstruct.create("div"));
+
+              nodes.push(node.domNode);
+
+              break;
           }
         }
-        return node.domNode;
+        return nodes;
       },
 
       _deleteFeature: function () {
@@ -782,23 +801,21 @@ define([
 
         // fill the table
         array.forEach(presetFieldInfos, lang.hitch(this, function (presetFieldInfo) {
-          var row = domConstruct.create("tr",
-            { "class": "ee-presetValue-table-row" });
-
-          var aliasColumnNode = domConstruct.create("td",
-            { "class": "ee-presetValue-table-cell field-alias-label" }, row);
+          var row = domConstruct.create("tr"); 
 
           domConstruct.place(lang.replace(
-            "<div class='alias-text-div' title='{fieldAlias}'>{fieldAlias}</div>",
-            { fieldAlias: presetFieldInfo.label }), aliasColumnNode);
-
-          var presetValueNode = this._createPresetFieldContentNode(presetFieldInfo);
+            "<td class='atiLabel'>{fieldAlias}</td>",
+            { fieldAlias: presetFieldInfo.label }), row);
 
           var valueColumnNode = domConstruct.create("td",
-            { "class": "ee-presetValue-table-cell preset-value-editable" }, row);
+            { "class": "preset-value-editable" }, row);
 
-          domConstruct.place(presetValueNode, valueColumnNode, "first");
+          var presetValueNodes = this._createPresetFieldContentNode(presetFieldInfo);
 
+          array.forEach(presetValueNodes, function(presetValueNode){
+            domConstruct.place(presetValueNode, valueColumnNode, "last");
+          });
+         
           query("#eePresetValueBody")[0].appendChild(row);
         }));
       },
@@ -970,17 +987,38 @@ define([
         if (presetValueTable) {
           var inputElements = query(".preset-value-editable .ee-inputField");
           array.forEach(inputElements, lang.hitch(this, function (ele) {
-            // for some dijit controls, value is in the input of type hidden,
-            // some not
-            var element = query("input[type='hidden']", ele);
-            if (!element || element.length === 0) {
-              element = query("input", ele);
-            }
+            // skip time text box as this level
+            if (!domClass.contains(ele, "dijitTimeTextBox")) {
+              // for some dijit controls, value is in the input of type hidden,
+              // some not
+              var element = query("input[type='hidden']", ele);
+              if (!element || element.length === 0) {
+                element = query("input", ele);
+              }
 
-            if (element[0].value) {
-              for (var attribute in attributes) {
-                if (attributes.hasOwnProperty(attribute) && attribute === element[0].name) {
-                  attributes[attribute] = element[0].value;
+              // if it's datetime then create a dateTime from string
+              var dateTime;
+              var isDateTime = domClass.contains(ele, "dijitDateTextBox");
+              if (isDateTime) {
+                // get the sibling time component node
+                var timeElement = query(".dijitTimeTextBox", ele.parentNode)[0];
+                // retrieve the value
+                var timeStr = query("input[type='hidden']", timeElement)[0].value;
+                dateTime = dojo.date.stamp.fromISOString(
+                  element[0].value + timeStr);
+              }
+
+              // set the attribute value
+              if (element[0].value) {
+                for (var attribute in attributes) {
+                  if (attributes.hasOwnProperty(attribute) && attribute === element[0].name) {
+                    if (isDateTime) {
+                      attributes[attribute] = dateTime;
+                    } else {
+                      attributes[attribute] = element[0].value;
+                    }
+                    break;
+                  }
                 }
               }
             }

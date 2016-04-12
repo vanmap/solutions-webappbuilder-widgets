@@ -34,7 +34,9 @@ define({
     creatingPrint: "Creating Print",
     printError: "Error, try again",
     mapBook: "Create Map Book",
-    mapBookLayer: "Layer"
+    mapBookLayer: "Layer",
+    automatePrinting: "Automated Printing",
+    printEachFeature: "Each feature for selected layer"
   }),
   "ar": 1,
   "cs": 1,

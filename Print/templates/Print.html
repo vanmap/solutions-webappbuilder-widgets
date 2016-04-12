@@ -148,11 +148,26 @@
                             </tr>
                         </table>
                     </div>
+					<div style="font-weight:bold;">
+                        ${nls.automatePrinting}:
+                    </div>
+                    <div data-dojo-type="dijit/form/Form" data-dojo-attach-point="mapAutomatePrintDijit">
+                        <table cellspacing="5">
+                            <tr>
+                                <td>
+                                    ${nls.printEachFeature}:
+                                </td>
+                                <td>
+                                    <input type="checkbox" data-dojo-type="dijit/form/CheckBox" data-dojo-props="name:'autoPrint',value:true,checked:false"/>
+                                </td>
+                            </tr>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
         <div data-dojo-type="dijit/form/Button" data-dojo-props="busyLabel:'printing',iconClass:'printIcon'"
-        data-dojo-attach-event="onClick:printMapBookCheck" data-dojo-attach-point="printButtonDijit">
+        data-dojo-attach-event="onClick:checkAutomatedPrint" data-dojo-attach-point="printButtonDijit">
             ${nls.print}
         </div>
     </div>

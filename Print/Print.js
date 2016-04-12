@@ -8,6 +8,7 @@ define([
   "esri/tasks/PrintTemplate",
   "esri/request",
   'esri/lang',
+  'esri/geometry/geometryEngine',
   'dojo/_base/lang',
   'dojo/_base/array',
   'dojo/_base/html',
@@ -49,6 +50,7 @@ define([
   PrintTemplate,
   esriRequest,
   esriLang,
+  geometryEngine,
   lang,
   array,
   html,
@@ -405,6 +407,15 @@ define([
       }
     },
 
+    checkAutomatedPrint: function() {
+      var mapAutoPrintForm = this.mapAutomatePrintDijit.get('value');
+      if(mapAutoPrintForm.autoPrint.length > 0) {
+        this.printMapBookCheck();
+      } else {
+        this.print();
+      }
+    },
+
     printMapBookCheck: function() {
       var mapBook = new mapBookDijit({
         map: this.map,
@@ -432,8 +443,12 @@ define([
 
     mapBookZoom: function(pParam) {
       if(pParam.features.length > 0) {
-
-        var newExtent = pParam.features[0].geometry.getExtent();
+        var newExtent = '';
+        if(pParam.features[0].geometry.type === "point") {
+          newExtent = (geometryEngine.buffer(pParam.features[0].geometry, 1000, "feet" )).getExtent();
+        } else {
+          newExtent = pParam.features[0].geometry.getExtent();
+        }
         this.map.setExtent(newExtent).then(lang.hitch(this, function() {
           var printEvt = this.printTask.on('complete', lang.hitch(this, function() {
             (pParam.features).splice(0,1);

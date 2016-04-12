@@ -218,15 +218,22 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         {'value': '=', 'label': this.nls.inputs.optionEQUAL},
         {'value': '>', 'label': this.nls.inputs.optionGREATERTHAN},
         {'value': '>=', 'label': this.nls.inputs.optionGREATERTHANEQUAL},
-        {'value': '<=', 'label': this.nls.inputs.optionLESSTHAN},
+        {'value': '<', 'label': this.nls.inputs.optionLESSTHAN},
         {'value': '<=', 'label': this.nls.inputs.optionLESSTHANEQUAL}
       ];
-      var grpSelect = new Select({
+      var opSelect = new Select({
         options: ObjList,
         "class": "operatorSelect"
       }).placeAt(pCell);
-       grpSelect.startup();
-       grpSelect.set('value', pValue.operator);
+      opSelect.startup();
+      opSelect.set('value', pValue.operator);
+      this.own(on(opSelect, "click", lang.hitch(this, function() {
+
+      })));
+      this.own(on(opSelect, "change", lang.hitch(this, function() {
+
+      })));
+
     },
 
     createInputFilter: function(pCell, pValue) {
@@ -244,8 +251,12 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           domainSelect.startup();
           domainSelect.set('value', pValue.value);
         } else {
+          var defaultNum = "";
+          if(pValue.value !== "") {
+            defaultNum = Number(pValue.value);
+          }
           var txtRange = new NumberTextBox({
-            value: pValue.value,
+            value: defaultNum,
             constraints: {min:this.useDomain.minValue,max:this.useDomain.maxValue}
           }).placeAt(pCell);
           txtRange.startup();
@@ -265,7 +276,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       } else {
         var txtFilterParam = new TextBox({
           value: pValue.value /* no or empty value! */,
-          placeHolder: "Type in a Value",
+          placeHolder: "Type in a value",
           "class": "userInputNormal"
         }).placeAt(pCell);
         txtFilterParam.startup();
@@ -542,6 +553,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         "jsonFile": this.jsonFileInput.files
       });
       on(readDef, "complete", lang.hitch(this, function(results) {
+        console.log(this.grpSelect.value);
         this.config = JSON.parse(results.UserSettings);
           this.resetLayerDef();
           this.removeAllRows();

@@ -79,6 +79,10 @@
         width: 100%;
     }
 
+    .jimu-widget-smartEditor .ee-presetValueBody {
+        vertical-align: top;
+    }
+
     .jimu-widget-smartEditor .ee-presetValueBodyTable {
         width: 100%;
     }

@@ -143,7 +143,9 @@ define([
         if (this._attrInspIsCurrentlyDisplayed) {
           this.map.setInfoWindowOnClick(true);
         }
-        
+        else {
+          this.map.setInfoWindowOnClick(false);
+        }
         this._update();
       },
 
@@ -361,6 +363,8 @@ define([
       },
 
       _createAttributeInspector: function (layerInfos) {
+        query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
+
         var attrInspector = new AttributeInspector({
           layerInfos: layerInfos
         }, html.create("div", {
@@ -1219,11 +1223,11 @@ define([
 
           all(deferreds).then(lang.hitch(this, function () {
             this.updateFeatures = updateFeatures;
-            if (this.updateFeatures.length == 0)
+            if (this.updateFeatures.length > 0)
             {
-              return;
+              this._showTemplate(false);
             }
-            this._showTemplate(false);
+            
           }));
         }
       },
@@ -1306,8 +1310,9 @@ define([
           // call applyEdit
           this._postChanges(feature).then(lang.hitch(this, function () {
             this.progressBar.domNode.style.display = "none";
-
+           
             if (switchToTemplate && switchToTemplate === true) {
+              
               feature.getLayer().clearSelection();
               this._showTemplate(true);
 
@@ -1315,7 +1320,6 @@ define([
               // reselect the feature
               feature.setSymbol(this._getSelectionSymbol(
                 feature.getLayer().geometryType, true));
-
               this._resetEditingVariables();
 
               this.map.setInfoWindowOnClick(true);

@@ -621,6 +621,9 @@ define([
         } else {
           query(".presetFieldsTableDiv")[0].style.display = "none";
         }
+
+        // add a process indicator node
+        //domConstruct.place("<div class='smartEditor-processing-indicator'></div>", document.body, "last");
       },
 
       _createPresetFieldContentNode: function (fieldInfo) {
@@ -726,9 +729,17 @@ define([
           this._showTemplate(true);
 
         } else {
-          this.progressBar.domNode.style.display = "block";
+          var processIndicator = query(".processing-indicator")[0];
+          if (!domClass.contains(processIndicator, "busy"))
+          {
+            domClass.add(processIndicator, "busy");
+          }
+
           layer.applyEdits(null, null, [this.currentFeature], lang.hitch(this, function () {
-            this.progressBar.domNode.style.display = "none";
+            if (domClass.contains(processIndicator, "busy"))
+            {
+              domClass.remove(processIndicator, "busy");
+            }
             this.updateFeatures.splice(this.updateFeatures.indexOf(this.currentFeature), 1);
 
             if (this.updateFeatures && this.updateFeatures.length > 0) {
@@ -1332,12 +1343,15 @@ define([
 
         // all required fields are good, proceed with posting changes
         if (editUtils.isObjectEmpty(errorObj)) {
-
-          this.progressBar.domNode.style.display = "block";
+          var processIndicator = query(".processing-indicator")[0];
+          if (!domClass.contains(processIndicator, "busy")) {
+            domClass.add(processIndicator, "busy");
+          }
           // call applyEdit
           this._postChanges(feature).then(lang.hitch(this, function () {
-            this.progressBar.domNode.style.display = "none";
-
+            if (domClass.contains(processIndicator, "busy")) {
+              domClass.remove(processIndicator, "busy");
+            }
             // if currently only one selected feature
             if (this._configEditor.removeOnSave && this.updateFeatures.length == 1) {
               switchToTemplate = true;

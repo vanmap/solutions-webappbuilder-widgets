@@ -111,6 +111,7 @@ define([
         this.showDeleteButton.set('checked', this.config.editor.showDeleteButton);
         this.displayPromptOnSave.set('checked', this.config.editor.displayPromptOnSave);
         this.displayPromptOnDelete.set('checked', this.config.editor.displayPromptOnDelete);
+        this.removeOnSave.set('checked', this.config.editor.removeOnSave);
       },
 
       setConfig: function() {
@@ -278,6 +279,7 @@ define([
         this.config.editor.showDeleteButton = this.showDeleteButton.checked;
         this.config.editor.displayPromptOnSave = this.displayPromptOnSave.checked;
         this.config.editor.displayPromptOnDelete = this.displayPromptOnDelete.checked;
+        this.config.editor.removeOnSave = this.removeOnSave.checked;
       },
 
       getConfig: function () {

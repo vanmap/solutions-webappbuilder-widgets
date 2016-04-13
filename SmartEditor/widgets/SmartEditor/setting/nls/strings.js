@@ -18,7 +18,8 @@ define({
     showDeleteButton: "Show Delete Button",
     displayPrompt: "Display Prompt:",
     promptOnSave: "on Save",
-    promptOnDelete: "on Delete"
+    promptOnDelete: "on Delete",
+    removeOnSave: "Remove Feature from Selection on Save"
   }),
   "ar": 1,
   "cs": 1,

@@ -48,9 +48,11 @@ define([
     "./utils",
     "dijit/form/CheckBox",
     'dijit/form/DateTextBox',
+    'dijit/form/NumberSpinner',
     'dijit/form/NumberTextBox',
     'dijit/form/FilteringSelect',
     'dijit/form/TextBox',
+    'dijit/form/TimeTextBox',
     'dojo/store/Memory'
 ],
   function (declare, lang, array, html, query, esriBundle, domConstruct,
@@ -58,8 +60,8 @@ define([
     BaseWidget, LayerInfos, TemplatePicker,
     AttributeInspector, Draw, Edit, Query, Graphic, FeatureLayer, ConfirmDialog, all, Deferred,
     SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, Color, geometryJsonUtil, registry,
-    editUtils, CheckBox, DateTextBox, NumberTextBox,
-  FilteringSelect, TextBox, Memory) {
+    editUtils, CheckBox, DateTextBox, NumberSpinner, NumberTextBox,
+    FilteringSelect, TextBox, TimeTextBox, Memory) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
       name: 'SmartEditor',
       baseClass: 'jimu-widget-smartEditor',
@@ -140,6 +142,8 @@ define([
       onOpen: function () {
         if (this._attrInspIsCurrentlyDisplayed) {
           this.map.setInfoWindowOnClick(true);
+        } else {
+          this.map.setInfoWindowOnClick(false);
         }
         
         this._update();
@@ -163,9 +167,9 @@ define([
 
       // this function also create a new attribute inspector for the local layer
       _addGraphicToLocalLayer: function (evt) {
-        if (!this.selectedTemplate) { return; }
+        if (!this.templatePicker.getSelected()) { return; }
 
-        var newAttributes = dojo.clone(this.selectedTemplate.template.prototype.attributes);
+        var newAttributes = dojo.clone(this.templatePicker.getSelected().template.prototype.attributes);
         if (this._usePresetValues) {
           this._modifyAttributesWithPresetValues(newAttributes);
         }
@@ -182,7 +186,7 @@ define([
           this._removeLocalLayers();
 
           // preparation for a new attributeInspector for the local layer
-          myLayer = this._cloneLayer(this.selectedTemplate.featureLayer);
+          myLayer = this._cloneLayer(this.templatePicker.getSelected().featureLayer);
           myLayer.setSelectionSymbol(this._getSelectionSymbol(myLayer.geometryType, true));
 
           var localLayerInfo = this._getLayerInfoForLocalLayer(myLayer);
@@ -214,14 +218,14 @@ define([
 
         if (showTemplatePicker) {
           // if local layer
-          if (this.currentFeature.getLayer().originalLayerId) {
-            this.currentFeature.getLayer().clear();
-          }
-          else {
-            array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
-              feature.getLayer().clearSelection().refresh();
-            }));
-          }
+          //if (this.currentFeature.getLayer().originalLayerId) {
+          //  this.currentFeature.getLayer().clear();
+          //}
+          //else {
+          //  array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
+          //    feature.getLayer().clearSelection().refresh();
+          //  }));
+          //}
           this._showTemplate(true);
         } else { // show attr inspector
 
@@ -236,6 +240,7 @@ define([
 
         }
       },
+
       _addDateFormat: function (fieldInfo) {
         if (fieldInfo && fieldInfo.format && fieldInfo.format !==
            null) {
@@ -301,6 +306,7 @@ define([
 
         return fields;
       },
+
       _cloneLayer: function (layer) {
         var cloneFeaturelayer;
         var fieldsproc = this._processLayerFields(layer.fields);
@@ -357,6 +363,7 @@ define([
       },
 
       _createAttributeInspector: function (layerInfos) {
+        query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
         var attrInspector = new AttributeInspector({
           layerInfos: layerInfos
         }, html.create("div", {
@@ -509,13 +516,13 @@ define([
 
         return attrInspector;
       },
+
       _activateTemplateToolbar: function () {
 
         if (this.templatePicker.getSelected()) {
 
-          this.selectedTemplate = this.templatePicker.getSelected();
-          //domClass.add(this.selectedTemplate, "selectedItem");
-          switch (this.selectedTemplate.featureLayer.geometryType) {
+           //domClass.add(this.selectedTemplate, "selectedItem");
+          switch (this.templatePicker.getSelected().featureLayer.geometryType) {
             case "esriGeometryPoint":
               this.drawToolbar.activate(Draw.POINT);
               break;
@@ -529,9 +536,11 @@ define([
         }
 
         else {
+       
           this.drawToolbar.deactivate();
         }
       },
+
       _createEditor: function () {
         this.settings = this._getSettingsParam();
         var layers = this._getEditableLayers(this.settings.layerInfos, false);
@@ -587,17 +596,12 @@ define([
       },
 
       _createPresetFieldContentNode: function (fieldInfo) {
+        var nodes = [];
         var node;
-        if (fieldInfo.type === "esriFieldTypeDate") {
-          node = new DateTextBox({
-            "class": "ee-inputField",
-            name: fieldInfo.fieldName
-          }, domConstruct.create("div"));
 
-        } else {
-          if (fieldInfo.domain) {
-            // todo: when domain is not codedValue type
-            // that is when the domain.type = codedValue
+        if (fieldInfo.domain) {
+          // domain.type = codedValue
+          if (fieldInfo.domain.type === "codedValue") {
             var domainValues = fieldInfo.domain.codedValues;
 
             var options = [];
@@ -612,39 +616,75 @@ define([
               searchAttr: "name"
             }, domConstruct.create("div"));
 
-          } else {
-            switch (fieldInfo.type) {
-              case "esriFieldTypeString":
-                node = new TextBox({
-                  "class": "ee-inputField",
-                  name: fieldInfo.fieldName
-                }, domConstruct.create("div"));
+          } else { //domain.type = range
+            node = new NumberSpinner({
+              "class": "ee-inputField",
+              name: fieldInfo.fieldName,
+              smallDelta: 1,
+              constraints: {
+                min: fieldInfo.domain.minValue,
+                max: fieldInfo.domain.maxValue,
+                place: 0
+              }
+            }, domConstruct.create("div"));
+              
+          }
 
-                break;
-                // todo: check for more types
-              case "esriFieldTypeSmallInteger":
-              case "esriFieldTypeInteger":
-              case "esriFieldTypeLong":
-              case "esriFieldTypeDouble":
-                node = new NumberTextBox({
-                  "class": "ee-inputField",
-                  name: fieldInfo.fieldName
-                }, domConstruct.create("div"));
+          nodes.push(node.domNode);
 
-                break;
-              default:
-                node = new TextBox({
-                  "class": "ee-unsupportField",
-                  name: fieldInfo.fieldName,
-                  value: "N/A",
-                  readOnly: true
-                }, domConstruct.create("div"));
+        } else {
+          switch (fieldInfo.type) {
+            case  "esriFieldTypeDate":
+              node = new DateTextBox({
+                "class": "ee-inputField",
+                name: fieldInfo.fieldName
+              }, domConstruct.create("div"));
 
-                break;
-            }
+              nodes.push(node.domNode);
+
+              // 
+              var timeNode = new TimeTextBox({
+                "class": "ee-inputField"
+              }, domConstruct.create("div"));
+              nodes.push(timeNode.domNode);
+
+              break;
+            case "esriFieldTypeString":
+              node = new TextBox({
+                "class": "ee-inputField",
+                name: fieldInfo.fieldName
+              }, domConstruct.create("div"));
+
+              nodes.push(node.domNode);
+
+              break;
+              // todo: check for more types
+            case "esriFieldTypeSmallInteger":
+            case "esriFieldTypeInteger":
+            case "esriFieldTypeLong":
+            case "esriFieldTypeDouble":
+              node = new NumberTextBox({
+                "class": "ee-inputField",
+                name: fieldInfo.fieldName
+              }, domConstruct.create("div"));
+
+              nodes.push(node.domNode);
+
+              break;
+            default:
+              node = new TextBox({
+                "class": "ee-unsupportField",
+                name: fieldInfo.fieldName,
+                value: "N/A",
+                readOnly: true
+              }, domConstruct.create("div"));
+
+              nodes.push(node.domNode);
+
+              break;
           }
         }
-        return node.domNode;
+        return nodes;
       },
 
       _deleteFeature: function () {
@@ -661,8 +701,8 @@ define([
           this.progressBar.domNode.style.display = "block";
           layer.applyEdits(null, null, [this.currentFeature], lang.hitch(this, function () {
             this.progressBar.domNode.style.display = "none";
-            this.currentFeature = null;
-            this.updateFeatures = layer.getSelectedFeatures();
+            this.updateFeatures.splice(this.updateFeatures.indexOf(this.currentFeature), 1);
+          
             if (this.updateFeatures && this.updateFeatures.length > 0) {
               this.attrInspector.refresh();
               this.attrInspector.first();
@@ -764,23 +804,21 @@ define([
 
         // fill the table
         array.forEach(presetFieldInfos, lang.hitch(this, function (presetFieldInfo) {
-          var row = domConstruct.create("tr",
-            { "class": "ee-presetValue-table-row" });
-
-          var aliasColumnNode = domConstruct.create("td",
-            { "class": "ee-presetValue-table-cell field-alias-label" }, row);
+          var row = domConstruct.create("tr"); 
 
           domConstruct.place(lang.replace(
-            "<div class='alias-text-div' title='{fieldAlias}'>{fieldAlias}</div>",
-            { fieldAlias: presetFieldInfo.label }), aliasColumnNode);
-
-          var presetValueNode = this._createPresetFieldContentNode(presetFieldInfo);
+            "<td class='atiLabel'>{fieldAlias}</td>",
+            { fieldAlias: presetFieldInfo.label }), row);
 
           var valueColumnNode = domConstruct.create("td",
-            { "class": "ee-presetValue-table-cell preset-value-editable" }, row);
+            { "class": "preset-value-editable" }, row);
 
-          domConstruct.place(presetValueNode, valueColumnNode, "first");
+          var presetValueNodes = this._createPresetFieldContentNode(presetFieldInfo);
 
+          array.forEach(presetValueNodes, function(presetValueNode){
+            domConstruct.place(presetValueNode, valueColumnNode, "last");
+          });
+         
           query("#eePresetValueBody")[0].appendChild(row);
         }));
       },
@@ -952,17 +990,38 @@ define([
         if (presetValueTable) {
           var inputElements = query(".preset-value-editable .ee-inputField");
           array.forEach(inputElements, lang.hitch(this, function (ele) {
-            // for some dijit controls, value is in the input of type hidden,
-            // some not
-            var element = query("input[type='hidden']", ele);
-            if (!element || element.length === 0) {
-              element = query("input", ele);
-            }
+            // skip time text box as this level
+            if (!domClass.contains(ele, "dijitTimeTextBox")) {
+              // for some dijit controls, value is in the input of type hidden,
+              // some not
+              var element = query("input[type='hidden']", ele);
+              if (!element || element.length === 0) {
+                element = query("input", ele);
+              }
 
-            if (element[0].value) {
-              for (var attribute in attributes) {
-                if (attributes.hasOwnProperty(attribute) && attribute === element[0].name) {
-                  attributes[attribute] = element[0].value;
+              // if it's datetime then create a dateTime from string
+              var dateTime;
+              var isDateTime = domClass.contains(ele, "dijitDateTextBox");
+              if (isDateTime) {
+                // get the sibling time component node
+                var timeElement = query(".dijitTimeTextBox", ele.parentNode)[0];
+                // retrieve the value
+                var timeStr = query("input[type='hidden']", timeElement)[0].value;
+                dateTime = dojo.date.stamp.fromISOString(
+                  element[0].value + timeStr);
+              }
+
+              // set the attribute value
+              if (element[0].value) {
+                for (var attribute in attributes) {
+                  if (attributes.hasOwnProperty(attribute) && attribute === element[0].name) {
+                    if (isDateTime) {
+                      attributes[attribute] = dateTime;
+                    } else {
+                      attributes[attribute] = element[0].value;
+                    }
+                    break;
+                  }
                 }
               }
             }
@@ -1007,7 +1066,7 @@ define([
 
           var lflId = this.attrInspector.layerInfos[0].featureLayer.id;
           if (lflId.indexOf("_lfl") > 0) { // attrInspector associated with a local feature
-            yes = lflId.indexOf(this.selectedTemplate.featureLayer.id) < 0;
+            yes = lflId.indexOf(this.templatePicker.getSelected().featureLayer.id) < 0;
           } else {
 
             yes = true;
@@ -1022,7 +1081,8 @@ define([
       },
 
       _onMapClick: function (evt) {
-        if (!this._attrInspIsCurrentlyDisplayed && evt.graphic && !this.templatePicker.getSelected()) {
+        if (!this._attrInspIsCurrentlyDisplayed && evt.graphic &&
+          this.templatePicker && !this.templatePicker.getSelected()) {
           this._processOnMapClick(evt);
         }
       },
@@ -1047,7 +1107,7 @@ define([
                 query.objectIds = [e[0].objectId];
                 featureLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
 
-                this.selectedTemplate = null;
+              
 
                 deferred.resolve("success");
               }));
@@ -1072,7 +1132,7 @@ define([
 
             // Since the new requirement is that: after a save, 
             // continue to show attributeInspector, 
-            // save the preEdit attribute
+            // save the preEdit attributes
             feature.preEditAttrs = JSON.parse(JSON.stringify(feature.attributes));
 
             feature.getLayer().applyEdits(null, [feature], null,
@@ -1162,11 +1222,12 @@ define([
 
           all(deferreds).then(lang.hitch(this, function () {
             this.updateFeatures = updateFeatures;
-            if (this.updateFeatures.length == 0)
+            if (this.updateFeatures.length > 0) //?
             {
-              return;
+              this._showTemplate(false);
+              //return;
             }
-            this._showTemplate(false);
+            //this._showTemplate(false);
           }));
         }
       },
@@ -1190,7 +1251,7 @@ define([
         });
         confirmDialog.show();
         //needed?
-        this.templatePicker.clearSelection();
+       // this.templatePicker.clearSelection();
 
         return deferred.promise;
       },
@@ -1250,18 +1311,36 @@ define([
           this._postChanges(feature).then(lang.hitch(this, function () {
             this.progressBar.domNode.style.display = "none";
 
+            // if currently only one selected feature
+            if (this._configEditor.removeOnSave && this.updateFeatures.length == 1) {
+              switchToTemplate = true;
+            }
+
             if (switchToTemplate && switchToTemplate === true) {
-              feature.getLayer().clearSelection();
+
+              //feature.getLayer().clearSelection();
               this._showTemplate(true);
 
             } else {
-              // reselect the feature
-              feature.setSymbol(this._getSelectionSymbol(
-                feature.getLayer().geometryType, true));
 
               this._resetEditingVariables();
-
               this.map.setInfoWindowOnClick(true);
+
+              if (this._configEditor.removeOnSave) {
+                var layer = feature.getLayer();
+                // perform a new query
+                var query = new Query();
+                query.objectIds = [feature.attributes["OBJECTID"]];
+                layer.selectFeatures(query, FeatureLayer.SELECTION_SUBTRACT, 
+                  lang.hitch(this, function (e) {
+                    this.updateFeatures.splice(this.updateFeatures.indexOf(feature), 1);
+                    this.attrInspector.next();
+                  }));
+              } else {
+                // reselect the feature
+                feature.setSymbol(this._getSelectionSymbol(
+                  feature.getLayer().geometryType, true));
+              }
             }
             deferred.resolve("success");
           }));
@@ -1279,14 +1358,21 @@ define([
           query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
           query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "block";
 
-          this.templatePicker.update();
+          //this.templatePicker.update();
 
           // reset
           this._resetEditingVariables();
+          if (this.currentFeature.getLayer().originalLayerId) {
+            this.currentFeature.getLayer().clear();
+            this.currentFeature.getLayer().clearSelection().refresh();
+          }
+          else {
+            array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
+              feature.getLayer().clearSelection().refresh();
+            }));
+          }
           this.currentFeature = null;
           this.updateFeatures = [];
-
-          this.selectedTemplate = null; //?
 
           this.map.setInfoWindowOnClick(false);
           this._activateTemplateToolbar();
@@ -1297,14 +1383,15 @@ define([
           query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "block";
 
           this.map.setInfoWindowOnClick(true);
-        }
-        if (this.attrInspector) {
-          this.attrInspector.refresh();
+          if (this.attrInspector) {
+            this.attrInspector.refresh();
 
-          if (!this.currentFeature) {
-            this.attrInspector.first();
+            if (!this.currentFeature) {
+              this.attrInspector.first();
+            }
           }
         }
+        
         this._attrInspIsCurrentlyDisplayed = !showTemplate;
       },
 
@@ -1582,7 +1669,7 @@ define([
 
           //var cols = Math.floor(width / 60);
           //this.templatePicker.attr('columns', cols);
-          this.templatePicker.update();
+          //this.templatePicker.update();
 
 
         }

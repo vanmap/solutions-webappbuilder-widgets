@@ -3,6 +3,7 @@
     "showDeleteButton":  true,
     "prompOnSave": false,
     "promptOnDelete": true,
+    "removeOnSave":  true,
     "layerInfos": [ ]
   }
 }

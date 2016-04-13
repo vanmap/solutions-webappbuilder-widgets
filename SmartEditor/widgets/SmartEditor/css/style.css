@@ -53,6 +53,11 @@
            width:100%
         }
 
+        .jimu-widget-smartEditor .esriAttributeInspector .atiNavButtons {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+        }
 
         .jimu-widget-smartEditor .esriAttributeInspector .asteriskIndicator {
             color: red;
@@ -77,6 +82,10 @@
         background-color: #E3E3E3;
         vertical-align: middle;
         width: 100%;
+    }
+
+    .jimu-widget-smartEditor .ee-presetValueBody {
+        vertical-align: top;
     }
 
     .jimu-widget-smartEditor .ee-presetValueBodyTable {

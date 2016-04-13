@@ -18,6 +18,7 @@ define({
       optionOR: "OR",
       optionAND: "AND",
       optionEQUAL: "=",
+      optionNOTEQUAL: "<>",
       optionGREATERTHAN: ">",
       optionGREATERTHANEQUAL: ">=",
       optionLESSTHAN: "<",

@@ -216,6 +216,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
     createOperatorSelection: function(pCell, pValue) {
       var ObjList = [
         {'value': '=', 'label': this.nls.inputs.optionEQUAL},
+        {'value': '<>', 'label': this.nls.inputs.optionNOTEQUAL},
         {'value': '>', 'label': this.nls.inputs.optionGREATERTHAN},
         {'value': '>=', 'label': this.nls.inputs.optionGREATERTHANEQUAL},
         {'value': '<', 'label': this.nls.inputs.optionLESSTHAN},

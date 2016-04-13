@@ -1,7 +1,9 @@
 .jimu-widget-smartEditor {
     position: relative;
 }
-
+    .jimu-widget-smartEditor .hideField {
+        display:none;
+    }
     /***********about templatePicker**************/
 
     .jimu-widget-smartEditor .templatePicker {

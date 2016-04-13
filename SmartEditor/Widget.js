@@ -145,7 +145,7 @@ define([
         } else {
           this.map.setInfoWindowOnClick(false);
         }
-        
+
         this._update();
       },
 
@@ -260,7 +260,7 @@ define([
             }
           }
         }
-      
+
         //return fieldInfos;
       },
       //_processFieldInfos: function (fieldInfos) {
@@ -306,7 +306,13 @@ define([
 
         return fields;
       },
-
+      _iterateCollection: function (collection) {
+        return function (f) {
+          for (var i = 0; collection[i]; i++) {
+            f(collection[i], i);
+          }
+        }
+      },
       _cloneLayer: function (layer) {
         var cloneFeaturelayer;
         var fieldsproc = this._processLayerFields(layer.fields);
@@ -361,7 +367,27 @@ define([
 
         return cloneFeaturelayer;
       },
-
+      _toggleFieldOnAttributeInspector: function(fieldName,hide){
+        var attTable = dojo.query("td.atiLabel", this.attrInspector.domNode)
+        if (attTable.length > 0) {
+          row = attTable.filter(lang.hitch(this, function (row) {
+            return row.innerText == fieldName;
+          }))
+          if (row !== null) {
+            if (row.length > 0) {
+              if (hide) {
+                domClass.add(row[0].parentNode, "hideField");
+              }
+              else {
+                if (domClass.contains(row[0].parentNode, "hideField")) {
+                  domClass.remove(row[0].parentNode, "hideField");
+                }
+              }
+            }
+          }
+        
+        }
+      },
       _createAttributeInspector: function (layerInfos) {
         query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
         var attrInspector = new AttributeInspector({
@@ -466,13 +492,15 @@ define([
         // attribute inspector events
         this.own(on(attrInspector, "attribute-change", lang.hitch(this, function (evt) {
           if (this.currentFeature) {
+
+            this._toggleFieldOnAttributeInspector("Link", true);
             this.currentFeature.attributes[evt.fieldName] = evt.fieldValue;
             this._isDirty = true;
             this._enableAttrInspectorSaveButton(true);
           }
         })));
 
-        
+
         this.own(on(attrInspector, "next", lang.hitch(this, function (evt) {
           // in case multiple featuers are selected, 
           if (this._isDirty && this.currentFeature) {
@@ -521,7 +549,7 @@ define([
 
         if (this.templatePicker.getSelected()) {
 
-           //domClass.add(this.selectedTemplate, "selectedItem");
+          //domClass.add(this.selectedTemplate, "selectedItem");
           switch (this.templatePicker.getSelected().featureLayer.geometryType) {
             case "esriGeometryPoint":
               this.drawToolbar.activate(Draw.POINT);
@@ -536,7 +564,7 @@ define([
         }
 
         else {
-       
+
           this.drawToolbar.deactivate();
         }
       },
@@ -551,7 +579,7 @@ define([
         this.editToolbar = new Edit(this.map);
 
         on(this.map, "click", lang.hitch(this, this._onMapClick));
-
+        esriBundle.widgets.templatePicker.creationDisabled = this.nls.updateOnly;
         //create template picker
         this.templatePicker = new TemplatePicker({
           featureLayers: layers,
@@ -564,7 +592,7 @@ define([
         }, this.templatePickerNode);
         //this.templatePicker.placeAt(this.templatePickerNode);
         this.templatePicker.startup();
-
+        
         this.drawToolbar = new Draw(this.map);
 
         // wire up events
@@ -627,14 +655,14 @@ define([
                 place: 0
               }
             }, domConstruct.create("div"));
-              
+
           }
 
           nodes.push(node.domNode);
 
         } else {
           switch (fieldInfo.type) {
-            case  "esriFieldTypeDate":
+            case "esriFieldTypeDate":
               node = new DateTextBox({
                 "class": "ee-inputField",
                 name: fieldInfo.fieldName
@@ -702,7 +730,7 @@ define([
           layer.applyEdits(null, null, [this.currentFeature], lang.hitch(this, function () {
             this.progressBar.domNode.style.display = "none";
             this.updateFeatures.splice(this.updateFeatures.indexOf(this.currentFeature), 1);
-          
+
             if (this.updateFeatures && this.updateFeatures.length > 0) {
               this.attrInspector.refresh();
               this.attrInspector.first();
@@ -804,7 +832,7 @@ define([
 
         // fill the table
         array.forEach(presetFieldInfos, lang.hitch(this, function (presetFieldInfo) {
-          var row = domConstruct.create("tr"); 
+          var row = domConstruct.create("tr");
 
           domConstruct.place(lang.replace(
             "<td class='atiLabel'>{fieldAlias}</td>",
@@ -815,10 +843,10 @@ define([
 
           var presetValueNodes = this._createPresetFieldContentNode(presetFieldInfo);
 
-          array.forEach(presetValueNodes, function(presetValueNode){
+          array.forEach(presetValueNodes, function (presetValueNode) {
             domConstruct.place(presetValueNode, valueColumnNode, "last");
           });
-         
+
           query("#eePresetValueBody")[0].appendChild(row);
         }));
       },
@@ -1054,7 +1082,7 @@ define([
           });
           finfo.type = field.type;
           finfo.domain = field.domain;
-        },this);
+        }, this);
       },
 
       _newAttrInspectorNeeded: function () {
@@ -1107,7 +1135,7 @@ define([
                 query.objectIds = [e[0].objectId];
                 featureLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
 
-              
+
 
                 deferred.resolve("success");
               }));
@@ -1181,7 +1209,6 @@ define([
             }
           }
 
-          // todo: get layers from settings?
           var layers = this.map.getLayersVisibleAtScale().filter(lang.hitch(this, function (lyr) {
             if (lyr.type && lyr.type === "Feature Layer" && lyr.url) {
               return this.settings.layerInfos.some(function (lyrinfo) {
@@ -1251,7 +1278,7 @@ define([
         });
         confirmDialog.show();
         //needed?
-       // this.templatePicker.clearSelection();
+        // this.templatePicker.clearSelection();
 
         return deferred.promise;
       },
@@ -1290,7 +1317,7 @@ define([
         this._isDirty = false;
         this._editingEnabled = false;
         this.editToolbar.deactivate();
-       
+
         this._turnEditGeometryToggleOff();
       },
 
@@ -1331,7 +1358,7 @@ define([
                 // perform a new query
                 var query = new Query();
                 query.objectIds = [feature.attributes["OBJECTID"]];
-                layer.selectFeatures(query, FeatureLayer.SELECTION_SUBTRACT, 
+                layer.selectFeatures(query, FeatureLayer.SELECTION_SUBTRACT,
                   lang.hitch(this, function (e) {
                     this.updateFeatures.splice(this.updateFeatures.indexOf(feature), 1);
                     this.attrInspector.next();
@@ -1391,7 +1418,7 @@ define([
             }
           }
         }
-        
+
         this._attrInspIsCurrentlyDisplayed = !showTemplate;
       },
 
@@ -1455,6 +1482,7 @@ define([
       },
 
       _workBeforeCreate: function () {
+       
         // change string of mouse tooltip
         var additionStr = "<br/>" + "(" + this.nls.pressStr + "<b>" +
           this.nls.ctrlStr + "</b> " + this.nls.snapStr + ")";
@@ -1683,7 +1711,7 @@ define([
       },
 
       onMinimize: function () {
-        
+
       },
 
       onMaximize: function () {

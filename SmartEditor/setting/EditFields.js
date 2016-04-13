@@ -2,17 +2,21 @@ define(
   ["dojo/_base/declare",
     "dojo/_base/lang",
     "dojo/_base/array",
+    'dojo/on',
     "dojo/text!./EditFields.html",
+     "./FieldValidation",
     'dijit/_TemplatedMixin',
     'jimu/BaseWidgetSetting',
     'jimu/dijit/SimpleTable',
     "jimu/dijit/Popup"
   ],
-  function(
+  function (
     declare,
     lang,
     array,
+    on,
     template,
+    FieldValidation,
     _TemplatedMixin,
     BaseWidgetSetting,
     Table,
@@ -22,14 +26,14 @@ define(
       templateString: template,
       _layerInfo: null,
 
-      postCreate: function() {
+      postCreate: function () {
         this.inherited(arguments);
         this.nls = lang.mixin(this.nls, window.jimuNls.common);
         this._initFieldsTable();
         this._setFiedsTable(this._layerInfo.fieldInfos);
       },
 
-      popupEditPage: function() {
+      popupEditPage: function () {
         var fieldsPopup = new Popup({
           titleLabel: this.nls.configureFields,
           width: 720,
@@ -38,23 +42,23 @@ define(
           content: this,
           buttons: [{
             label: this.nls.ok,
-            onClick: lang.hitch(this, function() {
+            onClick: lang.hitch(this, function () {
               this._resetFieldInfos();
               fieldsPopup.close();
             })
           }, {
             label: this.nls.cancel,
             classNames: ['jimu-btn-vacation'],
-            onClick: lang.hitch(this, function() {
+            onClick: lang.hitch(this, function () {
               fieldsPopup.close();
             })
           }],
-          onClose: lang.hitch(this, function() {
+          onClose: lang.hitch(this, function () {
           })
         });
       },
 
-      _initFieldsTable: function() {
+      _initFieldsTable: function () {
         var fields2 = [{
           name: 'isEditable',
           title: this.nls.edit,
@@ -80,7 +84,7 @@ define(
           name: 'actions',
           title: this.nls.actions,
           type: 'actions',
-          actions: ['up', 'down'],
+          actions: ['up', 'down', 'edit'],
           'class': 'editable'
         }];
         var args2 = {
@@ -94,10 +98,23 @@ define(
         this._fieldsTable = new Table(args2);
         this._fieldsTable.placeAt(this.fieldsTable);
         this._fieldsTable.startup();
+        this.own(on(this._fieldsTable,
+          'actions-edit',
+          lang.hitch(this, this._onEditFieldInfoClick)));
       },
+      _onEditFieldInfoClick: function (tr) {
+        var rowData = this._fieldsTable.getRowData(tr);
+        if (rowData) {
 
-      _setFiedsTable: function(fieldInfos) {
-        array.forEach(fieldInfos, function(fieldInfo) {
+          var fieldValid = new FieldValidation({
+            nls: this.nls,
+            _layerInfo: this._layerInfo
+          });
+          fieldValid.popupActionsPage();
+        }
+      },
+      _setFiedsTable: function (fieldInfos) {
+        array.forEach(fieldInfos, function (fieldInfo) {
           this._fieldsTable.addRow({
             fieldName: fieldInfo.fieldName,
             isEditable: fieldInfo.isEditable,
@@ -107,10 +124,10 @@ define(
         }, this);
       },
 
-      _resetFieldInfos: function() {
+      _resetFieldInfos: function () {
         var newFieldInfos = [];
-        var fieldsTableData =  this._fieldsTable.getData();
-        array.forEach(fieldsTableData, function(fieldData) {
+        var fieldsTableData = this._fieldsTable.getData();
+        array.forEach(fieldsTableData, function (fieldData) {
           newFieldInfos.push({
             "fieldName": fieldData.fieldName,
             "label": fieldData.label,
@@ -121,6 +138,6 @@ define(
 
         this._layerInfo.fieldInfos = newFieldInfos;
       }
-
+   
     });
   });

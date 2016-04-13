@@ -167,9 +167,9 @@ define([
 
       // this function also create a new attribute inspector for the local layer
       _addGraphicToLocalLayer: function (evt) {
-        if (!this.selectedTemplate) { return; }
+        if (!this.templatePicker.getSelected()) { return; }
 
-        var newAttributes = dojo.clone(this.selectedTemplate.template.prototype.attributes);
+        var newAttributes = dojo.clone(this.templatePicker.getSelected().template.prototype.attributes);
         if (this._usePresetValues) {
           this._modifyAttributesWithPresetValues(newAttributes);
         }
@@ -186,7 +186,7 @@ define([
           this._removeLocalLayers();
 
           // preparation for a new attributeInspector for the local layer
-          myLayer = this._cloneLayer(this.selectedTemplate.featureLayer);
+          myLayer = this._cloneLayer(this.templatePicker.getSelected().featureLayer);
           myLayer.setSelectionSymbol(this._getSelectionSymbol(myLayer.geometryType, true));
 
           var localLayerInfo = this._getLayerInfoForLocalLayer(myLayer);
@@ -218,14 +218,14 @@ define([
 
         if (showTemplatePicker) {
           // if local layer
-          if (this.currentFeature.getLayer().originalLayerId) {
-            this.currentFeature.getLayer().clear();
-          }
-          else {
-            array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
-              feature.getLayer().clearSelection().refresh();
-            }));
-          }
+          //if (this.currentFeature.getLayer().originalLayerId) {
+          //  this.currentFeature.getLayer().clear();
+          //}
+          //else {
+          //  array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
+          //    feature.getLayer().clearSelection().refresh();
+          //  }));
+          //}
           this._showTemplate(true);
         } else { // show attr inspector
 
@@ -521,9 +521,8 @@ define([
 
         if (this.templatePicker.getSelected()) {
 
-          this.selectedTemplate = this.templatePicker.getSelected();
-          //domClass.add(this.selectedTemplate, "selectedItem");
-          switch (this.selectedTemplate.featureLayer.geometryType) {
+           //domClass.add(this.selectedTemplate, "selectedItem");
+          switch (this.templatePicker.getSelected().featureLayer.geometryType) {
             case "esriGeometryPoint":
               this.drawToolbar.activate(Draw.POINT);
               break;
@@ -537,6 +536,7 @@ define([
         }
 
         else {
+       
           this.drawToolbar.deactivate();
         }
       },
@@ -701,8 +701,8 @@ define([
           this.progressBar.domNode.style.display = "block";
           layer.applyEdits(null, null, [this.currentFeature], lang.hitch(this, function () {
             this.progressBar.domNode.style.display = "none";
-            this.currentFeature = null;
-            this.updateFeatures = layer.getSelectedFeatures();
+            this.updateFeatures.splice(this.updateFeatures.indexOf(this.currentFeature), 1);
+          
             if (this.updateFeatures && this.updateFeatures.length > 0) {
               this.attrInspector.refresh();
               this.attrInspector.first();
@@ -1066,7 +1066,7 @@ define([
 
           var lflId = this.attrInspector.layerInfos[0].featureLayer.id;
           if (lflId.indexOf("_lfl") > 0) { // attrInspector associated with a local feature
-            yes = lflId.indexOf(this.selectedTemplate.featureLayer.id) < 0;
+            yes = lflId.indexOf(this.templatePicker.getSelected().featureLayer.id) < 0;
           } else {
 
             yes = true;
@@ -1107,7 +1107,7 @@ define([
                 query.objectIds = [e[0].objectId];
                 featureLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
 
-                this.selectedTemplate = null;
+              
 
                 deferred.resolve("success");
               }));
@@ -1251,7 +1251,7 @@ define([
         });
         confirmDialog.show();
         //needed?
-        this.templatePicker.clearSelection();
+       // this.templatePicker.clearSelection();
 
         return deferred.promise;
       },
@@ -1318,7 +1318,7 @@ define([
 
             if (switchToTemplate && switchToTemplate === true) {
 
-              feature.getLayer().clearSelection();
+              //feature.getLayer().clearSelection();
               this._showTemplate(true);
 
             } else {
@@ -1358,14 +1358,21 @@ define([
           query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
           query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "block";
 
-          this.templatePicker.update();
+          //this.templatePicker.update();
 
           // reset
           this._resetEditingVariables();
+          if (this.currentFeature.getLayer().originalLayerId) {
+            this.currentFeature.getLayer().clear();
+            this.currentFeature.getLayer().clearSelection().refresh();
+          }
+          else {
+            array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
+              feature.getLayer().clearSelection().refresh();
+            }));
+          }
           this.currentFeature = null;
           this.updateFeatures = [];
-
-          this.selectedTemplate = null; //?
 
           this.map.setInfoWindowOnClick(false);
           this._activateTemplateToolbar();
@@ -1376,14 +1383,15 @@ define([
           query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "block";
 
           this.map.setInfoWindowOnClick(true);
-        }
-        if (this.attrInspector) {
-          this.attrInspector.refresh();
+          if (this.attrInspector) {
+            this.attrInspector.refresh();
 
-          if (!this.currentFeature) {
-            this.attrInspector.first();
+            if (!this.currentFeature) {
+              this.attrInspector.first();
+            }
           }
         }
+        
         this._attrInspIsCurrentlyDisplayed = !showTemplate;
       },
 
@@ -1661,7 +1669,7 @@ define([
 
           //var cols = Math.floor(width / 60);
           //this.templatePicker.attr('columns', cols);
-          this.templatePicker.update();
+          //this.templatePicker.update();
 
 
         }

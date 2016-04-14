@@ -25,7 +25,6 @@ define(
       baseClass: "jimu-widget-smartEditor-setting-fields",
       templateString: template,
       _layerInfo: null,
-
       postCreate: function () {
         this.inherited(arguments);
         this.nls = lang.mixin(this.nls, window.jimuNls.common);
@@ -87,6 +86,7 @@ define(
           actions: ['up', 'down', 'edit'],
           'class': 'editable'
         }];
+      
         var args2 = {
           fields: fields2,
           selectable: false,
@@ -108,7 +108,8 @@ define(
 
           var fieldValid = new FieldValidation({
             nls: this.nls,
-            _layerInfo: this._layerInfo
+            _layerInfo: this._layerInfo,
+            _fieldName: rowData.fieldName
           });
           fieldValid.popupActionsPage();
         }

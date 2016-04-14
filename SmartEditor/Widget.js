@@ -367,7 +367,48 @@ define([
 
         return cloneFeaturelayer;
       },
-      _toggleFieldOnAttributeInspector: function(fieldName,hide){
+      _checkFieldState: function () {
+        return;
+        var fieldValidation = [];
+        fieldValidation.LINK = {
+          'action': 'HIDE',
+          'values': {
+            'APPROVE': 'N',
+            "SCENARIO": '1'
+          }
+        };
+        fieldValidation.PROJECTREF = {
+          'action': 'HIDE',
+          'values': {
+            'APPROVE': 'Y',
+            "SCENARIO": '1'
+          }
+        };
+
+
+        var doAction = false;
+        this.currentFeature.getLayer().fields.forEach(lang.hitch(this, function (field) {
+          doAction = false;
+          if (fieldValidation.hasOwnProperty(field.name)) {
+            for (var k in fieldValidation[field.name].values) {
+
+              if (fieldValidation[field.name].values.hasOwnProperty(k)) {
+                if (this.currentFeature.attributes.hasOwnProperty(k)) {
+                  if (this.currentFeature.attributes[k] == fieldValidation[field.name].values[k]) {
+                    doAction = true;
+                    break;
+                  }
+                }
+              }
+            }
+           
+          }
+          this._toggleFieldOnAttributeInspector(field.alias, doAction);
+        }));
+
+
+      },
+      _toggleFieldOnAttributeInspector: function (fieldName, hide) {
         var attTable = dojo.query("td.atiLabel", this.attrInspector.domNode)
         if (attTable.length > 0) {
           row = attTable.filter(lang.hitch(this, function (row) {
@@ -385,7 +426,7 @@ define([
               }
             }
           }
-        
+
         }
       },
       _createAttributeInspector: function (layerInfos) {
@@ -493,10 +534,11 @@ define([
         this.own(on(attrInspector, "attribute-change", lang.hitch(this, function (evt) {
           if (this.currentFeature) {
 
-            this._toggleFieldOnAttributeInspector("Link", true);
+
             this.currentFeature.attributes[evt.fieldName] = evt.fieldValue;
             this._isDirty = true;
             this._enableAttrInspectorSaveButton(true);
+            this._checkFieldState();
           }
         })));
 
@@ -592,7 +634,7 @@ define([
         }, this.templatePickerNode);
         //this.templatePicker.placeAt(this.templatePickerNode);
         this.templatePicker.startup();
-        
+
         this.drawToolbar = new Draw(this.map);
 
         // wire up events
@@ -730,14 +772,12 @@ define([
 
         } else {
           var processIndicator = query(".processing-indicator")[0];
-          if (!domClass.contains(processIndicator, "busy"))
-          {
+          if (!domClass.contains(processIndicator, "busy")) {
             domClass.add(processIndicator, "busy");
           }
 
           layer.applyEdits(null, null, [this.currentFeature], lang.hitch(this, function () {
-            if (domClass.contains(processIndicator, "busy"))
-            {
+            if (domClass.contains(processIndicator, "busy")) {
               domClass.remove(processIndicator, "busy");
             }
             this.updateFeatures.splice(this.updateFeatures.indexOf(this.currentFeature), 1);
@@ -1496,7 +1536,7 @@ define([
       },
 
       _workBeforeCreate: function () {
-       
+
         // change string of mouse tooltip
         var additionStr = "<br/>" + "(" + this.nls.pressStr + "<b>" +
           this.nls.ctrlStr + "</b> " + this.nls.snapStr + ")";

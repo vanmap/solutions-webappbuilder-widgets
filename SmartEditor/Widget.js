@@ -84,6 +84,7 @@ define([
       _ignoreEditGeometryToggle: false,
       _editingEnabled: false,
       _usePresetValues: false,
+      _creationDisabledOnAll: false, 
 
       postCreate: function () {
         this.inherited(arguments);
@@ -579,7 +580,7 @@ define([
         this.editToolbar = new Edit(this.map);
 
         on(this.map, "click", lang.hitch(this, this._onMapClick));
-        esriBundle.widgets.templatePicker.creationDisabled = this.nls.updateOnly;
+        //esriBundle.widgets.templatePicker.creationDisabled = this.nls.updateOnly;
         //create template picker
         this.templatePicker = new TemplatePicker({
           featureLayers: layers,
@@ -621,6 +622,12 @@ define([
         } else {
           query(".presetFieldsTableDiv")[0].style.display = "none";
         }
+        
+        if (layers.length < 1) {
+          this._creationDisabledOnAll = true;
+        }
+
+        this._showTemplate(true);
 
         // add a process indicator node
         //domConstruct.place("<div class='smartEditor-processing-indicator'></div>", document.body, "last");
@@ -1393,32 +1400,53 @@ define([
         return deferred.promise;
       },
 
-      _showTemplate: function (showTemplate) {
-        if (showTemplate) {
-          // show template picker
-          query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
-          query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "block";
+      _showTemplatePicker: function () {
+        // hide the attr inspector and show the main template picker div
+        query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
+        query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "block";
 
-          //this.templatePicker.update();
-
-          // reset
-          this._resetEditingVariables();
-          if (this.currentFeature.getLayer().originalLayerId) {
-            this.currentFeature.getLayer().clear();
-            this.currentFeature.getLayer().clearSelection().refresh();
-          }
-          else {
-            array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
-              feature.getLayer().clearSelection().refresh();
-            }));
-          }
-          this.currentFeature = null;
-          this.updateFeatures = [];
-
-          this.map.setInfoWindowOnClick(false);
-          this._activateTemplateToolbar();
+        if(this._creationDisabledOnAll)
+        {
+          // hide the templatepick div and show the updateOnly div
+          query(".jimu-widget-smartEditor .templatePickerDiv")[0].style.display = "none";
+          query(".jimu-widget-smartEditor .updateFeaturesOnlyDiv")[0].style.display = "block";
 
         } else {
+          // 
+          query(".jimu-widget-smartEditor .updateFeaturesOnlyDiv")[0].style.display = "none";
+          query(".jimu-widget-smartEditor .templatePickerDiv")[0].style.display = "block";
+
+        }
+
+        //this.templatePicker.update();
+
+        // reset
+        this._resetEditingVariables();
+        if (this.currentFeature.getLayer().originalLayerId) {
+          this.currentFeature.getLayer().clear();
+          this.currentFeature.getLayer().clearSelection().refresh();
+        }
+        else {
+          array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
+            feature.getLayer().clearSelection().refresh();
+          }));
+        }
+        this.currentFeature = null;
+        this.updateFeatures = [];
+
+        this.map.setInfoWindowOnClick(false);
+        this._activateTemplateToolbar();
+
+      },
+
+      _showTemplate: function (showTemplate) {
+        if (showTemplate) {
+
+          this._showTemplatePicker();
+
+        } else {
+
+          query(".jimu-widget-smartEditor .updateFeaturesOnlyDiv")[0].style.display = "none";
           //show attribute inspector
           query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "none";
           query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "block";

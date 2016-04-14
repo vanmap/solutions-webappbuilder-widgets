@@ -141,3 +141,7 @@
             background-repeat: no-repeat;
         }
 
+    .jimu-widget-smartEditor .updateOnlyText {
+        vertical-align: middle;
+        padding: 10px;
+    }

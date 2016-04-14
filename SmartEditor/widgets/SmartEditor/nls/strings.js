@@ -14,7 +14,8 @@ define({
     presetFieldAlias: "Field",
     presetValue: "Preset Value",
     usePresetValues: " Use Preset Values (New features only)",
-    editGeometry: " Edit Geometry"
+    editGeometry: " Edit Geometry",
+    updateOnly: "Please select a feature to update, creation of new features has been disabled."
   }),
   "ar": 1,
   "cs": 1,

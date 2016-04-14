@@ -2,6 +2,7 @@ define({
   root: ({
     back: "Back",
     label: "Layer",
+    cancel:"Cancel",
     edit: "Editable",
     update: "Disable Update Geometry",
     allowUpdateOnly: "Update Only",
@@ -19,7 +20,12 @@ define({
     displayPrompt: "Display Prompt:",
     promptOnSave: "on Save",
     promptOnDelete: "on Delete",
-    removeOnSave: "Remove Feature from Selection on Save"
+    removeOnSave: "Remove Feature from Selection on Save",
+    fieldValidation: {
+      state: "State",
+      configureActions: "Configure field validation",
+      filterPopup: "Action criteria"
+    }
   }),
   "ar": 1,
   "cs": 1,

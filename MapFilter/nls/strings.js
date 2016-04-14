@@ -17,15 +17,17 @@ define({
     inputs: {
       optionOR: "OR",
       optionAND: "AND",
-      optionEQUAL: "=",
-      optionNOTEQUAL: "<>",
-      optionGREATERTHAN: ">",
-      optionGREATERTHANEQUAL: ">=",
-      optionLESSTHAN: "<",
-      optionLESSTHANEQUAL: "<=",
-      optionCONTAINS: "*.*",
-      optionBEGINSWITH: ".*",
-      optionENDSWITH: "*."
+      optionEQUAL: "EQUAL",
+      optionNOTEQUAL: "NOT EQUAL",
+      optionGREATERTHAN: "GREATER THAN",
+      optionGREATERTHANEQUAL: "GREATER THAN OR EQUAL",
+      optionLESSTHAN: "LESS THAN",
+      optionLESSTHANEQUAL: "LESS THAN OR EQUAL",
+      optionSTART: "BEGINS WITH",
+      optionEND: "ENDS WITH",
+      optionLIKE: "CONTAINS",
+      optionNOTLIKE: "DOES NOT CONTAIN",
+
     },
     files: {
       jsonFile: "MapFilterSettings"

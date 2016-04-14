@@ -667,9 +667,16 @@ define([
         
         if (layers.length < 1) {
           this._creationDisabledOnAll = true;
-        }
 
-        this._showTemplate(true);
+          query(".jimu-widget-smartEditor .templatePickerDiv")[0].style.display = "none";
+          query(".jimu-widget-smartEditor .updateFeaturesOnlyDiv")[0].style.display = "block";
+
+        } else {
+          // 
+          query(".jimu-widget-smartEditor .updateFeaturesOnlyDiv")[0].style.display = "none";
+          query(".jimu-widget-smartEditor .templatePickerDiv")[0].style.display = "block";
+
+        }
 
         // add a process indicator node
         //domConstruct.place("<div class='smartEditor-processing-indicator'></div>", document.body, "last");
@@ -1462,6 +1469,7 @@ define([
 
         // reset
         this._resetEditingVariables();
+
         if (this.currentFeature.getLayer().originalLayerId) {
           this.currentFeature.getLayer().clear();
           this.currentFeature.getLayer().clearSelection().refresh();
@@ -1486,7 +1494,6 @@ define([
 
         } else {
 
-          query(".jimu-widget-smartEditor .updateFeaturesOnlyDiv")[0].style.display = "none";
           //show attribute inspector
           query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "none";
           query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "block";

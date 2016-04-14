@@ -308,6 +308,25 @@ define([
             delete layerInfo.mapLayer;
             checkedLayerInfos.push(layerInfo);
           }
+          if (layerInfo.fieldValidations !== undefined && layerInfo.fieldValidations !== null) {
+           
+              for (var k in layerInfo.fieldValidations) {
+                if (layerInfo.fieldValidations.hasOwnProperty(k)) {
+                  layerInfo.fieldValidations[k] = layerInfo.fieldValidations[k].sort(function (a, b) {
+                    if (a.order > b.order) {
+                      return 1;
+                    }
+                    if (a.order < b.order) {
+                      return -1;
+                    }
+                    // a must be equal to b
+                    return 0;
+                  });
+                }
+              
+            }
+          }
+
         });
 
         if (checkedLayerInfos.length === 0) {

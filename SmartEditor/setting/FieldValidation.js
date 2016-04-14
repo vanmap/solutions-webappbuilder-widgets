@@ -31,7 +31,8 @@ define(
         this.inherited(arguments);
         this.nls = lang.mixin(this.nls, window.jimuNls.common);
         this._initActionsTable();
-        this._setActionsTable(['Hide', 'Required', 'Disabled']);
+        //Value, present domain or text box for fields, use current date for date.
+        this._setActionsTable(['Hide', 'Required', 'Disabled', 'Value']);
       },
 
       popupActionsPage: function () {
@@ -90,7 +91,7 @@ define(
       _onEditFieldInfoClick: function (tr) {
         var rowData = this._validationTable.getRowData(tr);
         if (rowData) {
-          this._showFilter(rowData);
+          this._showFilter(rowData, tr.rowIndex);
           //var editFields = new EditFields({
           //  nls: this.nls,
           //  _layerInfo: tr._layerInfo
@@ -105,11 +106,15 @@ define(
           });
         }, this);
       },
-      _showFilter: function (rowData) {
+      _showFilter: function (rowData, rowIndex) {
+        var origNLS = window.jimuNls.filterBuilder.matchMsg;
+
+        window.jimuNls.filterBuilder.matchMsg = "Set action on field when record matches ${any_or_all} of the following expressions";
 
         var filter = new Filter({
           style: "width:100%;margin-top:22px;"
         });
+
         var filterPopup = new Popup({
           titleLabel: this.nls.fieldValidation.filterPopup,
           width: 680,
@@ -125,22 +130,37 @@ define(
 
                 } else {
                   if (this._layerInfo.fieldValidations === undefined || this._layerInfo.fieldValidations === null) {
-                    this._layerInfo.fieldValidations = [];
+                    this._layerInfo.fieldValidations = {};
 
                   }
-                  this._layerInfo.fieldValidations.push(
-                   {
-                     'fieldName': this._fieldName,
-                     'action': rowData.label,
-                     'values': partsObj.expr
+                  if (!this._layerInfo.fieldValidations.hasOwnProperty(this._fieldName)) {
+                    this._layerInfo.fieldValidations[this._fieldName] = []
+                  }
+                  var existing = array.some(this._layerInfo.fieldValidations[this._fieldName], function (fieldValidation) {
+                    if (fieldValidation.action === rowData.label) {
+                      fieldValidation.filter = partsObj;
+                      fieldValidation.order = rowIndex;
+                      return true;
 
-                   })
+                    }
+                    else{
+                      return false;
+                    }
+                  });
+                  if (existing === false) {
+                    this._layerInfo.fieldValidations[this._fieldName].push(
+                      {
+                        'action': rowData.label,
+                        'filter': partsObj,
+                        'order': rowIndex
+                      }
+                    );
+                  }
+                  
                 }
 
                 filterPopup.close();
                 filterPopup = null;
-              } else {
-
               }
             })
           }, {
@@ -148,7 +168,34 @@ define(
             classNames: ['jimu-btn-vacation']
           }]
         });
-        filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
+        if (this._layerInfo.fieldValidations !== undefined && this._layerInfo.fieldValidations !== null) {
+          if (this._layerInfo.fieldValidations.hasOwnProperty(this._fieldName)) {
+            if (this._layerInfo.fieldValidations[this._fieldName] !== null && this._layerInfo.fieldValidations[this._fieldName].length > 0) {
+              var found = array.some(this._layerInfo.fieldValidations[this._fieldName], function (actionDetails) {
+                if (actionDetails.action == rowData.label) {
+                  filter.buildByExpr(this._layerInfo.mapLayer.url, actionDetails.filter.expr, this._layerInfo.mapLayer.resourceInfo);
+                  return true;
+                }
+              },this);
+              if (found == false) {
+                filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
+              }
+            }
+            else {
+              filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
+            }
+            
+          }
+          else {
+            filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
+          }
+
+
+        }
+        else {
+          filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
+        }
+        window.jimuNls.filterBuilder.matchMsg = origNLS;
         //var filterObj = workLayer.layerObject.getDefinitionExpression();
         //if (expression.expr !== '') {
         //  filter.buildByFilterObj(url, expression.expr, definition);

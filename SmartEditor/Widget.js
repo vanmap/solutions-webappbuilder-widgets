@@ -27,6 +27,7 @@ define([
     'dijit/_WidgetsInTemplateMixin',
     'jimu/BaseWidget',
     'jimu/LayerInfos/LayerInfos',
+    'jimu/filterUtils',
     "esri/dijit/editing/TemplatePicker",
 
     "esri/dijit/AttributeInspector",
@@ -57,7 +58,7 @@ define([
 ],
   function (declare, lang, array, html, query, esriBundle, domConstruct,
     domClass, on, _WidgetsInTemplateMixin,
-    BaseWidget, LayerInfos, TemplatePicker,
+    BaseWidget, LayerInfos, filterUtils, TemplatePicker,
     AttributeInspector, Draw, Edit, Query, Graphic, FeatureLayer, ConfirmDialog, all, Deferred,
     SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, Color, geometryJsonUtil, registry,
     editUtils, CheckBox, DateTextBox, NumberSpinner, NumberTextBox,
@@ -80,12 +81,13 @@ define([
       _isDirty: false,
       updateFeatures: [],
       currentFeature: null,
+      currentLayerInfo: null,
       _attrInspIsCurrentlyDisplayed: false,
       _ignoreEditGeometryToggle: false,
       _editingEnabled: false,
       _usePresetValues: false,
-      _creationDisabledOnAll: false, 
-
+      _creationDisabledOnAll: false,
+      OPERATORS: null,
       postCreate: function () {
         this.inherited(arguments);
         this._init();
@@ -100,6 +102,8 @@ define([
           //  this._createEditor();
           //}), 10);
           this._createEditor();
+          this._filterUtils = new filterUtils();
+          this.OPERATORS = lang.clone(this._filterUtils.OPERATORS);
         }));
       },
 
@@ -206,7 +210,8 @@ define([
           myLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
 
           this.currentFeature = this.updateFeatures[0] = newGraphic;
-
+          this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
+          this._checkFieldState();
           this._enableAttrInspectorSaveButton(true);
         }));
 
@@ -368,63 +373,242 @@ define([
 
         return cloneFeaturelayer;
       },
+      _endsWith: function (str, suffix) {
+        return str.indexOf(suffix, str.length - suffix.length) !== -1;
+      },
+      _processFieldValidationPart: function (operator, field, value, caseSensitive) {
+
+        if (operator.lastIndexOf('string', 0) === 0) {
+          if (caseSensitive == false) {
+            if (field !== undefined && field !== null) {
+              field = String(field).toUpperCase();
+            }
+            if (value !== undefined && value !== null) {
+              value = String(value).toUpperCase();
+            }
+
+          }
+        }
+        switch (operator) {
+          case this.OPERATORS.stringOperatorIs:
+
+            if (field == value) {
+              return true;
+            }
+            break;
+          case this.OPERATORS.stringOperatorIsNot:
+            if (field != value) {
+              return true;
+            }
+            break;
+          case this.OPERATORS.stringOperatorStartsWith:
+            if (field.lastIndexOf(value, 0) === 0) {
+              return true;
+            }
+
+            break;
+          case this.OPERATORS.stringOperatorEndsWith:
+            return this._endsWith(field, value);
+            break;
+          case this.OPERATORS.stringOperatorContains:
+            break;
+          case this.OPERATORS.stringOperatorDoesNotContain:
+            break;
+          case this.OPERATORS.stringOperatorIsBlank:
+            if (field === null || field === undefined) {
+              return true;
+            }
+            break;
+          case this.OPERATORS.stringOperatorIsNotBlank:
+            if (field !== null && field !== undefined) {
+              return true;
+            }
+
+            break;
+          case this.OPERATORS.numberOperatorIs:
+            if (field == value) {
+              return true;
+            }
+            break;
+          case this.OPERATORS.numberOperatorIsNot:
+            if (field != value) {
+              return true;
+            }
+            break;
+          case this.OPERATORS.numberOperatorIsAtLeast:
+            break;
+          case this.OPERATORS.numberOperatorIsLessThan:
+            break;
+          case this.OPERATORS.numberOperatorIsAtMost:
+            break;
+          case this.OPERATORS.numberOperatorIsGreaterThan:
+            break;
+          case this.OPERATORS.numberOperatorIsBetween:
+            break;
+          case this.OPERATORS.numberOperatorIsNotBetween:
+            break;
+          case this.OPERATORS.numberOperatorIsBlank:
+            if (field === null || field === undefined) {
+              return true;
+            }
+            break;
+          case this.OPERATORS.numberOperatorIsNotBlank:
+            if (field !== null && field !== undefined) {
+              return true;
+            }
+
+            break;
+          case this.OPERATORS.dateOperatorIsOn:
+            break;
+          case this.OPERATORS.dateOperatorIsNotOn:
+            break;
+          case this.OPERATORS.dateOperatorIsBefore:
+            break;
+          case this.OPERATORS.dateOperatorIsAfter:
+            break;
+          case this.OPERATORS.dateOperatorIsBetween:
+            break;
+          case this.OPERATORS.dateOperatorIsNotBetween:
+            break;
+          case this.OPERATORS.dateOperatorIsBlank:
+            if (field === null || field === undefined) {
+              return true;
+            }
+
+            break;
+          case this.OPERATORS.dateOperatorIsNotBlank:
+            if (field !== null && field !== undefined) {
+              return true;
+            }
+
+            break;
+          case this.OPERATORS.dateOperatorDays:
+            break;
+          case this.OPERATORS.dateOperatorWeeks:
+            break;
+          case this.OPERATORS.dateOperatorMonths:
+            break;
+          case this.OPERATORS.dateOperatorInTheLast:
+            break;
+          case this.OPERATORS.dateOperatorNotInTheLast:
+
+            break;
+          default:
+            return false;
+            break;
+        }
+        return false;
+      },
       _checkFieldState: function () {
-        return;
-        var fieldValidation = [];
-        fieldValidation.LINK = {
-          'action': 'HIDE',
-          'values': {
-            'APPROVE': 'N',
-            "SCENARIO": '1'
+        var attTable = dojo.query("td.atiLabel", this.attrInspector.domNode)
+
+        var fieldValidation = null;
+
+        if (this.currentLayerInfo !== undefined && this.currentLayerInfo !== null) {
+          if (this.currentLayerInfo.fieldValidations !== undefined && this.currentLayerInfo.fieldValidations !== null) {
+            fieldValidation = this.currentLayerInfo.fieldValidations;
           }
-        };
-        fieldValidation.PROJECTREF = {
-          'action': 'HIDE',
-          'values': {
-            'APPROVE': 'Y',
-            "SCENARIO": '1'
-          }
-        };
+        }
+        if (fieldValidation == null) {
+          return;
+        }
 
 
-        var doAction = false;
+        var actionType = null;
         this.currentFeature.getLayer().fields.forEach(lang.hitch(this, function (field) {
-          doAction = false;
+          actionType = null;
           if (fieldValidation.hasOwnProperty(field.name)) {
-            for (var k in fieldValidation[field.name].values) {
 
-              if (fieldValidation[field.name].values.hasOwnProperty(k)) {
-                if (this.currentFeature.attributes.hasOwnProperty(k)) {
-                  if (this.currentFeature.attributes[k] == fieldValidation[field.name].values[k]) {
-                    doAction = true;
-                    break;
+
+            for (var actionDetails in fieldValidation[field.name]) {
+              if (fieldValidation[field.name].hasOwnProperty(actionDetails)) {
+                var filter = fieldValidation[field.name][actionDetails].filter;
+
+                var partResults = [];
+                array.forEach(filter.parts, function (part) {
+                  if (part.hasOwnProperty('parts')) {
+
                   }
+                  else {
+                    switch (part.valueObj.type) {
+                      case 'value':
+                        partResults.push(this._processFieldValidationPart(part.operator, this.currentFeature.attributes[part.fieldObj.name], part.valueObj.value, part.caseSensitive));
+                        break;
+                      case 'field':
+
+                        partResults.push(this._processFieldValidationPart(part.operator, this.currentFeature.attributes[part.fieldObj.name], this.currentFeature.attributes[part.valueObj.value], part.caseSensitive));
+                        break;
+                      default:
+                        break;
+                    }
+                  }
+                }, this);
+
+                var performAction = false;
+                var logOp = 'OR';
+                if (filter.hasOwnProperty('logicalOperator')) {
+                  logOp = filter.logicalOperator;
+                }
+                array.some(partResults, function (result) {
+
+                  if (logOp === 'OR') {
+                    if (result == true) {
+                      performAction = true;
+                      return true;
+                    }
+                    else {
+                      performAction = false;
+                    }
+                  } else {
+                    if (result == false) {
+                      performAction = false;
+                      return true;
+                    } else {
+                      performAction = true;
+                    }
+                  }
+                });
+                if (performAction) {
+                  actionType = fieldValidation[field.name][actionDetails].action
+                  break;
                 }
               }
+
             }
-           
           }
-          this._toggleFieldOnAttributeInspector(field.alias, doAction);
+          this._toggleFieldOnAttributeInspector(field.alias, actionType, attTable);
         }));
 
 
       },
-      _toggleFieldOnAttributeInspector: function (fieldName, hide) {
-        var attTable = dojo.query("td.atiLabel", this.attrInspector.domNode)
+      _toggleFieldOnAttributeInspector: function (fieldName, actionType, attTable) {
+        if (attTable === null) {
+          attTable = dojo.query("td.atiLabel", this.attrInspector.domNode)
+        }
+
         if (attTable.length > 0) {
           row = attTable.filter(lang.hitch(this, function (row) {
             return row.innerText == fieldName;
           }))
           if (row !== null) {
             if (row.length > 0) {
-              if (hide) {
-                domClass.add(row[0].parentNode, "hideField");
+              switch (actionType) {
+                case 'Hide':
+                  domClass.add(row[0].parentNode, "hideField");
+                  break;
+                case 'Disable':
+                  domClass.add(row[0].parentNode, "hideField");
+                  break;
+                case 'Required':
+                  domClass.add(row[0].parentNode, "hideField");
+                  break;
+                default:
+                  if (domClass.contains(row[0].parentNode, "hideField")) {
+                    domClass.remove(row[0].parentNode, "hideField");
+                  }
+
               }
-              else {
-                if (domClass.contains(row[0].parentNode, "hideField")) {
-                  domClass.remove(row[0].parentNode, "hideField");
-                }
-              }
+
             }
           }
 
@@ -558,6 +742,8 @@ define([
 
               if (evt.feature) {
                 this.currentFeature = evt.feature;
+                this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
+                this._checkFieldState();
                 this.currentFeature.setSymbol(
                   this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
               }
@@ -572,10 +758,13 @@ define([
 
             if (evt.feature) {
               this.currentFeature = evt.feature;
+              this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
+              this._checkFieldState();
               this.currentFeature.setSymbol(
                 this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
             }
           }
+
         })));
 
         //remove default delete button
@@ -664,7 +853,7 @@ define([
         } else {
           query(".presetFieldsTableDiv")[0].style.display = "none";
         }
-        
+
         if (layers.length < 1) {
           this._creationDisabledOnAll = true;
         }
@@ -841,7 +1030,18 @@ define([
           }
         }
       },
+      _getLayerInfoByID: function (id) {
 
+        if (id.indexOf("_lfl") > 0) {
+          id = id.replace("_lfl", "");
+        }
+        var result = null;
+        var layerFound = this.settings.layerInfos.some(function (lyrinfo) {
+          return lyrinfo.featureLayer.id === id ? ((result = lyrinfo), true) : false;
+        });
+        return result;
+
+      },
       _fillPresetValueTable: function () {
         var presetFieldInfos = [];
 
@@ -955,15 +1155,13 @@ define([
       },
 
       _getLayerInfoForLocalLayer: function (localLayer) {
-        var result = null;
-        var layerFound = this.settings.layerInfos.some(function (lyrinfo) {
-          return lyrinfo.featureLayer.id === localLayer.originalLayerId ? ((result = lyrinfo), true) : false;
-        });
+
+        var result = this._getLayerInfoByID(localLayer.originalLayerId)
 
         var layerInfo;
         var fieldInfos;
         //var layerObject = this.map.getLayer(localLayer.originalLayerId);
-        if (layerFound === true) {//(layerObject.type === "Feature Layer" && layerObject.url) {
+        if (result !== null) {//(layerObject.type === "Feature Layer" && layerObject.url) {
           // get the fieldInfos
           layerInfo = {
             featureLayer: localLayer,
@@ -1286,7 +1484,7 @@ define([
           var updateFeatures = [];
           var deferreds = [];
           this.currentFeature = null;
-
+          this.currentLayerInfo = null;
           layers.forEach(lang.hitch(this, function (layer) {
             // set selection symbol
             layer.setSelectionSymbol(this._getSelectionSymbol(layer.geometryType, false));
@@ -1445,8 +1643,7 @@ define([
         query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
         query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "block";
 
-        if(this._creationDisabledOnAll)
-        {
+        if (this._creationDisabledOnAll) {
           // hide the templatepick div and show the updateOnly div
           query(".jimu-widget-smartEditor .templatePickerDiv")[0].style.display = "none";
           query(".jimu-widget-smartEditor .updateFeaturesOnlyDiv")[0].style.display = "block";
@@ -1462,7 +1659,8 @@ define([
 
         // reset
         this._resetEditingVariables();
-        if (this.currentFeature.getLayer().originalLayerId) {
+
+        if (this.currentFeature && this.currentFeature.getLayer().originalLayerId) {
           this.currentFeature.getLayer().clear();
           this.currentFeature.getLayer().clearSelection().refresh();
         }
@@ -1471,7 +1669,9 @@ define([
             feature.getLayer().clearSelection().refresh();
           }));
         }
+
         this.currentFeature = null;
+        this.currentLayerInfo = null;
         this.updateFeatures = [];
 
         this.map.setInfoWindowOnClick(false);

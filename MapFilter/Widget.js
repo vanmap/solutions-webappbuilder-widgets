@@ -220,7 +220,10 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         {'value': '>', 'label': this.nls.inputs.optionGREATERTHAN},
         {'value': '>=', 'label': this.nls.inputs.optionGREATERTHANEQUAL},
         {'value': '<', 'label': this.nls.inputs.optionLESSTHAN},
-        {'value': '<=', 'label': this.nls.inputs.optionLESSTHANEQUAL}
+        {'value': '<=', 'label': this.nls.inputs.optionLESSTHANEQUAL},
+        {'value': '*.*', 'label': this.nls.inputs.optionCONTAINS},
+        {'value': '.*', 'label': this.nls.inputs.optionBEGINSWITH},
+        {'value': '*.', 'label': this.nls.inputs.optionENDSWITH}
       ];
       var opSelect = new Select({
         options: ObjList,
@@ -368,9 +371,30 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       }));
       return sqlParams;
     },
+    
+  
 
     setFilterLayerDef: function() {
-      var sqlParams = this.parseTable();
+      var createQuery = function(isNum, field, op, value, junc) {
+        var s = '';
+        var w1 = '';
+        var w2 = '';
+        
+        if((isNum == true && op.indexOf("*") > -1) || isNum == false) {s = "'"}   
+        if(op == "*.*") {w1 = '%'; w2 = '%';}
+        else if(op == ".*") {w1 = ''; w2 = '%';}
+        else if(op == "*.") {w1 = '%'; w2 = '';}
+        else {}
+        
+        value = s + w1 + value + w2 + s;       
+                
+        if(op.indexOf("*") > -1) {
+          op = "LIKE";
+          value = "UPPER(" + value + ")";
+        }    
+        return [field, op, value, junc].join(" ") + " ";
+      };
+      var sqlParams = this.parseTable();      
       array.forEach(this.layerList, lang.hitch(this, function(layer) {
         array.forEach(this.config.groups, lang.hitch(this, function(group) {
           if(this.grpSelect.value === group.name) {
@@ -386,19 +410,19 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
                     array.forEach(layer.layerObject.fields, lang.hitch(this, function(field) {
                       if(field.name === grpLayer.field) {
                         if(((field.type).indexOf("Integer") > -1) || (field.type).indexOf("Double") > -1) {
-                          expr = expr + grpLayer.field + " " + p.operator + " " + utils.sanitizeHTML(p.userValue) + " " + p.conjunc + " ";
+                          expr = expr + createQuery(true, grpLayer.field, p.operator, utils.sanitizeHTML(p.userValue), p.conjunc);
                         }
                         else if ((field.type).indexOf("Date") > -1) {
                           if(p.userValue !== "") {
                             var newDate = new Date(utils.sanitizeHTML(p.userValue));
-                            expr = expr + grpLayer.field + " " + p.operator + " '" + locale.format(newDate,{datePattern: "MMMM d, yyyy", selector: "date"}) + "' " + p.conjunc + " ";
+                            expr = expr + createQuery(false, grpLayer.field, p.operator, locale.format(newDate,{datePattern: "MMMM d, yyyy", selector: "date"}), p.conjunc);
                           }
                           else {
-                            expr = expr + grpLayer.field + " " + p.operator + " '" + utils.sanitizeHTML(p.userValue) + "' " + p.conjunc + " ";
+                            expr = expr + createQuery(false, grpLayer.field, p.operator, utils.sanitizeHTML(p.userValue), p.conjunc);
                           }
                         }
                         else {
-                          expr = expr + grpLayer.field + " " + p.operator + " '" + utils.sanitizeHTML(p.userValue) + "' " + p.conjunc + " ";
+                          expr = expr + createQuery(false, grpLayer.field, p.operator, utils.sanitizeHTML(p.userValue), p.conjunc);
                         }
                         group.def.push({value: utils.sanitizeHTML(p.userValue), operator: p.operator, conjunc: p.conjunc});
                       }
@@ -413,18 +437,18 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
                 array.forEach(sqlParams, lang.hitch(this, function(p) {
                   if(p.userValue !== "") {
                     if(((grpLayer.dataType).indexOf("Integer") > -1) || (grpLayer.dataType).indexOf("Double") > -1) {
-                      expr = expr + grpLayer.field + " " + p.operator + " " + utils.sanitizeHTML(p.userValue) + " " + p.conjunc + " ";
+                      expr = expr + createQuery(true, grpLayer.field, p.operator, utils.sanitizeHTML(p.userValue), p.conjunc);
                     }
                     else if ((grpLayer.dataType).indexOf("Date") > -1) {
                       if(p.userValue !== "") {
                         var newDate = new Date(utils.sanitizeHTML(p.userValue));
-                        expr = expr + grpLayer.field + " " + p.operator + " '" + locale.format(newDate,{datePattern: "MMMM d, yyyy", selector: "date"}) + "' " + p.conjunc + " ";
+                        expr = expr + createQuery(false, grpLayer.field, p.operator, locale.format(newDate,{datePattern: "MMMM d, yyyy", selector: "date"}), p.conjunc);
                       } else {
-                        expr = expr + grpLayer.field + " " + p.operator + " '" + utils.sanitizeHTML(p.userValue) + "' " + p.conjunc + " ";
+                        expr = expr + createQuery(false, grpLayer.field, p.operator, utils.sanitizeHTML(p.userValue), p.conjunc);
                       }
                     }
                     else {
-                      expr = expr + grpLayer.field + " " + p.operator + " '" + utils.sanitizeHTML(p.userValue) + "' " + p.conjunc + " ";
+                      expr = expr + createQuery(false, grpLayer.field, p.operator, utils.sanitizeHTML(p.userValue), p.conjunc);
                     }
                     group.def.push({value: utils.sanitizeHTML(p.userValue), operator: p.operator, conjunc: p.conjunc});
                   }

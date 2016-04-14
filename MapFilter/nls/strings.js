@@ -22,7 +22,10 @@ define({
       optionGREATERTHAN: ">",
       optionGREATERTHANEQUAL: ">=",
       optionLESSTHAN: "<",
-      optionLESSTHANEQUAL: "<="
+      optionLESSTHANEQUAL: "<=",
+      optionCONTAINS: "*.*",
+      optionBEGINSWITH: ".*",
+      optionENDSWITH: "*."
     },
     files: {
       jsonFile: "MapFilterSettings"

@@ -588,25 +588,56 @@ define([
 
         if (attTable.length > 0) {
           row = attTable.filter(lang.hitch(this, function (row) {
-            return row.innerText == fieldName;
+            return row.childNodes[0].data == fieldName;
           }))
           if (row !== null) {
             if (row.length > 0) {
+              var valueCell = row[0].parentNode.childNodes[1].childNodes[0]
+              var parent = row[0].parentNode;
+              var labelCell = row[0];
               switch (actionType) {
                 case 'Hide':
-                  domClass.add(row[0].parentNode, "hideField");
+                  domClass.add(parent, "hideField");
                   break;
-                case 'Disable':
-                  domClass.add(row[0].parentNode, "hideField");
+                case 'Disabled':
+                  domClass.add(valueCell, ["dijitValidationTextBox","dijitTextBoxDisabled","dijitComboBoxDisabled","dijitValidationTextBoxDisabled","dijitDisabled"]);
+                  
                   break;
                 case 'Required':
-                  domClass.add(row[0].parentNode, "hideField");
+                  if (row[0].childNodes.length === 1) {
+                    var newA = document.createElement('a');
+                    newA.setAttribute('class', "asteriskIndicator");
+                    newA.innerHTML = " *";
+                    row[0].appendChild(newA);
+                    
+                    
+                  }
+                  break;
+                case 'Value':
                   break;
                 default:
-                  if (domClass.contains(row[0].parentNode, "hideField")) {
-                    domClass.remove(row[0].parentNode, "hideField");
+                  if (row[0].childNodes.length > 1) {
+                    if (this._gdbRequired.indexOf(fieldName) == -1 ) {
+                      row[0].childNodes.remove(1);
+                    }
                   }
-
+                  if (domClass.contains(parent, "hideField")) {
+                    domClass.remove(parent  , "hideField");
+                  }
+                  
+                  if (domClass.contains(valueCell, "dijitTextBoxDisabled")) {
+                    domClass.remove(valueCell, "dijitTextBoxDisabled");
+                  }
+                  if (domClass.contains(valueCell, "dijitComboBoxDisabled")) {
+                    domClass.remove(valueCell, "dijitComboBoxDisabled");
+                  }
+                  if (domClass.contains(valueCell, "dijitValidationTextBoxDisabled")) {
+                    domClass.remove(valueCell, "dijitValidationTextBoxDisabled");
+                  }
+                  if (domClass.contains(valueCell, "dijitDisabled")) {
+                    domClass.remove(valueCell, "dijitDisabled");
+                  }
+                
               }
 
             }
@@ -856,16 +887,9 @@ define([
 
         if (layers.length < 1) {
           this._creationDisabledOnAll = true;
-
-          query(".jimu-widget-smartEditor .templatePickerDiv")[0].style.display = "none";
-          query(".jimu-widget-smartEditor .updateFeaturesOnlyDiv")[0].style.display = "block";
-
-        } else {
-          // 
-          query(".jimu-widget-smartEditor .updateFeaturesOnlyDiv")[0].style.display = "none";
-          query(".jimu-widget-smartEditor .templatePickerDiv")[0].style.display = "block";
-
         }
+
+        this._showTemplate(true);
 
         // add a process indicator node
         //domConstruct.place("<div class='smartEditor-processing-indicator'></div>", document.body, "last");
@@ -1323,6 +1347,7 @@ define([
       // to add (*) to the label of required fields
       // also add field type and domain to use in the preset values
       _modifyFieldInfosForEE: function (layerInfo) {
+        this._gdbRequired = [];
         if (!layerInfo) { return; }
         //layerInfo = lang.clone(layerInfo);
         var layerObject = this.map.getLayer(layerInfo.featureLayer.id);
@@ -1331,10 +1356,12 @@ define([
         })).forEach(lang.hitch(this, function (f) {
           layerInfo.fieldInfos.forEach(function (finfo) {
             if (finfo.fieldName === f.name) {
+              this._gdbRequired.push(finfo.label);
               finfo.label = finfo.label +
                 '<a class="asteriskIndicator"> *</a>';
+              
             }
-          });
+          },this);
         }));
         //return layerInfo;
         // add the type for layer use, by the way
@@ -1693,6 +1720,7 @@ define([
 
         } else {
 
+          query(".jimu-widget-smartEditor .updateFeaturesOnlyDiv")[0].style.display = "none";
           //show attribute inspector
           query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "none";
           query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "block";

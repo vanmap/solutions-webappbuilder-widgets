@@ -618,7 +618,7 @@ define([
                 default:
                   if (row[0].childNodes.length > 1) {
                     if (this._gdbRequired.indexOf(fieldName) == -1 ) {
-                      row[0].childNodes.remove(1);
+                      row[0].removeChild(row[0].childNodes[1]);
                     }
                   }
                   if (domClass.contains(parent, "hideField")) {

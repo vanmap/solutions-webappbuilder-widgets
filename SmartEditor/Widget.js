@@ -54,7 +54,8 @@ define([
     'dijit/form/FilteringSelect',
     'dijit/form/TextBox',
     'dijit/form/TimeTextBox',
-    'dojo/store/Memory'
+    'dojo/store/Memory',
+    'dojo/date/stamp'
 ],
   function (declare, lang, array, html, query, esriBundle, domConstruct,
     domClass, on, _WidgetsInTemplateMixin,
@@ -62,7 +63,7 @@ define([
     AttributeInspector, Draw, Edit, Query, Graphic, FeatureLayer, ConfirmDialog, all, Deferred,
     SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, Color, geometryJsonUtil, registry,
     editUtils, smartAttributes, CheckBox, DateTextBox, NumberSpinner, NumberTextBox,
-    FilteringSelect, TextBox, TimeTextBox, Memory) {
+    FilteringSelect, TextBox, TimeTextBox, Memory, dojoStamp) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
       name: 'SmartEditor',
       baseClass: 'jimu-widget-smartEditor',
@@ -196,7 +197,7 @@ define([
       _addGraphicToLocalLayer: function (evt) {
         if (!this.templatePicker.getSelected()) { return; }
 
-        var newAttributes = dojo.clone(this.templatePicker.getSelected().template.prototype.attributes);
+        var newAttributes = lang.clone(this.templatePicker.getSelected().template.prototype.attributes);
         if (this._usePresetValues) {
           this._modifyAttributesWithPresetValues(newAttributes);
         }
@@ -1121,7 +1122,7 @@ define([
                 var timeElement = query(".dijitTimeTextBox", ele.parentNode)[0];
                 // retrieve the value
                 var timeStr = query("input[type='hidden']", timeElement)[0].value;
-                dateTime = dojo.date.stamp.fromISOString(
+                dateTime = dojoStamp.fromISOString(
                   element[0].value + timeStr);
               }
 
@@ -1215,7 +1216,7 @@ define([
             var featureLayer = this.map.getLayer(feature.getLayer().originalLayerId);
             if (featureLayer) {
               // modify some attributes before calling applyEdits
-              feature.attributes["OBJECTID"] = null;
+              feature.attributes.OBJECTID = null;
               feature.symbol = null;
               featureLayer.applyEdits([feature], null, null, lang.hitch(this, function (e) {
                 // since after save, keep att Inspect displayed
@@ -1244,7 +1245,7 @@ define([
             //todo: for now, save the change anyway in case geometry also being edited
 
             // modify some important attributes before calling applyEdits
-            feature.attributes["OBJECTID"] = feature.preEditAttrs["OBJECTID"];
+            feature.attributes.OBJECTID = feature.preEditAttrs.OBJECTID;
             feature.symbol = null;
 
             // Since the new requirement is that: after a save,
@@ -1448,7 +1449,7 @@ define([
                 var layer = feature.getLayer();
                 // perform a new query
                 var query = new Query();
-                query.objectIds = [feature.attributes["OBJECTID"]];
+                query.objectIds = [feature.attributes.OBJECTID];
                 layer.selectFeatures(query, FeatureLayer.SELECTION_SUBTRACT,
                   lang.hitch(this, function () {
                     this.updateFeatures.splice(this.updateFeatures.indexOf(feature), 1);

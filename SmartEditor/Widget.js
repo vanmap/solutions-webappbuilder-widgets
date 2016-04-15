@@ -151,6 +151,11 @@ define([
           this.map.setInfoWindowOnClick(false);
         }
 
+        // setting this variable for the onMapClick (#494)
+        if (this._configEditor.clearSelectionOnClose) {
+          this._attrInspIsCurrentlyDisplayed = false;
+        }
+
         this._update();
       },
 
@@ -236,8 +241,12 @@ define([
         } else { // show attr inspector
 
           // restore attributes & geometry
-          this.currentFeature.attributes = this.currentFeature.preEditAttrs;
-          this.currentFeature.geometry = geometryJsonUtil.fromJson(this.currentFeature.origGeom);
+          if (this.currentFeature.preEditAttrs) {
+            this.currentFeature.attributes = this.currentFeature.preEditAttrs;
+          }
+          if (this.currentFeature.origGeom) {
+            this.currentFeature.geometry = geometryJsonUtil.fromJson(this.currentFeature.origGeom);
+          }
           this.currentFeature.getLayer().refresh();
           this.attrInspector.refresh();
 
@@ -1672,6 +1681,30 @@ define([
         return deferred.promise;
       },
 
+      _showTemplate: function (showTemplate) {
+        if (showTemplate) {
+
+          this._showTemplatePicker();
+
+        } else {
+
+          //show attribute inspector
+          query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "none";
+          query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "block";
+
+          this.map.setInfoWindowOnClick(true);
+          if (this.attrInspector) {
+            this.attrInspector.refresh();
+
+            if (!this.currentFeature) {
+              this.attrInspector.first();
+            }
+          }
+        }
+
+        this._attrInspIsCurrentlyDisplayed = !showTemplate;
+      },
+      
       _showTemplatePicker: function () {
         // hide the attr inspector and show the main template picker div
         query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
@@ -1711,31 +1744,6 @@ define([
         this.map.setInfoWindowOnClick(false);
         this._activateTemplateToolbar();
 
-      },
-
-      _showTemplate: function (showTemplate) {
-        if (showTemplate) {
-
-          this._showTemplatePicker();
-
-        } else {
-
-          query(".jimu-widget-smartEditor .updateFeaturesOnlyDiv")[0].style.display = "none";
-          //show attribute inspector
-          query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "none";
-          query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "block";
-
-          this.map.setInfoWindowOnClick(true);
-          if (this.attrInspector) {
-            this.attrInspector.refresh();
-
-            if (!this.currentFeature) {
-              this.attrInspector.first();
-            }
-          }
-        }
-
-        this._attrInspIsCurrentlyDisplayed = !showTemplate;
       },
 
       _toggleUsePresetValues: function () {
@@ -1977,27 +1985,35 @@ define([
         return settings;
       },
 
+      // todo: more tests needed; may need to revisit
+      // other functions that set the map info window, etc.
       onClose: function () {
-        this.map.setInfoWindowOnClick(true);
-        //if (this.attrInspector) {
-        //  this.attrInspector.destroy();
-        //}
-        //this.attrInspector = null;
+        this._worksAfterClose();
 
-        //if (this.templatePicker) {
-        //  this.templatePicker.destroy();
-        //}
-        ////this.templatePicker = null;
+        if (this._configEditor.clearSelectionOnClose) {
+          if (this._isDirty) {
+            this._promptToResolvePendingEdit(true).then(lang.hitch(this, function () {
+              // set this variable for controlling the onMapClick (#494)
+              this.map.setInfoWindowOnClick(true);
+              this._attrInspIsCurrentlyDisplayed = true;
+              this.templatePicker.clearSelection();
+            }))
 
-        //if (this._presetFieldsTable)
-        //{
-        //  this._presetFieldsTable.destroy();
-        //}
-        ////this._presetFieldsTable = null;
+          } else {
+            this._cancelEditingFeature(true);
+
+            // set this variable for controlling the onMapClick
+            this.map.setInfoWindowOnClick(true);
+            this._attrInspIsCurrentlyDisplayed = true;
+            this.templatePicker.clearSelection();
+          }
+        } else
+        {
+          this.map.setInfoWindowOnClick(true);
+        }
 
         // close method will call onDeActive automaticlly
         // so do not need to call onDeActive();
-        this._worksAfterClose();
       },
 
 

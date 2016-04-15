@@ -20,6 +20,7 @@ define({
     displayPrompt: "Display Prompt:",
     promptOnSave: "on Save",
     promptOnDelete: "on Delete",
+    clearSelectionOnClose: "Clear Selection on Close",
     removeOnSave: "Remove Feature from Selection on Save",
     fieldValidation: {
       state: "State",

@@ -41,8 +41,8 @@ define([
   };
 
   mo.filterOnlyUpdatedAttributes = function (attributes, origAttributes) {
-    if (!attributes || attributes.length < 1 ||
-        !origAttributes || origAttributes.length < 1) {
+    if (!attributes || Object.keys(attributes).length < 1 ||
+        !origAttributes || Object.keys(origAttributes).length < 1) {
       return null;
     }
 

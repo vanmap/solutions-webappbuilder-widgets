@@ -112,6 +112,7 @@ define([
         this.displayPromptOnSave.set('checked', this.config.editor.displayPromptOnSave);
         this.displayPromptOnDelete.set('checked', this.config.editor.displayPromptOnDelete);
         this.removeOnSave.set('checked', this.config.editor.removeOnSave);
+        this.clearSelectionOnClose.set('checked', this.config.editor.clearSelectionOnClose);
       },
 
       setConfig: function () {
@@ -286,10 +287,16 @@ define([
       },
 
       _resetSettingsConfig: function () {
-        this.config.editor.showDeleteButton = this.showDeleteButton.checked === undefined ? false : this.showDeleteButton.checked;
-        this.config.editor.displayPromptOnSave = this.displayPromptOnSave.checked === undefined ? false : this.displayPromptOnSave.checked;
-        this.config.editor.displayPromptOnDelete = this.displayPromptOnDelete.checked === undefined ? false : this.displayPromptOnDelete.checked;
-        this.config.editor.removeOnSave = this.removeOnSave.checked === undefined ? false : this.removeOnSave.checked;
+        this.config.editor.showDeleteButton =
+          this.showDeleteButton.checked === undefined ? false : this.showDeleteButton.checked;
+        this.config.editor.displayPromptOnSave =
+          this.displayPromptOnSave.checked === undefined ? false : this.displayPromptOnSave.checked;
+        this.config.editor.displayPromptOnDelete =
+          this.displayPromptOnDelete.checked === undefined ? false : this.displayPromptOnDelete.checked;
+        this.config.editor.removeOnSave =
+          this.removeOnSave.checked === undefined ? false : this.removeOnSave.checked;
+        this.config.editor.clearSelectionOnClose =
+          this.clearSelectionOnClose.checked === undefined ? false : this.clearSelectionOnClose.checked;
       },
 
       getConfig: function () {

@@ -105,7 +105,7 @@ define([
         }));
       },
       _mapClickHandler: function (create) {
-      
+
         if (create === true && this._attrInspIsCurrentlyDisplayed === false) {
           this.map.setInfoWindowOnClick(false);
           this._mapClick = on(this.map, "click", lang.hitch(this, this._onMapClick));
@@ -125,7 +125,7 @@ define([
             this._mapClick.remove();
             this._mapClick = null;
           }
-          this.map.setInfoWindowOnClick(true)
+          this.map.setInfoWindowOnClick(true);
         }
       },
       destroy: function () {
@@ -327,8 +327,8 @@ define([
           if (field.domain !== undefined && field.domain !== null) {
             if (field.domain.type !== undefined && field.domain.type !== null) {
               if (field.domain.type === 'range') {
-                if (field.domain.hasOwnProperty('range') == false) {
-                  field.domain.range = [field.domain.minValue, field.domain.maxValue]
+                if (field.domain.hasOwnProperty('range') === false) {
+                  field.domain.range = [field.domain.minValue, field.domain.maxValue];
                 }
               }
             }
@@ -343,7 +343,7 @@ define([
           for (var i = 0; collection[i]; i++) {
             f(collection[i], i);
           }
-        }
+        };
       },
       _cloneLayer: function (layer) {
         var cloneFeaturelayer;
@@ -403,7 +403,7 @@ define([
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
       },
       _checkFieldState: function () {
-        var attTable = dojo.query("td.atiLabel", this.attrInspector.domNode)
+        var attTable = query("td.atiLabel", this.attrInspector.domNode);
 
         var fieldValidation = null;
 
@@ -412,7 +412,7 @@ define([
             fieldValidation = this.currentLayerInfo.fieldValidations;
           }
         }
-        if (fieldValidation == null) {
+        if (fieldValidation === null) {
           return;
         }
 
@@ -426,10 +426,11 @@ define([
               if (fieldValidation[field.name].hasOwnProperty(actionDetails)) {
                 var filter = fieldValidation[field.name][actionDetails].filter;
 
-                var performAction = this._smartAttributes.processFilter(filter.parts, filter.logicalOp, this.currentFeature);
+                var performAction =
+                  this._smartAttributes.processFilter(filter.parts, filter.logicalOp, this.currentFeature);
 
                 if (performAction) {
-                  actionType = fieldValidation[field.name][actionDetails].action
+                  actionType = fieldValidation[field.name][actionDetails].action;
                   break;
                 }
               }
@@ -556,7 +557,7 @@ define([
 
 
         this.own(on(attrInspector, "next", lang.hitch(this, function (evt) {
-          // in case multiple featuers are selected, 
+          // in case multiple featuers are selected,
           if (this._isDirty && this.currentFeature) {
             // do not show templatePicker after saving
             this._promptToResolvePendingEdit(false).then(lang.hitch(this, function () {
@@ -738,7 +739,7 @@ define([
 
               nodes.push(node.domNode);
 
-              // 
+              //
               var timeNode = new TimeTextBox({
                 "class": "ee-inputField"
               }, domConstruct.create("div"));
@@ -857,18 +858,20 @@ define([
           }
         }
       },
+
       _getLayerInfoByID: function (id) {
 
         if (id.indexOf("_lfl") > 0) {
           id = id.replace("_lfl", "");
         }
         var result = null;
-        var layerFound = this.settings.layerInfos.some(function (lyrinfo) {
+        /*var layerFound = */ this.settings.layerInfos.some(function (lyrinfo) {
           return lyrinfo.featureLayer.id === id ? ((result = lyrinfo), true) : false;
         });
         return result;
 
       },
+
       _fillPresetValueTable: function () {
         var presetFieldInfos = [];
 
@@ -897,7 +900,7 @@ define([
                       });
                       break;
                     }
-                  } // 
+                  } //
                 }
 
                 // or add to the collection if new
@@ -941,7 +944,7 @@ define([
         var firstErrorFieldIndex = -1;
         for (var prop in errObject) {
           if (errObject.hasOwnProperty(prop)) {
-            // loop throug each row in the attrInspector 
+            // loop throug each row in the attrInspector
             for (var i = 0; i < list.length; i++) {
               //if (list[i].firstChild.innerText.toUpperCase() === prop.toUpperCase()) {
               if (list[i].firstChild.innerText.indexOf(prop) === 0) {
@@ -983,7 +986,7 @@ define([
 
       _getLayerInfoForLocalLayer: function (localLayer) {
 
-        var result = this._getLayerInfoByID(localLayer.originalLayerId)
+        var result = this._getLayerInfoByID(localLayer.originalLayerId);
 
         var layerInfo;
         var fieldInfos;
@@ -1013,7 +1016,7 @@ define([
         var selectionSymbol;
         switch (geometryType) {
           case "esriGeometryPoint":
-            if (highlight == true) {
+            if (highlight === true) {
               selectionSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE,
                                 20,
                                 new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
@@ -1028,9 +1031,9 @@ define([
             }
             break;
           case "esriGeometryPolyline":
-            if (highlight == true) {
+            if (highlight === true) {
               selectionSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
-                                    new Color([0, 255, 255, .65]), 2);
+                                    new Color([0, 255, 255, 0.65]), 2);
             } else {
               selectionSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
                                     new Color([0, 230, 169, 0.65]), 2);
@@ -1038,7 +1041,7 @@ define([
             break;
           case "esriGeometryPolygon":
             var line;
-            if (highlight == true) {
+            if (highlight === true) {
               selectionSymbol = new SimpleFillSymbol().setColor(new Color([0, 230, 169, 0.65]));
               line = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
               new Color([192, 192, 192, 1]), 2);
@@ -1244,13 +1247,13 @@ define([
             feature.attributes["OBJECTID"] = feature.preEditAttrs["OBJECTID"];
             feature.symbol = null;
 
-            // Since the new requirement is that: after a save, 
-            // continue to show attributeInspector, 
+            // Since the new requirement is that: after a save,
+            // continue to show attributeInspector,
             // save the preEdit attributes
             feature.preEditAttrs = JSON.parse(JSON.stringify(feature.attributes));
 
             feature.getLayer().applyEdits(null, [feature], null,
-              lang.hitch(this, function (e) {
+              lang.hitch(this, function () {
                 // sometimes a successfully update returns an empty array
                 //if (e && e.length > 0 && e[0].success) {
                 //feature.getLayer().clearSelection();
@@ -1258,7 +1261,7 @@ define([
 
                 deferred.resolve("success");
                 //}
-              }), function (e) {
+              }), function () {
                 // for now
                 alert("Error when performing update ApplyEdits");
                 deferred.resolve("failed");
@@ -1298,7 +1301,7 @@ define([
           var layers = this.map.getLayersVisibleAtScale().filter(lang.hitch(this, function (lyr) {
             if (lyr.type && lyr.type === "Feature Layer" && lyr.url) {
               return this.settings.layerInfos.some(function (lyrinfo) {
-                if (lyrinfo.layerId == lyr.id) {
+                if (lyrinfo.layerId === lyr.id) {
                   return true;
                 }
                 else {
@@ -1335,8 +1338,7 @@ define([
 
           all(deferreds).then(lang.hitch(this, function () {
             this.updateFeatures = updateFeatures;
-            if (this.updateFeatures.length > 0) //?
-            {
+            if (this.updateFeatures.length > 0) {
               this._showTemplate(false);
               //return;
             }
@@ -1428,7 +1430,7 @@ define([
               domClass.remove(processIndicator, "busy");
             }
             // if currently only one selected feature
-            if (this._configEditor.removeOnSave && this.updateFeatures.length == 1) {
+            if (this._configEditor.removeOnSave && this.updateFeatures.length === 1) {
               switchToTemplate = true;
             }
 
@@ -1448,7 +1450,7 @@ define([
                 var query = new Query();
                 query.objectIds = [feature.attributes["OBJECTID"]];
                 layer.selectFeatures(query, FeatureLayer.SELECTION_SUBTRACT,
-                  lang.hitch(this, function (e) {
+                  lang.hitch(this, function () {
                     this.updateFeatures.splice(this.updateFeatures.indexOf(feature), 1);
                     this.attrInspector.next();
                   }));
@@ -1505,7 +1507,7 @@ define([
           query(".jimu-widget-smartEditor .updateFeaturesOnlyDiv")[0].style.display = "block";
 
         } else {
-          // 
+          //
           query(".jimu-widget-smartEditor .updateFeaturesOnlyDiv")[0].style.display = "none";
           query(".jimu-widget-smartEditor .templatePickerDiv")[0].style.display = "block";
 
@@ -1518,7 +1520,7 @@ define([
 
         if (this.currentFeature && this.currentFeature.getLayer()) {
           this.currentFeature.getLayer().clearSelection().refresh();
-          this.currentFeature.getLayer().clear()
+          this.currentFeature.getLayer().clear();
 
         }
 
@@ -1837,18 +1839,19 @@ define([
 
       onMaximize: function () {
         setTimeout(lang.hitch(this, this._update), 100);
-      },
-      _simplify: function (geometry, callback) {
-        if (Polygon.prototype.isSelfIntersecting(geometry)) {
-          this._settings.geometryService.simplify([geometry], function (simplifiedGeometries) {
-            var geometry = (simplifiedGeometries && simplifiedGeometries.length) ? simplifiedGeometries[0] : geometry;
-            if (callback) {
-              callback(geometry);
-            }
-          });
-        } else if (callback) {
-          callback(geometry);
-        }
       }
+
+      //_simplify: function (geometry, callback) {
+      //  if (Polygon.prototype.isSelfIntersecting(geometry)) {
+      //    this._settings.geometryService.simplify([geometry], function (simplifiedGeometries) {
+      //      var geometry = (simplifiedGeometries && simplifiedGeometries.length) ? simplifiedGeometries[0] : geometry;
+      //      if (callback) {
+      //        callback(geometry);
+      //      }
+      //    });
+      //  } else if (callback) {
+      //    callback(geometry);
+      //  }
+      //}
     });
   });

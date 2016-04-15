@@ -21,7 +21,6 @@ define([
     'jimu/dijit/SimpleTable',
     'jimu/LayerInfos/LayerInfos',
     'dojo/_base/lang',
-    'dojo/_base/html',
     'dojo/on',
     'dojo/_base/array',
     "./EditFields",
@@ -34,7 +33,6 @@ define([
     Table,
     LayerInfos,
     lang,
-    html,
     on,
     array,
     EditFields,
@@ -159,7 +157,8 @@ define([
             // set _editFlag to true
             layerInfo._editFlag = true;
             layerInfo.mapLayer = [];
-            layerInfo.mapLayer.resourceInfo = this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.resourceInfo;
+            layerInfo.mapLayer.resourceInfo =
+              this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.resourceInfo;
             layerInfo.mapLayer.url = this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.url;
 
           }
@@ -292,7 +291,7 @@ define([
         this.config.editor.removeOnSave =
           this.removeOnSave.checked === undefined ? false : this.removeOnSave.checked;
         this.config.editor.clearSelectionOnClose = false;
-          //this.clearSelectionOnClose.checked === undefined ? false : this.clearSelectionOnClose.checked;
+        //this.clearSelectionOnClose.checked === undefined ? false : this.clearSelectionOnClose.checked;
       },
 
       getConfig: function () {
@@ -312,21 +311,21 @@ define([
             checkedLayerInfos.push(layerInfo);
           }
           if (layerInfo.fieldValidations !== undefined && layerInfo.fieldValidations !== null) {
-           
-              for (var k in layerInfo.fieldValidations) {
-                if (layerInfo.fieldValidations.hasOwnProperty(k)) {
-                  layerInfo.fieldValidations[k] = layerInfo.fieldValidations[k].sort(function (a, b) {
-                    if (a.order > b.order) {
-                      return 1;
-                    }
-                    if (a.order < b.order) {
-                      return -1;
-                    }
-                    // a must be equal to b
-                    return 0;
-                  });
-                }
-              
+
+            for (var k in layerInfo.fieldValidations) {
+              if (layerInfo.fieldValidations.hasOwnProperty(k)) {
+                layerInfo.fieldValidations[k] = layerInfo.fieldValidations[k].sort(function (a, b) {
+                  if (a.order > b.order) {
+                    return 1;
+                  }
+                  if (a.order < b.order) {
+                    return -1;
+                  }
+                  // a must be equal to b
+                  return 0;
+                });
+              }
+
             }
           }
 

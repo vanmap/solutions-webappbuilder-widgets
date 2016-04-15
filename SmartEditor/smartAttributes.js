@@ -22,16 +22,14 @@ define([
   "dojo/_base/declare",
   'dojo/_base/lang',
   'dojo/_base/array',
-  'dojo/dom-construct',
   'dojo/dom-class',
-   'jimu/filterUtils',
+   'jimu/filterUtils'
 ], function (
   Evented,
   dojo,
   declare,
   lang,
   array,
-  domConstruct,
   domClass,
   filterUtils
   ) {
@@ -41,6 +39,7 @@ define([
       this._filterUtils = new filterUtils();
       this.OPERATORS = lang.clone(this._filterUtils.OPERATORS);
     },
+
     processFilter: function (parts, logOp, feature) {
       var partResults = [];
       array.forEach(parts, function (part) {
@@ -50,29 +49,37 @@ define([
         else {
           switch (part.valueObj.type) {
             case 'value':
-              partResults.push(this.validatePart(part.operator, feature.attributes[part.fieldObj.name], part.valueObj.value, part.caseSensitive));
+              partResults.push(this.validatePart(part.operator,
+                               feature.attributes[part.fieldObj.name],
+                               part.valueObj.value,
+                               part.caseSensitive));
               break;
             case 'field':
 
-              partResults.push(this.validatePart(part.operator, feature.attributes[part.fieldObj.name], feature.attributes[part.valueObj.value], part.caseSensitive));
+              partResults.push(this.validatePart(part.operator,
+                                                 feature.attributes[part.fieldObj.name],
+                                                 feature.attributes[part.valueObj.value],
+                                                 part.caseSensitive));
               break;
             default:
               break;
           }
         }
       }, this);
-      return this.ruleValid(partResults, logOp)
+
+      return this.ruleValid(partResults, logOp);
     },
+
     ruleValid: function (partResults,logOp) {
       var performAction = false;
-      
+
       if (logOp === undefined || logOp === null) {
         logOp = 'OR';
       }
       array.some(partResults, function (result) {
 
         if (logOp === 'OR') {
-          if (result == true) {
+          if (result === true) {
             performAction = true;
             return true;
           }
@@ -80,7 +87,7 @@ define([
             performAction = false;
           }
         } else {
-          if (result == false) {
+          if (result === false) {
             performAction = false;
             return true;
           } else {
@@ -89,12 +96,13 @@ define([
         }
       });
       return performAction;
-      
+
     },
+
     validatePart: function (operator, field, value, caseSensitive) {
 
       if (operator.lastIndexOf('string', 0) === 0) {
-        if (caseSensitive == false) {
+        if (caseSensitive === false) {
           if (field !== undefined && field !== null) {
             field = String(field).toUpperCase();
           }
@@ -107,12 +115,12 @@ define([
       switch (operator) {
         case this.OPERATORS.stringOperatorIs:
 
-          if (field == value) {
+          if (field === value) {
             return true;
           }
           break;
         case this.OPERATORS.stringOperatorIsNot:
-          if (field != value) {
+          if (field !== value) {
             return true;
           }
           break;
@@ -124,7 +132,6 @@ define([
           break;
         case this.OPERATORS.stringOperatorEndsWith:
           return this._endsWith(field, value);
-          break;
         case this.OPERATORS.stringOperatorContains:
           break;
         case this.OPERATORS.stringOperatorDoesNotContain:
@@ -141,12 +148,12 @@ define([
 
           break;
         case this.OPERATORS.numberOperatorIs:
-          if (field == value) {
+          if (field === value) {
             return true;
           }
           break;
         case this.OPERATORS.numberOperatorIsNot:
-          if (field != value) {
+          if (field !== value) {
             return true;
           }
           break;
@@ -210,30 +217,32 @@ define([
           break;
         default:
           return false;
-          break;
       }
       return false;
     },
+
     toggleFieldOnAttributeInspector: function (fieldName, actionType, attTable) {
       if (attTable === null) {
-        attTable = dojo.query("td.atiLabel", this.attrInspector.domNode)
+        attTable = dojo.query("td.atiLabel", this.attrInspector.domNode);
       }
 
       if (attTable.length > 0) {
-        row = attTable.filter(lang.hitch(this, function (row) {
-          return row.childNodes[0].data == fieldName;
-        }))
+        var row = attTable.filter(lang.hitch(this, function (row) {
+          return row.childNodes[0].data === fieldName;
+        }));
+
         if (row !== null) {
           if (row.length > 0) {
-            var valueCell = row[0].parentNode.childNodes[1].childNodes[0]
+            var valueCell = row[0].parentNode.childNodes[1].childNodes[0];
             var parent = row[0].parentNode;
-            var labelCell = row[0];
+            //var labelCell = row[0]; // defined but never used
             switch (actionType) {
               case 'Hide':
                 domClass.add(parent, "hideField");
                 break;
               case 'Disabled':
-                domClass.add(valueCell, ["dijitValidationTextBox", "dijitTextBoxDisabled", "dijitComboBoxDisabled", "dijitValidationTextBoxDisabled", "dijitDisabled"]);
+                domClass.add(valueCell, ["dijitValidationTextBox", "dijitTextBoxDisabled", "dijitComboBoxDisabled",
+                                         "dijitValidationTextBoxDisabled", "dijitDisabled"]);
 
                 break;
               case 'Required':
@@ -250,7 +259,7 @@ define([
                 break;
               default:
                 if (row[0].childNodes.length > 1) {
-                  if (this._gdbRequired.indexOf(fieldName) == -1) {
+                  if (this._gdbRequired.indexOf(fieldName) === -1) {
                     row[0].removeChild(row[0].childNodes[1]);
                   }
                 }
@@ -277,8 +286,7 @@ define([
         }
 
       }
-    },
-
+    }
 
   });
 });

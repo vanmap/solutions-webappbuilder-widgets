@@ -18,10 +18,8 @@ email: contracts@esri.com
 
 define([
   'dojo/_base/lang',
-  'dojo/_base/array',
-  'dojo/dom-construct',
   'esri/geometry/Extent'
-], function (lang, array, domConstruct, Extent) {
+], function (lang, Extent) {
 
   var mo = {};
 

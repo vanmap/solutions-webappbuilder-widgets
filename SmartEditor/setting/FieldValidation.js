@@ -9,8 +9,7 @@ define(
     'jimu/dijit/SimpleTable',
     "jimu/dijit/Popup",
     'jimu/dijit/Filter',
-    'esri/lang',
-    'dojo/json'
+    'esri/lang'
   ],
   function (
     declare,
@@ -23,8 +22,7 @@ define(
     Table,
     Popup,
     Filter,
-    esriLang,
-    JSON
+    esriLang
     ) {
     return declare([BaseWidgetSetting, _TemplatedMixin], {
       baseClass: "jimu-widget-smartEditor-rule-table",
@@ -40,13 +38,15 @@ define(
         this._setActionsTable(['Hide', 'Required', 'Disabled']);
         //this._filters
       },
+
       _getConfigAction: function (actionName) {
         var result = null;
         if (this._layerInfo.fieldValidations !== undefined && this._layerInfo.fieldValidations !== null) {
           if (this._layerInfo.fieldValidations.hasOwnProperty(this._fieldName)) {
-            if (this._layerInfo.fieldValidations[this._fieldName] !== null && this._layerInfo.fieldValidations[this._fieldName].length > 0) {
-              var found = array.some(this._layerInfo.fieldValidations[this._fieldName], function (actionDetails) {
-                if (actionDetails.action == actionName ? (result = actionDetails, true) : false);
+            if (this._layerInfo.fieldValidations[this._fieldName] !== null &&
+              this._layerInfo.fieldValidations[this._fieldName].length > 0) {
+              /*var found =*/ array.some(this._layerInfo.fieldValidations[this._fieldName], function (actionDetails) {
+                return (actionDetails.action === actionName ? (result = actionDetails, true) : false);
               });
             }
 
@@ -54,7 +54,8 @@ define(
         }
         return result;
       },
-      popupActionsPage: function (fieldName) {
+
+      popupActionsPage: function (/*fieldName*/) {
         var fieldsPopup = new Popup({
           titleLabel: esriLang.substitute(
             { fieldname: this._fieldAlias },
@@ -73,7 +74,7 @@ define(
               //if (!this._layerInfo.fieldValidations.hasOwnProperty(this._fieldName)) {
               //  this._layerInfo.fieldValidations[this._fieldName] = []
               //}
-              this._layerInfo.fieldValidations[this._fieldName] = []
+              this._layerInfo.fieldValidations[this._fieldName] = [];
               array.forEach(rows, function (row) {
                 var rowData = this._validationTable.getRowData(row);
                 if (rowData.expression !== undefined && rowData.expression !== null && rowData.expression !== '') {
@@ -85,7 +86,7 @@ define(
                       });
                 }
               },this);
-              
+
               fieldsPopup.close();
             })
           }, {
@@ -142,22 +143,24 @@ define(
           'actions-edit',
           lang.hitch(this, this._onEditFieldInfoClick)));
       },
-      _onEditFieldInfoClick: function (tr) {
-        
-          this._showFilter(tr);
 
-        
+      _onEditFieldInfoClick: function (tr) {
+
+        this._showFilter(tr);
+
       },
+
       _setActionsTable: function (actions) {
-        
+
         array.forEach(actions, function (action) {
           var configAction = this._getConfigAction(action);
           var settings = {
             label: action,
             expression: null
-          }
+          };
           if (configAction !== undefined && configAction !== null) {
-            if (configAction.expression !== undefined && configAction.expression !== null && configAction.expression !== '') {
+            if (configAction.expression !== undefined &&
+              configAction.expression !== null && configAction.expression !== '') {
               settings.expression = configAction.expression;
             }
           }
@@ -166,9 +169,10 @@ define(
 
         }, this);
       },
+
       _showFilter: function (tr) {
         var rowData = this._validationTable.getRowData(tr);
-        var rowIndex = tr.rowIndex;
+        //var rowIndex = tr.rowIndex;  // defined but never used
         if (rowData) {
           var origNLS = window.jimuNls.filterBuilder.matchMsg;
 
@@ -176,7 +180,7 @@ define(
 
           var filter = new Filter({
             style: "width:100%;margin-top:22px;",
-            noFilterTip: this.nls.filterPage.noFilterTip,
+            noFilterTip: this.nls.filterPage.noFilterTip
           });
 
           var filterPopup = new Popup({
@@ -207,8 +211,6 @@ define(
                         'expression': partsObj.expr
                         //'filter': JSON.stringify(partsObj)
                       });
-                    
-               
                   }
 
                   filterPopup.close();
@@ -232,12 +234,12 @@ define(
           //  if (this._layerInfo.fieldValidations.hasOwnProperty(this._fieldName)) {
           //    if (this._layerInfo.fieldValidations[this._fieldName] !== null && this._layerInfo.fieldValidations[this._fieldName].length > 0) {
           //      var found = array.some(this._layerInfo.fieldValidations[this._fieldName], function (actionDetails) {
-          //        if (actionDetails.action == rowData.label) {
+          //        if (actionDetails.action === rowData.label) {
           //          filter.buildByExpr(this._layerInfo.mapLayer.url, actionDetails.filter.expr, this._layerInfo.mapLayer.resourceInfo);
           //          return true;
           //        }
           //      }, this);
-          //      if (found == false) {
+          //      if (found === false) {
           //        filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
           //      }
           //    }

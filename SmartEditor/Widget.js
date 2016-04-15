@@ -1729,13 +1729,11 @@ define([
 
         if (this.currentFeature && this.currentFeature.getLayer().originalLayerId) {
           this.currentFeature.getLayer().clear();
-          this.currentFeature.getLayer().clearSelection().refresh();
         }
-        else {
-          array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
-            feature.getLayer().clearSelection().refresh();
-          }));
-        }
+
+        array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
+          feature.getLayer().clearSelection().refresh();
+        }));
 
         this.currentFeature = null;
         this.currentLayerInfo = null;

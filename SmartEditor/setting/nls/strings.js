@@ -28,17 +28,19 @@ define({
       }
     },
     actionPage: {
-      PageTitle: "Configure Smart Fields",
+      PageTitle: "Configure Smart actions for ${fieldname}",
       actionsSeetingsTable: {
         rule: "Rule",
         expression: "Expression",
         actions: "Actions",
       },
-      configureActions: "Configure field validation",
-      filterPopup: "Action criteria"
+    },
+    filterPage: {
+      PageTitle: "Configure clause for the ${action} rule",
+      filterBuilder: "Set action on field when record matches ${any_or_all} of the following expressions",
+      noFilterTip: "Using the tools below, define the statement for when the action is active.",
 
     }
-
   }),
   "ar": 1,
   "cs": 1,

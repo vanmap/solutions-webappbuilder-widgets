@@ -8,7 +8,9 @@ define(
     'jimu/BaseWidgetSetting',
     'jimu/dijit/SimpleTable',
     "jimu/dijit/Popup",
-    'jimu/dijit/Filter'
+    'jimu/dijit/Filter',
+    'esri/lang',
+    'dojo/json'
   ],
   function (
     declare,
@@ -20,37 +22,43 @@ define(
     BaseWidgetSetting,
     Table,
     Popup,
-    Filter
+    Filter,
+    esriLang,
+    JSON
     ) {
     return declare([BaseWidgetSetting, _TemplatedMixin], {
       baseClass: "jimu-widget-smartEditor-rule-table",
       templateString: template,
       _layerInfo: null,
       _fieldName: null,
+      //_filters:null,
       postCreate: function () {
         this.inherited(arguments);
         //this.nls = lang.mixin(this.nls, window.jimuNls.common);
         this._initActionsTable();
         //Value, present domain or text box for fields, use current date for date.
-        this._setActionsTable(['Hide', 'Required', 'Disabled', 'Value']);
-
+        this._setActionsTable(['Hide', 'Required', 'Disabled']);
+        //this._filters
       },
-      _getConfigActions: function () {
+      _getConfigAction: function (actionName) {
+        var result = null;
         if (this._layerInfo.fieldValidations !== undefined && this._layerInfo.fieldValidations !== null) {
           if (this._layerInfo.fieldValidations.hasOwnProperty(this._fieldName)) {
             if (this._layerInfo.fieldValidations[this._fieldName] !== null && this._layerInfo.fieldValidations[this._fieldName].length > 0) {
               var found = array.some(this._layerInfo.fieldValidations[this._fieldName], function (actionDetails) {
-                if (actionDetails.action == rowData.label) {
-                }
+                if (actionDetails.action == actionName ? (result = actionDetails, true) : false);
               });
             }
 
           }
         }
+        return result;
       },
-      popupActionsPage: function () {
+      popupActionsPage: function (fieldName) {
         var fieldsPopup = new Popup({
-          titleLabel: this.nls.actionPage.PageTitle,
+          titleLabel: esriLang.substitute(
+            { fieldname: this._fieldAlias },
+            this.nls.actionPage.PageTitle),
           width: 720,
           maxHeight: 600,
           autoHeight: true,
@@ -58,13 +66,33 @@ define(
           buttons: [{
             label: this.nls.ok,
             onClick: lang.hitch(this, function () {
-
+              var rows = this._validationTable.getRows();
+              if (this._layerInfo.fieldValidations === undefined || this._layerInfo.fieldValidations === null) {
+                this._layerInfo.fieldValidations = {};
+              }
+              //if (!this._layerInfo.fieldValidations.hasOwnProperty(this._fieldName)) {
+              //  this._layerInfo.fieldValidations[this._fieldName] = []
+              //}
+              this._layerInfo.fieldValidations[this._fieldName] = []
+              array.forEach(rows, function (row) {
+                var rowData = this._validationTable.getRowData(row);
+                if (rowData.expression !== undefined && rowData.expression !== null && rowData.expression !== '') {
+                  this._layerInfo.fieldValidations[this._fieldName].push(
+                      {
+                        'action': rowData.label,
+                        'expression': rowData.expression,//JSON.parse(rowData.filter),
+                        'index': row.rowIndex
+                      });
+                }
+              },this);
+              
               fieldsPopup.close();
             })
           }, {
             label: this.nls.cancel,
             classNames: ['jimu-btn-vacation'],
             onClick: lang.hitch(this, function () {
+
               fieldsPopup.close();
             })
           }],
@@ -86,9 +114,15 @@ define(
           type: 'text',
           'class': 'expression'
         },
+         {
+           name: 'filter',
+           title: 'filter',
+           type: 'text',
+           hidden:true
+         },
         {
           name: 'actions',
-          title:this.nls.actionPage.actionsSeetingsTable.actions,
+          title: this.nls.actionPage.actionsSeetingsTable.actions,
           type: 'actions',
           actions: ['up', 'down', 'edit'],
           'class': 'actions'
@@ -109,117 +143,126 @@ define(
           lang.hitch(this, this._onEditFieldInfoClick)));
       },
       _onEditFieldInfoClick: function (tr) {
-        var rowData = this._validationTable.getRowData(tr);
-        if (rowData) {
-          this._showFilter(rowData, tr.rowIndex);
+        
+          this._showFilter(tr);
 
-        }
+        
       },
       _setActionsTable: function (actions) {
+        
         array.forEach(actions, function (action) {
-      
-          this._validationTable.addRow({
-            label: action
-          });
+          var configAction = this._getConfigAction(action);
+          var settings = {
+            label: action,
+            expression: null
+          }
+          if (configAction !== undefined && configAction !== null) {
+            if (configAction.expression !== undefined && configAction.expression !== null && configAction.expression !== '') {
+              settings.expression = configAction.expression;
+            }
+          }
+          this._validationTable.addRow(settings);
+
+
         }, this);
       },
-      _showFilter: function (rowData, rowIndex) {
-        var origNLS = window.jimuNls.filterBuilder.matchMsg;
+      _showFilter: function (tr) {
+        var rowData = this._validationTable.getRowData(tr);
+        var rowIndex = tr.rowIndex;
+        if (rowData) {
+          var origNLS = window.jimuNls.filterBuilder.matchMsg;
 
-        window.jimuNls.filterBuilder.matchMsg = "Set action on field when record matches ${any_or_all} of the following expressions";
+          window.jimuNls.filterBuilder.matchMsg = this.nls.filterPage.filterBuilder;
 
-        var filter = new Filter({
-          style: "width:100%;margin-top:22px;"
-        });
+          var filter = new Filter({
+            style: "width:100%;margin-top:22px;",
+            noFilterTip: this.nls.filterPage.noFilterTip,
+          });
 
-        var filterPopup = new Popup({
-          titleLabel: this.nls.fieldValidation.filterPopup,
-          width: 680,
-          height: 485,
-          content: filter,
-          rowData: rowData,
-          buttons: [{
-            label: this.nls.ok,
-            onClick: lang.hitch(this, function () {
-              var partsObj = filter.toJson();
-              if (partsObj && partsObj.expr) {
-                if (partsObj.expr === '1=1') {
+          var filterPopup = new Popup({
 
-                } else {
-                  if (this._layerInfo.fieldValidations === undefined || this._layerInfo.fieldValidations === null) {
-                    this._layerInfo.fieldValidations = {};
-
-                  }
-                  if (!this._layerInfo.fieldValidations.hasOwnProperty(this._fieldName)) {
-                    this._layerInfo.fieldValidations[this._fieldName] = []
-                  }
-                  var existing = array.some(this._layerInfo.fieldValidations[this._fieldName], function (fieldValidation) {
-                    if (fieldValidation.action === rowData.label) {
-                      fieldValidation.filter = partsObj;
-                      fieldValidation.order = rowIndex;
-                      return true;
-
-                    }
-                    else{
-                      return false;
-                    }
-                  });
-                  if (existing === false) {
-                    this._layerInfo.fieldValidations[this._fieldName].push(
+            titleLabel: esriLang.substitute(
+              {
+                action: rowData.label
+              },
+              this.nls.filterPage.PageTitle),
+            width: 680,
+            height: 485,
+            content: filter,
+            rowData: rowData,
+            buttons: [{
+              label: this.nls.ok,
+              onClick: lang.hitch(this, function () {
+                var partsObj = filter.toJson();
+                if (partsObj && partsObj.expr) {
+                  if (partsObj.expr === '1=1') {
+                    this._validationTable.editRow(tr,
+                     {
+                       'expression': ''
+                       //'filter': null
+                     });
+                  } else {
+                    this._validationTable.editRow(tr,
                       {
-                        'action': rowData.label,
-                        'filter': partsObj,
-                        'order': rowIndex
-                      }
-                    );
+                        'expression': partsObj.expr
+                        //'filter': JSON.stringify(partsObj)
+                      });
+                    
+               
                   }
-                  
-                }
 
-                filterPopup.close();
-                filterPopup = null;
-              }
-            })
-          }, {
-            label: this.nls.cancel,
-            classNames: ['jimu-btn-vacation']
-          }]
-        });
-        if (this._layerInfo.fieldValidations !== undefined && this._layerInfo.fieldValidations !== null) {
-          if (this._layerInfo.fieldValidations.hasOwnProperty(this._fieldName)) {
-            if (this._layerInfo.fieldValidations[this._fieldName] !== null && this._layerInfo.fieldValidations[this._fieldName].length > 0) {
-              var found = array.some(this._layerInfo.fieldValidations[this._fieldName], function (actionDetails) {
-                if (actionDetails.action == rowData.label) {
-                  filter.buildByExpr(this._layerInfo.mapLayer.url, actionDetails.filter.expr, this._layerInfo.mapLayer.resourceInfo);
-                  return true;
+                  filterPopup.close();
+                  filterPopup = null;
                 }
-              },this);
-              if (found == false) {
-                filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
-              }
-            }
-            else {
-              filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
-            }
-            
-          }
-          else {
+              })
+            }, {
+              label: this.nls.cancel,
+              classNames: ['jimu-btn-vacation']
+            }]
+          });
+          if (rowData.expression === undefined || rowData.expression === null || rowData.expression === '') {
             filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
+
+          } else {
+            filter.buildByExpr(this._layerInfo.mapLayer.url, rowData.expression, this._layerInfo.mapLayer.resourceInfo);
+
+
           }
+          //if (this._layerInfo.fieldValidations !== undefined && this._layerInfo.fieldValidations !== null) {
+          //  if (this._layerInfo.fieldValidations.hasOwnProperty(this._fieldName)) {
+          //    if (this._layerInfo.fieldValidations[this._fieldName] !== null && this._layerInfo.fieldValidations[this._fieldName].length > 0) {
+          //      var found = array.some(this._layerInfo.fieldValidations[this._fieldName], function (actionDetails) {
+          //        if (actionDetails.action == rowData.label) {
+          //          filter.buildByExpr(this._layerInfo.mapLayer.url, actionDetails.filter.expr, this._layerInfo.mapLayer.resourceInfo);
+          //          return true;
+          //        }
+          //      }, this);
+          //      if (found == false) {
+          //        filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
+          //      }
+          //    }
+          //    else {
+          //      filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
+          //    }
+
+          //  }
+          //  else {
+          //    filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
+          //  }
 
 
+          //}
+          //else {
+          //  filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
+          //}
+          window.jimuNls.filterBuilder.matchMsg = origNLS;
+          //var filterObj = workLayer.layerObject.getDefinitionExpression();
+          //if (expression.expr !== '') {
+          //  filter.buildByFilterObj(url, expression.expr, definition);
+          //} else {
+          //  filter.buildByExpr(url, null, definition);
+          //}
         }
-        else {
-          filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
-        }
-        window.jimuNls.filterBuilder.matchMsg = origNLS;
-        //var filterObj = workLayer.layerObject.getDefinitionExpression();
-        //if (expression.expr !== '') {
-        //  filter.buildByFilterObj(url, expression.expr, definition);
-        //} else {
-        //  filter.buildByExpr(url, null, definition);
-        //}
-
       }
 
     });

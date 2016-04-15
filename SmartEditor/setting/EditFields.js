@@ -109,7 +109,8 @@ define(
           var fieldValid = new FieldValidation({
             nls: this.nls,
             _layerInfo: this._layerInfo,
-            _fieldName: rowData.fieldName
+            _fieldName: rowData.fieldName,
+            _fieldAlias: rowData.label
           });
           fieldValid.popupActionsPage();
         }

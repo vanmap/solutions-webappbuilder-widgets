@@ -27,7 +27,6 @@ define([
     'dijit/_WidgetsInTemplateMixin',
     'jimu/BaseWidget',
     'jimu/LayerInfos/LayerInfos',
-    'jimu/filterUtils',
     "esri/dijit/editing/TemplatePicker",
 
     "esri/dijit/AttributeInspector",
@@ -47,6 +46,7 @@ define([
     "dijit/registry",
 
     "./utils",
+     "./smartAttributes",
     "dijit/form/CheckBox",
     'dijit/form/DateTextBox',
     'dijit/form/NumberSpinner',
@@ -58,10 +58,10 @@ define([
 ],
   function (declare, lang, array, html, query, esriBundle, domConstruct,
     domClass, on, _WidgetsInTemplateMixin,
-    BaseWidget, LayerInfos, filterUtils, TemplatePicker,
+    BaseWidget, LayerInfos, TemplatePicker,
     AttributeInspector, Draw, Edit, Query, Graphic, FeatureLayer, ConfirmDialog, all, Deferred,
     SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, Color, geometryJsonUtil, registry,
-    editUtils, CheckBox, DateTextBox, NumberSpinner, NumberTextBox,
+    editUtils,smartAttributes, CheckBox, DateTextBox, NumberSpinner, NumberTextBox,
     FilteringSelect, TextBox, TimeTextBox, Memory) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
       name: 'SmartEditor',
@@ -87,7 +87,6 @@ define([
       _editingEnabled: false,
       _usePresetValues: false,
       _creationDisabledOnAll: false,
-      OPERATORS: null,
       postCreate: function () {
         this.inherited(arguments);
         this._init();
@@ -102,8 +101,7 @@ define([
           //  this._createEditor();
           //}), 10);
           this._createEditor();
-          this._filterUtils = new filterUtils();
-          this.OPERATORS = lang.clone(this._filterUtils.OPERATORS);
+          this._smartAttributes = new smartAttributes();
         }));
       },
 
@@ -385,129 +383,6 @@ define([
       _endsWith: function (str, suffix) {
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
       },
-      _processFieldValidationPart: function (operator, field, value, caseSensitive) {
-
-        if (operator.lastIndexOf('string', 0) === 0) {
-          if (caseSensitive == false) {
-            if (field !== undefined && field !== null) {
-              field = String(field).toUpperCase();
-            }
-            if (value !== undefined && value !== null) {
-              value = String(value).toUpperCase();
-            }
-
-          }
-        }
-        switch (operator) {
-          case this.OPERATORS.stringOperatorIs:
-
-            if (field == value) {
-              return true;
-            }
-            break;
-          case this.OPERATORS.stringOperatorIsNot:
-            if (field != value) {
-              return true;
-            }
-            break;
-          case this.OPERATORS.stringOperatorStartsWith:
-            if (field.lastIndexOf(value, 0) === 0) {
-              return true;
-            }
-
-            break;
-          case this.OPERATORS.stringOperatorEndsWith:
-            return this._endsWith(field, value);
-            break;
-          case this.OPERATORS.stringOperatorContains:
-            break;
-          case this.OPERATORS.stringOperatorDoesNotContain:
-            break;
-          case this.OPERATORS.stringOperatorIsBlank:
-            if (field === null || field === undefined) {
-              return true;
-            }
-            break;
-          case this.OPERATORS.stringOperatorIsNotBlank:
-            if (field !== null && field !== undefined) {
-              return true;
-            }
-
-            break;
-          case this.OPERATORS.numberOperatorIs:
-            if (field == value) {
-              return true;
-            }
-            break;
-          case this.OPERATORS.numberOperatorIsNot:
-            if (field != value) {
-              return true;
-            }
-            break;
-          case this.OPERATORS.numberOperatorIsAtLeast:
-            break;
-          case this.OPERATORS.numberOperatorIsLessThan:
-            break;
-          case this.OPERATORS.numberOperatorIsAtMost:
-            break;
-          case this.OPERATORS.numberOperatorIsGreaterThan:
-            break;
-          case this.OPERATORS.numberOperatorIsBetween:
-            break;
-          case this.OPERATORS.numberOperatorIsNotBetween:
-            break;
-          case this.OPERATORS.numberOperatorIsBlank:
-            if (field === null || field === undefined) {
-              return true;
-            }
-            break;
-          case this.OPERATORS.numberOperatorIsNotBlank:
-            if (field !== null && field !== undefined) {
-              return true;
-            }
-
-            break;
-          case this.OPERATORS.dateOperatorIsOn:
-            break;
-          case this.OPERATORS.dateOperatorIsNotOn:
-            break;
-          case this.OPERATORS.dateOperatorIsBefore:
-            break;
-          case this.OPERATORS.dateOperatorIsAfter:
-            break;
-          case this.OPERATORS.dateOperatorIsBetween:
-            break;
-          case this.OPERATORS.dateOperatorIsNotBetween:
-            break;
-          case this.OPERATORS.dateOperatorIsBlank:
-            if (field === null || field === undefined) {
-              return true;
-            }
-
-            break;
-          case this.OPERATORS.dateOperatorIsNotBlank:
-            if (field !== null && field !== undefined) {
-              return true;
-            }
-
-            break;
-          case this.OPERATORS.dateOperatorDays:
-            break;
-          case this.OPERATORS.dateOperatorWeeks:
-            break;
-          case this.OPERATORS.dateOperatorMonths:
-            break;
-          case this.OPERATORS.dateOperatorInTheLast:
-            break;
-          case this.OPERATORS.dateOperatorNotInTheLast:
-
-            break;
-          default:
-            return false;
-            break;
-        }
-        return false;
-      },
       _checkFieldState: function () {
         var attTable = dojo.query("td.atiLabel", this.attrInspector.domNode)
 
@@ -528,55 +403,12 @@ define([
           actionType = null;
           if (fieldValidation.hasOwnProperty(field.name)) {
 
-
             for (var actionDetails in fieldValidation[field.name]) {
               if (fieldValidation[field.name].hasOwnProperty(actionDetails)) {
                 var filter = fieldValidation[field.name][actionDetails].filter;
 
-                var partResults = [];
-                array.forEach(filter.parts, function (part) {
-                  if (part.hasOwnProperty('parts')) {
+                var performAction = this._smartAttributes.processFilter(filter.parts, filter.logicalOp, this.currentFeature);
 
-                  }
-                  else {
-                    switch (part.valueObj.type) {
-                      case 'value':
-                        partResults.push(this._processFieldValidationPart(part.operator, this.currentFeature.attributes[part.fieldObj.name], part.valueObj.value, part.caseSensitive));
-                        break;
-                      case 'field':
-
-                        partResults.push(this._processFieldValidationPart(part.operator, this.currentFeature.attributes[part.fieldObj.name], this.currentFeature.attributes[part.valueObj.value], part.caseSensitive));
-                        break;
-                      default:
-                        break;
-                    }
-                  }
-                }, this);
-
-                var performAction = false;
-                var logOp = 'OR';
-                if (filter.hasOwnProperty('logicalOperator')) {
-                  logOp = filter.logicalOperator;
-                }
-                array.some(partResults, function (result) {
-
-                  if (logOp === 'OR') {
-                    if (result == true) {
-                      performAction = true;
-                      return true;
-                    }
-                    else {
-                      performAction = false;
-                    }
-                  } else {
-                    if (result == false) {
-                      performAction = false;
-                      return true;
-                    } else {
-                      performAction = true;
-                    }
-                  }
-                });
                 if (performAction) {
                   actionType = fieldValidation[field.name][actionDetails].action
                   break;
@@ -585,76 +417,12 @@ define([
 
             }
           }
-          this._toggleFieldOnAttributeInspector(field.alias, actionType, attTable);
+          this._smartAttributes.toggleFieldOnAttributeInspector(field.alias, actionType, attTable);
         }));
 
 
       },
-      _toggleFieldOnAttributeInspector: function (fieldName, actionType, attTable) {
-        if (attTable === null) {
-          attTable = dojo.query("td.atiLabel", this.attrInspector.domNode)
-        }
-
-        if (attTable.length > 0) {
-          row = attTable.filter(lang.hitch(this, function (row) {
-            return row.childNodes[0].data == fieldName;
-          }))
-          if (row !== null) {
-            if (row.length > 0) {
-              var valueCell = row[0].parentNode.childNodes[1].childNodes[0]
-              var parent = row[0].parentNode;
-              var labelCell = row[0];
-              switch (actionType) {
-                case 'Hide':
-                  domClass.add(parent, "hideField");
-                  break;
-                case 'Disabled':
-                  domClass.add(valueCell, ["dijitValidationTextBox","dijitTextBoxDisabled","dijitComboBoxDisabled","dijitValidationTextBoxDisabled","dijitDisabled"]);
-                  
-                  break;
-                case 'Required':
-                  if (row[0].childNodes.length === 1) {
-                    var newA = document.createElement('a');
-                    newA.setAttribute('class', "asteriskIndicator");
-                    newA.innerHTML = " *";
-                    row[0].appendChild(newA);
-                    
-                    
-                  }
-                  break;
-                case 'Value':
-                  break;
-                default:
-                  if (row[0].childNodes.length > 1) {
-                    if (this._gdbRequired.indexOf(fieldName) == -1 ) {
-                      row[0].removeChild(row[0].childNodes[1]);
-                    }
-                  }
-                  if (domClass.contains(parent, "hideField")) {
-                    domClass.remove(parent  , "hideField");
-                  }
-                  
-                  if (domClass.contains(valueCell, "dijitTextBoxDisabled")) {
-                    domClass.remove(valueCell, "dijitTextBoxDisabled");
-                  }
-                  if (domClass.contains(valueCell, "dijitComboBoxDisabled")) {
-                    domClass.remove(valueCell, "dijitComboBoxDisabled");
-                  }
-                  if (domClass.contains(valueCell, "dijitValidationTextBoxDisabled")) {
-                    domClass.remove(valueCell, "dijitValidationTextBoxDisabled");
-                  }
-                  if (domClass.contains(valueCell, "dijitDisabled")) {
-                    domClass.remove(valueCell, "dijitDisabled");
-                  }
-                
-              }
-
-            }
-          }
-
-        }
-      },
-      _createAttributeInspector: function (layerInfos) {
+       _createAttributeInspector: function (layerInfos) {
         query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
         var attrInspector = new AttributeInspector({
           layerInfos: layerInfos
@@ -1988,27 +1756,27 @@ define([
       onClose: function () {
         this._worksAfterClose();
 
-        if (this._configEditor.clearSelectionOnClose) {
-          if (this._isDirty) {
-            this._promptToResolvePendingEdit(true).then(lang.hitch(this, function () {
-              // set this variable for controlling the onMapClick (#494)
-              this.map.setInfoWindowOnClick(true);
-              this._attrInspIsCurrentlyDisplayed = true;
-              this.templatePicker.clearSelection();
-            }))
+        //if (this._configEditor.clearSelectionOnClose) {
+        //  if (this._isDirty) {
+        //    this._promptToResolvePendingEdit(true).then(lang.hitch(this, function () {
+        //      // set this variable for controlling the onMapClick (#494)
+        //      this.map.setInfoWindowOnClick(true);
+        //      this._attrInspIsCurrentlyDisplayed = true;
+        //      this.templatePicker.clearSelection();
+        //    }))
 
-          } else {
-            this._cancelEditingFeature(true);
+        //  } else {
+        //    this._cancelEditingFeature(true);
 
-            // set this variable for controlling the onMapClick
-            this.map.setInfoWindowOnClick(true);
-            this._attrInspIsCurrentlyDisplayed = true;
-            this.templatePicker.clearSelection();
-          }
-        } else
-        {
+        //    // set this variable for controlling the onMapClick
+        //    this.map.setInfoWindowOnClick(true);
+        //    this._attrInspIsCurrentlyDisplayed = true;
+        //    this.templatePicker.clearSelection();
+        //  }
+        //} else
+        //{
           this.map.setInfoWindowOnClick(true);
-        }
+        //}
 
         // close method will call onDeActive automaticlly
         // so do not need to call onDeActive();

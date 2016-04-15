@@ -33,8 +33,21 @@ define(
         this._initActionsTable();
         //Value, present domain or text box for fields, use current date for date.
         this._setActionsTable(['Hide', 'Required', 'Disabled', 'Value']);
-      },
 
+      },
+      _getConfigActions: function () {
+        if (this._layerInfo.fieldValidations !== undefined && this._layerInfo.fieldValidations !== null) {
+          if (this._layerInfo.fieldValidations.hasOwnProperty(this._fieldName)) {
+            if (this._layerInfo.fieldValidations[this._fieldName] !== null && this._layerInfo.fieldValidations[this._fieldName].length > 0) {
+              var found = array.some(this._layerInfo.fieldValidations[this._fieldName], function (actionDetails) {
+                if (actionDetails.action == rowData.label) {
+                }
+              });
+            }
+
+          }
+        }
+      },
       popupActionsPage: function () {
         var fieldsPopup = new Popup({
           titleLabel: this.nls.actionPage.PageTitle,
@@ -99,15 +112,12 @@ define(
         var rowData = this._validationTable.getRowData(tr);
         if (rowData) {
           this._showFilter(rowData, tr.rowIndex);
-          //var editFields = new EditFields({
-          //  nls: this.nls,
-          //  _layerInfo: tr._layerInfo
-          //});
-          //editFields.popupEditPage();
+
         }
       },
       _setActionsTable: function (actions) {
         array.forEach(actions, function (action) {
+      
           this._validationTable.addRow({
             label: action
           });

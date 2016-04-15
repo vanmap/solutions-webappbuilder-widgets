@@ -108,7 +108,7 @@ define([
         this.displayPromptOnSave.set('checked', this.config.editor.displayPromptOnSave);
         this.displayPromptOnDelete.set('checked', this.config.editor.displayPromptOnDelete);
         this.removeOnSave.set('checked', this.config.editor.removeOnSave);
-        this.clearSelectionOnClose.set('checked', this.config.editor.clearSelectionOnClose);
+        //this.clearSelectionOnClose.set('checked', false);
       },
 
       setConfig: function () {
@@ -291,8 +291,8 @@ define([
           this.displayPromptOnDelete.checked === undefined ? false : this.displayPromptOnDelete.checked;
         this.config.editor.removeOnSave =
           this.removeOnSave.checked === undefined ? false : this.removeOnSave.checked;
-        this.config.editor.clearSelectionOnClose =
-          this.clearSelectionOnClose.checked === undefined ? false : this.clearSelectionOnClose.checked;
+        this.config.editor.clearSelectionOnClose = false;
+          //this.clearSelectionOnClose.checked === undefined ? false : this.clearSelectionOnClose.checked;
       },
 
       getConfig: function () {

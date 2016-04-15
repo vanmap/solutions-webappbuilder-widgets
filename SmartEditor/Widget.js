@@ -61,7 +61,7 @@ define([
     BaseWidget, LayerInfos, TemplatePicker,
     AttributeInspector, Draw, Edit, Query, Graphic, FeatureLayer, ConfirmDialog, all, Deferred,
     SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, Color, geometryJsonUtil, registry,
-    editUtils,smartAttributes, CheckBox, DateTextBox, NumberSpinner, NumberTextBox,
+    editUtils, smartAttributes, CheckBox, DateTextBox, NumberSpinner, NumberTextBox,
     FilteringSelect, TextBox, TimeTextBox, Memory) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
       name: 'SmartEditor',
@@ -70,7 +70,7 @@ define([
       _defaultAddPointStr: "",
       _jimuLayerInfos: null,
       _configEditor: null,
-
+      _mapClick: null,
       //_presetFieldInfos: null, // may be used if want to write out
       _presetFieldsTable: null,
       settings: null,
@@ -104,7 +104,30 @@ define([
           this._smartAttributes = new smartAttributes();
         }));
       },
+      _mapClickHandler: function (create) {
+      
+        if (create === true && this._attrInspIsCurrentlyDisplayed === false) {
+          this.map.setInfoWindowOnClick(false);
+          this._mapClick = on(this.map, "click", lang.hitch(this, this._onMapClick));
 
+        }
+        else if (create === true && this._attrInspIsCurrentlyDisplayed === true) {
+          this.map.setInfoWindowOnClick(true);
+          if (this._mapClick) {
+
+            this._mapClick.remove();
+            this._mapClick = null;
+          }
+        }
+        else {
+          if (this._mapClick) {
+
+            this._mapClick.remove();
+            this._mapClick = null;
+          }
+          this.map.setInfoWindowOnClick(true)
+        }
+      },
       destroy: function () {
         this.inherited(arguments);
 
@@ -131,23 +154,19 @@ define([
 
       onActive: function () {
         if (this.map) {
-          this.map.setInfoWindowOnClick(false);
+          this._mapClickHandler(true);// this.map.setInfoWindowOnClick(false);
         }
 
       },
 
       onDeActive: function () {
         if (this.map) {
-          this.map.setInfoWindowOnClick(true);
+          this._mapClickHandler(false);// this.map.setInfoWindowOnClick(true);
         }
       },
 
       onOpen: function () {
-        if (this._attrInspIsCurrentlyDisplayed) {
-          this.map.setInfoWindowOnClick(true);
-        } else {
-          this.map.setInfoWindowOnClick(false);
-        }
+
 
         // setting this variable for the onMapClick (#494)
         if (this._configEditor.clearSelectionOnClose) {
@@ -422,7 +441,7 @@ define([
 
 
       },
-       _createAttributeInspector: function (layerInfos) {
+      _createAttributeInspector: function (layerInfos) {
         query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
         var attrInspector = new AttributeInspector({
           layerInfos: layerInfos
@@ -618,7 +637,7 @@ define([
 
         this.editToolbar = new Edit(this.map);
 
-        on(this.map, "click", lang.hitch(this, this._onMapClick));
+
         //esriBundle.widgets.templatePicker.creationDisabled = this.nls.updateOnly;
         //create template picker
         this.templatePicker = new TemplatePicker({
@@ -1136,9 +1155,9 @@ define([
               this._gdbRequired.push(finfo.label);
               finfo.label = finfo.label +
                 '<a class="asteriskIndicator"> *</a>';
-              
+
             }
-          },this);
+          }, this);
         }));
         //return layerInfo;
         // add the type for layer use, by the way
@@ -1450,17 +1469,19 @@ define([
       },
 
       _showTemplate: function (showTemplate) {
+        this._attrInspIsCurrentlyDisplayed = !showTemplate;
         if (showTemplate) {
-
+          this._mapClickHandler(true);
           this._showTemplatePicker();
 
-        } else {
 
+        } else {
+          this._mapClickHandler(false);
           //show attribute inspector
           query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "none";
           query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "block";
 
-          this.map.setInfoWindowOnClick(true);
+          this._mapClickHandler(false);
           if (this.attrInspector) {
             this.attrInspector.refresh();
 
@@ -1470,9 +1491,9 @@ define([
           }
         }
 
-        this._attrInspIsCurrentlyDisplayed = !showTemplate;
+
       },
-      
+
       _showTemplatePicker: function () {
         // hide the attr inspector and show the main template picker div
         query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
@@ -1490,13 +1511,15 @@ define([
 
         }
 
-        //this.templatePicker.update();
+        this.templatePicker.clearSelection();
 
         // reset
         this._resetEditingVariables();
 
-        if (this.currentFeature && this.currentFeature.getLayer().originalLayerId) {
-          this.currentFeature.getLayer().clear();
+        if (this.currentFeature && this.currentFeature.getLayer()) {
+          this.currentFeature.getLayer().clearSelection().refresh();
+          this.currentFeature.getLayer().clear()
+
         }
 
         array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
@@ -1507,7 +1530,7 @@ define([
         this.currentLayerInfo = null;
         this.updateFeatures = [];
 
-        this.map.setInfoWindowOnClick(false);
+
         this._activateTemplateToolbar();
 
       },
@@ -1775,7 +1798,7 @@ define([
         //  }
         //} else
         //{
-          this.map.setInfoWindowOnClick(true);
+        this._mapClickHandler(false);
         //}
 
         // close method will call onDeActive automaticlly

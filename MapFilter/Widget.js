@@ -221,9 +221,11 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         {'value': '>=', 'label': this.nls.inputs.optionGREATERTHANEQUAL},
         {'value': '<', 'label': this.nls.inputs.optionLESSTHAN},
         {'value': '<=', 'label': this.nls.inputs.optionLESSTHANEQUAL},
-        {'value': '*.*', 'label': this.nls.inputs.optionCONTAINS},
-        {'value': '.*', 'label': this.nls.inputs.optionBEGINSWITH},
-        {'value': '*.', 'label': this.nls.inputs.optionENDSWITH}
+        {'value': 'START', 'label': this.nls.inputs.optionSTART},
+        {'value': 'END', 'label': this.nls.inputs.optionEND},
+        {'value': 'LIKE', 'label': this.nls.inputs.optionLIKE},
+        {'value': 'NOT LIKE', 'label': this.nls.inputs.optionNOTLIKE}
+        
       ];
       var opSelect = new Select({
         options: ObjList,
@@ -376,23 +378,27 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
 
     setFilterLayerDef: function() {
       var createQuery = function(isNum, field, op, value, junc) {
-        var s = '';
-        var w1 = '';
-        var w2 = '';
-        
-        if((isNum == true && op.indexOf("*") > -1) || isNum == false) {s = "'"}   
-        if(op == "*.*") {w1 = '%'; w2 = '%';}
-        else if(op == ".*") {w1 = ''; w2 = '%';}
-        else if(op == "*.") {w1 = '%'; w2 = '';}
-        else {}
-        
-        value = s + w1 + value + w2 + s;       
-                
-        if(op.indexOf("*") > -1) {
-          op = "LIKE";
-          value = "UPPER(" + value + ")";
-        }    
-        return [field, op, value, junc].join(" ") + " ";
+          // special case of empty value
+          if (value == '') {
+              if(op == '<>' || op == 'NOT LIKE') {
+                return [field, "<> '' OR", field, "IS NOT NULL", junc].join(" ") + " ";
+              } else {
+                return [field, "= '' OR", field, "IS NULL", junc].join(" ") + " ";
+              }
+          }
+          if (op == 'LIKE' || op == 'NOT LIKE') {
+            value = "UPPER('%" + value + "%')";
+          } else if (op == 'START') {
+            op = 'LIKE';
+            value = "UPPER('" + value + "%')";
+          } else if (op == 'END') {
+            op = 'LIKE';
+            value = "UPPER('%" + value + "')";
+          } else if (isNum == false) { // wrap string fields if not already
+            value = "'" + value + "'";
+          }
+
+          return [field, op, value, junc].join(" ") + " ";
       };
       var sqlParams = this.parseTable();      
       array.forEach(this.layerList, lang.hitch(this, function(layer) {
@@ -405,8 +411,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
               if(layer.id === grpLayer.layer) {
                 group.def = [];
                 filterType = "FeatureLayer";
-                array.forEach(sqlParams, lang.hitch(this, function(p) {
-                  if(p.userValue !== "") {
+                array.forEach(sqlParams, lang.hitch(this, function(p) {                  
                     array.forEach(layer.layerObject.fields, lang.hitch(this, function(field) {
                       if(field.name === grpLayer.field) {
                         if(((field.type).indexOf("Integer") > -1) || (field.type).indexOf("Double") > -1) {
@@ -426,8 +431,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
                         }
                         group.def.push({value: utils.sanitizeHTML(p.userValue), operator: p.operator, conjunc: p.conjunc});
                       }
-                    }));
-                  }
+                    }));                  
                 }));
               }
               else if(grpLayer.layer.indexOf(layer.id) >= 0) {  //if it's a map service, sublayers .x is appended. so check if the root layerID is there

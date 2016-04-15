@@ -19,9 +19,9 @@ define({
 		  action: "Actions"
 		},
 		errors: {
-		  noGroups: "You need atleast one group.",
+		  noGroups: "You need at least one group.",
 		  noGroupName: "One or more Group Names are missing.",
-		  noRows: "You need atleast one row in the table."
+		  noRows: "You need at least one row in the table."
 		}
   })
 });

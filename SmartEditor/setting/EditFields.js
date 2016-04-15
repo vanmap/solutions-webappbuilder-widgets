@@ -27,16 +27,16 @@ define(
       _layerInfo: null,
       postCreate: function () {
         this.inherited(arguments);
-        this.nls = lang.mixin(this.nls, window.jimuNls.common);
+        //this.nls = lang.mixin(this.nls, window.jimuNls.common);
         this._initFieldsTable();
         this._setFiedsTable(this._layerInfo.fieldInfos);
       },
 
       popupEditPage: function () {
         var fieldsPopup = new Popup({
-          titleLabel: this.nls.configureFields,
+          titleLabel: this.nls.fieldsPage.PageTitle,
           width: 720,
-          maxHeight: 600,
+          maxHeight: 700,
           autoHeight: true,
           content: this,
           buttons: [{
@@ -60,33 +60,33 @@ define(
       _initFieldsTable: function () {
         var fields2 = [{
           name: 'isEditable',
-          title: this.nls.edit,
+          title: this.nls.fieldsPage.fieldsSettingsTable.edit,
           type: 'checkbox',
-          'class': 'editable',
-          width: '90px'
-        }, {
-          name: 'fieldName',
-          title: this.nls.editpageName,
-          type: 'text'
-        }, {
-          name: 'label',
-          title: this.nls.editpageAlias,
-          type: 'text',
-          editable: true
+          'class': 'editable'
         }, {
           name: 'canPresetValue',
-          title: this.nls.canPresetValue,
+          title: this.nls.fieldsPage.fieldsSettingsTable.canPresetValue,
           type: 'checkbox',
-          'class': 'presetValue',
-          width: '100px'
+          'class': 'preset'
+        }, {
+          name: 'fieldName',
+          title: this.nls.fieldsPage.fieldsSettingsTable.fieldName,
+          type: 'text',
+          'class': 'fieldName'
+        }, {
+          name: 'label',
+          title: this.nls.fieldsPage.fieldsSettingsTable.fieldAlias,
+          type: 'text',
+          editable: true,
+          'class': 'fieldLabel'
         }, {
           name: 'actions',
-          title: this.nls.actions,
+          title: this.nls.fieldsPage.fieldsSettingsTable.actions,
           type: 'actions',
           actions: ['up', 'down', 'edit'],
-          'class': 'editable'
+          'class': 'action'
         }];
-      
+
         var args2 = {
           fields: fields2,
           selectable: false,
@@ -139,6 +139,6 @@ define(
 
         this._layerInfo.fieldInfos = newFieldInfos;
       }
-   
+
     });
   });

@@ -42,17 +42,13 @@ define([
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
       //these two properties is defined in the BaseWidget
       baseClass: 'jimu-widget-smartEditor-setting',
-      // selectLayer: null,
-      // tooltipDialog: null,
-      // featurelayers: [],
-      // indexLayer: -1,
-
       _jimuLayerInfos: null,
       _layersTable: null,
       _editableLayerInfos: null,
 
       startup: function () {
         this.inherited(arguments);
+        this.nls = lang.mixin(this.nls, window.jimuNls.common);
         LayerInfos.getInstance(this.map, this.map.itemInfo)
           .then(lang.hitch(this, function (operLayerInfos) {
             this._jimuLayerInfos = operLayerInfos;
@@ -69,29 +65,29 @@ define([
       _initLayersTable: function () {
         var fields = [{
           name: 'edit',
-          title: this.nls.edit,
+          title: this.nls.layersPage.layerSettingsTable.edit,
           type: 'checkbox',
           'class': 'editable'
         }, {
           name: 'label',
-          title: this.nls.label,
-          type: 'text'
+          title: this.nls.layersPage.layerSettingsTable.label,
+          type: 'text',
+          'class': 'layer'
         }, {
           name: 'allowUpdateOnly',
-          title: this.nls.allowUpdateOnly,
+          title: this.nls.layersPage.layerSettingsTable.allowUpdateOnly,
           type: 'checkbox',
           'class': 'update'
         }, {
           name: 'disableGeometryUpdate',
-          title: this.nls.update,
+          title: this.nls.layersPage.layerSettingsTable.update,
           type: 'checkbox',
-          'class': 'update',
-          width: '300px'
+          'class': 'disable'
         }, {
           name: 'actions',
-          title: this.nls.fields,
+          title: this.nls.layersPage.layerSettingsTable.fields,
           type: 'actions',
-          'class': 'edit-fields',
+          'class': 'actions',
           actions: ['edit']
         }];
         var args = {

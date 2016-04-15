@@ -1533,7 +1533,7 @@ define([
             layer.setSelectionSymbol(this._getSelectionSymbol(layer.geometryType, false));
 
             var selectQuery = new Query();
-            selectQuery.geometry = editUtils.pointToExtent(this.map, evt.mapPoint, 40);
+            selectQuery.geometry = editUtils.pointToExtent(this.map, evt.mapPoint, 20);
 
             var deferred = layer.selectFeatures(selectQuery,
               FeatureLayer.SELECTION_NEW,

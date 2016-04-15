@@ -23,13 +23,13 @@ define(
     Filter
     ) {
     return declare([BaseWidgetSetting, _TemplatedMixin], {
-      baseClass: "jimu-widget-smartEditor-validation-table",
+      baseClass: "jimu-widget-smartEditor-rule-table",
       templateString: template,
       _layerInfo: null,
       _fieldName: null,
       postCreate: function () {
         this.inherited(arguments);
-        this.nls = lang.mixin(this.nls, window.jimuNls.common);
+        //this.nls = lang.mixin(this.nls, window.jimuNls.common);
         this._initActionsTable();
         //Value, present domain or text box for fields, use current date for date.
         this._setActionsTable(['Hide', 'Required', 'Disabled', 'Value']);
@@ -37,7 +37,7 @@ define(
 
       popupActionsPage: function () {
         var fieldsPopup = new Popup({
-          titleLabel: this.nls.configureActions,
+          titleLabel: this.nls.actionPage.PageTitle,
           width: 720,
           maxHeight: 600,
           autoHeight: true,
@@ -63,15 +63,22 @@ define(
       _initActionsTable: function () {
         var fields2 = [{
           name: 'label',
-          title: this.nls.fieldValidation.state,
+          title: this.nls.actionPage.actionsSeetingsTable.rule,
           type: 'text',
-          editable: true
+          editable: true,
+          'class': 'rule'
         }, {
+          name: 'expression',
+          title: this.nls.actionPage.actionsSeetingsTable.expression,
+          type: 'text',
+          'class': 'expression'
+        },
+        {
           name: 'actions',
-          title: this.nls.actions,
+          title:this.nls.actionPage.actionsSeetingsTable.actions,
           type: 'actions',
-          actions: ['edit'],
-          'class': 'editable'
+          actions: ['up', 'down', 'edit'],
+          'class': 'actions'
         }];
         var args2 = {
           fields: fields2,

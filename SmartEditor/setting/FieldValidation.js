@@ -29,7 +29,6 @@ define(
       templateString: template,
       _layerInfo: null,
       _fieldName: null,
-   
       postCreate: function () {
         this.inherited(arguments);
         this._initActionsTable();

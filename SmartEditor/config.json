@@ -4,7 +4,6 @@
     "prompOnSave": false,
     "promptOnDelete": true,
     "removeOnSave": true,
-    "clearSelectionOnClose": true,
     "layerInfos": [ ]
   }
 }

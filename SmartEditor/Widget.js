@@ -168,11 +168,10 @@ define([
 
       onOpen: function () {
 
-
-        // setting this variable for the onMapClick (#494)
-        if (this._configEditor.clearSelectionOnClose) {
-          this._attrInspIsCurrentlyDisplayed = false;
-        }
+        //// setting this variable for the onMapClick (#494)
+        //if (this._configEditor.clearSelectionOnClose) {
+        //  this._attrInspIsCurrentlyDisplayed = false;
+        //}
 
         this._update();
       },
@@ -1225,8 +1224,6 @@ define([
                 query.objectIds = [e[0].objectId];
                 featureLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
 
-
-
                 deferred.resolve("success");
               }));
             } // if featureLayer not null
@@ -1235,6 +1232,11 @@ define([
             // only get the updated attributes
             var newAttrs = editUtils.filterOnlyUpdatedAttributes(
               feature.attributes, feature.preEditAttrs);
+
+            // Since the new requirement is that: after a save,
+            // continue to show attributeInspector,
+            // save the preEdit attributes
+            feature.preEditAttrs = JSON.parse(JSON.stringify(feature.attributes));
 
             if (newAttrs && !editUtils.isObjectEmpty(newAttrs)) {
               // there are changes in attributes
@@ -1248,16 +1250,13 @@ define([
             feature.attributes.OBJECTID = feature.preEditAttrs.OBJECTID;
             feature.symbol = null;
 
-            // Since the new requirement is that: after a save,
-            // continue to show attributeInspector,
-            // save the preEdit attributes
-            feature.preEditAttrs = JSON.parse(JSON.stringify(feature.attributes));
-
             feature.getLayer().applyEdits(null, [feature], null,
               lang.hitch(this, function () {
                 // sometimes a successfully update returns an empty array
                 //if (e && e.length > 0 && e[0].success) {
                 //feature.getLayer().clearSelection();
+
+                feature.attributes = JSON.parse(JSON.stringify(feature.preEditAttrs));
                 feature.getLayer().refresh();
 
                 deferred.resolve("success");
@@ -1272,9 +1271,9 @@ define([
             //  //feature.getLayer().clearSelection();
             //}
           } // end of applying edit for update
+        } else {
+          deferred.resolve();
         }
-        deferred.resolve();
-
         return deferred.promise;
       },
 
@@ -1459,6 +1458,7 @@ define([
                 // reselect the feature
                 feature.setSymbol(this._getSelectionSymbol(
                   feature.getLayer().geometryType, true));
+
               }
             }
             deferred.resolve("success");
@@ -1522,7 +1522,6 @@ define([
         if (this.currentFeature && this.currentFeature.getLayer()) {
           this.currentFeature.getLayer().clearSelection().refresh();
           this.currentFeature.getLayer().clear();
-
         }
 
         array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {

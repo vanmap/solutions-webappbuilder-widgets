@@ -57,7 +57,7 @@ define([
     'dojo/date/stamp'
 ],
   function (declare, lang, array, html, query, esriBundle, domConstruct,
-    domClass, on, JSON,_WidgetsInTemplateMixin,
+    domClass, on, JSON, _WidgetsInTemplateMixin,
     BaseWidget, LayerInfos, TemplatePicker,
     AttributeInspector, Draw, Edit, Query, Graphic, FeatureLayer, ConfirmDialog, all, Deferred,
     SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, Color, geometryJsonUtil, registry,
@@ -86,6 +86,8 @@ define([
       _editingEnabled: false,
       _usePresetValues: false,
       _creationDisabledOnAll: false,
+      _configNotEditable: null,
+      _gdbRequired: null,
       postCreate: function () {
         this.inherited(arguments);
         this._init();
@@ -236,7 +238,7 @@ define([
         if (!this.currentFeature) { return; }
 
         if (showTemplatePicker) {
-        
+
           this._showTemplate(true);
         } else { // show attr inspector
 
@@ -276,7 +278,7 @@ define([
           }
         }
       },
-    
+
       _processLayerFields: function (fields) {
         //Function required to add the Range details to a range domain so the layer can be cloned
 
@@ -338,7 +340,7 @@ define([
         var outFields = layer.fields.map(function (f) {
           return f.name;
         });
-        
+
         cloneFeaturelayer = new FeatureLayer(featureCollection, {
           id: layer.id + "_lfl",
           outFields: outFields
@@ -383,19 +385,21 @@ define([
             for (var actionDetails in fieldValidation[field.name]) {
               if (fieldValidation[field.name].hasOwnProperty(actionDetails)) {
                 var filter = fieldValidation[field.name][actionDetails].filter;
+                if (filter !== undefined && filter !== null) {
+                  var performAction =
+                    this._smartAttributes.processFilter(filter.parts, filter.logicalOperator, this.currentFeature);
 
-                var performAction =
-                  this._smartAttributes.processFilter(filter.parts, filter.logicalOp,this.currentFeature);
-
-                if (performAction) {
-                  actionType = fieldValidation[field.name][actionDetails].action;
-                  break;
+                  if (performAction) {
+                    actionType = fieldValidation[field.name][actionDetails].action;
+                    break;
+                  }
                 }
               }
 
             }
+            this._smartAttributes.toggleFieldOnAttributeInspector(field.alias, actionType, attTable, this._gdbRequired, this._configNotEditable);
           }
-          this._smartAttributes.toggleFieldOnAttributeInspector(field.alias, actionType, attTable);
+          
         }));
 
 
@@ -480,7 +484,7 @@ define([
           } else {
             this._cancelEditingFeature(true);
           }
-        
+
           this._activateTemplateToolbar();
         })));
 
@@ -588,7 +592,7 @@ define([
       _createEditor: function () {
         this.settings = this._getSettingsParam();
         var layers = this._getEditableLayers(this.settings.layerInfos, false);
-   
+
         this._workBeforeCreate();
 
         this.editToolbar = new Edit(this.map);
@@ -604,7 +608,7 @@ define([
           columns: "auto",
           rows: "auto"
         }, this.templatePickerNode);
-         this.templatePicker.startup();
+        this.templatePicker.startup();
 
         this.drawToolbar = new Draw(this.map);
 
@@ -640,7 +644,7 @@ define([
         }
 
         this._showTemplate(true);
-     },
+      },
 
       _createPresetFieldContentNode: function (fieldInfo) {
         var nodes = [];
@@ -1097,6 +1101,7 @@ define([
       // also add field type and domain to use in the preset values
       _modifyFieldInfosForEE: function (layerInfo) {
         this._gdbRequired = [];
+        this._configNotEditable = [];
         if (!layerInfo) { return; }
         //layerInfo = lang.clone(layerInfo);
         var layerObject = this.map.getLayer(layerInfo.featureLayer.id);
@@ -1112,9 +1117,12 @@ define([
             }
           }, this);
         }));
-        //return layerInfo;
         // add the type for layer use, by the way
         layerInfo.fieldInfos.forEach(function (finfo) {
+          if (finfo.isEditable === false || finfo.isEditableSettingInWebmap === false) {
+            this._configNotEditable.push(finfo.label);
+          }
+
           this._addDateFormat(finfo);
           var field = layerObject.fields.find(function (f) {
             return f.name === finfo.fieldName;
@@ -1702,7 +1710,7 @@ define([
             // modify templates with space in string fields
             this._removeSpacesInLayerTemplates(layerObject);
             this._modifyFieldInfosForEE(layerInfo);
-             layerInfo.featureLayer = layerObject;
+            layerInfo.featureLayer = layerObject;
             resultLayerInfosParam.push(layerInfo);
           }
         }, this);
@@ -1753,20 +1761,20 @@ define([
 
       _update: function () {
         //if (this.templatePicker) {
-          //comments out, this results in teh scroll bar disappearing, unsure why
+        //comments out, this results in teh scroll bar disappearing, unsure why
 
 
-          //var widgetBox = html.getMarginBox(this.domNode);
-          //var height = widgetBox.h;
-          //var width = widgetBox.w;
+        //var widgetBox = html.getMarginBox(this.domNode);
+        //var height = widgetBox.h;
+        //var width = widgetBox.w;
 
 
-          //var cols = Math.floor(width / 60);
-          //this.templatePicker.attr('columns', cols);
-          //this.templatePicker.update();
+        //var cols = Math.floor(width / 60);
+        //this.templatePicker.attr('columns', cols);
+        //this.templatePicker.update();
 
 
-       // }
+        // }
       },
 
       resize: function () {

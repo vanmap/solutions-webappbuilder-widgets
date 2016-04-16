@@ -70,9 +70,7 @@ define(
                 this._layerInfo.fieldValidations === null) {
                 this._layerInfo.fieldValidations = {};
               }
-              //if (!this._layerInfo.fieldValidations.hasOwnProperty(this._fieldName)) {
-              //  this._layerInfo.fieldValidations[this._fieldName] = []
-              //}
+           
               this._layerInfo.fieldValidations[this._fieldName] = [];
               array.forEach(rows, function (row) {
                 var rowData = this._validationTable.getRowData(row);
@@ -81,7 +79,8 @@ define(
                   this._layerInfo.fieldValidations[this._fieldName].push(
                       {
                         'action': rowData.label,
-                        'expression': rowData.expression,//JSON.parse(rowData.filter),
+                        'expression': rowData.expression,
+                        'filter': JSON.parse(rowData.filter),
                         'index': row.rowIndex
                       });
                 }
@@ -172,7 +171,6 @@ define(
 
       _showFilter: function (tr) {
         var rowData = this._validationTable.getRowData(tr);
-        //var rowIndex = tr.rowIndex;  // defined but never used
         if (rowData) {
           var origNLS = window.jimuNls.filterBuilder.matchMsg;
 
@@ -202,14 +200,14 @@ define(
                   if (partsObj.expr === '1=1') {
                     this._validationTable.editRow(tr,
                      {
-                       'expression': ''
-                       //'filter': null
+                       'expression': '',
+                       'filter': null
                      });
                   } else {
                     this._validationTable.editRow(tr,
                       {
-                        'expression': partsObj.expr
-                        //'filter': JSON.stringify(partsObj)
+                        'expression': partsObj.expr,
+                        'filter': JSON.stringify(partsObj)
                       });
                   }
 

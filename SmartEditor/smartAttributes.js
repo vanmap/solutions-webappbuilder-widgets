@@ -100,7 +100,9 @@ define([
     },
 
     validatePart: function (operator, field, value, caseSensitive) {
-
+      if (operator === undefined || operator === null) {
+        return false;
+      }
       if (operator.lastIndexOf('string', 0) === 0) {
         if (caseSensitive === false) {
           if (field !== undefined && field !== null) {
@@ -125,14 +127,44 @@ define([
           }
           break;
         case this.OPERATORS.stringOperatorStartsWith:
+          if (field === null && value === null) {
+            return true;
+          }
+          if (field === null && value !== null) {
+            return false;
+          }
+          if (field !== null && value === null) {
+            return false;
+          }
           if (field.lastIndexOf(value, 0) === 0) {
             return true;
           }
 
           break;
         case this.OPERATORS.stringOperatorEndsWith:
+          if (field === null && value === null) {
+            return true;
+          }
+          if (field === null && value !== null) {
+            return false;
+          }
+          if (field !== null && value === null) {
+            return false;
+          }
           return this._endsWith(field, value);
         case this.OPERATORS.stringOperatorContains:
+          if (field === null && value === null) {
+            return true;
+          }
+          if (field === null && value !== null) {
+            return false;
+          }
+          if (field !== null && value === null) {
+            return false;
+          }
+          if (field.IndexOf(value >= 0)){
+            return true;
+          }
           break;
         case this.OPERATORS.stringOperatorDoesNotContain:
           break;
@@ -220,8 +252,30 @@ define([
       }
       return false;
     },
+    _processChildNodes: function (element, state) {
+      element.disabled = state;
+      if (state === true) {
+        element.style.pointerEvents = 'none';
+      }
+      else {
+        element.style.pointerEvents = 'auto';
+      }
+      array.forEach(element.childNodes, function (node) {
+        node.disabled = state;
+        if (state === true) {
+          node.style.pointerEvents = 'none';
+        }
+        else {
+          node.style.pointerEvents = 'auto';
+        }
 
-    toggleFieldOnAttributeInspector: function (fieldName, actionType, attTable) {
+        if (node.childNodes.length > 0) {
+          this._processChildNodes(node, state)
+        }
+      },this);
+    },
+    toggleFieldOnAttributeInspector: function (fieldName, actionType,
+      attTable, gdbRequiredFields, notEditableFields) {
       if (attTable === null) {
         attTable = dojo.query("td.atiLabel", this.attrInspector.domNode);
       }
@@ -241,9 +295,11 @@ define([
                 domClass.add(parent, "hideField");
                 break;
               case 'Disabled':
+         
                 domClass.add(valueCell, ["dijitValidationTextBox", "dijitTextBoxDisabled", "dijitComboBoxDisabled",
                                          "dijitValidationTextBoxDisabled", "dijitDisabled"]);
-
+                
+                this._processChildNodes(valueCell, true);
                 break;
               case 'Required':
                 if (row[0].childNodes.length === 1) {
@@ -259,27 +315,28 @@ define([
                 break;
               default:
                 if (row[0].childNodes.length > 1) {
-                  if (this._gdbRequired.indexOf(fieldName) === -1) {
+                  if (gdbRequiredFields.indexOf(fieldName) === -1) {
                     row[0].removeChild(row[0].childNodes[1]);
                   }
                 }
                 if (domClass.contains(parent, "hideField")) {
                   domClass.remove(parent, "hideField");
                 }
-
-                if (domClass.contains(valueCell, "dijitTextBoxDisabled")) {
-                  domClass.remove(valueCell, "dijitTextBoxDisabled");
+                if (notEditableFields.indexOf(fieldName) === -1) {
+                  if (domClass.contains(valueCell, "dijitTextBoxDisabled")) {
+                    domClass.remove(valueCell, "dijitTextBoxDisabled");
+                  }
+                  if (domClass.contains(valueCell, "dijitComboBoxDisabled")) {
+                    domClass.remove(valueCell, "dijitComboBoxDisabled");
+                  }
+                  if (domClass.contains(valueCell, "dijitValidationTextBoxDisabled")) {
+                    domClass.remove(valueCell, "dijitValidationTextBoxDisabled");
+                  }
+                  if (domClass.contains(valueCell, "dijitDisabled")) {
+                    domClass.remove(valueCell, "dijitDisabled");
+                  }
                 }
-                if (domClass.contains(valueCell, "dijitComboBoxDisabled")) {
-                  domClass.remove(valueCell, "dijitComboBoxDisabled");
-                }
-                if (domClass.contains(valueCell, "dijitValidationTextBoxDisabled")) {
-                  domClass.remove(valueCell, "dijitValidationTextBoxDisabled");
-                }
-                if (domClass.contains(valueCell, "dijitDisabled")) {
-                  domClass.remove(valueCell, "dijitDisabled");
-                }
-
+                this._processChildNodes(valueCell, false);
             }
 
           }

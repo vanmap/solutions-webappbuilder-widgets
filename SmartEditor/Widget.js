@@ -20,11 +20,11 @@ define([
     'dojo/_base/array',
     'dojo/_base/html',
     'dojo/query',
-    'dojo/JSON',
     'dojo/i18n!esri/nls/jsapi',
     'dojo/dom-construct',
     'dojo/dom-class',
     'dojo/on',
+    'dojo/json',
     'dijit/_WidgetsInTemplateMixin',
     'jimu/BaseWidget',
     'jimu/LayerInfos/LayerInfos',
@@ -56,48 +56,13 @@ define([
     'dojo/store/Memory',
     'dojo/date/stamp'
 ],
-  function (
-    declare,
-    lang,
-    array,
-    html,
-    query,
-    esriBundle,
-    domConstruct,
-    domClass,
-    on,
-    _WidgetsInTemplateMixin,
-    BaseWidget,
-    LayerInfos,
-    TemplatePicker,
-    AttributeInspector,
-    Draw,
-    Edit,
-    Query,
-    JSON,
-    Graphic,
-    FeatureLayer,
-    ConfirmDialog,
-    all,
-    Deferred,
-    SimpleMarkerSymbol,
-    SimpleLineSymbol,
-    SimpleFillSymbol,
-    Color,
-    geometryJsonUtil,
-    registry,
-    editUtils,
-    smartAttributes,
-    CheckBox,
-    DateTextBox,
-    NumberSpinner,
-    NumberTextBox,
-    FilteringSelect,
-    TextBox,
-    TimeTextBox,
-    Memory,
-    dojoStamp
-    ) {
+  function (declare, lang, array, html, query, esriBundle, domConstruct,
+    domClass, on, JSON,_WidgetsInTemplateMixin,
+    BaseWidget, LayerInfos, TemplatePicker,
+    AttributeInspector, Draw, Edit, Query, Graphic, FeatureLayer, ConfirmDialog, all, Deferred,
+    SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, Color, geometryJsonUtil, registry,
+    editUtils, smartAttributes, CheckBox, DateTextBox, NumberSpinner, NumberTextBox,
+    FilteringSelect, TextBox, TimeTextBox, Memory, dojoStamp) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
       name: 'SmartEditor',
       baseClass: 'jimu-widget-smartEditor',
@@ -131,7 +96,6 @@ define([
         LayerInfos.getInstance(this.map, this.map.itemInfo)
         .then(lang.hitch(this, function (operLayerInfos) {
           this._jimuLayerInfos = operLayerInfos;
-
           this._createEditor();
           this._smartAttributes = new smartAttributes();
         }));
@@ -198,12 +162,6 @@ define([
       },
 
       onOpen: function () {
-
-        //// setting this variable for the onMapClick (#494)
-        //if (this._configEditor.clearSelectionOnClose) {
-        //  this._attrInspIsCurrentlyDisplayed = false;
-        //}
-
         this._update();
       },
 
@@ -229,8 +187,7 @@ define([
       _addGraphicToLocalLayer: function (evt) {
         if (!this.templatePicker.getSelected()) { return; }
 
-        var newAttributes = lang.clone(this.templatePicker.getSelected()
-          .template.prototype.attributes);
+        var newAttributes = lang.clone(this.templatePicker.getSelected().template.prototype.attributes);
         if (this._usePresetValues) {
           this._modifyAttributesWithPresetValues(newAttributes);
         }
@@ -279,6 +236,7 @@ define([
         if (!this.currentFeature) { return; }
 
         if (showTemplatePicker) {
+        
           this._showTemplate(true);
         } else { // show attr inspector
 
@@ -299,10 +257,10 @@ define([
       },
 
       _addDateFormat: function (fieldInfo) {
-        if (fieldInfo && fieldInfo.format &&
-          fieldInfo.format !== null) {
-          if (fieldInfo.format.dateFormat &&
-            fieldInfo.format.dateFormat !== null) {
+        if (fieldInfo && fieldInfo.format && fieldInfo.format !==
+           null) {
+          if (fieldInfo.format.dateFormat && fieldInfo.format.dateFormat !==
+            null) {
             if (fieldInfo.format.dateFormat ===
               "shortDateShortTime" ||
               fieldInfo.format.dateFormat ===
@@ -317,8 +275,8 @@ define([
             }
           }
         }
-
       },
+    
       _processLayerFields: function (fields) {
         //Function required to add the Range details to a range domain so the layer can be cloned
 
@@ -380,7 +338,7 @@ define([
         var outFields = layer.fields.map(function (f) {
           return f.name;
         });
-       
+        
         cloneFeaturelayer = new FeatureLayer(featureCollection, {
           id: layer.id + "_lfl",
           outFields: outFields
@@ -416,6 +374,7 @@ define([
           return;
         }
 
+
         var actionType = null;
         this.currentFeature.getLayer().fields.forEach(lang.hitch(this, function (field) {
           actionType = null;
@@ -426,8 +385,7 @@ define([
                 var filter = fieldValidation[field.name][actionDetails].filter;
 
                 var performAction =
-                  this._smartAttributes.processFilter(filter.parts,
-                  filter.logicalOp, this.currentFeature);
+                  this._smartAttributes.processFilter(filter.parts, filter.logicalOp,this.currentFeature);
 
                 if (performAction) {
                   actionType = fieldValidation[field.name][actionDetails].action;
@@ -439,6 +397,7 @@ define([
           }
           this._smartAttributes.toggleFieldOnAttributeInspector(field.alias, actionType, attTable);
         }));
+
 
       },
       _createAttributeInspector: function (layerInfos) {
@@ -521,9 +480,7 @@ define([
           } else {
             this._cancelEditingFeature(true);
           }
-          //if (this.templatePicker) {
-          //  this.templatePicker.clearSelection();
-          //}
+        
           this._activateTemplateToolbar();
         })));
 
@@ -563,8 +520,7 @@ define([
 
               if (this.updateFeatures && this.updateFeatures.length > 1) {
                 array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
-                  feature.setSymbol(this._getSelectionSymbol(feature.getLayer().geometryType,
-                    false));
+                  feature.setSymbol(this._getSelectionSymbol(feature.getLayer().geometryType, false));
                 }));
               }
 
@@ -632,10 +588,11 @@ define([
       _createEditor: function () {
         this.settings = this._getSettingsParam();
         var layers = this._getEditableLayers(this.settings.layerInfos, false);
-     
+   
         this._workBeforeCreate();
 
         this.editToolbar = new Edit(this.map);
+
 
         //create template picker
         this.templatePicker = new TemplatePicker({
@@ -647,13 +604,12 @@ define([
           columns: "auto",
           rows: "auto"
         }, this.templatePickerNode);
-       this.templatePicker.startup();
+         this.templatePicker.startup();
 
         this.drawToolbar = new Draw(this.map);
 
         // wire up events
-        this.own(on(this.templatePicker, "selection-change", lang.hitch(this,
-          this._activateTemplateToolbar)));
+        this.own(on(this.templatePicker, "selection-change", lang.hitch(this, this._activateTemplateToolbar)));
 
         // edit events
         this.own(on(this.editToolbar,
@@ -684,8 +640,7 @@ define([
         }
 
         this._showTemplate(true);
-
-      },
+     },
 
       _createPresetFieldContentNode: function (fieldInfo) {
         var nodes = [];
@@ -860,7 +815,7 @@ define([
           id = id.replace("_lfl", "");
         }
         var result = null;
-        this.settings.layerInfos.some(function (lyrinfo) {
+        /*var layerFound = */ this.settings.layerInfos.some(function (lyrinfo) {
           return lyrinfo.featureLayer.id === id ? ((result = lyrinfo), true) : false;
         });
         return result;
@@ -985,7 +940,8 @@ define([
 
         var layerInfo;
         var fieldInfos;
-        if (result !== null) {
+        //var layerObject = this.map.getLayer(localLayer.originalLayerId);
+        if (result !== null) {//(layerObject.type === "Feature Layer" && layerObject.url) {
           // get the fieldInfos
           layerInfo = {
             featureLayer: localLayer,
@@ -993,10 +949,14 @@ define([
           };
 
           fieldInfos = lang.clone(result.fieldInfos);
-             if (fieldInfos && fieldInfos.length > 0) {
+          //fieldInfos = this._processFieldInfos(fieldInfos);
+          //  this._getDefaultFieldInfos(layerObject.id);
+          if (fieldInfos && fieldInfos.length > 0) {
             layerInfo.fieldInfos = fieldInfos;
           }
 
+          // modify field infos
+          //this._modifyFieldInfosForEE(layerInfo);
         }
         return layerInfo;
       },
@@ -1169,7 +1129,7 @@ define([
 
         if (!this.attrInspector || this.attrInspector.layerInfos.length > 1) {
           yes = true;
-        } else { 
+        } else { //this.attrInspector.layerInfos.length == 1
 
           var lflId = this.attrInspector.layerInfos[0].featureLayer.id;
           if (lflId.indexOf("_lfl") > 0) { // attrInspector associated with a local feature
@@ -1425,6 +1385,8 @@ define([
             }
 
             if (switchToTemplate && switchToTemplate === true) {
+
+              //feature.getLayer().clearSelection();
               this._showTemplate(true);
 
             } else {
@@ -1675,7 +1637,8 @@ define([
           if (newFieldInfos.length !== 0) {
             layerInfo.fieldInfos = newFieldInfos;
           }
-     
+          //layerInfo = this._modifyFieldInfosForEE(layerInfo);
+          //layerInfo.fieldInfo = this._processFieldInfos(layerInfo.fieldInfo);
         }, this);
         return layerInfos;
 
@@ -1689,7 +1652,9 @@ define([
                 webmapFieldInfos[i].isEditable = fieldInfo.isEditable;
                 webmapFieldInfos[i].canPresetValue = fieldInfo.canPresetValue;
                 resultFieldInfo = webmapFieldInfos[i];
-             
+                // resultFieldInfo.label = fieldInfo.label;
+                // resultFieldInfo.isEditableSettingInWebmap = webmapFieldInfos[i].isEditable;
+                // resultFieldInfo.isEditable = fieldInfo.isEditable;
                 break;
               }
             }
@@ -1711,6 +1676,8 @@ define([
       },
 
       _getLayerInfosParam: function () {
+        // var retDef = new Deferred();
+        // var defs = [];
         var layerInfos;
         var resultLayerInfosParam = [];
         if (!this._configEditor.layerInfos) {
@@ -1735,7 +1702,7 @@ define([
             // modify templates with space in string fields
             this._removeSpacesInLayerTemplates(layerObject);
             this._modifyFieldInfosForEE(layerInfo);
-            layerInfo.featureLayer = layerObject;
+             layerInfo.featureLayer = layerObject;
             resultLayerInfosParam.push(layerInfo);
           }
         }, this);
@@ -1754,8 +1721,6 @@ define([
 
         return settings;
       },
-
-   
       onClose: function () {
         this._worksAfterClose();
 
@@ -1789,13 +1754,19 @@ define([
       _update: function () {
         //if (this.templatePicker) {
           //comments out, this results in teh scroll bar disappearing, unsure why
+
+
           //var widgetBox = html.getMarginBox(this.domNode);
           //var height = widgetBox.h;
           //var width = widgetBox.w;
+
+
           //var cols = Math.floor(width / 60);
           //this.templatePicker.attr('columns', cols);
           //this.templatePicker.update();
-       //}
+
+
+       // }
       },
 
       resize: function () {
@@ -1804,10 +1775,13 @@ define([
       onNormalize: function () {
         setTimeout(lang.hitch(this, this._update), 100);
       },
+
       onMinimize: function () {
       },
+
       onMaximize: function () {
         setTimeout(lang.hitch(this, this._update), 100);
       }
+
     });
   });

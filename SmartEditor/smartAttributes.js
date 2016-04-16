@@ -241,11 +241,8 @@ define([
                 domClass.add(parent, "hideField");
                 break;
               case 'Disabled':
-                domClass.add(valueCell, ["dijitValidationTextBox",
-                  "dijitTextBoxDisabled",
-                  "dijitComboBoxDisabled",
-                  "dijitValidationTextBoxDisabled",
-                  "dijitDisabled"]);
+                domClass.add(valueCell, ["dijitValidationTextBox", "dijitTextBoxDisabled", "dijitComboBoxDisabled",
+                                         "dijitValidationTextBoxDisabled", "dijitDisabled"]);
 
                 break;
               case 'Required':

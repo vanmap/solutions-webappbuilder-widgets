@@ -33,6 +33,7 @@ define(
         this.inherited(arguments);
         this._initActionsTable();
         this._setActionsTable(['Hide', 'Required', 'Disabled']);
+       
       },
 
       _getConfigAction: function (actionName) {
@@ -42,11 +43,9 @@ define(
           if (this._layerInfo.fieldValidations.hasOwnProperty(this._fieldName)) {
             if (this._layerInfo.fieldValidations[this._fieldName] !== null &&
               this._layerInfo.fieldValidations[this._fieldName].length > 0) {
-              array.some(this._layerInfo.fieldValidations[this._fieldName],
-                function (actionDetails) {
-                  return (actionDetails.action === actionName ?
-                    (result = actionDetails, true) : false);
-                });
+              array.some(this._layerInfo.fieldValidations[this._fieldName], function (actionDetails) {
+                return (actionDetails.action === actionName ? (result = actionDetails, true) : false);
+              });
             }
 
           }
@@ -71,19 +70,18 @@ define(
                 this._layerInfo.fieldValidations === null) {
                 this._layerInfo.fieldValidations = {};
               }
-
-
+              //if (!this._layerInfo.fieldValidations.hasOwnProperty(this._fieldName)) {
+              //  this._layerInfo.fieldValidations[this._fieldName] = []
+              //}
               this._layerInfo.fieldValidations[this._fieldName] = [];
               array.forEach(rows, function (row) {
                 var rowData = this._validationTable.getRowData(row);
-                if (rowData.expression !== undefined &&
-                  rowData.expression !== null &&
+                if (rowData.expression !== undefined && rowData.expression !== null &&
                   rowData.expression !== '') {
                   this._layerInfo.fieldValidations[this._fieldName].push(
                       {
                         'action': rowData.label,
-                        'expression': rowData.expression,
-
+                        'expression': rowData.expression,//JSON.parse(rowData.filter),
                         'index': row.rowIndex
                       });
                 }
@@ -227,15 +225,12 @@ define(
           if (rowData.expression === undefined ||
             rowData.expression === null ||
             rowData.expression === '') {
-            filter.buildByExpr(this._layerInfo.mapLayer.url, null,
-              this._layerInfo.mapLayer.resourceInfo);
+            filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
 
           } else {
-            filter.buildByExpr(this._layerInfo.mapLayer.url, rowData.expression,
-              this._layerInfo.mapLayer.resourceInfo);
-
-
+            filter.buildByExpr(this._layerInfo.mapLayer.url, rowData.expression, this._layerInfo.mapLayer.resourceInfo);
           }
+
           window.jimuNls.filterBuilder.matchMsg = origNLS;
 
         }

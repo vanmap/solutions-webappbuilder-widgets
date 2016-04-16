@@ -159,7 +159,8 @@ define([
             layerInfo.mapLayer = [];
             layerInfo.mapLayer.resourceInfo =
               this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.resourceInfo;
-            layerInfo.mapLayer.url = this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.url;
+            layerInfo.mapLayer.url = this._jimuLayerInfos.getLayerInfoById(layerObject.id).
+              originOperLayer.url;
 
           }
         }
@@ -173,10 +174,10 @@ define([
 
           },
           'mapLayer': {
-            'resourceInfo': this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.resourceInfo,
+            'resourceInfo': this._jimuLayerInfos.getLayerInfoById(layerObject.id).
+              originOperLayer.resourceInfo,
             'url': this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.url
           },
-          'mapLayer': this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer,
           'disableGeometryUpdate': false,
           'allowUpdateOnly': false,
           'fieldInfos': this._getSimpleFieldInfos(layerObject),
@@ -283,15 +284,20 @@ define([
 
       _resetSettingsConfig: function () {
         this.config.editor.showDeleteButton =
-          this.showDeleteButton.checked === undefined ? false : this.showDeleteButton.checked;
+          this.showDeleteButton.checked === undefined ? false :
+          this.showDeleteButton.checked;
         this.config.editor.displayPromptOnSave =
-          this.displayPromptOnSave.checked === undefined ? false : this.displayPromptOnSave.checked;
+          this.displayPromptOnSave.checked === undefined ? false :
+          this.displayPromptOnSave.checked;
         this.config.editor.displayPromptOnDelete =
-          this.displayPromptOnDelete.checked === undefined ? false : this.displayPromptOnDelete.checked;
+          this.displayPromptOnDelete.checked === undefined ? false :
+          this.displayPromptOnDelete.checked;
         this.config.editor.removeOnSave =
-          this.removeOnSave.checked === undefined ? false : this.removeOnSave.checked;
+          this.removeOnSave.checked === undefined ? false :
+          this.removeOnSave.checked;
         this.config.editor.clearSelectionOnClose = false;
-        //this.clearSelectionOnClose.checked === undefined ? false : this.clearSelectionOnClose.checked;
+        //this.clearSelectionOnClose.checked === undefined ? false : 
+          //this.clearSelectionOnClose.checked;
       },
 
       getConfig: function () {

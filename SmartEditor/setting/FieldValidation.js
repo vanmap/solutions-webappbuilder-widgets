@@ -29,25 +29,25 @@ define(
       templateString: template,
       _layerInfo: null,
       _fieldName: null,
-      //_filters:null,
+   
       postCreate: function () {
         this.inherited(arguments);
-        //this.nls = lang.mixin(this.nls, window.jimuNls.common);
         this._initActionsTable();
-        //Value, present domain or text box for fields, use current date for date.
         this._setActionsTable(['Hide', 'Required', 'Disabled']);
-        //this._filters
       },
 
       _getConfigAction: function (actionName) {
         var result = null;
-        if (this._layerInfo.fieldValidations !== undefined && this._layerInfo.fieldValidations !== null) {
+        if (this._layerInfo.fieldValidations !== undefined &&
+          this._layerInfo.fieldValidations !== null) {
           if (this._layerInfo.fieldValidations.hasOwnProperty(this._fieldName)) {
             if (this._layerInfo.fieldValidations[this._fieldName] !== null &&
               this._layerInfo.fieldValidations[this._fieldName].length > 0) {
-              /*var found =*/ array.some(this._layerInfo.fieldValidations[this._fieldName], function (actionDetails) {
-                return (actionDetails.action === actionName ? (result = actionDetails, true) : false);
-              });
+              array.some(this._layerInfo.fieldValidations[this._fieldName],
+                function (actionDetails) {
+                  return (actionDetails.action === actionName ?
+                    (result = actionDetails, true) : false);
+                });
             }
 
           }
@@ -55,7 +55,7 @@ define(
         return result;
       },
 
-      popupActionsPage: function (/*fieldName*/) {
+      popupActionsPage: function () {
         var fieldsPopup = new Popup({
           titleLabel: esriLang.substitute(
             { fieldname: this._fieldAlias },
@@ -68,24 +68,27 @@ define(
             label: this.nls.ok,
             onClick: lang.hitch(this, function () {
               var rows = this._validationTable.getRows();
-              if (this._layerInfo.fieldValidations === undefined || this._layerInfo.fieldValidations === null) {
+              if (this._layerInfo.fieldValidations === undefined ||
+                this._layerInfo.fieldValidations === null) {
                 this._layerInfo.fieldValidations = {};
               }
-              //if (!this._layerInfo.fieldValidations.hasOwnProperty(this._fieldName)) {
-              //  this._layerInfo.fieldValidations[this._fieldName] = []
-              //}
+
+
               this._layerInfo.fieldValidations[this._fieldName] = [];
               array.forEach(rows, function (row) {
                 var rowData = this._validationTable.getRowData(row);
-                if (rowData.expression !== undefined && rowData.expression !== null && rowData.expression !== '') {
+                if (rowData.expression !== undefined &&
+                  rowData.expression !== null &&
+                  rowData.expression !== '') {
                   this._layerInfo.fieldValidations[this._fieldName].push(
                       {
                         'action': rowData.label,
-                        'expression': rowData.expression,//JSON.parse(rowData.filter),
+                        'expression': rowData.expression,
+
                         'index': row.rowIndex
                       });
                 }
-              },this);
+              }, this);
 
               fieldsPopup.close();
             })
@@ -119,7 +122,7 @@ define(
            name: 'filter',
            title: 'filter',
            type: 'text',
-           hidden:true
+           hidden: true
          },
         {
           name: 'actions',
@@ -222,48 +225,20 @@ define(
               classNames: ['jimu-btn-vacation']
             }]
           });
-          if (rowData.expression === undefined || rowData.expression === null || rowData.expression === '') {
-            filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
+          if (rowData.expression === undefined ||
+            rowData.expression === null ||
+            rowData.expression === '') {
+            filter.buildByExpr(this._layerInfo.mapLayer.url, null,
+              this._layerInfo.mapLayer.resourceInfo);
 
           } else {
-            filter.buildByExpr(this._layerInfo.mapLayer.url, rowData.expression, this._layerInfo.mapLayer.resourceInfo);
+            filter.buildByExpr(this._layerInfo.mapLayer.url, rowData.expression,
+              this._layerInfo.mapLayer.resourceInfo);
 
 
           }
-          //if (this._layerInfo.fieldValidations !== undefined && this._layerInfo.fieldValidations !== null) {
-          //  if (this._layerInfo.fieldValidations.hasOwnProperty(this._fieldName)) {
-          //    if (this._layerInfo.fieldValidations[this._fieldName] !== null && this._layerInfo.fieldValidations[this._fieldName].length > 0) {
-          //      var found = array.some(this._layerInfo.fieldValidations[this._fieldName], function (actionDetails) {
-          //        if (actionDetails.action === rowData.label) {
-          //          filter.buildByExpr(this._layerInfo.mapLayer.url, actionDetails.filter.expr, this._layerInfo.mapLayer.resourceInfo);
-          //          return true;
-          //        }
-          //      }, this);
-          //      if (found === false) {
-          //        filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
-          //      }
-          //    }
-          //    else {
-          //      filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
-          //    }
-
-          //  }
-          //  else {
-          //    filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
-          //  }
-
-
-          //}
-          //else {
-          //  filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
-          //}
           window.jimuNls.filterBuilder.matchMsg = origNLS;
-          //var filterObj = workLayer.layerObject.getDefinitionExpression();
-          //if (expression.expr !== '') {
-          //  filter.buildByFilterObj(url, expression.expr, definition);
-          //} else {
-          //  filter.buildByExpr(url, null, definition);
-          //}
+
         }
       }
 

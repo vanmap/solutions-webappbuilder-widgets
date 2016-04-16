@@ -27,7 +27,6 @@ define(
       _layerInfo: null,
       postCreate: function () {
         this.inherited(arguments);
-        //this.nls = lang.mixin(this.nls, window.jimuNls.common);
         this._initFieldsTable();
         this._setFiedsTable(this._layerInfo.fieldInfos);
       },

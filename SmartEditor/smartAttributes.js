@@ -118,20 +118,33 @@ define([
           partResults.push(this.processFilter(part, feature));
         }
         else {
+          var value1 = null;
+          var value2 = null;
+
+          if (part.valueObj.hasOwnProperty('value')) {
+            value1 = part.valueObj.value;
+          }
+          if (part.valueObj.hasOwnProperty('value1')) {
+            value1 = part.valueObj.value1;
+          }
+          if (part.valueObj.hasOwnProperty('value2')) {
+            value2 = part.valueObj.value2;
+          }
+
           switch (part.valueObj.type) {
             case 'value':
               partResults.push(this.validatePart(part.operator,
                                feature.attributes[part.fieldObj.name],
-                               part.valueObj.value,
-                               part.valueObj.value,
+                               value1,
+                               value2,
                                part.caseSensitive));
               break;
             case 'field':
 
               partResults.push(this.validatePart(part.operator,
                                                  feature.attributes[part.fieldObj.name],
-                                                 feature.attributes[part.valueObj.value],
-                                                 feature.attributes[part.valueObj.value],
+                                                 value1,
+                                                 value2,
                                                  part.caseSensitive));
               break;
             default:
@@ -173,7 +186,7 @@ define([
     _isNumeric: function (n) {
       return !isNaN(parseFloat(n)) && isFinite(n);
     },
-    validatePart: function (operator, field, value, value2, caseSensitive) {
+    validatePart: function (operator, field, value1, value2, caseSensitive) {
       if (operator === undefined || operator === null) {
         return false;
       }
@@ -182,75 +195,79 @@ define([
           if (field !== undefined && field !== null) {
             field = String(field).toUpperCase();
           }
-          if (value !== undefined && value !== null) {
-            value = String(value).toUpperCase();
+          if (value1 !== undefined && value1 !== null) {
+            value1 = String(value1).toUpperCase();
+          }
+          if (value2 !== undefined && value2 !== null) {
+            value2 = String(value2).toUpperCase();
           }
 
         }
       }
+
       switch (operator) {
         case this.OPERATORS.stringOperatorIs:
 
-          if (field === value) {
+          if (field === value1) {
             return true;
           }
           break;
         case this.OPERATORS.stringOperatorIsNot:
-          if (field !== value) {
+          if (field !== value1) {
             return true;
           }
           break;
         case this.OPERATORS.stringOperatorStartsWith:
-          if (field === null && value === null) {
+          if (field === null && value1 === null) {
             return true;
           }
-          if (field === null && value !== null) {
+          if (field === null && value1 !== null) {
             return false;
           }
-          if (field !== null && value === null) {
+          if (field !== null && value1 === null) {
             return false;
           }
-          if (field.lastIndexOf(value, 0) === 0) {
+          if (field.lastIndexOf(value1, 0) === 0) {
             return true;
           }
 
           break;
         case this.OPERATORS.stringOperatorEndsWith:
-          if (field === null && value === null) {
+          if (field === null && value1 === null) {
             return true;
           }
-          if (field === null && value !== null) {
+          if (field === null && value1 !== null) {
             return false;
           }
-          if (field !== null && value === null) {
+          if (field !== null && value1 === null) {
             return false;
           }
-          return this._endsWith(field, value);
+          return this._endsWith(field, value1);
         case this.OPERATORS.stringOperatorContains:
-          if (field === null && value === null) {
+          if (field === null && value1 === null) {
             return true;
           }
-          if (field === null && value !== null) {
+          if (field === null && value1 !== null) {
             return false;
           }
-          if (field !== null && value === null) {
+          if (field !== null && value1 === null) {
             return false;
           }
-          if (String(field).indexOf(value >= 0)) {
+          if (String(field).indexOf(value1 >= 0)) {
             return true;
           }
           break;
         case this.OPERATORS.stringOperatorDoesNotContain:
-          if (field === null && value === null) {
+          if (field === null && value1 === null) {
             return false;
           }
-          if (field === null && value !== null) {
+          if (field === null && value1 !== null) {
             return true;
           }
-          if (field !== null && value === null) {
+          if (field !== null && value1 === null) {
             return true;
           }
-          if (String(field).indexOf(value >= 0)) {
+          if (String(field).indexOf(value1 >= 0)) {
             return false;
           }
 
@@ -264,44 +281,51 @@ define([
           break;
         case this.OPERATORS.numberOperatorIs:
           if (this._isNumeric(field)) {
-            return String(field) === String(value);
+            return String(field) === String(value1);
           }
           return false;
           break;
         case this.OPERATORS.numberOperatorIsNot:
           if (this._isNumeric(field)) {
-            return (String(field) !== String(value));
+            return (String(field) !== String(value1));
           }
           return false;
           break;
         case this.OPERATORS.numberOperatorIsAtLeast:
-          if (this._isNumeric(field) && this._isNumeric(value)) {
-            return field >= value;
+          if (this._isNumeric(field) && this._isNumeric(value1)) {
+            return field >= value1;
           }
           return false;
           break;
         case this.OPERATORS.numberOperatorIsLessThan:
-          if (this._isNumeric(field) && this._isNumeric(value)) {
-            return field < value;
+          if (this._isNumeric(field) && this._isNumeric(value1)) {
+            return field < value1;
           }
           return false;
           break;
         case this.OPERATORS.numberOperatorIsAtMost:
-          if (this._isNumeric(field) && this._isNumeric(value)) {
-            return field <= value;
+          if (this._isNumeric(field) && this._isNumeric(value1)) {
+            return field <= value1;
           }
           return false;
           break;
         case this.OPERATORS.numberOperatorIsGreaterThan:
-          if (this._isNumeric(field) && this._isNumeric(value)) {
-            return field > value;
+          if (this._isNumeric(field) && this._isNumeric(value1)) {
+            return field > value1;
           }
           return false;
           break;
         case this.OPERATORS.numberOperatorIsBetween:
+          if (this._isNumeric(field) && this._isNumeric(value1) && this._isNumeric(value2)) {
+            return field > value1 && field < value2;
+          }
+          return false;
           break;
         case this.OPERATORS.numberOperatorIsNotBetween:
-          break;
+          if (this._isNumeric(field) && this._isNumeric(value1) && this._isNumeric(value2)) {
+            return field <= value1 || field >= value2;
+          }
+          return false;
         case this.OPERATORS.numberOperatorIsBlank:
           if (field === null || field === undefined) {
             return true;

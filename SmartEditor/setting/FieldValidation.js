@@ -29,24 +29,30 @@ define(
       templateString: template,
       _layerInfo: null,
       _fieldName: null,
+      _fieldActions: null,
       postCreate: function () {
         this.inherited(arguments);
         this._initActionsTable();
         this._setActionsTable(['Hide', 'Required', 'Disabled']);
-       
-      },
 
+      },
+      getSettings: function () {
+        return this._fieldActions;
+      },
       _getConfigAction: function (actionName) {
         var result = null;
         if (this._layerInfo.fieldValidations !== undefined &&
           this._layerInfo.fieldValidations !== null) {
           if (this._layerInfo.fieldValidations.hasOwnProperty(this._fieldName)) {
-            if (this._layerInfo.fieldValidations[this._fieldName] !== null &&
-              this._layerInfo.fieldValidations[this._fieldName].length > 0) {
-              array.some(this._layerInfo.fieldValidations[this._fieldName], function (actionDetails) {
-                return (actionDetails.action === actionName ? (result = actionDetails, true) : false);
-              });
+            if (this._layerInfo.fieldValidations[this._fieldName].hasOwnProperty(actionName)) {
+              return this._layerInfo.fieldValidations[this._fieldName][actionName];
             }
+            //if (this._layerInfo.fieldValidations[this._fieldName] !== null &&
+            //this._layerInfo.fieldValidations[this._fieldName].length > 0) {
+            //array.some(this._layerInfo.fieldValidations[this._fieldName], function (actionDetails) {
+            //  return (actionDetails.action === actionName ? (result = actionDetails, true) : false);
+            //});
+            //}
 
           }
         }
@@ -54,6 +60,7 @@ define(
       },
 
       popupActionsPage: function () {
+
         var fieldsPopup = new Popup({
           titleLabel: esriLang.substitute(
             { fieldname: this._fieldAlias },
@@ -66,23 +73,29 @@ define(
             label: this.nls.ok,
             onClick: lang.hitch(this, function () {
               var rows = this._validationTable.getRows();
-              if (this._layerInfo.fieldValidations === undefined ||
-                this._layerInfo.fieldValidations === null) {
-                this._layerInfo.fieldValidations = {};
+              if (this._fieldActions === undefined ||
+                this._fieldActions === null) {
+                this._fieldActions = {};
               }
-           
-              this._layerInfo.fieldValidations[this._fieldName] = [];
+
+              //this._fieldActions[this._fieldName] = [];
+              this._fieldActions[this._fieldName] = {};
               array.forEach(rows, function (row) {
                 var rowData = this._validationTable.getRowData(row);
                 if (rowData.expression !== undefined && rowData.expression !== null &&
                   rowData.expression !== '') {
-                  this._layerInfo.fieldValidations[this._fieldName].push(
+                  this._fieldActions[this._fieldName][rowData.label] =
                       {
-                        'action': rowData.label,
                         'expression': rowData.expression,
-                        'filter': JSON.parse(rowData.filter),
-                        'index': row.rowIndex
-                      });
+                        'filter': JSON.parse(rowData.filter)
+                      };
+                  //this._fieldActions[this._fieldName].push(
+                  //    {
+                  //      'action': rowData.label,
+                  //      'expression': rowData.expression,
+                  //      'filter': JSON.parse(rowData.filter),
+                  //      'index': row.rowIndex
+                  //    });
                 }
               }, this);
 
@@ -141,8 +154,16 @@ define(
         this.own(on(this._validationTable,
           'actions-edit',
           lang.hitch(this, this._onEditFieldInfoClick)));
+        this.own(on(this._validationTable,
+         'actions-delete',
+         lang.hitch(this, this._onDeleteFieldInfoClick)));
       },
 
+      _onDeleteFieldInfoClick: function (tr) {
+
+        this._removeFilter(tr);
+
+      },
       _onEditFieldInfoClick: function (tr) {
 
         this._showFilter(tr);
@@ -168,7 +189,13 @@ define(
 
         }, this);
       },
-
+      _removeFilter: function (tr) {
+        this._validationTable.editRow(tr,
+                    {
+                      'expression': '',
+                      'filter': null
+                    });
+      },
       _showFilter: function (tr) {
         var rowData = this._validationTable.getRowData(tr);
         if (rowData) {

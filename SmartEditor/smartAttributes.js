@@ -39,12 +39,83 @@ define([
       this._filterUtils = new filterUtils();
       this.OPERATORS = lang.clone(this._filterUtils.OPERATORS);
     },
+    toggleFields: function (attTable, fieldValidation, feature, gdbRequiredFields, configNotEditableFields) {
+      if (attTable === undefined || attTable == null) {
+        return;
+      }
 
-    processFilter: function (parts, logOp, feature) {
+      if (fieldValidation === undefined || fieldValidation === null) {
+        return;
+      }
+
+      if (feature === undefined || feature === null) {
+        return;
+      }
+
+      var actionType = null
+      var hasRule = false;
+      var fields = feature.getLayer().fields;
+
+      var rowsWithError = [];
+      fields.forEach(lang.hitch(this, function (field) {
+        actionType = null;
+        hasRule, actionType, fieldValid = this.validateField(field.name, fieldValidation, feature);
+        if (fieldValid === false) {
+          rowsWithError.push({ 'fieldName': field.name })
+        }
+        this.toggleFieldOnAttributeInspector(field.alias, actionType, attTable, gdbRequiredFields, configNotEditableFields);
+      }));
+      return rowsWithError;
+    },
+    validateField: function (fieldName, fieldValidation, feature) {
+      var filter = null;
+      if (fieldValidation.hasOwnProperty(fieldName)) {
+
+        if (fieldValidation[fieldName].length === 0) {
+          return (false, null, true);
+        }
+        else {
+          for (var actionDetails in fieldValidation[fieldName]) {
+            if (fieldValidation[fieldName].hasOwnProperty(actionDetails)) {
+              filter = fieldValidation[fieldName][actionDetails].filter;
+              if (filter !== undefined && filter !== null) {
+
+                if (this.processFilter(filter, feature)) {
+                  if (fieldValidation[fieldName][actionDetails].action === 'Required') {
+                    if (feature.attributes.hasOwnProperty(fieldName) === false) {
+                      return (true, fieldValidation[fieldName][actionDetails].action, false);
+                    }
+                    else if (feature.attributes[fieldName] === null) {
+                      return (true, fieldValidation[fieldName][actionDetails].action, false);
+                    }
+                    else {
+                      return (true, fieldValidation[fieldName][actionDetails].action, true);
+                    }
+                  }
+                  else {
+                    return (true, fieldValidation[fieldName][actionDetails].action, true);
+                  }
+
+
+                }
+              }
+            }
+
+          }
+          return (true, null, true);
+        }
+      }
+      else {
+        return (false, null, true);
+      }
+
+    },
+
+    processFilter: function (filter, feature) {
       var partResults = [];
-      array.forEach(parts, function (part) {
+      array.forEach(filter.parts, function (part) {
         if (part.hasOwnProperty('parts')) {
-          partResults.push( this.processFilter(part.parts, logOp, feature));
+          partResults.push(this.processFilter(part.parts, feature));
         }
         else {
           switch (part.valueObj.type) {
@@ -52,12 +123,14 @@ define([
               partResults.push(this.validatePart(part.operator,
                                feature.attributes[part.fieldObj.name],
                                part.valueObj.value,
+                               part.valueObj.value,
                                part.caseSensitive));
               break;
             case 'field':
 
               partResults.push(this.validatePart(part.operator,
                                                  feature.attributes[part.fieldObj.name],
+                                                 feature.attributes[part.valueObj.value],
                                                  feature.attributes[part.valueObj.value],
                                                  part.caseSensitive));
               break;
@@ -67,10 +140,9 @@ define([
         }
       }, this);
 
-      return this.ruleValid(partResults, logOp);
+      return this.ruleValid(partResults, filter.filter.logicalOperator);
     },
-
-    ruleValid: function (partResults,logOp) {
+    ruleValid: function (partResults, logOp) {
       var performAction = false;
 
       if (logOp === undefined || logOp === null) {
@@ -98,8 +170,10 @@ define([
       return performAction;
 
     },
-
-    validatePart: function (operator, field, value, caseSensitive) {
+    _isNumeric: function (n) {
+      return !isNaN(parseFloat(n)) && isFinite(n);
+    },
+    validatePart: function (operator, field, value, value2, caseSensitive) {
       if (operator === undefined || operator === null) {
         return false;
       }
@@ -162,40 +236,67 @@ define([
           if (field !== null && value === null) {
             return false;
           }
-          if (field.IndexOf(value >= 0)){
+          if (String(field).indexOf(value >= 0)) {
             return true;
           }
           break;
         case this.OPERATORS.stringOperatorDoesNotContain:
-          break;
-        case this.OPERATORS.stringOperatorIsBlank:
-          if (field === null || field === undefined) {
+          if (field === null && value === null) {
+            return false;
+          }
+          if (field === null && value !== null) {
             return true;
           }
-          break;
-        case this.OPERATORS.stringOperatorIsNotBlank:
-          if (field !== null && field !== undefined) {
+          if (field !== null && value === null) {
             return true;
+          }
+          if (String(field).indexOf(value >= 0)) {
+            return false;
           }
 
           break;
+        case this.OPERATORS.stringOperatorIsBlank:
+          return (field === null || field === undefined);
+          break;
+        case this.OPERATORS.stringOperatorIsNotBlank:
+          return (field !== null && field !== undefined);
+
+          break;
         case this.OPERATORS.numberOperatorIs:
-          if (field === value) {
-            return true;
+          if (this._isNumeric(field)) {
+            return String(field) === String(value);
           }
+          return false;
           break;
         case this.OPERATORS.numberOperatorIsNot:
-          if (field !== value) {
-            return true;
+          if (this._isNumeric(field)) {
+            return (String(field) !== String(value));
           }
+          return false;
           break;
         case this.OPERATORS.numberOperatorIsAtLeast:
+          if (this._isNumeric(field) && this._isNumeric(value)) {
+            return field >= value;
+          }
+          return false;
           break;
         case this.OPERATORS.numberOperatorIsLessThan:
+          if (this._isNumeric(field) && this._isNumeric(value)) {
+            return field < value;
+          }
+          return false;
           break;
         case this.OPERATORS.numberOperatorIsAtMost:
+          if (this._isNumeric(field) && this._isNumeric(value)) {
+            return field <= value;
+          }
+          return false;
           break;
         case this.OPERATORS.numberOperatorIsGreaterThan:
+          if (this._isNumeric(field) && this._isNumeric(value)) {
+            return field > value;
+          }
+          return false;
           break;
         case this.OPERATORS.numberOperatorIsBetween:
           break;
@@ -272,12 +373,12 @@ define([
         if (node.childNodes.length > 0) {
           this._processChildNodes(node, state)
         }
-      },this);
+      }, this);
     },
     toggleFieldOnAttributeInspector: function (fieldName, actionType,
       attTable, gdbRequiredFields, notEditableFields) {
-      if (attTable === null) {
-        attTable = dojo.query("td.atiLabel", this.attrInspector.domNode);
+      if (attTable === undefined || attTable === null) {
+        return;
       }
 
       if (attTable.length > 0) {
@@ -295,10 +396,10 @@ define([
                 domClass.add(parent, "hideField");
                 break;
               case 'Disabled':
-         
+
                 domClass.add(valueCell, ["dijitValidationTextBox", "dijitTextBoxDisabled", "dijitComboBoxDisabled",
                                          "dijitValidationTextBoxDisabled", "dijitDisabled"]);
-                
+
                 this._processChildNodes(valueCell, true);
                 break;
               case 'Required':

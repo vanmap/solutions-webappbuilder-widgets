@@ -25,6 +25,7 @@ define(
       baseClass: "jimu-widget-smartEditor-setting-fields",
       templateString: template,
       _layerInfo: null,
+      _fieldValid: null,
       postCreate: function () {
         this.inherited(arguments);
         this._initFieldsTable();
@@ -42,6 +43,18 @@ define(
             label: this.nls.ok,
             onClick: lang.hitch(this, function () {
               this._resetFieldInfos();
+              if (this._fieldValid !== undefined && this._fieldValid !== null) {
+                var savedSettings = this._fieldValid.getSettings();
+                if (savedSettings !== undefined && savedSettings !== null) {
+                  this._layerInfo.fieldValidations = {};
+                  for (var k in savedSettings) {
+                    if (savedSettings.hasOwnProperty(k)) {
+                      this._layerInfo.fieldValidations[k] = savedSettings[k];
+                    }
+                  }
+                }
+              }
+
               fieldsPopup.close();
             })
           }, {
@@ -105,13 +118,13 @@ define(
         var rowData = this._fieldsTable.getRowData(tr);
         if (rowData) {
 
-          var fieldValid = new FieldValidation({
+          this._fieldValid = new FieldValidation({
             nls: this.nls,
             _layerInfo: this._layerInfo,
             _fieldName: rowData.fieldName,
             _fieldAlias: rowData.label
           });
-          fieldValid.popupActionsPage();
+          this._fieldValid.popupActionsPage();
         }
       },
       _setFiedsTable: function (fieldInfos) {

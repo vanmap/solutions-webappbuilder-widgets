@@ -226,7 +226,7 @@ define([
 
           this.currentFeature = this.updateFeatures[0] = newGraphic;
           this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
-          this._checkFieldState();
+          this._validateAttributeInspector();
           this._enableAttrInspectorSaveButton(true);
         }));
 
@@ -361,10 +361,14 @@ define([
       _endsWith: function (str, suffix) {
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
       },
-      _checkFieldState: function () {
+      _validateAttributeInspector: function () {
+        if (this.currentFeature === undefined || this.currentFeature === null){
+          return;
+        }
         var attTable = query("td.atiLabel", this.attrInspector.domNode);
-
-        var fieldValidation = null;
+        if (attTable === undefined || attTable === null) {
+          return;
+        }
 
         if (this.currentLayerInfo !== undefined && this.currentLayerInfo !== null) {
           if (this.currentLayerInfo.fieldValidations !== undefined &&
@@ -376,32 +380,10 @@ define([
           return;
         }
 
-
-        var actionType = null;
-        this.currentFeature.getLayer().fields.forEach(lang.hitch(this, function (field) {
-          actionType = null;
-          if (fieldValidation.hasOwnProperty(field.name)) {
-
-            for (var actionDetails in fieldValidation[field.name]) {
-              if (fieldValidation[field.name].hasOwnProperty(actionDetails)) {
-                var filter = fieldValidation[field.name][actionDetails].filter;
-                if (filter !== undefined && filter !== null) {
-                  var performAction =
-                    this._smartAttributes.processFilter(filter.parts, filter.logicalOperator, this.currentFeature);
-
-                  if (performAction) {
-                    actionType = fieldValidation[field.name][actionDetails].action;
-                    break;
-                  }
-                }
-              }
-
-            }
-            this._smartAttributes.toggleFieldOnAttributeInspector(field.alias, actionType, attTable, this._gdbRequired, this._configNotEditable);
-          }
-          
-        }));
-
+        var rowsWithErrors = this._smartAttributes.toggleFields(attTable, fieldValidation, this.currentFeature, this._gdbRequired, this._configNotEditable)
+        if (rowsWithErrors.length > 0) {
+          //
+        }
 
       },
       _createAttributeInspector: function (layerInfos) {
@@ -511,7 +493,7 @@ define([
             this.currentFeature.attributes[evt.fieldName] = evt.fieldValue;
             this._isDirty = true;
             this._enableAttrInspectorSaveButton(true);
-            this._checkFieldState();
+            this._validateAttributeInspector();
           }
         })));
 
@@ -531,7 +513,7 @@ define([
               if (evt.feature) {
                 this.currentFeature = evt.feature;
                 this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
-                this._checkFieldState();
+                this._validateAttributeInspector();
                 this.currentFeature.setSymbol(
                   this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
               }
@@ -547,7 +529,7 @@ define([
             if (evt.feature) {
               this.currentFeature = evt.feature;
               this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
-              this._checkFieldState();
+              this._validateAttributeInspector();
               this.currentFeature.setSymbol(
                 this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
             }

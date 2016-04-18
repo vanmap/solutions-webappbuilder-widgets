@@ -121,7 +121,6 @@ define(
           name: 'label',
           title: this.nls.actionPage.actionsSeetingsTable.rule,
           type: 'text',
-          editable: true,
           'class': 'rule'
         }, {
           name: 'expression',

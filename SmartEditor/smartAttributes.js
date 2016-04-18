@@ -57,13 +57,15 @@ define([
       var fields = feature.getLayer().fields;
 
       var rowsWithError = [];
+      var results;
       fields.forEach(lang.hitch(this, function (field) {
         actionType = null;
-        hasRule, actionType, fieldValid = this.validateField(field.name, fieldValidation, feature);
-        if (fieldValid === false) {
+        // hasRule, actionType, fieldValid 
+        results = this.validateField(field.name, fieldValidation, feature);
+        if (results[2]=== false) {
           rowsWithError.push({ 'fieldName': field.name })
         }
-        this.toggleFieldOnAttributeInspector(field.alias, actionType, attTable, gdbRequiredFields, configNotEditableFields);
+        this.toggleFieldOnAttributeInspector(field.alias, results[1], attTable, gdbRequiredFields, configNotEditableFields);
       }));
       return rowsWithError;
     },
@@ -72,7 +74,7 @@ define([
       if (fieldValidation.hasOwnProperty(fieldName)) {
 
         if (fieldValidation[fieldName].length === 0) {
-          return (false, null, true);
+          return [false, null, true];
         }
         else {
           for (var actionDetails in fieldValidation[fieldName]) {
@@ -81,19 +83,20 @@ define([
               if (filter !== undefined && filter !== null) {
 
                 if (this.processFilter(filter, feature)) {
-                  if (fieldValidation[fieldName][actionDetails].action === 'Required') {
+                  //if (fieldValidation[fieldName][actionDetails].action === 'Required') {
+                  if (actionDetails === 'Required') {
                     if (feature.attributes.hasOwnProperty(fieldName) === false) {
-                      return (true, fieldValidation[fieldName][actionDetails].action, false);
+                      return [true, actionDetails, false];
                     }
                     else if (feature.attributes[fieldName] === null) {
-                      return (true, fieldValidation[fieldName][actionDetails].action, false);
+                      return [true, actionDetails, false];
                     }
                     else {
-                      return (true, fieldValidation[fieldName][actionDetails].action, true);
+                      return [true, actionDetails, true];
                     }
                   }
                   else {
-                    return (true, fieldValidation[fieldName][actionDetails].action, true);
+                    return [true, actionDetails, true];
                   }
 
 
@@ -102,11 +105,11 @@ define([
             }
 
           }
-          return (true, null, true);
+          return [true, null, true];
         }
       }
       else {
-        return (false, null, true);
+        return [false, null, true];
       }
 
     },

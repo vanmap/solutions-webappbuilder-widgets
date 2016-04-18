@@ -369,7 +369,7 @@ define([
         if (attTable === undefined || attTable === null) {
           return;
         }
-
+        var fieldValidation = null;
         if (this.currentLayerInfo !== undefined && this.currentLayerInfo !== null) {
           if (this.currentLayerInfo.fieldValidations !== undefined &&
             this.currentLayerInfo.fieldValidations !== null) {

@@ -115,7 +115,7 @@ define([
       var partResults = [];
       array.forEach(filter.parts, function (part) {
         if (part.hasOwnProperty('parts')) {
-          partResults.push(this.processFilter(part.parts, feature));
+          partResults.push(this.processFilter(part, feature));
         }
         else {
           switch (part.valueObj.type) {
@@ -140,7 +140,7 @@ define([
         }
       }, this);
 
-      return this.ruleValid(partResults, filter.filter.logicalOperator);
+      return this.ruleValid(partResults, filter.logicalOperator);
     },
     ruleValid: function (partResults, logOp) {
       var performAction = false;

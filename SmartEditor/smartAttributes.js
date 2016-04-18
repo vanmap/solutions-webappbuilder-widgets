@@ -62,7 +62,7 @@ define([
         actionType = null;
         // hasRule, actionType, fieldValid 
         results = this.validateField(field.name, fieldValidation, feature);
-        if (results[2]=== false) {
+        if (results[2] === false) {
           rowsWithError.push({ 'fieldName': field.name })
         }
         this.toggleFieldOnAttributeInspector(field.alias, results[1], attTable, gdbRequiredFields, configNotEditableFields);
@@ -208,14 +208,14 @@ define([
         }
       }
       else if (operator.lastIndexOf('date', 0) === 0) {
-        if (value1 !== undefined && value1 !== null){
+        if (value1 !== undefined && value1 !== null) {
           value1 = new Date(value1);
         }
         if (value2 !== undefined && value2 !== null) {
           value2 = new Date(value2);
         }
       }
-      
+
       switch (operator) {
         case this.OPERATORS.stringOperatorIs:
 
@@ -349,13 +349,13 @@ define([
 
           break;
         case this.OPERATORS.dateOperatorIsOn:
-          if (field === undefined || field === null){
+          if (field === undefined || field === null) {
             return false;
           }
-          if (value1 === undefined || value1 === null){
+          if (value1 === undefined || value1 === null) {
             return false;
           }
-           
+
           var d = new Date(0);
           d.setUTCSeconds(field);
           return value1.toDateString() === field.toDateString();
@@ -388,7 +388,7 @@ define([
           if (value1 === undefined || value1 === null) {
             return false;
           }
-          return field > (value1.getTime() );
+          return field > (value1.getTime());
           break;
         case this.OPERATORS.dateOperatorIsBetween:
           if (field === null || field === undefined) {
@@ -400,7 +400,7 @@ define([
           if (value2 === undefined || value2 === null) {
             return false;
           }
-          return field > (value1.getTime() ) && field < (value2.getTime() );
+          return field > (value1.getTime()) && field < (value2.getTime());
           break;
         case this.OPERATORS.dateOperatorIsNotBetween:
           if (field === null || field === undefined) {
@@ -412,7 +412,7 @@ define([
           if (value2 === undefined || value2 === null) {
             return false;
           }
-          return field <= (value1.getTime() ) || field >= (value2.getTime() );
+          return field <= (value1.getTime()) || field >= (value2.getTime());
           break;
         case this.OPERATORS.dateOperatorIsBlank:
           if (field === null || field === undefined) {
@@ -516,6 +516,24 @@ define([
                 this._processChildNodes(valueCell, true);
                 break;
               case 'Required':
+                domClass.add(valueCell, ["dijitTextBoxError", "dijitComboBoxError"]);
+
+                //add this to first child
+                //<div class="dijitReset dijitValidationContainer"><input class="dijitReset dijitInputField dijitValidationIcon dijitValidationInner" value="Χ " type="text" tabindex="-1" readonly="readonly" role="presentation"></div>
+                if (valueCell.childNodes.length > 1) {
+                  var newDiv = document.createElement('div');
+                  newDiv.setAttribute('class', "dijitReset dijitValidationContainer");
+                  var newIn = document.createElement('input');
+                  newIn.setAttribute('class', "dijitReset dijitInputField dijitValidationIcon dijitValidationInner");
+                  newIn.setAttribute('value', "x");
+                  newIn.setAttribute('type', 'text');
+                  newIn.setAttribute('tabindex', '-1');
+                  newIn.setAttribute('readonly', 'readonly');
+                  newIn.setAttribute('role', 'presentation');
+
+                  newDiv.appendChild(newIn);
+                  valueCell.appendChild(newDiv);
+                }
                 if (row[0].childNodes.length === 1) {
                   var newA = document.createElement('a');
                   newA.setAttribute('class', "asteriskIndicator");
@@ -535,6 +553,12 @@ define([
                 }
                 if (domClass.contains(parent, "hideField")) {
                   domClass.remove(parent, "hideField");
+                }
+                if (domClass.contains(valueCell, "dijitTextBoxError")) {
+                  domClass.remove(valueCell, "dijitTextBoxError");
+                }
+                if (domClass.contains(valueCell, "dijitComboBoxError")) {
+                  domClass.remove(valueCell, "dijitComboBoxError");
                 }
                 if (notEditableFields.indexOf(fieldName) === -1) {
                   if (domClass.contains(valueCell, "dijitTextBoxDisabled")) {

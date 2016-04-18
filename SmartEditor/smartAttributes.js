@@ -207,7 +207,15 @@ define([
 
         }
       }
-
+      else if (operator.lastIndexOf('date', 0) === 0) {
+        if (value1 !== undefined && value1 !== null){
+          value1 = new Date(value1);
+        }
+        if (value2 !== undefined && value2 !== null) {
+          value2 = new Date(value2);
+        }
+      }
+      
       switch (operator) {
         case this.OPERATORS.stringOperatorIs:
 
@@ -341,16 +349,70 @@ define([
 
           break;
         case this.OPERATORS.dateOperatorIsOn:
+          if (field === undefined || field === null){
+            return false;
+          }
+          if (value1 === undefined || value1 === null){
+            return false;
+          }
+           
+          var d = new Date(0);
+          d.setUTCSeconds(field);
+          return value1.toDateString() === field.toDateString();
           break;
         case this.OPERATORS.dateOperatorIsNotOn:
+          if (field === undefined || field === null) {
+            return false;
+          }
+          if (value1 === undefined || value1 === null) {
+            return false;
+          }
+
+          var d = new Date(0);
+          d.setUTCSeconds(field);
+          return !(value1.toDateString() === field.toDateString());
           break;
         case this.OPERATORS.dateOperatorIsBefore:
+          if (field === null || field === undefined) {
+            return false;
+          }
+          if (value1 === undefined || value1 === null) {
+            return false;
+          }
+          return field < (value1.getTime());
           break;
         case this.OPERATORS.dateOperatorIsAfter:
+          if (field === null || field === undefined) {
+            return false;
+          }
+          if (value1 === undefined || value1 === null) {
+            return false;
+          }
+          return field > (value1.getTime() );
           break;
         case this.OPERATORS.dateOperatorIsBetween:
+          if (field === null || field === undefined) {
+            return false;
+          }
+          if (value1 === undefined || value1 === null) {
+            return false;
+          }
+          if (value2 === undefined || value2 === null) {
+            return false;
+          }
+          return field > (value1.getTime() ) && field < (value2.getTime() );
           break;
         case this.OPERATORS.dateOperatorIsNotBetween:
+          if (field === null || field === undefined) {
+            return false;
+          }
+          if (value1 === undefined || value1 === null) {
+            return false;
+          }
+          if (value2 === undefined || value2 === null) {
+            return false;
+          }
+          return field <= (value1.getTime() ) || field >= (value2.getTime() );
           break;
         case this.OPERATORS.dateOperatorIsBlank:
           if (field === null || field === undefined) {
@@ -365,15 +427,39 @@ define([
 
           break;
         case this.OPERATORS.dateOperatorDays:
+          //Not exposed in control, not implemented in app
+          if (field === null || field === undefined) {
+            //return true;
+          }
+          return false;
           break;
         case this.OPERATORS.dateOperatorWeeks:
+          //Not exposed in control, not implemented in app
+          if (field === null || field === undefined) {
+            //return true;
+          }
+          return false;
           break;
         case this.OPERATORS.dateOperatorMonths:
+          //Not exposed in control, not implemented in app
+          if (field === null || field === undefined) {
+            //return true;
+          }
+          return false;
           break;
         case this.OPERATORS.dateOperatorInTheLast:
+          //Not exposed in control, not implemented in app
+          if (field === null || field === undefined) {
+            //return true;
+          }
+          return false;
           break;
         case this.OPERATORS.dateOperatorNotInTheLast:
-
+          //Not exposed in control, not implemented in app
+          if (field === null || field === undefined) {
+            //return true;
+          }
+          return false;
           break;
         default:
           return false;

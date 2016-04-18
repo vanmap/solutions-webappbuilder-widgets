@@ -116,7 +116,7 @@ define(
       },
       _onEditFieldInfoClick: function (tr) {
         var rowData = this._fieldsTable.getRowData(tr);
-        if (rowData) {
+        if (rowData && rowData.isEditable) {
 
           this._fieldValid = new FieldValidation({
             nls: this.nls,

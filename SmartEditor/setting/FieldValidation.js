@@ -3,6 +3,7 @@ define(
     "dojo/_base/lang",
     "dojo/_base/array",
     'dojo/on',
+    "dojox/html/entities",
     "dojo/text!./FieldValidation.html",
     'dijit/_TemplatedMixin',
     'jimu/BaseWidgetSetting',
@@ -16,6 +17,7 @@ define(
     lang,
     array,
     on,
+    entities,
     template,
     _TemplatedMixin,
     BaseWidgetSetting,
@@ -181,7 +183,9 @@ define(
           if (configAction !== undefined && configAction !== null) {
             if (configAction.expression !== undefined &&
               configAction.expression !== null && configAction.expression !== '') {
+             
               settings.expression = configAction.expression;
+              settings.filter = configAction.filter;
             }
           }
           this._validationTable.addRow(settings);
@@ -247,14 +251,26 @@ define(
               classNames: ['jimu-btn-vacation']
             }]
           });
-          if (rowData.expression === undefined ||
-            rowData.expression === null ||
-            rowData.expression === '') {
-            filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
 
-          } else {
-            filter.buildByExpr(this._layerInfo.mapLayer.url, rowData.expression, this._layerInfo.mapLayer.resourceInfo);
+          if (rowData.filter === undefined ||
+              rowData.filter === null ||
+            rowData.filter === '') {
+            filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
           }
+          else {
+            
+            filter.buildByExpr(this._layerInfo.mapLayer.url, entities.decode(rowData.expression), this._layerInfo.mapLayer.resourceInfo);
+            //filter.buildByFilterObj(this._layerInfo.mapLayer.url, rowData.filter, this._layerInfo.mapLayer.resourceInfo);
+          }
+          
+          //if (rowData.expression === undefined ||
+          //  rowData.expression === null ||
+          //  rowData.expression === '') {
+          //  filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
+
+          //} else {
+          //  filter.buildByExpr(this._layerInfo.mapLayer.url, rowData.expression, this._layerInfo.mapLayer.resourceInfo);
+          //}
 
           window.jimuNls.filterBuilder.matchMsg = origNLS;
 

@@ -26,10 +26,12 @@ define(
       templateString: template,
       _layerInfo: null,
       _fieldValid: null,
+      _fieldValidations:null,
       postCreate: function () {
         this.inherited(arguments);
         this._initFieldsTable();
         this._setFiedsTable(this._layerInfo.fieldInfos);
+        this._fieldValidations = lang.clone(this._layerInfo.fieldValidations)
       },
 
       popupEditPage: function () {
@@ -117,10 +119,11 @@ define(
       _onEditFieldInfoClick: function (tr) {
         var rowData = this._fieldsTable.getRowData(tr);
         if (rowData && rowData.isEditable) {
-
           this._fieldValid = new FieldValidation({
             nls: this.nls,
-            _layerInfo: this._layerInfo,
+            _resourceInfo: this._layerInfo.mapLayer.resourceInfo,
+            _url: this._layerInfo.mapLayer.url,
+            _fieldValidations: this._fieldValidations,
             _fieldName: rowData.fieldName,
             _fieldAlias: rowData.label
           });

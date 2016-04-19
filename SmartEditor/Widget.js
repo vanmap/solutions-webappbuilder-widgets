@@ -390,6 +390,9 @@ define([
 
       },
       _toggleEditGeoSwitch: function (layerID) {
+        if (this._editGeomSwitch === undefined || this._editGeomSwitch === null) {
+          return;
+        }
         if (this._layersWithGeometryDisabled !== undefined &&
             this._layersWithGeometryDisabled !== null) {
           if (this._layersWithGeometryDisabled.length > 0) {

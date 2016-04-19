@@ -23,6 +23,7 @@ define([
   'dojo/_base/lang',
   'dojo/_base/array',
   'dojo/dom-class',
+   "dijit/registry",
    'jimu/filterUtils'
 ], function (
   Evented,
@@ -31,6 +32,7 @@ define([
   lang,
   array,
   domClass,
+  registry,
   filterUtils
   ) {
   return declare([Evented], {
@@ -516,25 +518,39 @@ define([
                 this._processChildNodes(valueCell, true);
                 break;
               case 'Required':
-                domClass.add(valueCell, ["dijitTextBoxError", "dijitComboBoxError","dijitValidationTextBoxError", "dijitError"]);
-                //var l = valueCell.id.slice(7);
-                //dijit.byId(l).set("required", true);
-                //dijit.byId(valueCell.id.replace('widget_','').set("required", true));
-                //add this to first child
-                //<div class="dijitReset dijitValidationContainer"><input class="dijitReset dijitInputField dijitValidationIcon dijitValidationInner" value="Χ " type="text" tabindex="-1" readonly="readonly" role="presentation"></div>
-                //if (valueCell.childNodes.length > 1) {
-                //  var newDiv = document.createElement('div');
-                //  newDiv.setAttribute('class', "dijitReset dijitValidationContainer");
-                //  var newIn = document.createElement('input');
-                //  newIn.setAttribute('class', "dijitReset dijitInputField dijitValidationIcon dijitValidationInner");
-                //  newIn.setAttribute('value', "x");
-                //  newIn.setAttribute('type', 'text');
-                //  newIn.setAttribute('tabindex', '-1');
-                //  newIn.setAttribute('readonly', 'readonly');
-                //  newIn.setAttribute('role', 'presentation');
-                //  newDiv.appendChild(newIn);  
-                //  valueCell.insertBefore(newDiv, valueCell.childNodes[0]);
-                //}
+                var parentWidget = registry.getEnclosingWidget(valueCell);
+
+                if (valueCell.childNodes.length == 1) {
+                
+                
+                  domClass.add(valueCell, ["dijitTextBoxError", "dijitValidationTextBox", "dijitValidationTextBoxError", "dijitError"]);
+
+                  //<div class="dijitReset dijitValidationContainer" 
+                  //style="pointer-events: auto;">
+                  //<input class="dijitReset dijitInputField dijitValidationIcon dijitValidationInner" 
+                  //value="Χ " type="text" tabindex="-1" readonly="readonly" role="presentation" style="pointer-events: auto;"></div>
+
+                  //
+                  //dijit.byId(l).set("required", true);
+                  //dijit.byId(valueCell.id.replace('widget_','').set("required", true));
+                  //add this to first child
+                  //<div class="dijitReset dijitValidationContainer"><input class="dijitReset dijitInputField dijitValidationIcon dijitValidationInner" value="Χ " type="text" tabindex="-1" readonly="readonly" role="presentation"></div>
+
+                  var newDiv = document.createElement('div');
+                  newDiv.setAttribute('class', "dijitReset dijitValidationContainer");
+                  var newIn = document.createElement('input');
+                  newIn.setAttribute('class', "dijitReset dijitInputField dijitValidationIcon dijitValidationInner");
+                  newIn.setAttribute('value', "x");
+                  newIn.setAttribute('type', 'text');
+                  newIn.setAttribute('tabindex', '-1');
+                  newIn.setAttribute('readonly', 'readonly');
+                  newIn.setAttribute('role', 'presentation');
+                  newDiv.appendChild(newIn);
+                  valueCell.insertBefore(newDiv, valueCell.childNodes[0]);
+                } else {
+                  domClass.add(valueCell, ["dijitTextBoxError", "dijitComboBoxError",  "dijitError"]);
+
+                }
                 if (row[0].childNodes.length === 1) {
                   var newA = document.createElement('a');
                   newA.setAttribute('class', "asteriskIndicator");

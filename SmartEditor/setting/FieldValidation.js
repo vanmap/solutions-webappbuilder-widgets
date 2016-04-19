@@ -29,32 +29,29 @@ define(
     return declare([BaseWidgetSetting, _TemplatedMixin], {
       baseClass: "jimu-widget-smartEditor-rule-table",
       templateString: template,
-      _layerInfo: null,
+      _resourceInfo: null,
+      _url: null,
       _fieldName: null,
-      _fieldActions: null,
+      _fieldValidations: null,
       postCreate: function () {
         this.inherited(arguments);
         this._initActionsTable();
+
         this._setActionsTable(['Hide', 'Required', 'Disabled']);
 
       },
       getSettings: function () {
-        return this._fieldActions;
+        return this._fieldValidations;
       },
       _getConfigAction: function (actionName) {
         var result = null;
-        if (this._layerInfo.fieldValidations !== undefined &&
-          this._layerInfo.fieldValidations !== null) {
-          if (this._layerInfo.fieldValidations.hasOwnProperty(this._fieldName)) {
-            if (this._layerInfo.fieldValidations[this._fieldName].hasOwnProperty(actionName)) {
-              return this._layerInfo.fieldValidations[this._fieldName][actionName];
+        if (this._fieldValidations !== undefined &&
+          this._fieldValidations !== null) {
+          if (this._fieldValidations.hasOwnProperty(this._fieldName)) {
+            if (this._fieldValidations[this._fieldName].hasOwnProperty(actionName)) {
+              return this._fieldValidations[this._fieldName][actionName];
             }
-            //if (this._layerInfo.fieldValidations[this._fieldName] !== null &&
-            //this._layerInfo.fieldValidations[this._fieldName].length > 0) {
-            //array.some(this._layerInfo.fieldValidations[this._fieldName], function (actionDetails) {
-            //  return (actionDetails.action === actionName ? (result = actionDetails, true) : false);
-            //});
-            //}
+
 
           }
         }
@@ -75,29 +72,26 @@ define(
             label: this.nls.ok,
             onClick: lang.hitch(this, function () {
               var rows = this._validationTable.getRows();
-              if (this._fieldActions === undefined ||
-                this._fieldActions === null) {
-                this._fieldActions = {};
+              if (this._fieldValidations === undefined ||
+                this._fieldValidations === null) {
+                this._fieldValidations = {};
               }
 
               //this._fieldActions[this._fieldName] = [];
-              this._fieldActions[this._fieldName] = {};
+              this._fieldValidations[this._fieldName] = {};
               array.forEach(rows, function (row) {
                 var rowData = this._validationTable.getRowData(row);
                 if (rowData.expression !== undefined && rowData.expression !== null &&
                   rowData.expression !== '') {
-                  this._fieldActions[this._fieldName][rowData.label] =
-                      {
-                        'expression': rowData.expression,
-                        'filter': JSON.parse(rowData.filter)
-                      };
-                  //this._fieldActions[this._fieldName].push(
-                  //    {
-                  //      'action': rowData.label,
-                  //      'expression': rowData.expression,
-                  //      'filter': JSON.parse(rowData.filter),
-                  //      'index': row.rowIndex
-                  //    });
+                  if (rowData.filter !== '') {
+
+                    this._fieldValidations[this._fieldName][rowData.label] =
+                        {
+                          'expression': rowData.expression,
+                          'filter': JSON.parse(rowData.filter)
+                        };
+                  }
+
                 }
               }, this);
 
@@ -182,9 +176,9 @@ define(
           if (configAction !== undefined && configAction !== null) {
             if (configAction.expression !== undefined &&
               configAction.expression !== null && configAction.expression !== '') {
-             
+
               settings.expression = configAction.expression;
-              settings.filter = configAction.filter;
+              settings.filter = JSON.stringify(configAction.filter);
             }
           }
           this._validationTable.addRow(settings);
@@ -254,14 +248,14 @@ define(
           if (rowData.filter === undefined ||
               rowData.filter === null ||
             rowData.filter === '') {
-            filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
+            filter.buildByExpr(this._url, null, this._resourceInfo);
           }
           else {
-            
-            filter.buildByExpr(this._layerInfo.mapLayer.url, entities.decode(rowData.expression), this._layerInfo.mapLayer.resourceInfo);
+
+            filter.buildByExpr(this._url, entities.decode(rowData.expression), this._resourceInfo);
             //filter.buildByFilterObj(this._layerInfo.mapLayer.url, rowData.filter, this._layerInfo.mapLayer.resourceInfo);
           }
-          
+
           //if (rowData.expression === undefined ||
           //  rowData.expression === null ||
           //  rowData.expression === '') {

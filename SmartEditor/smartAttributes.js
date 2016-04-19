@@ -516,24 +516,25 @@ define([
                 this._processChildNodes(valueCell, true);
                 break;
               case 'Required':
-                domClass.add(valueCell, ["dijitTextBoxError", "dijitComboBoxError"]);
-
+                domClass.add(valueCell, ["dijitTextBoxError", "dijitComboBoxError","dijitValidationTextBoxError", "dijitError"]);
+                //var l = valueCell.id.slice(7);
+                //dijit.byId(l).set("required", true);
+                //dijit.byId(valueCell.id.replace('widget_','').set("required", true));
                 //add this to first child
                 //<div class="dijitReset dijitValidationContainer"><input class="dijitReset dijitInputField dijitValidationIcon dijitValidationInner" value="Χ " type="text" tabindex="-1" readonly="readonly" role="presentation"></div>
-                if (valueCell.childNodes.length > 1) {
-                  var newDiv = document.createElement('div');
-                  newDiv.setAttribute('class', "dijitReset dijitValidationContainer");
-                  var newIn = document.createElement('input');
-                  newIn.setAttribute('class', "dijitReset dijitInputField dijitValidationIcon dijitValidationInner");
-                  newIn.setAttribute('value', "x");
-                  newIn.setAttribute('type', 'text');
-                  newIn.setAttribute('tabindex', '-1');
-                  newIn.setAttribute('readonly', 'readonly');
-                  newIn.setAttribute('role', 'presentation');
-
-                  newDiv.appendChild(newIn);
-                  valueCell.appendChild(newDiv);
-                }
+                //if (valueCell.childNodes.length > 1) {
+                //  var newDiv = document.createElement('div');
+                //  newDiv.setAttribute('class', "dijitReset dijitValidationContainer");
+                //  var newIn = document.createElement('input');
+                //  newIn.setAttribute('class', "dijitReset dijitInputField dijitValidationIcon dijitValidationInner");
+                //  newIn.setAttribute('value', "x");
+                //  newIn.setAttribute('type', 'text');
+                //  newIn.setAttribute('tabindex', '-1');
+                //  newIn.setAttribute('readonly', 'readonly');
+                //  newIn.setAttribute('role', 'presentation');
+                //  newDiv.appendChild(newIn);  
+                //  valueCell.insertBefore(newDiv, valueCell.childNodes[0]);
+                //}
                 if (row[0].childNodes.length === 1) {
                   var newA = document.createElement('a');
                   newA.setAttribute('class', "asteriskIndicator");
@@ -560,6 +561,13 @@ define([
                 if (domClass.contains(valueCell, "dijitComboBoxError")) {
                   domClass.remove(valueCell, "dijitComboBoxError");
                 }
+                if (domClass.contains(valueCell, "dijitValidationTextBoxError")) {
+                  domClass.remove(valueCell, "dijitValidationTextBoxError");
+                }
+                if (domClass.contains(valueCell, "dijitError")) {
+                  domClass.remove(valueCell, "dijitError");
+                }
+                
                 if (notEditableFields.indexOf(fieldName) === -1) {
                   if (domClass.contains(valueCell, "dijitTextBoxDisabled")) {
                     domClass.remove(valueCell, "dijitTextBoxDisabled");

@@ -430,7 +430,7 @@ define([
         }, this);
 
       },
-      _attributeInspectorChangeRecord: function () {
+      _attributeInspectorChangeRecord: function (evt) {
         if (this._isDirty && this.currentFeature) {
           // do not show templatePicker after saving
           this._promptToResolvePendingEdit(false).then(lang.hitch(this, function () {
@@ -593,7 +593,7 @@ define([
 
 
         this.own(on(attrInspector, "next", lang.hitch(this, function (evt) {
-          this._attributeInspectorChangeRecord();
+          this._attributeInspectorChangeRecord(evt);
 
         })));
 
@@ -1547,7 +1547,7 @@ define([
        
         if (this._editGeomSwitch && this._editGeomSwitch.checked) {
           this._ignoreEditGeometryToggle = true;
-          sw.set("checked", false);
+          this._editGeomSwitch.set("checked", false);
           this.map.setInfoWindowOnClick(true);
           setTimeout(lang.hitch(this, function () {
             this._ignoreEditGeometryToggle = false;

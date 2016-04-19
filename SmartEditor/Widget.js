@@ -88,6 +88,8 @@ define([
       _creationDisabledOnAll: false,
       _configNotEditable: null,
       _gdbRequired: null,
+      _layersWithGeometryDisabled: null,
+      _editGeomSwitch: null,
       postCreate: function () {
         this.inherited(arguments);
         this._init();
@@ -100,6 +102,7 @@ define([
           this._jimuLayerInfos = operLayerInfos;
           this._createEditor();
           this._smartAttributes = new smartAttributes();
+          this._allowGeometryEdits(this.settings.layerInfos);
         }));
       },
       _mapClickHandler: function (create) {
@@ -362,7 +365,7 @@ define([
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
       },
       _validateAttributeInspector: function () {
-        if (this.currentFeature === undefined || this.currentFeature === null){
+        if (this.currentFeature === undefined || this.currentFeature === null) {
           return;
         }
         var attTable = query("td.atiLabel", this.attrInspector.domNode);
@@ -386,6 +389,86 @@ define([
         }
 
       },
+      _toggleEditGeoSwitch: function (layerID) {
+        if (this._layersWithGeometryDisabled !== undefined &&
+            this._layersWithGeometryDisabled !== null) {
+          if (this._layersWithGeometryDisabled.length > 0) {
+            if (this._layersWithGeometryDisabled.some(function (layer) { return (layer == layerID); })) {
+              dojo.style(this._editGeomSwitch.domNode.parentNode, "display", "none");
+              this._turnEditGeometryToggleOff();
+
+            }
+            else {
+              dojo.style(this._editGeomSwitch.domNode.parentNode, "display", "block");
+              this._turnEditGeometryToggleOff();
+            }
+          }
+          else {
+            dojo.style(this._editGeomSwitch.domNode.parentNode, "display", "block");
+            this._turnEditGeometryToggleOff();
+          }
+        } else {
+          dojo.style(this._editGeomSwitch.domNode.parentNode, "display", "block");
+          this._turnEditGeometryToggleOff();
+        }
+      },
+      _allowGeometryEdits: function (layerInfos) {
+
+        this._layersWithGeometryDisabled = [];
+        array.forEach(layerInfos, function (layerInfo) {
+
+          if (layerInfo.disableGeometryUpdate === undefined ||
+            layerInfo.disableGeometryUpdate === null) {
+            //do nothing
+          }
+          else if (layerInfo.disableGeometryUpdate === true) {
+
+            this._layersWithGeometryDisabled.push(layerInfo.featureLayer.id);
+          }
+
+
+        }, this);
+
+      },
+      _attributeInspectorChangeRecord: function () {
+        if (this._isDirty && this.currentFeature) {
+          // do not show templatePicker after saving
+          this._promptToResolvePendingEdit(false).then(lang.hitch(this, function () {
+
+            if (this.updateFeatures && this.updateFeatures.length > 1) {
+              array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
+                feature.setSymbol(this._getSelectionSymbol(feature.getLayer().geometryType, false));
+              }));
+            }
+
+            if (evt.feature) {
+              this.currentFeature = evt.feature;
+              this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
+              this._validateAttributeInspector();
+              this.currentFeature.setSymbol(
+                this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
+            }
+
+          }));
+        } else {
+
+          if (this.updateFeatures && this.updateFeatures.length > 1) {
+            array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
+              feature.setSymbol(this._getSelectionSymbol(feature.getLayer().geometryType, false));
+            }));
+          }
+
+          if (evt.feature) {
+            this.currentFeature = evt.feature;
+            this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
+            this._validateAttributeInspector();
+            this.currentFeature.setSymbol(
+              this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
+          }
+        }
+        //var layerID = (this.currentFeature.getLayer().hasOwnerProperty(originalLayerId) ? feature.getLayer().originalLayerId : feature.getLayer().id);
+        this._toggleEditGeoSwitch(this.currentLayerInfo);
+      },
       _createAttributeInspector: function (layerInfos) {
         query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
         var attrInspector = new AttributeInspector({
@@ -399,18 +482,30 @@ define([
         attrInspector.placeAt(this.attributeInspectorNode);
         attrInspector.startup();
 
-        // edit geometry toggle button
-        var editGeomSwitch = new CheckBox({
-          id: "editGeometrySwitch"
-        }, domConstruct.create("div"));
+        if (this._layersWithGeometryDisabled.length !== this.settings.layerInfos.length) {
+          
+          //domConstruct.place(domConstruct.create("div", { "class": "spacer" }),
+           // attrInspector.deleteBtn.domNode, "before");
+          
+          this.editSwitchDiv = domConstruct.create("div");
+          this.editSwitchDiv.appendChild(domConstruct.create("div", { "class": "spacer" }));
+          // edit geometry toggle button
+          this._editGeomSwitch = new CheckBox({
+            id: "editGeometrySwitch",
+            value: this.nls.editGeometry
+          }, null);
 
-        domConstruct.place(domConstruct.create("div", { "class": "spacer" }),
-          attrInspector.deleteBtn.domNode, "before");
-        domConstruct.place(editGeomSwitch.domNode, attrInspector.deleteBtn.domNode, "before");
-        domConstruct.place(lang.replace(
-          "<label for='editGeometrySwitch'>{replace}</label></br></br>",
-          { replace: this.nls.editGeometry }), editGeomSwitch.domNode, "after");
+          this.editSwitchDiv.appendChild(this._editGeomSwitch.domNode);
 
+          domConstruct.place(lang.replace(
+           "<label for='editGeometrySwitch'>{replace}</label></br></br>",
+           { replace: this.nls.editGeometry }), this._editGeomSwitch.domNode, "after");
+
+          domConstruct.place(this.editSwitchDiv, attrInspector.deleteBtn.domNode, "before");
+
+          this.own(on(this._editGeomSwitch, 'Change', lang.hitch(this, this._editGeometry)));
+
+        }
         //add close/cancel/switch to template button
         var cancelButton = domConstruct.create("div", {
           innerHTML: this.nls.cancel,
@@ -439,8 +534,8 @@ define([
 
               if (this._configEditor.displayPromptOnDelete) {
                 var confirmDialog = new ConfirmDialog({
-                  title: "Delete feature",
-                  content: "Are you sure you want to delete the selected feature?",
+                  title: this.nls.deletePromptTitle,
+                  content: this.nls.deletePrompt,
                   style: "width: 400px",
                   onExecute: lang.hitch(this, function () {
                     this._deleteFeature();
@@ -483,7 +578,6 @@ define([
         })));
 
         // edit geometry checkbox event
-        this.own(on(editGeomSwitch, 'Change', lang.hitch(this, this._editGeometry)));
 
         // attribute inspector events
         this.own(on(attrInspector, "attribute-change", lang.hitch(this, function (evt) {
@@ -499,41 +593,7 @@ define([
 
 
         this.own(on(attrInspector, "next", lang.hitch(this, function (evt) {
-          // in case multiple featuers are selected,
-          if (this._isDirty && this.currentFeature) {
-            // do not show templatePicker after saving
-            this._promptToResolvePendingEdit(false).then(lang.hitch(this, function () {
-
-              if (this.updateFeatures && this.updateFeatures.length > 1) {
-                array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
-                  feature.setSymbol(this._getSelectionSymbol(feature.getLayer().geometryType, false));
-                }));
-              }
-
-              if (evt.feature) {
-                this.currentFeature = evt.feature;
-                this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
-                this._validateAttributeInspector();
-                this.currentFeature.setSymbol(
-                  this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
-              }
-            }));
-          } else {
-
-            if (this.updateFeatures && this.updateFeatures.length > 1) {
-              array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
-                feature.setSymbol(this._getSelectionSymbol(feature.getLayer().geometryType, false));
-              }));
-            }
-
-            if (evt.feature) {
-              this.currentFeature = evt.feature;
-              this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
-              this._validateAttributeInspector();
-              this.currentFeature.setSymbol(
-                this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
-            }
-          }
+          this._attributeInspectorChangeRecord();
 
         })));
 
@@ -1291,8 +1351,8 @@ define([
       _promptToResolvePendingEdit: function (switchToTemplate) {
         var deferred = new Deferred();
         var confirmDialog = new ConfirmDialog({
-          title: "Save feature",
-          content: "Would you like to save the current feature?",
+          title: this.nls.savePromptTitle,
+          content: this.nls.savePrompt,
           style: "width: 400px",
           onExecute: lang.hitch(this, function () {
             this._saveEdit(this.currentFeature, switchToTemplate).then(function () {
@@ -1346,7 +1406,7 @@ define([
         this._editingEnabled = false;
         this.editToolbar.deactivate();
 
-        this._turnEditGeometryToggleOff();
+        //this._turnEditGeometryToggleOff();
       },
 
       // perform validation then post the changes or formatting the UI if errors
@@ -1426,11 +1486,12 @@ define([
 
           this._mapClickHandler(false);
           if (this.attrInspector) {
-            this.attrInspector.refresh();
 
             if (!this.currentFeature) {
               this.attrInspector.first();
             }
+            this.attrInspector.refresh();
+            this._toggleEditGeoSwitch(this.currentLayerInfo.featureLayer.id);
           }
         }
 
@@ -1483,8 +1544,8 @@ define([
       },
 
       _turnEditGeometryToggleOff: function () {
-        var sw = registry.byId("editGeometrySwitch");
-        if (sw && sw.checked) {
+       
+        if (this._editGeomSwitch && this._editGeomSwitch.checked) {
           this._ignoreEditGeometryToggle = true;
           sw.set("checked", false);
           this.map.setInfoWindowOnClick(true);

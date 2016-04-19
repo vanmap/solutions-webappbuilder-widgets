@@ -15,7 +15,11 @@ define({
     presetValue: "Preset Value",
     usePresetValues: " Use Preset Values (New features only)",
     editGeometry: " Edit Geometry",
-    updateOnly: "Please select a feature to update, creation of new features has been disabled."
+    updateOnly: "Please select a feature to update, creation of new features has been disabled.",
+    savePromptTitle: "Save feature",
+    savePrompt: "Would you like to save the current feature?",
+    deletePromptTitle: "Delete feature",
+    deletePrompt: "Are you sure you want to delete the selected feature?",
   }),
   "ar": 1,
   "cs": 1,

@@ -17,80 +17,108 @@ email: contracts@esri.com
 */
 
 define([
-  "dojo/Evented",
   "dojo",
   "dojo/_base/declare",
   'dojo/_base/lang',
   'dojo/_base/array',
   'dojo/dom-class',
-   "dijit/registry",
-   'jimu/filterUtils'
+   'dojo/query',
+   'dijit/registry',
+   'jimu/filterUtils',
+   'dijit/_TemplatedMixin',
+    'jimu/BaseWidgetSetting',
 ], function (
-  Evented,
   dojo,
   declare,
   lang,
   array,
   domClass,
+  query,
   registry,
-  filterUtils
+  filterUtils,
+  _TemplatedMixin,
+  BaseWidgetSetting
   ) {
-  return declare([Evented], {
+  return declare([BaseWidgetSetting, _TemplatedMixin], {
+    _attrInspector: null,
+    _fieldValidation: null,
+    _feature: null,
+    _gdbRequiredFields: null,
+    _notEditableFields: null,
+    _attTable: null,
+    _filterUtils:null,
     OPERATORS: null,
     constructor: function () {
+      this.inherited(arguments);
+      lang.mixin(this, arguments[0]);
       this._filterUtils = new filterUtils();
       this.OPERATORS = lang.clone(this._filterUtils.OPERATORS);
+      this._attTable = query("td.atiLabel", this._attrInspector.domNode);
+      if (this._attTable === undefined || this._attTable === null) {
+        return;
+      }
+      this._bindEvents(this._attrInspector.domNode);
     },
-    toggleFields: function (attTable, fieldValidation, feature, gdbRequiredFields, configNotEditableFields) {
-      if (attTable === undefined || attTable == null) {
+    toggleFields: function () {
+      if (this._attTable === undefined || this._attTable == null) {
         return;
       }
 
-      if (fieldValidation === undefined || fieldValidation === null) {
+      if (this._fieldValidation === undefined || this._fieldValidation === null) {
         return;
       }
 
-      if (feature === undefined || feature === null) {
+      if (this._feature === undefined || this._feature === null) {
         return;
       }
 
       var actionType = null
       var hasRule = false;
-      var fields = feature.getLayer().fields;
+      var fields = this._feature.getLayer().fields;
 
       var rowsWithError = [];
       var results;
       fields.forEach(lang.hitch(this, function (field) {
         actionType = null;
         // hasRule, actionType, fieldValid 
-        results = this.validateField(field.name, fieldValidation, feature);
+        results = this.validateField(field.name);
+        actionType = results[1];
         if (results[2] === false) {
           rowsWithError.push({ 'fieldName': field.name })
         }
-        this.toggleFieldOnAttributeInspector(field.alias, results[1], attTable, gdbRequiredFields, configNotEditableFields);
+        else if (results[2] === true) {
+          actionType = null;
+        }
+        if (results[0] == true) {
+          this.toggleFieldOnAttributeInspector(field.alias, actionType);
+        }
       }));
       return rowsWithError;
     },
-    validateField: function (fieldName, fieldValidation, feature) {
-      var filter = null;
-      if (fieldValidation.hasOwnProperty(fieldName)) {
+    validateField: function (fieldName) {
+      // hasRule, actionType, fieldValid 
 
-        if (fieldValidation[fieldName].length === 0) {
+      var filter = null;
+      if (this._fieldValidation.hasOwnProperty(fieldName)) {
+
+        if (this._fieldValidation[fieldName].length === 0) {
           return [false, null, true];
         }
         else {
-          for (var actionDetails in fieldValidation[fieldName]) {
-            if (fieldValidation[fieldName].hasOwnProperty(actionDetails)) {
-              filter = fieldValidation[fieldName][actionDetails].filter;
+          for (var actionDetails in this._fieldValidation[fieldName]) {
+            if (this._fieldValidation[fieldName].hasOwnProperty(actionDetails)) {
+              filter = this._fieldValidation[fieldName][actionDetails].filter;
               if (filter !== undefined && filter !== null) {
 
-                if (this.processFilter(filter, feature)) {
+                if (this.processFilter(filter, this._feature)) {
                   //if (fieldValidation[fieldName][actionDetails].action === 'Required') {
                   if (actionDetails === 'Required') {
-                    if (feature.attributes.hasOwnProperty(fieldName) === false) {
-                      return [true, actionDetails, false];
+                 
+                    if (this._feature.attributes.hasOwnProperty(fieldName) === false) {
+                        return [true, actionDetails, false];
+                      
                     }
-                    else if (feature.attributes[fieldName] === null) {
+                    else if (this._feature.attributes[fieldName] === null || this._feature.attributes[fieldName] === '') {
                       return [true, actionDetails, false];
                     }
                     else {
@@ -115,12 +143,30 @@ define([
       }
 
     },
+    _bindEvents: function (domNode) {
+      var widgetArr = dijit.findWidgets(domNode);
+      widgetArr.forEach(function (widget) {
+        if (widget.declaredClass && widget.declaredClass === 'dijit.form.FilteringSelect') {
+          //if (this._gdbRequiredFields.indexOf(widget.domNode.parentNode.parentNode.childNodes[0].innerHTML) === -1) {
 
-    processFilter: function (filter, feature) {
+          //change to query for the A element might be safer
+          if (widget.domNode.parentNode.parentNode.childNodes[0].childNodes.length ===1 ) {
+            dojo.connect(widget, 'onChange', lang.hitch(this, this._smartComboValidate));
+          }
+        }
+      },this);
+      //var textboxArray = dojo.filter(dijit.registry._hash, function(widget) {
+      //  return widget.declaredClass && widget.declaredClass == 'dijit.form.TextBox';
+      //})
+      //query("",attrInspector).length < 1) {
+      //  dojo.connect(parentWidget, 'onChange', this._smartComboValidate);
+
+    },
+    processFilter: function (filter) {
       var partResults = [];
       array.forEach(filter.parts, function (part) {
         if (part.hasOwnProperty('parts')) {
-          partResults.push(this.processFilter(part, feature));
+          partResults.push(this.processFilter(part, this._feature));
         }
         else {
           var value1 = null;
@@ -139,7 +185,7 @@ define([
           switch (part.valueObj.type) {
             case 'value':
               partResults.push(this.validatePart(part.operator,
-                               feature.attributes[part.fieldObj.name],
+                               this._feature.attributes[part.fieldObj.name],
                                value1,
                                value2,
                                part.caseSensitive));
@@ -147,7 +193,7 @@ define([
             case 'field':
 
               partResults.push(this.validatePart(part.operator,
-                                                 feature.attributes[part.fieldObj.name],
+                                                 this._feature.attributes[part.fieldObj.name],
                                                  value1,
                                                  value2,
                                                  part.caseSensitive));
@@ -490,14 +536,23 @@ define([
         }
       }, this);
     },
-    toggleFieldOnAttributeInspector: function (fieldName, actionType,
-      attTable, gdbRequiredFields, notEditableFields) {
-      if (attTable === undefined || attTable === null) {
+    _smartComboValidate: function () {
+      this.toggleFields();
+
+    },
+    toggleFieldOnAttributeInspector: function (fieldName, actionType) {
+      if (this._gdbRequiredFields === undefined || this._gdbRequiredFields === null) {
+        this._gdbRequiredFields = []
+      }
+      if (this._notEditableFields === undefined || this._notEditableFields === null) {
+        this._notEditableFields = []
+      }
+      if (this._attTable === undefined || this._attTable === null) {
         return;
       }
 
-      if (attTable.length > 0) {
-        var row = attTable.filter(lang.hitch(this, function (row) {
+      if (this._attTable.length > 0) {
+        var row = this._attTable.filter(lang.hitch(this, function (row) {
           return row.childNodes[0].data === fieldName;
         }));
 
@@ -505,7 +560,9 @@ define([
           if (row.length > 0) {
             var valueCell = row[0].parentNode.childNodes[1].childNodes[0];
             var parent = row[0].parentNode;
-            //var labelCell = row[0]; // defined but never used
+
+            var parentWidget = registry.getEnclosingWidget(valueCell);
+
             switch (actionType) {
               case 'Hide':
                 domClass.add(parent, "hideField");
@@ -518,37 +575,35 @@ define([
                 this._processChildNodes(valueCell, true);
                 break;
               case 'Required':
-                var parentWidget = registry.getEnclosingWidget(valueCell);
 
-                if (valueCell.childNodes.length == 1) {
-                
-                
+                if (parentWidget.declaredClass === 'dijit.form.TextBox') {
+
+                  var nl = query(".dijitValidationContainer", parent);
+                  if (nl.length === 0) {
+
+                    var newDiv = document.createElement('div');
+                    newDiv.setAttribute('class', "dijitReset dijitValidationContainer");
+                    var newIn = document.createElement('input');
+                    newIn.setAttribute('class', "dijitReset dijitInputField dijitValidationIcon dijitValidationInner");
+                    newIn.setAttribute('value', "x");
+                    newIn.setAttribute('type', 'text');
+                    newIn.setAttribute('tabindex', '-1');
+                    newIn.setAttribute('readonly', 'readonly');
+                    newIn.setAttribute('role', 'presentation');
+                    newDiv.appendChild(newIn);
+                    valueCell.insertBefore(newDiv, valueCell.childNodes[0]);
+                  }
+
                   domClass.add(valueCell, ["dijitTextBoxError", "dijitValidationTextBox", "dijitValidationTextBoxError", "dijitError"]);
 
-                  //<div class="dijitReset dijitValidationContainer" 
-                  //style="pointer-events: auto;">
-                  //<input class="dijitReset dijitInputField dijitValidationIcon dijitValidationInner" 
-                  //value="Χ " type="text" tabindex="-1" readonly="readonly" role="presentation" style="pointer-events: auto;"></div>
+                } else if (parentWidget.declaredClass === 'dijit.form.FilteringSelect') {
 
-                  //
-                  //dijit.byId(l).set("required", true);
-                  //dijit.byId(valueCell.id.replace('widget_','').set("required", true));
-                  //add this to first child
-                  //<div class="dijitReset dijitValidationContainer"><input class="dijitReset dijitInputField dijitValidationIcon dijitValidationInner" value="Χ " type="text" tabindex="-1" readonly="readonly" role="presentation"></div>
+                   domClass.add(valueCell, ["dijitTextBoxError", "dijitComboBoxError", "dijitError", "dijitValidationTextBoxError"]);
 
-                  var newDiv = document.createElement('div');
-                  newDiv.setAttribute('class', "dijitReset dijitValidationContainer");
-                  var newIn = document.createElement('input');
-                  newIn.setAttribute('class', "dijitReset dijitInputField dijitValidationIcon dijitValidationInner");
-                  newIn.setAttribute('value', "x");
-                  newIn.setAttribute('type', 'text');
-                  newIn.setAttribute('tabindex', '-1');
-                  newIn.setAttribute('readonly', 'readonly');
-                  newIn.setAttribute('role', 'presentation');
-                  newDiv.appendChild(newIn);
-                  valueCell.insertBefore(newDiv, valueCell.childNodes[0]);
-                } else {
-                  domClass.add(valueCell, ["dijitTextBoxError", "dijitComboBoxError",  "dijitError"]);
+                }
+                else {
+
+                  domClass.add(valueCell, ["dijitTextBoxError", "dijitError"]);
 
                 }
                 if (row[0].childNodes.length === 1) {
@@ -563,28 +618,64 @@ define([
               case 'Value':
                 break;
               default:
-                if (row[0].childNodes.length > 1) {
-                  if (gdbRequiredFields.indexOf(fieldName) === -1) {
+
+                if (this._gdbRequiredFields.indexOf(fieldName) === -1) {
+                  if (parentWidget.declaredClass === 'dijit.form.TextBox') {
+                    if (domClass.contains(valueCell, "dijitTextBoxError")) {
+                      domClass.remove(valueCell, "dijitTextBoxError");
+                    }
+                    if (domClass.contains(valueCell, "dijitValidationTextBox")) {
+                      domClass.remove(valueCell, "dijitValidationTextBox");
+                    }
+                    if (domClass.contains(valueCell, "dijitValidationTextBoxError")) {
+                      domClass.remove(valueCell, "dijitValidationTextBoxError");
+                    }
+                    if (domClass.contains(valueCell, "dijitError")) {
+                      domClass.remove(valueCell, "dijitError");
+                    }
+                    var nl = query(".dijitValidationContainer", parent);
+                    nl.forEach(function (node) {
+                      node.parentNode.removeChild(node);
+                    });
+                  }
+                  else if (parentWidget.declaredClass === 'dijit.form.FilteringSelect') {
+
+                    if (domClass.contains(valueCell, "dijitTextBoxError")) {
+                      domClass.remove(valueCell, "dijitTextBoxError");
+                    }
+                    if (domClass.contains(valueCell, "dijitComboBoxError")) {
+                      domClass.remove(valueCell, "dijitComboBoxError");
+                    }
+                    if (domClass.contains(valueCell, "dijitError")) {
+                      domClass.remove(valueCell, "dijitError");
+                    }
+                    if (domClass.contains(valueCell, "dijitValidationTextBoxError")) {
+                      domClass.remove(valueCell, "dijitValidationTextBoxError");
+                    }
+                  }
+                  if (row[0].childNodes.length > 1) {
                     row[0].removeChild(row[0].childNodes[1]);
+
                   }
                 }
+
                 if (domClass.contains(parent, "hideField")) {
                   domClass.remove(parent, "hideField");
                 }
-                if (domClass.contains(valueCell, "dijitTextBoxError")) {
-                  domClass.remove(valueCell, "dijitTextBoxError");
-                }
-                if (domClass.contains(valueCell, "dijitComboBoxError")) {
-                  domClass.remove(valueCell, "dijitComboBoxError");
-                }
-                if (domClass.contains(valueCell, "dijitValidationTextBoxError")) {
-                  domClass.remove(valueCell, "dijitValidationTextBoxError");
-                }
-                if (domClass.contains(valueCell, "dijitError")) {
-                  domClass.remove(valueCell, "dijitError");
-                }
-                
-                if (notEditableFields.indexOf(fieldName) === -1) {
+                //if (domClass.contains(valueCell, "dijitTextBoxError")) {
+                //  domClass.remove(valueCell, "dijitTextBoxError");
+                //}
+                //if (domClass.contains(valueCell, "dijitComboBoxError")) {
+                //  domClass.remove(valueCell, "dijitComboBoxError");
+                //}
+                //if (domClass.contains(valueCell, "dijitValidationTextBoxError")) {
+                //  domClass.remove(valueCell, "dijitValidationTextBoxError");
+                //}
+                //if (domClass.contains(valueCell, "dijitError")) {
+                //  domClass.remove(valueCell, "dijitError");
+                //}
+
+                if (this._notEditableFields.indexOf(fieldName) === -1) {
                   if (domClass.contains(valueCell, "dijitTextBoxDisabled")) {
                     domClass.remove(valueCell, "dijitTextBoxDisabled");
                   }

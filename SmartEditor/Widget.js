@@ -101,7 +101,7 @@ define([
         .then(lang.hitch(this, function (operLayerInfos) {
           this._jimuLayerInfos = operLayerInfos;
           this._createEditor();
-          this._smartAttributes = new smartAttributes();
+
           this._allowGeometryEdits(this.settings.layerInfos);
         }));
       },
@@ -229,6 +229,7 @@ define([
 
           this.currentFeature = this.updateFeatures[0] = newGraphic;
           this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
+          this._createSmartAttributes();
           this._validateAttributeInspector();
           this._enableAttrInspectorSaveButton(true);
         }));
@@ -365,25 +366,7 @@ define([
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
       },
       _validateAttributeInspector: function () {
-        if (this.currentFeature === undefined || this.currentFeature === null) {
-          return;
-        }
-        var attTable = query("td.atiLabel", this.attrInspector.domNode);
-        if (attTable === undefined || attTable === null) {
-          return;
-        }
-        var fieldValidation = null;
-        if (this.currentLayerInfo !== undefined && this.currentLayerInfo !== null) {
-          if (this.currentLayerInfo.fieldValidations !== undefined &&
-            this.currentLayerInfo.fieldValidations !== null) {
-            fieldValidation = this.currentLayerInfo.fieldValidations;
-          }
-        }
-        if (fieldValidation === null) {
-          return;
-        }
-
-        var rowsWithErrors = this._smartAttributes.toggleFields(attTable, fieldValidation, this.currentFeature, this._gdbRequired, this._configNotEditable)
+        var rowsWithErrors = this._smartAttributes.toggleFields()
         if (rowsWithErrors.length > 0) {
           //
         }
@@ -447,6 +430,7 @@ define([
             if (evt.feature) {
               this.currentFeature = evt.feature;
               this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
+              this._createSmartAttributes();
               this._validateAttributeInspector();
               this.currentFeature.setSymbol(
                 this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
@@ -464,15 +448,18 @@ define([
           if (evt.feature) {
             this.currentFeature = evt.feature;
             this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
+            this._createSmartAttributes();
             this._validateAttributeInspector();
             this.currentFeature.setSymbol(
               this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
           }
         }
-        //var layerID = (this.currentFeature.getLayer().hasOwnerProperty(originalLayerId) ? feature.getLayer().originalLayerId : feature.getLayer().id);
+        //var layerID = (this.currentFeature.getLayer().hasOwnProperty(originalLayerId) ? feature.getLayer().originalLayerId : feature.getLayer().id);
         this._toggleEditGeoSwitch(this.currentLayerInfo);
       },
+      
       _createAttributeInspector: function (layerInfos) {
+
         query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
         var attrInspector = new AttributeInspector({
           layerInfos: layerInfos
@@ -486,10 +473,10 @@ define([
         attrInspector.startup();
 
         if (this._layersWithGeometryDisabled.length !== this.settings.layerInfos.length) {
-          
+
           //domConstruct.place(domConstruct.create("div", { "class": "spacer" }),
-           // attrInspector.deleteBtn.domNode, "before");
-          
+          // attrInspector.deleteBtn.domNode, "before");
+
           this.editSwitchDiv = domConstruct.create("div");
           this.editSwitchDiv.appendChild(domConstruct.create("div", { "class": "spacer" }));
           // edit geometry toggle button
@@ -600,12 +587,14 @@ define([
 
         })));
 
-        //remove default delete button
-        // get the default del button
-        var delButton = query(".atiButtons .atiDeleteButton", attrInspector.domNode)[0];
-        if (delButton) {
-          delButton.remove();
-        }
+        ////remove default delete button
+        //// get the default del button
+        //var delButton = query(".atiButtons .atiDeleteButton", attrInspector.domNode)[0];
+        //if (delButton) {
+        //  delButton.style.display = "none";
+        //  //domClass.add(this.selectedTemplate, "selectedItem");
+        //  //delButton.remove();
+        //}
 
         return attrInspector;
       },
@@ -864,7 +853,7 @@ define([
           id = id.replace("_lfl", "");
         }
         var result = null;
-        /*var layerFound = */ this.settings.layerInfos.some(function (lyrinfo) {
+        this.settings.layerInfos.some(function (lyrinfo) {
           return lyrinfo.featureLayer.id === id ? ((result = lyrinfo), true) : false;
         });
         return result;
@@ -992,17 +981,25 @@ define([
         //var layerObject = this.map.getLayer(localLayer.originalLayerId);
         if (result !== null) {//(layerObject.type === "Feature Layer" && layerObject.url) {
           // get the fieldInfos
-          layerInfo = {
-            featureLayer: localLayer,
-            disableGeometryUpdate: false
-          };
-
-          fieldInfos = lang.clone(result.fieldInfos);
+          layerInfo = {};
+          for (var k in result) {
+            if (result.hasOwnProperty(k) && k != 'featureLayer') {
+              layerInfo[k] = lang.clone(result[k]);
+            }
+          }
+          
+          layerInfo.featureLayer = localLayer;
+          //layerInfo = {
+          //  featureLayer: localLayer,
+          //  disableGeometryUpdate: false
+          //};
+        
+          //fieldInfos = lang.clone(result.fieldInfos);
           //fieldInfos = this._processFieldInfos(fieldInfos);
           //  this._getDefaultFieldInfos(layerObject.id);
-          if (fieldInfos && fieldInfos.length > 0) {
-            layerInfo.fieldInfos = fieldInfos;
-          }
+         // if (fieldInfos && fieldInfos.length > 0) {
+          //  layerInfo.fieldInfos = fieldInfos;
+          //}
 
           // modify field infos
           //this._modifyFieldInfosForEE(layerInfo);
@@ -1169,8 +1166,11 @@ define([
           }
 
           this._addDateFormat(finfo);
-          var field = layerObject.fields.find(function (f) {
-            return f.name === finfo.fieldName;
+          var field = null;
+      
+          var found = layerObject.fields.some(function (f) {
+            return f.name === finfo.fieldName ? ((field = f), true) : false;
+           
           });
           finfo.type = field.type;
           finfo.domain = field.domain;
@@ -1489,18 +1489,48 @@ define([
 
           this._mapClickHandler(false);
           if (this.attrInspector) {
-
+            this._createSmartAttributes();
             if (!this.currentFeature) {
               this.attrInspector.first();
             }
             this.attrInspector.refresh();
             this._toggleEditGeoSwitch(this.currentLayerInfo.featureLayer.id);
+
+         
+
           }
         }
 
 
       },
+      _createSmartAttributes: function () {
+        if (this.currentFeature === undefined || this.currentFeature === null) {
+          return;
+        }
+        var attTable = query("td.atiLabel", this.attrInspector.domNode);
+        if (attTable === undefined || attTable === null) {
+          return;
+        }
+        var fieldValidation = null;
+        if (this.currentLayerInfo !== undefined && this.currentLayerInfo !== null) {
+          if (this.currentLayerInfo.fieldValidations !== undefined &&
+            this.currentLayerInfo.fieldValidations !== null) {
+            fieldValidation = this.currentLayerInfo.fieldValidations;
+          }
+        }
+        if (fieldValidation === null) {
+          return;
+        }
+        smartAttParams = {
+          _attrInspector: this.attrInspector,
+          _fieldValidation: fieldValidation,
+          _feature: this.currentFeature,
+          _gdbRequiredFields: this._gdbRequired,
+          _configNotEditableFields: this._configNotEditable,
+        }
+        this._smartAttributes = new smartAttributes(smartAttParams);
 
+      },
       _showTemplatePicker: function () {
         // hide the attr inspector and show the main template picker div
         query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
@@ -1547,7 +1577,7 @@ define([
       },
 
       _turnEditGeometryToggleOff: function () {
-       
+
         if (this._editGeomSwitch && this._editGeomSwitch.checked) {
           this._ignoreEditGeometryToggle = true;
           this._editGeomSwitch.set("checked", false);
@@ -1662,6 +1692,7 @@ define([
             var layerObject = getLayerObjectFromMapByUrl(this.map, layerInfo.featureLayer.url);
             if (layerObject) {
               layerInfo.featureLayer.id = layerObject.id;
+              
             }
           }
 
@@ -1737,7 +1768,7 @@ define([
         if (!this._configEditor.layerInfos) {
           // configured in setting page and no layers checked.
           layerInfos = [];
-        } else if (this._configEditor.layerInfos.length > 0) {
+        } else if (this._configEditor.layerInfos.length > 0) {  
           // configured and has been checked.
           layerInfos = this._converConfiguredLayerInfos(this._configEditor.layerInfos);
         } else {
@@ -1757,6 +1788,7 @@ define([
             this._removeSpacesInLayerTemplates(layerObject);
             this._modifyFieldInfosForEE(layerInfo);
             layerInfo.featureLayer = layerObject;
+            layerInfo.showDeleteButton = false;
             resultLayerInfosParam.push(layerInfo);
           }
         }, this);

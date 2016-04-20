@@ -4,13 +4,20 @@
     "prompOnSave": false,
     "promptOnDelete": true,
     "removeOnSave": true,
+    "displayPromptOnSave": false,
+    "displayPromptOnDelete": false,
     "layerInfos": [
       {
         "featureLayer": {
-          "id": "SmartTest_3381"
+          "id": "SmartTestDemo_6447",
+          "layerAllowsCreate": true,
+          "layerAllowsUpdate": true,
+          "layerAllowsDelete": true,
+          "layerAllowGeometryUpdates": true
         },
         "disableGeometryUpdate": false,
         "allowUpdateOnly": false,
+        "allowDelete": false,
         "fieldInfos": [
           {
             "fieldName": "ACTIVATESMART",
@@ -21,56 +28,104 @@
           {
             "fieldName": "REQUIRED",
             "label": "Required",
-            "canPresetValue": false,
+            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "VISIBLE",
             "label": "Visible",
-            "canPresetValue": false,
+            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "DISABLED",
             "label": "Disabled",
-            "canPresetValue": false,
+            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "VALUE",
             "label": "Set a Value",
+            "canPresetValue": true,
+            "isEditable": true
+          },
+          {
+            "fieldName": "ActiveSmart1Hide",
+            "label": "Smart 1 - Hide",
             "canPresetValue": false,
             "isEditable": true
           },
           {
-            "fieldName": "PRESET1",
-            "label": "PRESET1",
+            "fieldName": "ActiveSmart1Required1",
+            "label": "Smart 1 - Req 1",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "ActiveSmart1Required2",
+            "label": "Smart 1 - Req 2",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "ActiveSmart1Disabled1",
+            "label": "Smart 1 - Disabled",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "GDBRequired",
+            "label": "GDBRequired",
             "canPresetValue": true,
             "isEditable": true
           },
           {
-            "fieldName": "PRESET2",
-            "label": "PRESET2",
+            "fieldName": "GDBRequiredCombi",
+            "label": "GDBRequiredCombi",
             "canPresetValue": true,
             "isEditable": true
           },
           {
-            "fieldName": "PRESET3",
-            "label": "PRESET3",
+            "fieldName": "GDBRequireRange",
+            "label": "GDBRequireRange",
             "canPresetValue": true,
             "isEditable": true
           },
           {
-            "fieldName": "PRESET4",
-            "label": "PRESET4",
+            "fieldName": "GDBRequiredDate",
+            "label": "GDBRequiredDate",
             "canPresetValue": true,
+            "isEditable": true
+          },
+          {
+            "fieldName": "ActiveSmart2Hide",
+            "label": "Smart 2 - Hide",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "ActiveSmart2Required1",
+            "label": "Smart 2 - Req 1",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "ActiveSmart2Disabled1",
+            "label": "Smart 2 - Disabled",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "ActiveSmart2Required2",
+            "label": "Smart 2 - Req 2",
+            "canPresetValue": false,
             "isEditable": true
           }
         ],
         "fieldValidations": {
-          "REQUIRED": [
-            {
-              "action": "Required",
+          "ActiveSmart1Hide": {
+            "Hide": {
+              "expression": "ACTIVATESMART = '1'",
               "filter": {
                 "logicalOperator": "AND",
                 "parts": [
@@ -85,21 +140,18 @@
                     "valueObj": {
                       "isValid": true,
                       "type": "value",
-                      "value": "Y"
+                      "value": "1"
                     },
                     "interactiveObj": "",
                     "caseSensitive": false,
-                    "expr": "ACTIVATESMART = 'Y'"
+                    "expr": "ACTIVATESMART = '1'"
                   }
                 ],
-                "expr": "ACTIVATESMART = 'Y'"
-              },
-              "order": 1
-            }
-          ],
-          "VISIBLE": [
-            {
-              "action": "Hide",
+                "expr": "ACTIVATESMART = '1'"
+              }
+            },
+            "Disabled": {
+              "expression": "ACTIVATESMART = '2'",
               "filter": {
                 "logicalOperator": "AND",
                 "parts": [
@@ -114,21 +166,20 @@
                     "valueObj": {
                       "isValid": true,
                       "type": "value",
-                      "value": "Y"
+                      "value": "2"
                     },
                     "interactiveObj": "",
                     "caseSensitive": false,
-                    "expr": "ACTIVATESMART = 'Y'"
+                    "expr": "ACTIVATESMART = '2'"
                   }
                 ],
-                "expr": "ACTIVATESMART = 'Y'"
-              },
-              "order": 0
+                "expr": "ACTIVATESMART = '2'"
+              }
             }
-          ],
-          "DISABLED": [
-            {
-              "action": "Disabled",
+          },
+          "ActiveSmart1Required1": {
+            "Hide": {
+              "expression": "ACTIVATESMART = '2'",
               "filter": {
                 "logicalOperator": "AND",
                 "parts": [
@@ -143,22 +194,369 @@
                     "valueObj": {
                       "isValid": true,
                       "type": "value",
-                      "value": "Y"
+                      "value": "2"
                     },
                     "interactiveObj": "",
                     "caseSensitive": false,
-                    "expr": "ACTIVATESMART = 'Y'"
+                    "expr": "ACTIVATESMART = '2'"
                   }
                 ],
-                "expr": "ACTIVATESMART = 'Y'"
-              },
-              "order": 2
+                "expr": "ACTIVATESMART = '2'"
+              }
+            },
+            "Required": {
+              "expression": "ACTIVATESMART = '1'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "ACTIVATESMART",
+                      "label": "ACTIVATESMART",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "1"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "ACTIVATESMART = '1'"
+                  }
+                ],
+                "expr": "ACTIVATESMART = '1'"
+              }
             }
-          ]
+          },
+          "ActiveSmart1Required2": {
+            "Hide": {
+              "expression": "ACTIVATESMART = '2'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "ACTIVATESMART",
+                      "label": "ACTIVATESMART",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "2"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "ACTIVATESMART = '2'"
+                  }
+                ],
+                "expr": "ACTIVATESMART = '2'"
+              }
+            },
+            "Required": {
+              "expression": "ACTIVATESMART = '1'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "ACTIVATESMART",
+                      "label": "ACTIVATESMART",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "1"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "ACTIVATESMART = '1'"
+                  }
+                ],
+                "expr": "ACTIVATESMART = '1'"
+              }
+            }
+          },
+          "ActiveSmart1Disabled1": {
+            "Hide": {
+              "expression": "ACTIVATESMART = '2'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "ACTIVATESMART",
+                      "label": "ACTIVATESMART",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "2"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "ACTIVATESMART = '2'"
+                  }
+                ],
+                "expr": "ACTIVATESMART = '2'"
+              }
+            },
+            "Disabled": {
+              "expression": "ACTIVATESMART = '1'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "ACTIVATESMART",
+                      "label": "ACTIVATESMART",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "1"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "ACTIVATESMART = '1'"
+                  }
+                ],
+                "expr": "ACTIVATESMART = '1'"
+              }
+            }
+          },
+          "ActiveSmart2Hide": {
+            "Hide": {
+              "expression": "ACTIVATESMART = '2'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "ACTIVATESMART",
+                      "label": "ACTIVATESMART",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "2"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "ACTIVATESMART = '2'"
+                  }
+                ],
+                "expr": "ACTIVATESMART = '2'"
+              }
+            },
+            "Disabled": {
+              "expression": "ACTIVATESMART = '1'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "ACTIVATESMART",
+                      "label": "ACTIVATESMART",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "1"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "ACTIVATESMART = '1'"
+                  }
+                ],
+                "expr": "ACTIVATESMART = '1'"
+              }
+            }
+          },
+          "ActiveSmart2Required1": {
+            "Hide": {
+              "expression": "ACTIVATESMART = '1'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "ACTIVATESMART",
+                      "label": "ACTIVATESMART",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "1"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "ACTIVATESMART = '1'"
+                  }
+                ],
+                "expr": "ACTIVATESMART = '1'"
+              }
+            },
+            "Required": {
+              "expression": "ACTIVATESMART = '2'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "ACTIVATESMART",
+                      "label": "ACTIVATESMART",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "2"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "ACTIVATESMART = '2'"
+                  }
+                ],
+                "expr": "ACTIVATESMART = '2'"
+              }
+            }
+          },
+          "ActiveSmart2Required2": {
+            "Hide": {
+              "expression": "ACTIVATESMART = '1'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "ACTIVATESMART",
+                      "label": "ACTIVATESMART",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "1"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "ACTIVATESMART = '1'"
+                  }
+                ],
+                "expr": "ACTIVATESMART = '1'"
+              }
+            },
+            "Required": {
+              "expression": "ACTIVATESMART = '2'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "ACTIVATESMART",
+                      "label": "ACTIVATESMART",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "2"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "ACTIVATESMART = '2'"
+                  }
+                ],
+                "expr": "ACTIVATESMART = '2'"
+              }
+            }
+          },
+          "ActiveSmart2Disabled1": {
+            "Hide": {
+              "expression": "ACTIVATESMART = '1'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "ACTIVATESMART",
+                      "label": "ACTIVATESMART",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "1"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "ACTIVATESMART = '1'"
+                  }
+                ],
+                "expr": "ACTIVATESMART = '1'"
+              }
+            },
+            "Disabled": {
+              "expression": "ACTIVATESMART = '2'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "ACTIVATESMART",
+                      "label": "ACTIVATESMART",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "2"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "ACTIVATESMART = '2'"
+                  }
+                ],
+                "expr": "ACTIVATESMART = '2'"
+              }
+            }
+          }
         }
       }
-    ],
-    "displayPromptOnSave": false,
-    "displayPromptOnDelete": false
+    ]
   }
 }

@@ -56,19 +56,24 @@
 
         .jimu-widget-smartEditor .esriAttributeInspector .atiNavButtons {
             position: absolute;
-            top: 5px;
-            right: 10px;
+            top: -18px;
+            right: 0;
+
         }
 
         .jimu-widget-smartEditor .esriAttributeInspector .asteriskIndicator {
             color: red;
         }
 
-        .jimu-widget-smartEditor .esriAttributeInspector .deleteButton,
-        .jimu-widget-smartEditor .esriAttributeInspector .validateButton {
+        
+        .jimu-widget-smartEditor .esriAttributeInspector .saveButton {
             float: right;
         }
-
+          .jimu-widget-smartEditor .esriAttributeInspector .deleteButton
+        {
+            float: right;
+            margin-right:20px;
+        }
     /*********about preset values table*********/
 
     .jimu-widget-smartEditor .ee-presetValueTableDiv {
@@ -132,13 +137,17 @@
         left: 0;
         overflow: hidden;
         background:  rgba(224,224,224,0.65);
+        height: 100%;
+        width: 100%;
+        
+            background-position: center center;
+            background-image: url(../images/busy.gif);
+            background-repeat: no-repeat;
     }
 
         .jimu-widget-smartEditor .processing-indicator.busy {
             display: block;
-            background-position: center center;
-            background-image: url(../images/busy.gif);
-            background-repeat: no-repeat;
+
         }
 
     .jimu-widget-smartEditor .updateOnlyText {

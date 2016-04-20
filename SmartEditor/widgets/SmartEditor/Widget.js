@@ -24,12 +24,11 @@ define([
     'dojo/dom-construct',
     'dojo/dom-class',
     'dojo/on',
+    'dojo/json',
     'dijit/_WidgetsInTemplateMixin',
     'jimu/BaseWidget',
     'jimu/LayerInfos/LayerInfos',
-    'jimu/filterUtils',
     "esri/dijit/editing/TemplatePicker",
-
     "esri/dijit/AttributeInspector",
     "esri/toolbars/draw",
     "esri/toolbars/edit",
@@ -45,8 +44,8 @@ define([
     "esri/Color",
     "esri/geometry/jsonUtils",
     "dijit/registry",
-
     "./utils",
+     "./smartAttributes",
     "dijit/form/CheckBox",
     'dijit/form/DateTextBox',
     'dijit/form/NumberSpinner',
@@ -54,15 +53,16 @@ define([
     'dijit/form/FilteringSelect',
     'dijit/form/TextBox',
     'dijit/form/TimeTextBox',
-    'dojo/store/Memory'
+    'dojo/store/Memory',
+    'dojo/date/stamp'
 ],
   function (declare, lang, array, html, query, esriBundle, domConstruct,
-    domClass, on, _WidgetsInTemplateMixin,
-    BaseWidget, LayerInfos, filterUtils, TemplatePicker,
+    domClass, on, JSON, _WidgetsInTemplateMixin,
+    BaseWidget, LayerInfos, TemplatePicker,
     AttributeInspector, Draw, Edit, Query, Graphic, FeatureLayer, ConfirmDialog, all, Deferred,
     SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, Color, geometryJsonUtil, registry,
-    editUtils, CheckBox, DateTextBox, NumberSpinner, NumberTextBox,
-    FilteringSelect, TextBox, TimeTextBox, Memory) {
+    editUtils, smartAttributes, CheckBox, DateTextBox, NumberSpinner, NumberTextBox,
+    FilteringSelect, TextBox, TimeTextBox, Memory, dojoStamp) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
       name: 'SmartEditor',
       baseClass: 'jimu-widget-smartEditor',
@@ -70,8 +70,7 @@ define([
       _defaultAddPointStr: "",
       _jimuLayerInfos: null,
       _configEditor: null,
-
-      //_presetFieldInfos: null, // may be used if want to write out
+      _mapClick: null,
       _presetFieldsTable: null,
       settings: null,
       templatePicker: null,
@@ -87,7 +86,10 @@ define([
       _editingEnabled: false,
       _usePresetValues: false,
       _creationDisabledOnAll: false,
-      OPERATORS: null,
+      _configNotEditable: null,
+      _gdbRequired: null,
+      _layersWithGeometryDisabled: null,
+      _editGeomSwitch: null,
       postCreate: function () {
         this.inherited(arguments);
         this._init();
@@ -98,15 +100,35 @@ define([
         LayerInfos.getInstance(this.map, this.map.itemInfo)
         .then(lang.hitch(this, function (operLayerInfos) {
           this._jimuLayerInfos = operLayerInfos;
-          //setTimeout(lang.hitch(this, function () {
-          //  this._createEditor();
-          //}), 10);
           this._createEditor();
-          this._filterUtils = new filterUtils();
-          this.OPERATORS = lang.clone(this._filterUtils.OPERATORS);
+
+          this._allowGeometryEdits(this.settings.layerInfos);
         }));
       },
+      _mapClickHandler: function (create) {
 
+        if (create === true && this._attrInspIsCurrentlyDisplayed === false) {
+          this.map.setInfoWindowOnClick(false);
+          this._mapClick = on(this.map, "click", lang.hitch(this, this._onMapClick));
+
+        }
+        else if (create === true && this._attrInspIsCurrentlyDisplayed === true) {
+          this.map.setInfoWindowOnClick(true);
+          if (this._mapClick) {
+
+            this._mapClick.remove();
+            this._mapClick = null;
+          }
+        }
+        else {
+          if (this._mapClick) {
+
+            this._mapClick.remove();
+            this._mapClick = null;
+          }
+          this.map.setInfoWindowOnClick(true);
+        }
+      },
       destroy: function () {
         this.inherited(arguments);
 
@@ -133,24 +155,18 @@ define([
 
       onActive: function () {
         if (this.map) {
-          this.map.setInfoWindowOnClick(false);
+          this._mapClickHandler(true);
         }
 
       },
 
       onDeActive: function () {
         if (this.map) {
-          this.map.setInfoWindowOnClick(true);
+          this._mapClickHandler(false);
         }
       },
 
       onOpen: function () {
-        if (this._attrInspIsCurrentlyDisplayed) {
-          this.map.setInfoWindowOnClick(true);
-        } else {
-          this.map.setInfoWindowOnClick(false);
-        }
-
         this._update();
       },
 
@@ -162,10 +178,12 @@ define([
             break;
           case "esriGeometryPolyline":
           case "esriGeometryPolygon":
+            /*jslint bitwise: true*/
             this.editToolbar.activate(Edit.EDIT_VERTICES |
                                  Edit.MOVE |
                                  Edit.ROTATE |
                                  Edit.SCALE, feature);
+            /*jslint bitwise: false*/
             break;
         }
       },
@@ -174,7 +192,7 @@ define([
       _addGraphicToLocalLayer: function (evt) {
         if (!this.templatePicker.getSelected()) { return; }
 
-        var newAttributes = dojo.clone(this.templatePicker.getSelected().template.prototype.attributes);
+        var newAttributes = lang.clone(this.templatePicker.getSelected().template.prototype.attributes);
         if (this._usePresetValues) {
           this._modifyAttributesWithPresetValues(newAttributes);
         }
@@ -211,7 +229,8 @@ define([
 
           this.currentFeature = this.updateFeatures[0] = newGraphic;
           this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
-          this._checkFieldState();
+          //this._createSmartAttributes();
+          //this._validateAttributeInspector();
           this._enableAttrInspectorSaveButton(true);
         }));
 
@@ -223,21 +242,17 @@ define([
         if (!this.currentFeature) { return; }
 
         if (showTemplatePicker) {
-          // if local layer
-          //if (this.currentFeature.getLayer().originalLayerId) {
-          //  this.currentFeature.getLayer().clear();
-          //}
-          //else {
-          //  array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
-          //    feature.getLayer().clearSelection().refresh();
-          //  }));
-          //}
+
           this._showTemplate(true);
         } else { // show attr inspector
 
           // restore attributes & geometry
-          this.currentFeature.attributes = this.currentFeature.preEditAttrs;
-          this.currentFeature.geometry = geometryJsonUtil.fromJson(this.currentFeature.origGeom);
+          if (this.currentFeature.preEditAttrs) {
+            this.currentFeature.attributes = this.currentFeature.preEditAttrs;
+          }
+          if (this.currentFeature.origGeom) {
+            this.currentFeature.geometry = geometryJsonUtil.fromJson(this.currentFeature.origGeom);
+          }
           this.currentFeature.getLayer().refresh();
           this.attrInspector.refresh();
 
@@ -266,33 +281,7 @@ define([
             }
           }
         }
-
-        //return fieldInfos;
       },
-      //_processFieldInfos: function (fieldInfos) {
-
-      //  array.forEach(fieldInfos, function (fieldInfo) {
-      //    if (fieldInfo && fieldInfo.format && fieldInfo.format !==
-      //    null) {
-      //      if (fieldInfo.format.dateFormat && fieldInfo.format.dateFormat !==
-      //        null) {
-      //        if (fieldInfo.format.dateFormat ===
-      //          "shortDateShortTime" ||
-      //          fieldInfo.format.dateFormat ===
-      //          "shortDateLongTime" ||
-      //          fieldInfo.format.dateFormat ===
-      //          "shortDateShortTime24" ||
-      //          fieldInfo.format.dateFormat ===
-      //          "shortDateLEShortTime" ||
-      //          fieldInfo.format.dateFormat ===
-      //          "shortDateLEShortTime24") {
-      //          fieldInfo.format.time = true;
-      //        }
-      //      }
-      //    }
-      //  });
-      //  //return fieldInfos;
-      //},
 
       _processLayerFields: function (fields) {
         //Function required to add the Range details to a range domain so the layer can be cloned
@@ -301,8 +290,8 @@ define([
           if (field.domain !== undefined && field.domain !== null) {
             if (field.domain.type !== undefined && field.domain.type !== null) {
               if (field.domain.type === 'range') {
-                if (field.domain.hasOwnProperty('range') == false) {
-                  field.domain.range = [field.domain.minValue, field.domain.maxValue]
+                if (field.domain.hasOwnProperty('range') === false) {
+                  field.domain.range = [field.domain.minValue, field.domain.maxValue];
                 }
               }
             }
@@ -317,7 +306,7 @@ define([
           for (var i = 0; collection[i]; i++) {
             f(collection[i], i);
           }
-        }
+        };
       },
       _cloneLayer: function (layer) {
         var cloneFeaturelayer;
@@ -355,7 +344,7 @@ define([
         var outFields = layer.fields.map(function (f) {
           return f.name;
         });
-        //outFields = ["*"]
+
         cloneFeaturelayer = new FeatureLayer(featureCollection, {
           id: layer.id + "_lfl",
           outFields: outFields
@@ -376,276 +365,107 @@ define([
       _endsWith: function (str, suffix) {
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
       },
-      _processFieldValidationPart: function (operator, field, value, caseSensitive) {
+      _validateAttributes: function () {
+        var rowsWithGDBRequiredFieldErrors = this._validateRequiredFields()
+        var rowsWithSmartErrors = [];
 
-        if (operator.lastIndexOf('string', 0) === 0) {
-          if (caseSensitive == false) {
-            if (field !== undefined && field !== null) {
-              field = String(field).toUpperCase();
-            }
-            if (value !== undefined && value !== null) {
-              value = String(value).toUpperCase();
-            }
+        if (this._smartAttributes !== undefined) {
+          if (this._smartAttributes !== null) {
 
+            rowsWithSmartErrors = this._smartAttributes.toggleFields();
           }
         }
-        switch (operator) {
-          case this.OPERATORS.stringOperatorIs:
+        return (editUtils.isObjectEmpty(rowsWithGDBRequiredFieldErrors) && rowsWithSmartErrors.length === 0);
 
-            if (field == value) {
-              return true;
-            }
-            break;
-          case this.OPERATORS.stringOperatorIsNot:
-            if (field != value) {
-              return true;
-            }
-            break;
-          case this.OPERATORS.stringOperatorStartsWith:
-            if (field.lastIndexOf(value, 0) === 0) {
-              return true;
-            }
-
-            break;
-          case this.OPERATORS.stringOperatorEndsWith:
-            return this._endsWith(field, value);
-            break;
-          case this.OPERATORS.stringOperatorContains:
-            break;
-          case this.OPERATORS.stringOperatorDoesNotContain:
-            break;
-          case this.OPERATORS.stringOperatorIsBlank:
-            if (field === null || field === undefined) {
-              return true;
-            }
-            break;
-          case this.OPERATORS.stringOperatorIsNotBlank:
-            if (field !== null && field !== undefined) {
-              return true;
-            }
-
-            break;
-          case this.OPERATORS.numberOperatorIs:
-            if (field == value) {
-              return true;
-            }
-            break;
-          case this.OPERATORS.numberOperatorIsNot:
-            if (field != value) {
-              return true;
-            }
-            break;
-          case this.OPERATORS.numberOperatorIsAtLeast:
-            break;
-          case this.OPERATORS.numberOperatorIsLessThan:
-            break;
-          case this.OPERATORS.numberOperatorIsAtMost:
-            break;
-          case this.OPERATORS.numberOperatorIsGreaterThan:
-            break;
-          case this.OPERATORS.numberOperatorIsBetween:
-            break;
-          case this.OPERATORS.numberOperatorIsNotBetween:
-            break;
-          case this.OPERATORS.numberOperatorIsBlank:
-            if (field === null || field === undefined) {
-              return true;
-            }
-            break;
-          case this.OPERATORS.numberOperatorIsNotBlank:
-            if (field !== null && field !== undefined) {
-              return true;
-            }
-
-            break;
-          case this.OPERATORS.dateOperatorIsOn:
-            break;
-          case this.OPERATORS.dateOperatorIsNotOn:
-            break;
-          case this.OPERATORS.dateOperatorIsBefore:
-            break;
-          case this.OPERATORS.dateOperatorIsAfter:
-            break;
-          case this.OPERATORS.dateOperatorIsBetween:
-            break;
-          case this.OPERATORS.dateOperatorIsNotBetween:
-            break;
-          case this.OPERATORS.dateOperatorIsBlank:
-            if (field === null || field === undefined) {
-              return true;
-            }
-
-            break;
-          case this.OPERATORS.dateOperatorIsNotBlank:
-            if (field !== null && field !== undefined) {
-              return true;
-            }
-
-            break;
-          case this.OPERATORS.dateOperatorDays:
-            break;
-          case this.OPERATORS.dateOperatorWeeks:
-            break;
-          case this.OPERATORS.dateOperatorMonths:
-            break;
-          case this.OPERATORS.dateOperatorInTheLast:
-            break;
-          case this.OPERATORS.dateOperatorNotInTheLast:
-
-            break;
-          default:
-            return false;
-            break;
-        }
-        return false;
       },
-      _checkFieldState: function () {
-        var attTable = dojo.query("td.atiLabel", this.attrInspector.domNode)
-
-        var fieldValidation = null;
-
-        if (this.currentLayerInfo !== undefined && this.currentLayerInfo !== null) {
-          if (this.currentLayerInfo.fieldValidations !== undefined && this.currentLayerInfo.fieldValidations !== null) {
-            fieldValidation = this.currentLayerInfo.fieldValidations;
-          }
-        }
-        if (fieldValidation == null) {
+      _toggleEditGeoSwitch: function (layerID) {
+        if (this._editGeomSwitch === undefined || this._editGeomSwitch === null) {
           return;
         }
-
-
-        var actionType = null;
-        this.currentFeature.getLayer().fields.forEach(lang.hitch(this, function (field) {
-          actionType = null;
-          if (fieldValidation.hasOwnProperty(field.name)) {
-
-
-            for (var actionDetails in fieldValidation[field.name]) {
-              if (fieldValidation[field.name].hasOwnProperty(actionDetails)) {
-                var filter = fieldValidation[field.name][actionDetails].filter;
-
-                var partResults = [];
-                array.forEach(filter.parts, function (part) {
-                  if (part.hasOwnProperty('parts')) {
-
-                  }
-                  else {
-                    switch (part.valueObj.type) {
-                      case 'value':
-                        partResults.push(this._processFieldValidationPart(part.operator, this.currentFeature.attributes[part.fieldObj.name], part.valueObj.value, part.caseSensitive));
-                        break;
-                      case 'field':
-
-                        partResults.push(this._processFieldValidationPart(part.operator, this.currentFeature.attributes[part.fieldObj.name], this.currentFeature.attributes[part.valueObj.value], part.caseSensitive));
-                        break;
-                      default:
-                        break;
-                    }
-                  }
-                }, this);
-
-                var performAction = false;
-                var logOp = 'OR';
-                if (filter.hasOwnProperty('logicalOperator')) {
-                  logOp = filter.logicalOperator;
-                }
-                array.some(partResults, function (result) {
-
-                  if (logOp === 'OR') {
-                    if (result == true) {
-                      performAction = true;
-                      return true;
-                    }
-                    else {
-                      performAction = false;
-                    }
-                  } else {
-                    if (result == false) {
-                      performAction = false;
-                      return true;
-                    } else {
-                      performAction = true;
-                    }
-                  }
-                });
-                if (performAction) {
-                  actionType = fieldValidation[field.name][actionDetails].action
-                  break;
-                }
-              }
+        if (this._layersWithGeometryDisabled !== undefined &&
+            this._layersWithGeometryDisabled !== null) {
+          if (this._layersWithGeometryDisabled.length > 0) {
+            if (this._layersWithGeometryDisabled.some(function (layer) { return (layer == layerID); })) {
+              dojo.style(this._editGeomSwitch.domNode.parentNode, "display", "none");
+              this._turnEditGeometryToggleOff();
 
             }
-          }
-          this._toggleFieldOnAttributeInspector(field.alias, actionType, attTable);
-        }));
-
-
-      },
-      _toggleFieldOnAttributeInspector: function (fieldName, actionType, attTable) {
-        if (attTable === null) {
-          attTable = dojo.query("td.atiLabel", this.attrInspector.domNode)
-        }
-
-        if (attTable.length > 0) {
-          row = attTable.filter(lang.hitch(this, function (row) {
-            return row.childNodes[0].data == fieldName;
-          }))
-          if (row !== null) {
-            if (row.length > 0) {
-              var valueCell = row[0].parentNode.childNodes[1].childNodes[0]
-              var parent = row[0].parentNode;
-              var labelCell = row[0];
-              switch (actionType) {
-                case 'Hide':
-                  domClass.add(parent, "hideField");
-                  break;
-                case 'Disabled':
-                  domClass.add(valueCell, ["dijitValidationTextBox","dijitTextBoxDisabled","dijitComboBoxDisabled","dijitValidationTextBoxDisabled","dijitDisabled"]);
-                  
-                  break;
-                case 'Required':
-                  if (row[0].childNodes.length === 1) {
-                    var newA = document.createElement('a');
-                    newA.setAttribute('class', "asteriskIndicator");
-                    newA.innerHTML = " *";
-                    row[0].appendChild(newA);
-                    
-                    
-                  }
-                  break;
-                case 'Value':
-                  break;
-                default:
-                  if (row[0].childNodes.length > 1) {
-                    if (this._gdbRequired.indexOf(fieldName) == -1 ) {
-                      row[0].removeChild(row[0].childNodes[1]);
-                    }
-                  }
-                  if (domClass.contains(parent, "hideField")) {
-                    domClass.remove(parent  , "hideField");
-                  }
-                  
-                  if (domClass.contains(valueCell, "dijitTextBoxDisabled")) {
-                    domClass.remove(valueCell, "dijitTextBoxDisabled");
-                  }
-                  if (domClass.contains(valueCell, "dijitComboBoxDisabled")) {
-                    domClass.remove(valueCell, "dijitComboBoxDisabled");
-                  }
-                  if (domClass.contains(valueCell, "dijitValidationTextBoxDisabled")) {
-                    domClass.remove(valueCell, "dijitValidationTextBoxDisabled");
-                  }
-                  if (domClass.contains(valueCell, "dijitDisabled")) {
-                    domClass.remove(valueCell, "dijitDisabled");
-                  }
-                
-              }
-
+            else {
+              dojo.style(this._editGeomSwitch.domNode.parentNode, "display", "block");
+              this._turnEditGeometryToggleOff();
             }
           }
-
+          else {
+            dojo.style(this._editGeomSwitch.domNode.parentNode, "display", "block");
+            this._turnEditGeometryToggleOff();
+          }
+        } else {
+          dojo.style(this._editGeomSwitch.domNode.parentNode, "display", "block");
+          this._turnEditGeometryToggleOff();
         }
       },
+      _allowGeometryEdits: function (layerInfos) {
+
+        this._layersWithGeometryDisabled = [];
+        array.forEach(layerInfos, function (layerInfo) {
+
+          if (layerInfo.disableGeometryUpdate === undefined ||
+            layerInfo.disableGeometryUpdate === null) {
+            //do nothing
+          }
+          else if (layerInfo.disableGeometryUpdate === true) {
+
+            this._layersWithGeometryDisabled.push(layerInfo.featureLayer.id);
+          }
+
+
+        }, this);
+
+      },
+      _attributeInspectorChangeRecord: function (evt) {
+        if (this._isDirty && this.currentFeature) {
+          // do not show templatePicker after saving
+          this._promptToResolvePendingEdit(false).then(lang.hitch(this, function () {
+
+            if (this.updateFeatures && this.updateFeatures.length > 1) {
+              array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
+                feature.setSymbol(this._getSelectionSymbol(feature.getLayer().geometryType, false));
+              }));
+            }
+
+            if (evt.feature) {
+              this.currentFeature = evt.feature;
+              this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
+              this._createSmartAttributes();
+              this._enableAttrInspectorSaveButton(this._validateAttributes());
+              this.currentFeature.setSymbol(
+                this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
+            }
+
+          }));
+        } else {
+
+          if (this.updateFeatures && this.updateFeatures.length > 1) {
+            array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
+              feature.setSymbol(this._getSelectionSymbol(feature.getLayer().geometryType, false));
+            }));
+          }
+
+          if (evt.feature) {
+            this.currentFeature = evt.feature;
+            this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
+            this._createSmartAttributes();
+            this._enableAttrInspectorSaveButton(this._validateAttributes());
+            this.currentFeature.setSymbol(
+              this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
+          }
+        }
+        //var layerID = (this.currentFeature.getLayer().hasOwnProperty(originalLayerId) ? feature.getLayer().originalLayerId : feature.getLayer().id);
+        this._toggleEditGeoSwitch(this.currentLayerInfo);
+      },
+
       _createAttributeInspector: function (layerInfos) {
+
         query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
         var attrInspector = new AttributeInspector({
           layerInfos: layerInfos
@@ -658,18 +478,30 @@ define([
         attrInspector.placeAt(this.attributeInspectorNode);
         attrInspector.startup();
 
-        // edit geometry toggle button
-        var editGeomSwitch = new CheckBox({
-          id: "editGeometrySwitch"
-        }, domConstruct.create("div"));
+        if (this._layersWithGeometryDisabled.length !== this.settings.layerInfos.length) {
 
-        domConstruct.place(domConstruct.create("div", { "class": "spacer" }),
-          attrInspector.deleteBtn.domNode, "before");
-        domConstruct.place(editGeomSwitch.domNode, attrInspector.deleteBtn.domNode, "before");
-        domConstruct.place(lang.replace(
-          "<label for='editGeometrySwitch'>{replace}</label></br></br>",
-          { replace: this.nls.editGeometry }), editGeomSwitch.domNode, "after");
+          //domConstruct.place(domConstruct.create("div", { "class": "spacer" }),
+          // attrInspector.deleteBtn.domNode, "before");
 
+          this.editSwitchDiv = domConstruct.create("div");
+          this.editSwitchDiv.appendChild(domConstruct.create("div", { "class": "spacer" }));
+          // edit geometry toggle button
+          this._editGeomSwitch = new CheckBox({
+            id: "editGeometrySwitch",
+            value: this.nls.editGeometry
+          }, null);
+
+          this.editSwitchDiv.appendChild(this._editGeomSwitch.domNode);
+
+          domConstruct.place(lang.replace(
+           "<label for='editGeometrySwitch'>{replace}</label></br></br>",
+           { replace: this.nls.editGeometry }), this._editGeomSwitch.domNode, "after");
+
+          domConstruct.place(this.editSwitchDiv, attrInspector.deleteBtn.domNode, "before");
+
+          this.own(on(this._editGeomSwitch, 'Change', lang.hitch(this, this._editGeometry)));
+
+        }
         //add close/cancel/switch to template button
         var cancelButton = domConstruct.create("div", {
           innerHTML: this.nls.cancel,
@@ -677,9 +509,9 @@ define([
         }, attrInspector.deleteBtn.domNode, "after");
 
         // save button
-        var validateButton = domConstruct.create("div", {
+        var saveButton = domConstruct.create("div", {
           innerHTML: this.nls.submit,
-          "class": "validateButton jimu-btn jimu-state-disabled"
+          "class": "saveButton jimu-btn jimu-state-disabled"
         }, cancelButton, "after");
 
         // create delete button if specified in the config
@@ -688,7 +520,8 @@ define([
             var deleteButton = domConstruct.create("div", {
               innerHTML: this.nls.del,
               "class": "deleteButton jimu-btn"
-            }, query(".jimu-widget-smartEditor .topButtonsRowDiv")[0], "first");
+            }, saveButton, "after");
+            // query(".jimu-widget-smartEditor .topButtonsRowDiv")[0], "first");
 
             on(deleteButton, "click", lang.hitch(this, function () {
               //if (this.currentFeature) {
@@ -698,8 +531,8 @@ define([
 
               if (this._configEditor.displayPromptOnDelete) {
                 var confirmDialog = new ConfirmDialog({
-                  title: "Delete feature",
-                  content: "Are you sure you want to delete the selected feature?",
+                  title: this.nls.deletePromptTitle,
+                  content: this.nls.deletePrompt,
                   style: "width: 400px",
                   onExecute: lang.hitch(this, function () {
                     this._deleteFeature();
@@ -725,13 +558,11 @@ define([
           } else {
             this._cancelEditingFeature(true);
           }
-          //if (this.templatePicker) {
-          //  this.templatePicker.clearSelection();
-          //}
+
           this._activateTemplateToolbar();
         })));
 
-        this.own(on(validateButton, "click", lang.hitch(this, function () {
+        this.own(on(saveButton, "click", lang.hitch(this, function () {
           if (!this._isDirty) {
             this._resetEditingVariables();
             return;
@@ -744,7 +575,6 @@ define([
         })));
 
         // edit geometry checkbox event
-        this.own(on(editGeomSwitch, 'Change', lang.hitch(this, this._editGeometry)));
 
         // attribute inspector events
         this.own(on(attrInspector, "attribute-change", lang.hitch(this, function (evt) {
@@ -753,57 +583,25 @@ define([
 
             this.currentFeature.attributes[evt.fieldName] = evt.fieldValue;
             this._isDirty = true;
-            this._enableAttrInspectorSaveButton(true);
-            this._checkFieldState();
+
+            this._enableAttrInspectorSaveButton(this._validateAttributes());
           }
         })));
 
 
         this.own(on(attrInspector, "next", lang.hitch(this, function (evt) {
-          // in case multiple featuers are selected, 
-          if (this._isDirty && this.currentFeature) {
-            // do not show templatePicker after saving
-            this._promptToResolvePendingEdit(false).then(lang.hitch(this, function () {
-
-              if (this.updateFeatures && this.updateFeatures.length > 1) {
-                array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
-                  feature.setSymbol(this._getSelectionSymbol(feature.getLayer().geometryType, false));
-                }));
-              }
-
-              if (evt.feature) {
-                this.currentFeature = evt.feature;
-                this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
-                this._checkFieldState();
-                this.currentFeature.setSymbol(
-                  this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
-              }
-            }));
-          } else {
-
-            if (this.updateFeatures && this.updateFeatures.length > 1) {
-              array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
-                feature.setSymbol(this._getSelectionSymbol(feature.getLayer().geometryType, false));
-              }));
-            }
-
-            if (evt.feature) {
-              this.currentFeature = evt.feature;
-              this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
-              this._checkFieldState();
-              this.currentFeature.setSymbol(
-                this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
-            }
-          }
+          this._attributeInspectorChangeRecord(evt);
 
         })));
 
-        //remove default delete button
-        // get the default del button
-        var delButton = query(".atiButtons .atiDeleteButton", attrInspector.domNode)[0];
-        if (delButton) {
-          delButton.remove();
-        }
+        ////remove default delete button
+        //// get the default del button
+        //var delButton = query(".atiButtons .atiDeleteButton", attrInspector.domNode)[0];
+        //if (delButton) {
+        //  delButton.style.display = "none";
+        //  //domClass.add(this.selectedTemplate, "selectedItem");
+        //  //delButton.remove();
+        //}
 
         return attrInspector;
       },
@@ -835,14 +633,12 @@ define([
       _createEditor: function () {
         this.settings = this._getSettingsParam();
         var layers = this._getEditableLayers(this.settings.layerInfos, false);
-        //this.allSelectedLayers = this._getEditableLayers(this.settings.layerInfos, true);
 
         this._workBeforeCreate();
 
         this.editToolbar = new Edit(this.map);
 
-        on(this.map, "click", lang.hitch(this, this._onMapClick));
-        //esriBundle.widgets.templatePicker.creationDisabled = this.nls.updateOnly;
+
         //create template picker
         this.templatePicker = new TemplatePicker({
           featureLayers: layers,
@@ -853,7 +649,6 @@ define([
           columns: "auto",
           rows: "auto"
         }, this.templatePickerNode);
-        //this.templatePicker.placeAt(this.templatePickerNode);
         this.templatePicker.startup();
 
         this.drawToolbar = new Draw(this.map);
@@ -865,7 +660,9 @@ define([
         this.own(on(this.editToolbar,
           "graphic-move-stop, rotate-stop, scale-stop, vertex-move-stop, vertex-click",
           lang.hitch(this, function () {
-            this._enableAttrInspectorSaveButton(true);
+
+            this._enableAttrInspectorSaveButton(this._validateAttributes());
+            //this._enableAttrInspectorSaveButton(true);
             this._isDirty = true;
           })));
 
@@ -890,9 +687,6 @@ define([
         }
 
         this._showTemplate(true);
-
-        // add a process indicator node
-        //domConstruct.place("<div class='smartEditor-processing-indicator'></div>", document.body, "last");
       },
 
       _createPresetFieldContentNode: function (fieldInfo) {
@@ -942,7 +736,7 @@ define([
 
               nodes.push(node.domNode);
 
-              // 
+              //
               var timeNode = new TimeTextBox({
                 "class": "ee-inputField"
               }, domConstruct.create("div"));
@@ -1048,7 +842,7 @@ define([
       },
 
       _enableAttrInspectorSaveButton: function (enable) {
-        var saveBtn = query(".validateButton")[0];
+        var saveBtn = query(".saveButton")[0];
         if (!saveBtn) { return; }
 
         if (enable) {
@@ -1061,18 +855,20 @@ define([
           }
         }
       },
+
       _getLayerInfoByID: function (id) {
 
         if (id.indexOf("_lfl") > 0) {
           id = id.replace("_lfl", "");
         }
         var result = null;
-        var layerFound = this.settings.layerInfos.some(function (lyrinfo) {
+        this.settings.layerInfos.some(function (lyrinfo) {
           return lyrinfo.featureLayer.id === id ? ((result = lyrinfo), true) : false;
         });
         return result;
 
       },
+
       _fillPresetValueTable: function () {
         var presetFieldInfos = [];
 
@@ -1101,7 +897,7 @@ define([
                       });
                       break;
                     }
-                  } // 
+                  } //
                 }
 
                 // or add to the collection if new
@@ -1145,7 +941,7 @@ define([
         var firstErrorFieldIndex = -1;
         for (var prop in errObject) {
           if (errObject.hasOwnProperty(prop)) {
-            // loop throug each row in the attrInspector 
+            // loop throug each row in the attrInspector
             for (var i = 0; i < list.length; i++) {
               //if (list[i].firstChild.innerText.toUpperCase() === prop.toUpperCase()) {
               if (list[i].firstChild.innerText.indexOf(prop) === 0) {
@@ -1187,24 +983,32 @@ define([
 
       _getLayerInfoForLocalLayer: function (localLayer) {
 
-        var result = this._getLayerInfoByID(localLayer.originalLayerId)
+        var result = this._getLayerInfoByID(localLayer.originalLayerId);
 
         var layerInfo;
         var fieldInfos;
         //var layerObject = this.map.getLayer(localLayer.originalLayerId);
         if (result !== null) {//(layerObject.type === "Feature Layer" && layerObject.url) {
           // get the fieldInfos
-          layerInfo = {
-            featureLayer: localLayer,
-            disableGeometryUpdate: false
-          };
+          layerInfo = {};
+          for (var k in result) {
+            if (result.hasOwnProperty(k) && k != 'featureLayer') {
+              layerInfo[k] = lang.clone(result[k]);
+            }
+          }
 
-          fieldInfos = lang.clone(result.fieldInfos);
+          layerInfo.featureLayer = localLayer;
+          //layerInfo = {
+          //  featureLayer: localLayer,
+          //  disableGeometryUpdate: false
+          //};
+
+          //fieldInfos = lang.clone(result.fieldInfos);
           //fieldInfos = this._processFieldInfos(fieldInfos);
           //  this._getDefaultFieldInfos(layerObject.id);
-          if (fieldInfos && fieldInfos.length > 0) {
-            layerInfo.fieldInfos = fieldInfos;
-          }
+          // if (fieldInfos && fieldInfos.length > 0) {
+          //  layerInfo.fieldInfos = fieldInfos;
+          //}
 
           // modify field infos
           //this._modifyFieldInfosForEE(layerInfo);
@@ -1217,7 +1021,7 @@ define([
         var selectionSymbol;
         switch (geometryType) {
           case "esriGeometryPoint":
-            if (highlight == true) {
+            if (highlight === true) {
               selectionSymbol = new SimpleMarkerSymbol(SimpleMarkerSymbol.STYLE_CIRCLE,
                                 20,
                                 new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
@@ -1232,9 +1036,9 @@ define([
             }
             break;
           case "esriGeometryPolyline":
-            if (highlight == true) {
+            if (highlight === true) {
               selectionSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
-                                    new Color([0, 255, 255, .65]), 2);
+                                    new Color([0, 255, 255, 0.65]), 2);
             } else {
               selectionSymbol = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
                                     new Color([0, 230, 169, 0.65]), 2);
@@ -1242,7 +1046,7 @@ define([
             break;
           case "esriGeometryPolygon":
             var line;
-            if (highlight == true) {
+            if (highlight === true) {
               selectionSymbol = new SimpleFillSymbol().setColor(new Color([0, 230, 169, 0.65]));
               line = new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID,
               new Color([192, 192, 192, 1]), 2);
@@ -1322,7 +1126,7 @@ define([
                 var timeElement = query(".dijitTimeTextBox", ele.parentNode)[0];
                 // retrieve the value
                 var timeStr = query("input[type='hidden']", timeElement)[0].value;
-                dateTime = dojo.date.stamp.fromISOString(
+                dateTime = dojoStamp.fromISOString(
                   element[0].value + timeStr);
               }
 
@@ -1348,6 +1152,7 @@ define([
       // also add field type and domain to use in the preset values
       _modifyFieldInfosForEE: function (layerInfo) {
         this._gdbRequired = [];
+        this._configNotEditable = [];
         if (!layerInfo) { return; }
         //layerInfo = lang.clone(layerInfo);
         var layerObject = this.map.getLayer(layerInfo.featureLayer.id);
@@ -1359,16 +1164,22 @@ define([
               this._gdbRequired.push(finfo.label);
               finfo.label = finfo.label +
                 '<a class="asteriskIndicator"> *</a>';
-              
+
             }
-          },this);
+          }, this);
         }));
-        //return layerInfo;
         // add the type for layer use, by the way
         layerInfo.fieldInfos.forEach(function (finfo) {
+          if (finfo.isEditable === false || finfo.isEditableSettingInWebmap === false) {
+            this._configNotEditable.push(finfo.label);
+          }
+
           this._addDateFormat(finfo);
-          var field = layerObject.fields.find(function (f) {
-            return f.name === finfo.fieldName;
+          var field = null;
+
+          var found = layerObject.fields.some(function (f) {
+            return f.name === finfo.fieldName ? ((field = f), true) : false;
+
           });
           finfo.type = field.type;
           finfo.domain = field.domain;
@@ -1416,7 +1227,7 @@ define([
             var featureLayer = this.map.getLayer(feature.getLayer().originalLayerId);
             if (featureLayer) {
               // modify some attributes before calling applyEdits
-              feature.attributes["OBJECTID"] = null;
+              feature.attributes.OBJECTID = null;
               feature.symbol = null;
               featureLayer.applyEdits([feature], null, null, lang.hitch(this, function (e) {
                 // since after save, keep att Inspect displayed
@@ -1425,16 +1236,19 @@ define([
                 query.objectIds = [e[0].objectId];
                 featureLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
 
-
-
                 deferred.resolve("success");
               }));
-            } // if featureLayer not null
+            } // if featureLayer not nullf
           } else {
             // update existing feature
             // only get the updated attributes
             var newAttrs = editUtils.filterOnlyUpdatedAttributes(
               feature.attributes, feature.preEditAttrs);
+
+            // Since the new requirement is that: after a save,
+            // continue to show attributeInspector,
+            // save the preEdit attributes
+            feature.preEditAttrs = JSON.parse(JSON.stringify(feature.attributes));
 
             if (newAttrs && !editUtils.isObjectEmpty(newAttrs)) {
               // there are changes in attributes
@@ -1445,24 +1259,21 @@ define([
             //todo: for now, save the change anyway in case geometry also being edited
 
             // modify some important attributes before calling applyEdits
-            feature.attributes["OBJECTID"] = feature.preEditAttrs["OBJECTID"];
+            feature.attributes.OBJECTID = feature.preEditAttrs.OBJECTID;
             feature.symbol = null;
 
-            // Since the new requirement is that: after a save, 
-            // continue to show attributeInspector, 
-            // save the preEdit attributes
-            feature.preEditAttrs = JSON.parse(JSON.stringify(feature.attributes));
-
             feature.getLayer().applyEdits(null, [feature], null,
-              lang.hitch(this, function (e) {
+              lang.hitch(this, function () {
                 // sometimes a successfully update returns an empty array
                 //if (e && e.length > 0 && e[0].success) {
                 //feature.getLayer().clearSelection();
+
+                feature.attributes = JSON.parse(JSON.stringify(feature.preEditAttrs));
                 feature.getLayer().refresh();
 
                 deferred.resolve("success");
                 //}
-              }), function (e) {
+              }), function () {
                 // for now
                 alert("Error when performing update ApplyEdits");
                 deferred.resolve("failed");
@@ -1472,9 +1283,9 @@ define([
             //  //feature.getLayer().clearSelection();
             //}
           } // end of applying edit for update
+        } else {
+          deferred.resolve();
         }
-        deferred.resolve();
-
         return deferred.promise;
       },
 
@@ -1502,7 +1313,7 @@ define([
           var layers = this.map.getLayersVisibleAtScale().filter(lang.hitch(this, function (lyr) {
             if (lyr.type && lyr.type === "Feature Layer" && lyr.url) {
               return this.settings.layerInfos.some(function (lyrinfo) {
-                if (lyrinfo.layerId == lyr.id) {
+                if (lyrinfo.layerId === lyr.id) {
                   return true;
                 }
                 else {
@@ -1524,7 +1335,7 @@ define([
             layer.setSelectionSymbol(this._getSelectionSymbol(layer.geometryType, false));
 
             var selectQuery = new Query();
-            selectQuery.geometry = editUtils.pointToExtent(this.map, evt.mapPoint, 40);
+            selectQuery.geometry = editUtils.pointToExtent(this.map, evt.mapPoint, 20);
 
             var deferred = layer.selectFeatures(selectQuery,
               FeatureLayer.SELECTION_NEW,
@@ -1539,8 +1350,7 @@ define([
 
           all(deferreds).then(lang.hitch(this, function () {
             this.updateFeatures = updateFeatures;
-            if (this.updateFeatures.length > 0) //?
-            {
+            if (this.updateFeatures.length > 0) {
               this._showTemplate(false);
               //return;
             }
@@ -1553,8 +1363,8 @@ define([
       _promptToResolvePendingEdit: function (switchToTemplate) {
         var deferred = new Deferred();
         var confirmDialog = new ConfirmDialog({
-          title: "Save feature",
-          content: "Would you like to save the current feature?",
+          title: this.nls.savePromptTitle,
+          content: this.nls.savePrompt,
           style: "width: 400px",
           onExecute: lang.hitch(this, function () {
             this._saveEdit(this.currentFeature, switchToTemplate).then(function () {
@@ -1608,7 +1418,7 @@ define([
         this._editingEnabled = false;
         this.editToolbar.deactivate();
 
-        this._turnEditGeometryToggleOff();
+        //this._turnEditGeometryToggleOff();
       },
 
       // perform validation then post the changes or formatting the UI if errors
@@ -1618,10 +1428,11 @@ define([
         // disable the save button even if the saving is done
         this._enableAttrInspectorSaveButton(false);
 
-        var errorObj = this._validateRequiredFields();
+        //var errorObj = this._validateRequiredFields();
 
         // all required fields are good, proceed with posting changes
-        if (editUtils.isObjectEmpty(errorObj)) {
+        //if (editUtils.isObjectEmpty(errorObj)) {
+        if (this._validateAttributes()) {
           var processIndicator = query(".processing-indicator")[0];
           if (!domClass.contains(processIndicator, "busy")) {
             domClass.add(processIndicator, "busy");
@@ -1632,7 +1443,7 @@ define([
               domClass.remove(processIndicator, "busy");
             }
             // if currently only one selected feature
-            if (this._configEditor.removeOnSave && this.updateFeatures.length == 1) {
+            if (this._configEditor.removeOnSave && this.updateFeatures.length === 1) {
               switchToTemplate = true;
             }
 
@@ -1650,9 +1461,9 @@ define([
                 var layer = feature.getLayer();
                 // perform a new query
                 var query = new Query();
-                query.objectIds = [feature.attributes["OBJECTID"]];
+                query.objectIds = [feature.attributes.OBJECTID];
                 layer.selectFeatures(query, FeatureLayer.SELECTION_SUBTRACT,
-                  lang.hitch(this, function (e) {
+                  lang.hitch(this, function () {
                     this.updateFeatures.splice(this.updateFeatures.indexOf(feature), 1);
                     this.attrInspector.next();
                   }));
@@ -1660,6 +1471,7 @@ define([
                 // reselect the feature
                 feature.setSymbol(this._getSelectionSymbol(
                   feature.getLayer().geometryType, true));
+
               }
             }
             deferred.resolve("success");
@@ -1672,6 +1484,64 @@ define([
         return deferred.promise;
       },
 
+      _showTemplate: function (showTemplate) {
+        this._attrInspIsCurrentlyDisplayed = !showTemplate;
+        if (showTemplate) {
+          this._mapClickHandler(true);
+          this._showTemplatePicker();
+
+
+        } else {
+          this._mapClickHandler(false);
+          //show attribute inspector
+          query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "none";
+          query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "block";
+
+          this._mapClickHandler(false);
+          if (this.attrInspector) {
+            this._createSmartAttributes();
+            if (!this.currentFeature) {
+              this.attrInspector.first();
+            }
+            this.attrInspector.refresh();
+            this._enableAttrInspectorSaveButton(this._validateAttributes());
+            this._toggleEditGeoSwitch(this.currentLayerInfo.featureLayer.id);
+
+
+
+          }
+        }
+
+
+      },
+      _createSmartAttributes: function () {
+        if (this.currentFeature === undefined || this.currentFeature === null) {
+          return;
+        }
+        var attTable = query("td.atiLabel", this.attrInspector.domNode);
+        if (attTable === undefined || attTable === null) {
+          return;
+        }
+        var fieldValidation = null;
+        if (this.currentLayerInfo !== undefined && this.currentLayerInfo !== null) {
+          if (this.currentLayerInfo.fieldValidations !== undefined &&
+            this.currentLayerInfo.fieldValidations !== null) {
+            fieldValidation = this.currentLayerInfo.fieldValidations;
+          }
+        }
+        if (fieldValidation === null) {
+          return;
+        }
+
+        smartAttParams = {
+          _attrInspector: this.attrInspector,
+          _fieldValidation: fieldValidation,
+          _feature: this.currentFeature,
+          _fieldInfo: this.currentLayerInfo.fieldInfos
+        }
+        this._smartAttributes = new smartAttributes(smartAttParams);
+
+      },
       _showTemplatePicker: function () {
         // hide the attr inspector and show the main template picker div
         query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
@@ -1683,59 +1553,33 @@ define([
           query(".jimu-widget-smartEditor .updateFeaturesOnlyDiv")[0].style.display = "block";
 
         } else {
-          // 
+          //
           query(".jimu-widget-smartEditor .updateFeaturesOnlyDiv")[0].style.display = "none";
           query(".jimu-widget-smartEditor .templatePickerDiv")[0].style.display = "block";
 
         }
 
-        //this.templatePicker.update();
+        this.templatePicker.clearSelection();
 
         // reset
         this._resetEditingVariables();
 
-        if (this.currentFeature && this.currentFeature.getLayer().originalLayerId) {
-          this.currentFeature.getLayer().clear();
+        if (this.currentFeature && this.currentFeature.getLayer()) {
           this.currentFeature.getLayer().clearSelection().refresh();
+          this.currentFeature.getLayer().clear();
         }
-        else {
-          array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
-            feature.getLayer().clearSelection().refresh();
-          }));
-        }
+
+        array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
+          feature.getLayer().clearSelection().refresh();
+        }));
 
         this.currentFeature = null;
         this.currentLayerInfo = null;
         this.updateFeatures = [];
 
-        this.map.setInfoWindowOnClick(false);
+
         this._activateTemplateToolbar();
 
-      },
-
-      _showTemplate: function (showTemplate) {
-        if (showTemplate) {
-
-          this._showTemplatePicker();
-
-        } else {
-
-          query(".jimu-widget-smartEditor .updateFeaturesOnlyDiv")[0].style.display = "none";
-          //show attribute inspector
-          query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "none";
-          query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "block";
-
-          this.map.setInfoWindowOnClick(true);
-          if (this.attrInspector) {
-            this.attrInspector.refresh();
-
-            if (!this.currentFeature) {
-              this.attrInspector.first();
-            }
-          }
-        }
-
-        this._attrInspIsCurrentlyDisplayed = !showTemplate;
       },
 
       _toggleUsePresetValues: function () {
@@ -1744,10 +1588,10 @@ define([
       },
 
       _turnEditGeometryToggleOff: function () {
-        var sw = registry.byId("editGeometrySwitch");
-        if (sw && sw.checked) {
+
+        if (this._editGeomSwitch && this._editGeomSwitch.checked) {
           this._ignoreEditGeometryToggle = true;
-          sw.set("checked", false);
+          this._editGeomSwitch.set("checked", false);
           this.map.setInfoWindowOnClick(true);
           setTimeout(lang.hitch(this, function () {
             this._ignoreEditGeometryToggle = false;
@@ -1859,6 +1703,7 @@ define([
             var layerObject = getLayerObjectFromMapByUrl(this.map, layerInfo.featureLayer.url);
             if (layerObject) {
               layerInfo.featureLayer.id = layerObject.id;
+
             }
           }
 
@@ -1952,12 +1797,9 @@ define([
 
             // modify templates with space in string fields
             this._removeSpacesInLayerTemplates(layerObject);
-
-            // modify field infos - removed as we should not modify the layer as it might effect other widgets
-            //Mike
             this._modifyFieldInfosForEE(layerInfo);
-            //this._processFieldInfos(layerInfo.fieldInfos);
             layerInfo.featureLayer = layerObject;
+            layerInfo.showDeleteButton = false;
             resultLayerInfosParam.push(layerInfo);
           }
         }, this);
@@ -1976,47 +1818,52 @@ define([
 
         return settings;
       },
-
       onClose: function () {
-        this.map.setInfoWindowOnClick(true);
-        //if (this.attrInspector) {
-        //  this.attrInspector.destroy();
-        //}
-        //this.attrInspector = null;
+        this._worksAfterClose();
 
-        //if (this.templatePicker) {
-        //  this.templatePicker.destroy();
-        //}
-        ////this.templatePicker = null;
+        //if (this._configEditor.clearSelectionOnClose) {
+        //  if (this._isDirty) {
+        //    this._promptToResolvePendingEdit(true).then(lang.hitch(this, function () {
+        //      // set this variable for controlling the onMapClick (#494)
+        //      this.map.setInfoWindowOnClick(true);
+        //      this._attrInspIsCurrentlyDisplayed = true;
+        //      this.templatePicker.clearSelection();
+        //    }))
 
-        //if (this._presetFieldsTable)
+        //  } else {
+        //    this._cancelEditingFeature(true);
+
+        //    // set this variable for controlling the onMapClick
+        //    this.map.setInfoWindowOnClick(true);
+        //    this._attrInspIsCurrentlyDisplayed = true;
+        //    this.templatePicker.clearSelection();
+        //  }
+        //} else
         //{
-        //  this._presetFieldsTable.destroy();
+        this._mapClickHandler(false);
         //}
-        ////this._presetFieldsTable = null;
 
         // close method will call onDeActive automaticlly
         // so do not need to call onDeActive();
-        this._worksAfterClose();
       },
 
 
       _update: function () {
-        if (this.templatePicker) {
-          //comments out, this results in teh scroll bar disappearing, unsure why
+        //if (this.templatePicker) {
+        //comments out, this results in teh scroll bar disappearing, unsure why
 
 
-          //var widgetBox = html.getMarginBox(this.domNode);
-          //var height = widgetBox.h;
-          //var width = widgetBox.w;
+        //var widgetBox = html.getMarginBox(this.domNode);
+        //var height = widgetBox.h;
+        //var width = widgetBox.w;
 
 
-          //var cols = Math.floor(width / 60);
-          //this.templatePicker.attr('columns', cols);
-          //this.templatePicker.update();
+        //var cols = Math.floor(width / 60);
+        //this.templatePicker.attr('columns', cols);
+        //this.templatePicker.update();
 
 
-        }
+        // }
       },
 
       resize: function () {
@@ -2027,23 +1874,11 @@ define([
       },
 
       onMinimize: function () {
-
       },
 
       onMaximize: function () {
         setTimeout(lang.hitch(this, this._update), 100);
-      },
-      _simplify: function (geometry, callback) {
-        if (Polygon.prototype.isSelfIntersecting(geometry)) {
-          this._settings.geometryService.simplify([geometry], function (simplifiedGeometries) {
-            var geometry = (simplifiedGeometries && simplifiedGeometries.length) ? simplifiedGeometries[0] : geometry;
-            if (callback) {
-              callback(geometry);
-            }
-          });
-        } else if (callback) {
-          callback(geometry);
-        }
       }
+
     });
   });

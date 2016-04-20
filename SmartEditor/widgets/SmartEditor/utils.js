@@ -18,10 +18,8 @@ email: contracts@esri.com
 
 define([
   'dojo/_base/lang',
-  'dojo/_base/array',
-  'dojo/dom-construct',
   'esri/geometry/Extent'
-], function (lang, array, domConstruct, Extent) {
+], function (lang, Extent) {
 
   var mo = {};
 
@@ -41,8 +39,8 @@ define([
   };
 
   mo.filterOnlyUpdatedAttributes = function (attributes, origAttributes) {
-    if (!attributes || attributes.length < 1 ||
-        !origAttributes || origAttributes.length < 1) {
+    if (!attributes || Object.keys(attributes).length < 1 ||
+        !origAttributes || Object.keys(origAttributes).length < 1) {
       return null;
     }
 
@@ -57,7 +55,7 @@ define([
     return updatedAttrs;
   };
 
-  mo.getFieldInfosFromWebmap = function(layerId, jimuLayerInfos) {
+  mo.getFieldInfosFromWebmap  = function(layerId, jimuLayerInfos) {
     // summary:
     //   get fieldInfos from web map.
     // description:

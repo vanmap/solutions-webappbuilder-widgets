@@ -18,7 +18,7 @@
   "authorizedCrossOriginDomains": [
     "arcrestdev1.esri.com"
   ],
-  "title": "SmartTest",
+  "title": "SmartEditorDemo",
   "subtitle": "with Web AppBuilder for ArcGIS",
   "keepAppState": true,
   "logo": "images/app-logo.png",
@@ -199,7 +199,8 @@
             "id": "widgets_SmartEditor_Widget_32"
           }
         ],
-        "label": "Group_0"
+        "label": "Group_0",
+        "icon": "widgets/SmartEditor/images/icon.png"
       }
     ],
     "panel": {
@@ -218,7 +219,7 @@
       "right": 0,
       "bottom": 0
     },
-    "itemId": "400506ca16df4853a94ea0d0e21953b0",
+    "itemId": "cbc6ddbb230b4d0697b83cf9adccb47c",
     "mapOptions": {},
     "id": "map",
     "portalUrl": "http://arcgissolutions.maps.arcgis.com"
@@ -241,7 +242,7 @@
         "id": "widgets_Legend_Widget_16",
         "name": "Legend",
         "label": "Legend",
-        "index": 2
+        "index": 0
       },
       {
         "uri": "widgets/LayerList/Widget",
@@ -249,7 +250,7 @@
         "id": "widgets_LayerList_Widget_17",
         "name": "LayerList",
         "label": "Layer List",
-        "index": 3
+        "index": 1
       }
     ],
     "groups": []

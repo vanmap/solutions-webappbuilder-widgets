@@ -3,17 +3,54 @@
   padding:0;
   font-size:15px;
 }
+
+
+/*CSS for Layers config tables*/
 .jimu-widget-smartEditor-setting .editable{
   width: 100px;
 }
 
-.jimu-widget-smartEditor-setting .edit-fields{
+.jimu-widget-smartEditor-setting .layer{
+  width: auto;
+}
+.jimu-widget-smartEditor-setting .update{
+  width: 155px;
+}
+.jimu-widget-smartEditor-setting .disable{
+  width: 250px;
+}
+.jimu-widget-smartEditor-setting .actions{
+  width:100px;
+}
+/*CSS for fields config tables*/
+.jimu-widget-smartEditor-setting-fields .editable{
   width: 100px;
 }
-
-.jimu-widget-smartEditor-setting .update{
-  width: 200px;
+.jimu-widget-smartEditor-setting-fields .preset{
+  width: 80px;
 }
+.jimu-widget-smartEditor-setting-fields .fieldName{
+ 
+}
+.jimu-widget-smartEditor-setting-fields .fieldLabel{
+
+}
+
+.jimu-widget-smartEditor-setting-fields .actions{
+}
+/*CSS for fields rule tables*/
+.jimu-widget-smartEditor-rule-table .rule{
+  width: 125px;
+
+}
+.jimu-widget-smartEditor-rule-table .expression{
+  overflow:hidden;
+}
+.jimu-widget-smartEditor-rule-table .actions{
+  width:100px;  
+}
+
+
 
 .jimu-widget-smartEditor-setting .setting-table > thead > tr > th,
 .jimu-widget-smartEditor-setting .setting-table > tbody > tr > td{

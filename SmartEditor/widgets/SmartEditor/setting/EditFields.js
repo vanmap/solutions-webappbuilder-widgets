@@ -25,24 +25,40 @@ define(
       baseClass: "jimu-widget-smartEditor-setting-fields",
       templateString: template,
       _layerInfo: null,
+      _fieldValid: null,
+      _fieldValidations:null,
       postCreate: function () {
         this.inherited(arguments);
-        this.nls = lang.mixin(this.nls, window.jimuNls.common);
         this._initFieldsTable();
         this._setFiedsTable(this._layerInfo.fieldInfos);
+        this._fieldValidations = this._layerInfo.fieldValidations === undefined ? {} : lang.clone(this._layerInfo.fieldValidations)
       },
 
       popupEditPage: function () {
         var fieldsPopup = new Popup({
-          titleLabel: this.nls.configureFields,
+          titleLabel: this.nls.fieldsPage.PageTitle,
           width: 720,
-          maxHeight: 600,
+          maxHeight: 700,
           autoHeight: true,
           content: this,
           buttons: [{
             label: this.nls.ok,
             onClick: lang.hitch(this, function () {
               this._resetFieldInfos();
+              
+              this._layerInfo.fieldValidations = this._fieldValidations;
+              //if (this._fieldValid !== undefined && this._fieldValid !== null) {
+                //var savedSettings = this._fieldValid.getSettings();
+                //if (savedSettings !== undefined && savedSettings !== null) {
+                //  this._layerInfo.fieldValidations = {};
+                //  for (var k in savedSettings) {
+                //    if (savedSettings.hasOwnProperty(k)) {
+                //      this._layerInfo.fieldValidations[k] =this._fieldValidations 
+                //    }
+                //  }
+                //}
+              //}
+
               fieldsPopup.close();
             })
           }, {
@@ -60,33 +76,33 @@ define(
       _initFieldsTable: function () {
         var fields2 = [{
           name: 'isEditable',
-          title: this.nls.edit,
+          title: this.nls.fieldsPage.fieldsSettingsTable.edit,
           type: 'checkbox',
-          'class': 'editable',
-          width: '90px'
-        }, {
-          name: 'fieldName',
-          title: this.nls.editpageName,
-          type: 'text'
-        }, {
-          name: 'label',
-          title: this.nls.editpageAlias,
-          type: 'text',
-          editable: true
+          'class': 'editable'
         }, {
           name: 'canPresetValue',
-          title: this.nls.canPresetValue,
+          title: this.nls.fieldsPage.fieldsSettingsTable.canPresetValue,
           type: 'checkbox',
-          'class': 'presetValue',
-          width: '100px'
+          'class': 'preset'
+        }, {
+          name: 'fieldName',
+          title: this.nls.fieldsPage.fieldsSettingsTable.fieldName,
+          type: 'text',
+          'class': 'fieldName'
+        }, {
+          name: 'label',
+          title: this.nls.fieldsPage.fieldsSettingsTable.fieldAlias,
+          type: 'text',
+          editable: true,
+          'class': 'fieldLabel'
         }, {
           name: 'actions',
-          title: this.nls.actions,
+          title: this.nls.fieldsPage.fieldsSettingsTable.actions,
           type: 'actions',
           actions: ['up', 'down', 'edit'],
-          'class': 'editable'
+          'class': 'action'
         }];
-      
+
         var args2 = {
           fields: fields2,
           selectable: false,
@@ -104,14 +120,19 @@ define(
       },
       _onEditFieldInfoClick: function (tr) {
         var rowData = this._fieldsTable.getRowData(tr);
-        if (rowData) {
-
-          var fieldValid = new FieldValidation({
+        if (rowData && rowData.isEditable) {
+          this._fieldValid = new FieldValidation({
             nls: this.nls,
-            _layerInfo: this._layerInfo,
-            _fieldName: rowData.fieldName
+            _resourceInfo: this._layerInfo.mapLayer.resourceInfo,
+            _url: this._layerInfo.mapLayer.url,
+            _fieldValidations: this._fieldValidations,
+            _fieldName: rowData.fieldName,
+            _fieldAlias: rowData.label
           });
-          fieldValid.popupActionsPage();
+          var result = this._fieldValid.popupActionsPage();
+          if (result !== null) {
+
+          }
         }
       },
       _setFiedsTable: function (fieldInfos) {
@@ -139,6 +160,6 @@ define(
 
         this._layerInfo.fieldInfos = newFieldInfos;
       }
-   
+
     });
   });

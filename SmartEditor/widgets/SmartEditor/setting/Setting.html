@@ -2,25 +2,17 @@
   <div data-dojo-attach-point="firstPageDiv">
     <table class="setting-table input-table" cellspacing="0">
       <tbody>
-        <tr>
-          <td class="first jimu-trailing-padding1">${nls.showDeleteButton}</td>
-          <td class="second jimu-leading-padding1">
-            <div class="" style="">
-              <input data-dojo-attach-point="showDeleteButton"
-                     data-dojo-type="dijit/form/CheckBox" />
-            </div>
-          </td>
-        </tr>  
+        
         <tr class="prompt-options-tr">
-          <td class="first jimu-trailing-padding1 prompt-options-td">${nls.displayPrompt}</td>
+          <td class="first jimu-trailing-padding1 prompt-options-td">${nls.layersPage.displayPrompt}</td>
           <td class="second jimu-leading-padding1 prompt-options-td">
-            <span class="jimu-trailing-margin05 jimu-float-leading">${nls.promptOnSave}</span>
+            <span class="jimu-trailing-margin05 jimu-float-leading">${nls.layersPage.promptOnSave}</span>
             <div class="jimu-trailing-margin2 jimu-float-leading">
               <input data-dojo-attach-point="displayPromptOnSave"
                      data-dojo-type="dijit/form/CheckBox" />
             </div>
 
-            <span class="jimu-trailing-margin05 jimu-float-leading">${nls.promptOnDelete}</span>
+            <span class="jimu-trailing-margin05 jimu-float-leading">${nls.layersPage.promptOnDelete}</span>
             <div class="jimu-trailing-margin2 jimu-float-leading">
               <input data-dojo-attach-point="displayPromptOnDelete"
                      data-dojo-type="dijit/form/CheckBox" />
@@ -28,8 +20,9 @@
           </td>
           <td><div style="height: 40px;"></div></td>
         </tr>
+        
         <tr>
-          <td class="first jimu-trailing-padding1">${nls.removeOnSave}</td>
+          <td class="first jimu-trailing-padding1">${nls.layersPage.removeOnSave}</td>
           <td class="second jimu-leading-padding1">
             <div class="" style="">
               <input data-dojo-attach-point="removeOnSave"

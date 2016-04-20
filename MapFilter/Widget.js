@@ -8,6 +8,7 @@ define([
   'dojo/dom-class',
   'dojo/on',
   'dojo/query',
+  'dojo/string',
   'dojo/_base/lang',
   'dojo/_base/array',
   'dojo/date/locale',
@@ -20,9 +21,10 @@ define([
   'jimu/utils',
   './SaveJSON',
   './ReadJSON',
-  './LayersHandler'
+  './LayersHandler',
+  'dijit/form/CheckBox'
 ],
-function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domConstruct, domClass, on, query, lang, array, locale, Select, TextBox, DateTextBox, NumberTextBox, registry, LayerInfos, utils, saveJson, readJson, LayersHandler) {
+function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domConstruct, domClass, on, query, string, lang, array, locale, Select, TextBox, DateTextBox, NumberTextBox, registry, LayerInfos, utils, saveJson, readJson, LayersHandler) {
   //To create a widget, you need to derive from BaseWidget.
   return declare([BaseWidget, _WidgetsInTemplateMixin], {
 
@@ -33,7 +35,6 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
     groupCounter: 0,
     defaultDef: [],
     runTimeConfig: null,
-    isAdvMode: false,
     useDomain: null,
     useDate: null,
 
@@ -53,7 +54,6 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
 
     btnNewRowAction: function() {
       this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
-      this.showAdvMode(this.isAdvMode);
     },
 
     createMapLayerList: function() {
@@ -82,6 +82,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
                   }
 
                 }));
+                console.log(this.defaultDef);
                 this.createGroupSelection();
                 this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
                 this.resize();
@@ -159,7 +160,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       domClass.add(subTableNode, "criteriaCellSize");
       domClass.add(deleteNode, "deleteCellSize");
 
-      var subTable = domConstruct.create("table", null, subTableNode);
+      var subTable = domConstruct.create("table",{border: "0", width: "100%"}, subTableNode);
 
       var rowOperator = subTable.insertRow(-1);
       var cell_operator = rowOperator.insertCell(0);
@@ -169,9 +170,6 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
 
       var rowConjunc = subTable.insertRow(-1);
       var cell_conjunc = rowConjunc.insertCell(0);
-
-      var rowRemove = subTable.insertRow(-1);
-      var cell_remove = rowRemove.insertCell(0);
 
       this.colorRows();
 
@@ -186,6 +184,8 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           this.createConditionSelection(prevRowConjunCell, pValue);
         }
       }
+
+      this.resize();
 
     },
 
@@ -285,7 +285,11 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           }
           var txtRange = new NumberTextBox({
             value: defaultNum,
-            placeHolder: "Between " + this.useDomain.minValue + " and " + this.useDomain.maxValue,
+            placeHolder: string.substitute(this.nls.inputs.textboxNumber, {
+              0 : this.useDomain.minValue,
+              1 : this.useDomain.maxValue
+            }),
+            "class": "userInputNormal",
             constraints: {min:this.useDomain.minValue,max:this.useDomain.maxValue}
           }).placeAt(pCell);
           txtRange.startup();
@@ -305,7 +309,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       } else {
         var txtFilterParam = new TextBox({
           value: pValue.value /* no or empty value! */,
-          placeHolder: "Type in a value",
+          placeHolder: this.nls.inputs.textboxText,
           "class": "userInputNormal"
         }).placeAt(pCell);
         txtFilterParam.startup();
@@ -494,13 +498,40 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
               if(filterType === "FeatureLayer") {
                 console.log(expr);
                 if(expr !== "") {
-                  layer.layerObject.setDefinitionExpression(expr.trim());
+                  if(this.chkAppendToDef.checked) {
+                    array.forEach(this.defaultDef, lang.hitch(this, function(def) {
+                      if(def.layer === layer.id ) {
+                        var compositeDef = def.definition + " OR " + expr.trim();
+                        layer.layerObject.setDefinitionExpression(compositeDef);
+                      }
+                    }));
+                  } else {
+                    layer.layerObject.setDefinitionExpression(expr.trim());
+                  }
                   layer.layerObject.setVisibility(true);
                 }
               } else if(filterType === "MapService") {
-                console.log(msExpr);
                 if(msExpr.length > 0) {
-                  layer.layerObject.setLayerDefinitions(msExpr);
+                  if(this.chkAppendToDef.checked) {
+                    array.forEach(this.defaultDef, lang.hitch(this, function(def) {
+                      if(def.layer === layer.id ) {
+                        array.forEach(msExpr, lang.hitch(this, function(expr, i) {
+                          for(var key in def.definition) {
+                            if(def.definition[key] !== 'undefined') {
+                              if(msExpr[eval('"'+i+'"')]) {
+                                msExpr[eval('"'+i+'"')] = def.definition[key] + " OR " + expr;
+                                console.log(expr);
+                              }
+                            }
+                          }
+                        }));
+                        console.log(msExpr);
+                        layer.layerObject.setLayerDefinitions(msExpr);
+                      }
+                    }));
+                  } else {
+                    layer.layerObject.setLayerDefinitions(msExpr);
+                  }
                   layer.layerObject.setVisibility(true);
                 }
               } else {
@@ -543,28 +574,6 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       }));
     },
 
-    //BEGIN: advance filter options
-    toggleAdvMode: function() {
-      var advNode = query(".advModeClose");
-      if(advNode.length > 0) {
-        domClass.replace(advNode[0], "advModeOpen", "advModeClose");
-        this.isAdvMode = true;
-        this.showAdvMode();
-      } else {
-        var basicNode = query(".advModeOpen");
-        if(basicNode.length > 0) {
-          domClass.replace(basicNode[0], "advModeClose", "advModeOpen");
-          this.isAdvMode = false;
-          this.showAdvMode();
-        }
-      }
-    },
-
-    showAdvMode: function() {
-      this.resize();
-    },
-    //END: advance filter options
-
     //START: saving/reading functions
     toggleSaveFilter: function() {
       var saveNode = query(".saveTD");
@@ -572,7 +581,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         var containerNode = query(".container");
         if(containerNode.length > 0) {
           domClass.replace(dom.byId("saveTD"), "saveTDClose", "saveTD");
-          containerNode.style("height", "50%");
+          containerNode.style("display", "none");
           query(".saveContainer").style("display", "block");
         }
       } else {
@@ -582,7 +591,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           var containerNode = query(".container");
           if(containerNode.length > 0) {
             domClass.replace(dom.byId("saveTD"), "saveTD", "saveTDClose");
-            containerNode.style("height", "70%");
+            containerNode.style("display", "block");
             query(".saveContainer").style("display", "none");
           }
         }
@@ -608,7 +617,6 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         "jsonFile": this.jsonFileInput.files
       });
       on(readDef, "complete", lang.hitch(this, function(results) {
-        console.log(this.grpSelect.value);
         this.config = JSON.parse(results.UserSettings);
           this.resetLayerDef();
           this.removeAllRows();
@@ -638,45 +646,28 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
     //END: W2W communication
 
     resize: function() {
+      /*
       var widgetWidth = this.domNode.clientWidth;
 
-      if(this.isAdvMode) {
-        var operNode = query(".tdOperatorHide");
-        if(operNode.length > 0) {
-          operNode.style("display", "block");
-          operNode.style("width", "75px");
-        }
-        var inputNodes = query(".operatorSelect");
-        if(inputNodes.length > 0) {
-          inputNodes.style("width", "65px");
-        }
-
-        var inputNodes = query(".userInputNormal");
-        if(inputNodes.length > 0) {
-          inputNodes.style("width", "98%");
-        }
-
-        var inputNodes = query(".tdValue");
-        if(inputNodes.length > 0) {
-          inputNodes.style("width", (widgetWidth - 175) + "px");
-        }
-
-      } else {
-        var operNode = query(".tdOperatorHide");
-        if(operNode.length > 0) {
-          operNode.style("display", "none");
-          operNode.style("width", "50px");
-        }
-        var inputNodes = query(".userInputNormal");
-        if(inputNodes.length > 0) {
-          inputNodes.style("width", "95%");
-        }
-
-        var inputNodes = query(".tdValue");
-        if(inputNodes.length > 0) {
-          inputNodes.style("width", (widgetWidth - 135) + "px");
-        }
+      var inputNodes = query(".userInputNormal");
+      console.log(inputNodes);
+      if(inputNodes.length > 0) {
+        inputNodes.style("width", "95%");
       }
+
+
+      var operNode = query(".tdOperatorHide");
+      if(operNode.length > 0) {
+        operNode.style("display", "none");
+        operNode.style("width", "50px");
+      }
+
+      var inputNodes = query(".tdValue");
+      if(inputNodes.length > 0) {
+        inputNodes.style("width", (widgetWidth - 135) + "px");
+      }
+      */
+
     },
 
     onOpen: function(){
@@ -684,9 +675,11 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
     },
 
     onClose: function(){
-      this.resetLayerDef();
-      this.removeAllRows();
-      this.reconstructRows("");
+      if(!this.chkPersistDef.checked) {
+        this.resetLayerDef();
+        this.removeAllRows();
+        this.reconstructRows("");
+       }
     },
 
     onMinimize: function(){

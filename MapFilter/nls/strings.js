@@ -6,7 +6,10 @@ define({
       selectGroup: "Select a group to filter",
       criteriaHeading: "Filter Criteria",
       uploadHeading: "Upload a Saved File",
-      saveHeading: "Save Current Settings"
+      saveHeading: "Save Current Settings",
+      layerOptionHeading: "Filter Options",
+      AppendDefHeading: "Append Filter to Existing Layer Definition",
+      PersistDefHeading: "Persist Filter after Widget is Closed"
     },
     buttons: {
       save: "Save",
@@ -27,7 +30,8 @@ define({
       optionEND: "ENDS WITH",
       optionLIKE: "CONTAINS",
       optionNOTLIKE: "DOES NOT CONTAIN",
-
+      textboxNumber: "Between ${0} and ${1}",
+      textboxText: "Type in a value"
     },
     files: {
       jsonFile: "MapFilterSettings"

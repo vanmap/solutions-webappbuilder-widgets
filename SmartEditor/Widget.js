@@ -368,9 +368,12 @@ define([
       _validateAttributes: function () {
         var rowsWithGDBRequiredFieldErrors = this._validateRequiredFields()
         var rowsWithSmartErrors = [];
-        if (this._smartAttributes) { 
 
-          rowsWithSmartErrors = this._smartAttributes.toggleFields();
+        if (this._smartAttributes !== undefined) {
+          if (this._smartAttributes !== null) {
+
+            rowsWithSmartErrors = this._smartAttributes.toggleFields();
+          }
         }
         return (editUtils.isObjectEmpty(rowsWithGDBRequiredFieldErrors) && rowsWithSmartErrors.length === 0);
 
@@ -460,7 +463,7 @@ define([
         //var layerID = (this.currentFeature.getLayer().hasOwnProperty(originalLayerId) ? feature.getLayer().originalLayerId : feature.getLayer().id);
         this._toggleEditGeoSwitch(this.currentLayerInfo);
       },
-      
+
       _createAttributeInspector: function (layerInfos) {
 
         query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
@@ -580,7 +583,7 @@ define([
 
             this.currentFeature.attributes[evt.fieldName] = evt.fieldValue;
             this._isDirty = true;
-            
+
             this._enableAttrInspectorSaveButton(this._validateAttributes());
           }
         })));
@@ -657,7 +660,7 @@ define([
         this.own(on(this.editToolbar,
           "graphic-move-stop, rotate-stop, scale-stop, vertex-move-stop, vertex-click",
           lang.hitch(this, function () {
-            
+
             this._enableAttrInspectorSaveButton(this._validateAttributes());
             //this._enableAttrInspectorSaveButton(true);
             this._isDirty = true;
@@ -993,17 +996,17 @@ define([
               layerInfo[k] = lang.clone(result[k]);
             }
           }
-          
+
           layerInfo.featureLayer = localLayer;
           //layerInfo = {
           //  featureLayer: localLayer,
           //  disableGeometryUpdate: false
           //};
-        
+
           //fieldInfos = lang.clone(result.fieldInfos);
           //fieldInfos = this._processFieldInfos(fieldInfos);
           //  this._getDefaultFieldInfos(layerObject.id);
-         // if (fieldInfos && fieldInfos.length > 0) {
+          // if (fieldInfos && fieldInfos.length > 0) {
           //  layerInfo.fieldInfos = fieldInfos;
           //}
 
@@ -1173,10 +1176,10 @@ define([
 
           this._addDateFormat(finfo);
           var field = null;
-      
+
           var found = layerObject.fields.some(function (f) {
             return f.name === finfo.fieldName ? ((field = f), true) : false;
-           
+
           });
           finfo.type = field.type;
           finfo.domain = field.domain;
@@ -1235,7 +1238,7 @@ define([
 
                 deferred.resolve("success");
               }));
-            } // if featureLayer not null
+            } // if featureLayer not nullf
           } else {
             // update existing feature
             // only get the updated attributes
@@ -1426,10 +1429,10 @@ define([
         this._enableAttrInspectorSaveButton(false);
 
         //var errorObj = this._validateRequiredFields();
-       
+
         // all required fields are good, proceed with posting changes
         //if (editUtils.isObjectEmpty(errorObj)) {
-        if (this._validateAttributes()){
+        if (this._validateAttributes()) {
           var processIndicator = query(".processing-indicator")[0];
           if (!domClass.contains(processIndicator, "busy")) {
             domClass.add(processIndicator, "busy");
@@ -1504,7 +1507,7 @@ define([
             this._enableAttrInspectorSaveButton(this._validateAttributes());
             this._toggleEditGeoSwitch(this.currentLayerInfo.featureLayer.id);
 
-         
+
 
           }
         }
@@ -1529,7 +1532,7 @@ define([
         if (fieldValidation === null) {
           return;
         }
-       
+
         smartAttParams = {
           _attrInspector: this.attrInspector,
           _fieldValidation: fieldValidation,
@@ -1700,7 +1703,7 @@ define([
             var layerObject = getLayerObjectFromMapByUrl(this.map, layerInfo.featureLayer.url);
             if (layerObject) {
               layerInfo.featureLayer.id = layerObject.id;
-              
+
             }
           }
 
@@ -1776,7 +1779,7 @@ define([
         if (!this._configEditor.layerInfos) {
           // configured in setting page and no layers checked.
           layerInfos = [];
-        } else if (this._configEditor.layerInfos.length > 0) {  
+        } else if (this._configEditor.layerInfos.length > 0) {
           // configured and has been checked.
           layerInfos = this._converConfiguredLayerInfos(this._configEditor.layerInfos);
         } else {

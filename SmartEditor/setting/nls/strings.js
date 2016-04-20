@@ -1,13 +1,12 @@
 define({
   root: ({
     layersPage: {
-      showDeleteButton: "Show Delete Button",
       displayPrompt: "Display Prompt:",
       promptOnSave: "on Save",
       promptOnDelete: "on Delete",
-      clearSelectionOnClose: "Clear Selection on Close",
       removeOnSave: "Remove Feature from Selection on Save",
       layerSettingsTable: {
+        allowDelete: "Allow Delete",
         edit: "Editable",
         label: "Layer",
         update: "Disable Geometry Editing",

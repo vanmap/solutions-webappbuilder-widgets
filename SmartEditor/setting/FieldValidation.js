@@ -96,6 +96,7 @@ define(
               }, this);
 
               fieldsPopup.close();
+              return this._fieldValidations;
             })
           }, {
             label: this.nls.cancel,
@@ -103,6 +104,7 @@ define(
             onClick: lang.hitch(this, function () {
 
               fieldsPopup.close();
+              return null;
             })
           }],
           onClose: lang.hitch(this, function () {

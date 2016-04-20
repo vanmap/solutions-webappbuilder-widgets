@@ -55,7 +55,7 @@ define([
     return updatedAttrs;
   };
 
-  mo.getFieldInfosFromWebmap = function(layerId, jimuLayerInfos) {
+  mo.getFieldInfosFromWebmap  = function(layerId, jimuLayerInfos) {
     // summary:
     //   get fieldInfos from web map.
     // description:

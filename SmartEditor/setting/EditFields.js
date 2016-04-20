@@ -31,7 +31,7 @@ define(
         this.inherited(arguments);
         this._initFieldsTable();
         this._setFiedsTable(this._layerInfo.fieldInfos);
-        this._fieldValidations = lang.clone(this._layerInfo.fieldValidations)
+        this._fieldValidations = this._layerInfo.fieldValidations === undefined ? {} : lang.clone(this._layerInfo.fieldValidations)
       },
 
       popupEditPage: function () {
@@ -45,17 +45,19 @@ define(
             label: this.nls.ok,
             onClick: lang.hitch(this, function () {
               this._resetFieldInfos();
-              if (this._fieldValid !== undefined && this._fieldValid !== null) {
-                var savedSettings = this._fieldValid.getSettings();
-                if (savedSettings !== undefined && savedSettings !== null) {
-                  this._layerInfo.fieldValidations = {};
-                  for (var k in savedSettings) {
-                    if (savedSettings.hasOwnProperty(k)) {
-                      this._layerInfo.fieldValidations[k] = savedSettings[k];
-                    }
-                  }
-                }
-              }
+              
+              this._layerInfo.fieldValidations = this._fieldValidations;
+              //if (this._fieldValid !== undefined && this._fieldValid !== null) {
+                //var savedSettings = this._fieldValid.getSettings();
+                //if (savedSettings !== undefined && savedSettings !== null) {
+                //  this._layerInfo.fieldValidations = {};
+                //  for (var k in savedSettings) {
+                //    if (savedSettings.hasOwnProperty(k)) {
+                //      this._layerInfo.fieldValidations[k] =this._fieldValidations 
+                //    }
+                //  }
+                //}
+              //}
 
               fieldsPopup.close();
             })
@@ -127,7 +129,10 @@ define(
             _fieldName: rowData.fieldName,
             _fieldAlias: rowData.label
           });
-          this._fieldValid.popupActionsPage();
+          var result = this._fieldValid.popupActionsPage();
+          if (result !== null) {
+
+          }
         }
       },
       _setFiedsTable: function (fieldInfos) {

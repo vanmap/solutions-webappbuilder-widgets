@@ -367,7 +367,11 @@ define([
       },
       _validateAttributes: function () {
         var rowsWithGDBRequiredFieldErrors = this._validateRequiredFields()
-        var rowsWithSmartErrors = this._smartAttributes.toggleFields();
+        var rowsWithSmartErrors = [];
+        if (this._smartAttributes) { 
+
+          rowsWithSmartErrors = this._smartAttributes.toggleFields();
+        }
         return (editUtils.isObjectEmpty(rowsWithGDBRequiredFieldErrors) && rowsWithSmartErrors.length === 0);
 
       },
@@ -502,9 +506,9 @@ define([
         }, attrInspector.deleteBtn.domNode, "after");
 
         // save button
-        var validateButton = domConstruct.create("div", {
+        var saveButton = domConstruct.create("div", {
           innerHTML: this.nls.submit,
-          "class": "validateButton jimu-btn jimu-state-disabled"
+          "class": "saveButton jimu-btn jimu-state-disabled"
         }, cancelButton, "after");
 
         // create delete button if specified in the config
@@ -513,7 +517,8 @@ define([
             var deleteButton = domConstruct.create("div", {
               innerHTML: this.nls.del,
               "class": "deleteButton jimu-btn"
-            }, query(".jimu-widget-smartEditor .topButtonsRowDiv")[0], "first");
+            }, saveButton, "after");
+            // query(".jimu-widget-smartEditor .topButtonsRowDiv")[0], "first");
 
             on(deleteButton, "click", lang.hitch(this, function () {
               //if (this.currentFeature) {
@@ -554,7 +559,7 @@ define([
           this._activateTemplateToolbar();
         })));
 
-        this.own(on(validateButton, "click", lang.hitch(this, function () {
+        this.own(on(saveButton, "click", lang.hitch(this, function () {
           if (!this._isDirty) {
             this._resetEditingVariables();
             return;
@@ -834,7 +839,7 @@ define([
       },
 
       _enableAttrInspectorSaveButton: function (enable) {
-        var saveBtn = query(".validateButton")[0];
+        var saveBtn = query(".saveButton")[0];
         if (!saveBtn) { return; }
 
         if (enable) {

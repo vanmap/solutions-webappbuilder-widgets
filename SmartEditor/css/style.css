@@ -56,19 +56,24 @@
 
         .jimu-widget-smartEditor .esriAttributeInspector .atiNavButtons {
             position: absolute;
-            top: 5px;
-            right: 10px;
+            top: -18px;
+            right: 0;
+
         }
 
         .jimu-widget-smartEditor .esriAttributeInspector .asteriskIndicator {
             color: red;
         }
 
-        .jimu-widget-smartEditor .esriAttributeInspector .deleteButton,
-        .jimu-widget-smartEditor .esriAttributeInspector .validateButton {
+        
+        .jimu-widget-smartEditor .esriAttributeInspector .saveButton {
             float: right;
         }
-
+          .jimu-widget-smartEditor .esriAttributeInspector .deleteButton
+        {
+            float: right;
+            margin-right:20px;
+        }
     /*********about preset values table*********/
 
     .jimu-widget-smartEditor .ee-presetValueTableDiv {

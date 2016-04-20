@@ -43,14 +43,20 @@ define([
     _attrInspector: null,
     _fieldValidation: null,
     _feature: null,
+    _fieldInfo: null,
     _gdbRequiredFields: null,
     _notEditableFields: null,
+    _fieldNameToAlias: null,
+    _fieldsWithRules: null,
     _attTable: null,
-    _filterUtils:null,
+    _filterUtils: null,
+    _mapLayer: null,
     OPERATORS: null,
     constructor: function () {
       this.inherited(arguments);
       lang.mixin(this, arguments[0]);
+      this._mapLayer = this._feature.getLayer();
+      this._processLayer();
       this._filterUtils = new filterUtils();
       this.OPERATORS = lang.clone(this._filterUtils.OPERATORS);
       this._attTable = query("td.atiLabel", this._attrInspector.domNode);
@@ -58,6 +64,30 @@ define([
         return;
       }
       this._bindEvents(this._attrInspector.domNode);
+    },
+    _processLayer: function () {
+      this._gdbRequiredFields = [];
+      this._notEditableFields = [];
+      //this._fieldNameToAlias = {};
+      this._fieldsWithRules = [];
+
+      this._gdbRequired = this._mapLayer.fields.filter(function (field) {
+        return field.nullable === false && field.editable === true;
+      });
+
+      this._fieldInfo.forEach(function (finfo) {
+        if (finfo.isEditable === false || finfo.isEditableSettingInWebmap === false) {
+          this._notEditableFields.push(finfo.label);
+
+          //this._fieldNameToAlias[finfo.fieldName] = finfo.label; 
+        }
+        if (this._fieldValidation) {
+          if (this._fieldValidation.hasOwnProperty(finfo.fieldName)) {
+            this._fieldsWithRules.push(finfo.label);
+          }
+
+        }
+      }, this);
     },
     toggleFields: function () {
       if (this._attTable === undefined || this._attTable == null) {
@@ -86,17 +116,15 @@ define([
         if (results[2] === false) {
           rowsWithError.push({ 'fieldName': field.name })
         }
-        else if (results[2] === true) {
-          actionType = null;
-        }
+
         if (results[0] == true) {
-          this.toggleFieldOnAttributeInspector(field.alias, actionType);
+          this.toggleFieldOnAttributeInspector(field.alias, actionType, results[2]);
         }
       }));
       return rowsWithError;
     },
     validateField: function (fieldName) {
-      // hasRule, actionType, fieldValid 
+      // hasRule, actionType, fieldValid (only for required field action)
 
       var filter = null;
       if (this._fieldValidation.hasOwnProperty(fieldName)) {
@@ -113,10 +141,10 @@ define([
                 if (this.processFilter(filter, this._feature)) {
                   //if (fieldValidation[fieldName][actionDetails].action === 'Required') {
                   if (actionDetails === 'Required') {
-                 
+
                     if (this._feature.attributes.hasOwnProperty(fieldName) === false) {
-                        return [true, actionDetails, false];
-                      
+                      return [true, actionDetails, false];
+
                     }
                     else if (this._feature.attributes[fieldName] === null || this._feature.attributes[fieldName] === '') {
                       return [true, actionDetails, false];
@@ -126,7 +154,7 @@ define([
                     }
                   }
                   else {
-                    return [true, actionDetails, true];
+                    return [true, actionDetails, null];
                   }
 
 
@@ -135,26 +163,44 @@ define([
             }
 
           }
-          return [true, null, true];
+          return [true, null, null];
         }
       }
       else {
-        return [false, null, true];
+        return [false, null, null];
       }
 
     },
     _bindEvents: function (domNode) {
-      var widgetArr = dijit.findWidgets(domNode);
-      widgetArr.forEach(function (widget) {
-        if (widget.declaredClass && widget.declaredClass === 'dijit.form.FilteringSelect') {
-          //if (this._gdbRequiredFields.indexOf(widget.domNode.parentNode.parentNode.childNodes[0].innerHTML) === -1) {
 
-          //change to query for the A element might be safer
-          if (widget.domNode.parentNode.parentNode.childNodes[0].childNodes.length ===1 ) {
-            dojo.connect(widget, 'onChange', lang.hitch(this, this._smartComboValidate));
+      if (this._attTable === undefined || this._attTable === null) {
+        return;
+      }
+
+      if (this._attTable.length > 0) {
+        this._attTable.forEach(function (row) {
+          rowInfo = this._getRowInfo(row);
+          if (this._fieldsWithRules.indexOf(rowInfo[3]) !== -1) {
+            if (rowInfo[2].declaredClass === 'dijit.form.FilteringSelect') {
+              dojo.connect(rowInfo[2], 'onChange', lang.hitch(this, this._smartComboValidate(rowInfo[3])));
+            }
           }
-        }
-      },this);
+        }, this);
+      }
+
+
+
+      //var widgetArr = dijit.findWidgets(domNode);
+      //widgetArr.forEach(function (widget) {
+      //  if (widget.declaredClass && widget.declaredClass === 'dijit.form.FilteringSelect') {
+      //    //if (this._gdbRequiredFields.indexOf(widget.domNode.parentNode.parentNode.childNodes[0].innerHTML) === -1) {
+
+      //    //change to query for the A element might be safer
+      //    if (widget.domNode.parentNode.parentNode.childNodes[0].childNodes.length ===1 ) {
+      //      dojo.connect(widget, 'onChange', lang.hitch(this, this._smartComboValidate(widget.domNode.parentNode.parentNode.childNodes[0].childNodes[0].innerHTML)));
+      //    }
+      //  }
+      //},this);
       //var textboxArray = dojo.filter(dijit.registry._hash, function(widget) {
       //  return widget.declaredClass && widget.declaredClass == 'dijit.form.TextBox';
       //})
@@ -536,11 +582,61 @@ define([
         }
       }, this);
     },
-    _smartComboValidate: function () {
-      this.toggleFields();
+    _smartComboValidate: function (fieldAlias) {
+      var field = fieldAlias;
+      return function (fieldName) {
+        this.toggleFields();
+      }
+
 
     },
-    toggleFieldOnAttributeInspector: function (fieldName, actionType) {
+    _getRowInfo: function (row) {
+      var valueCell = row.parentNode.childNodes[1].childNodes[0];
+      var label = row.childNodes[0].data;
+      var parent = row.parentNode;
+      var widget = registry.getEnclosingWidget(valueCell);
+
+      return [valueCell, parent, widget, label];
+    },
+    _removeRequireFieldMarkings: function (row, fieldName, valueCell,parent, widget) {
+      if (this._gdbRequiredFields.indexOf(fieldName) === -1) {
+        if (widget.declaredClass === 'dijit.form.TextBox') {
+          if (domClass.contains(valueCell, "dijitTextBoxError")) {
+            domClass.remove(valueCell, "dijitTextBoxError");
+          }
+          if (domClass.contains(valueCell, "dijitValidationTextBox")) {
+            domClass.remove(valueCell, "dijitValidationTextBox");
+          }
+          if (domClass.contains(valueCell, "dijitValidationTextBoxError")) {
+            domClass.remove(valueCell, "dijitValidationTextBoxError");
+          }
+          if (domClass.contains(valueCell, "dijitError")) {
+            domClass.remove(valueCell, "dijitError");
+          }
+          var nl = query(".dijitValidationContainer", parent);
+          nl.forEach(function (node) {
+            node.parentNode.removeChild(node);
+          });
+        }
+        else if (widget.declaredClass === 'dijit.form.FilteringSelect') {
+
+          if (domClass.contains(valueCell, "dijitTextBoxError")) {
+            domClass.remove(valueCell, "dijitTextBoxError");
+          }
+          if (domClass.contains(valueCell, "dijitComboBoxError")) {
+            domClass.remove(valueCell, "dijitComboBoxError");
+          }
+          if (domClass.contains(valueCell, "dijitError")) {
+            domClass.remove(valueCell, "dijitError");
+          }
+          if (domClass.contains(valueCell, "dijitValidationTextBoxError")) {
+            domClass.remove(valueCell, "dijitValidationTextBoxError");
+          }
+        }
+
+      }
+    },
+    toggleFieldOnAttributeInspector: function (fieldName, actionType, fieldHasValidValue) {
       if (this._gdbRequiredFields === undefined || this._gdbRequiredFields === null) {
         this._gdbRequiredFields = []
       }
@@ -558,11 +654,11 @@ define([
 
         if (row !== null) {
           if (row.length > 0) {
-            var valueCell = row[0].parentNode.childNodes[1].childNodes[0];
-            var parent = row[0].parentNode;
+            rowInfo = this._getRowInfo(row[0]);
 
-            var parentWidget = registry.getEnclosingWidget(valueCell);
-
+            var valueCell = rowInfo[0];
+            var parent = rowInfo[1];
+            var widget = rowInfo[2];
             switch (actionType) {
               case 'Hide':
                 domClass.add(parent, "hideField");
@@ -575,89 +671,71 @@ define([
                 this._processChildNodes(valueCell, true);
                 break;
               case 'Required':
+                if (fieldHasValidValue === true) {
+                  this._removeRequireFieldMarkings(row[0], fieldName, valueCell,parent, widget);
+                } else {
+                  if (widget.declaredClass === 'dijit.form.TextBox') {
 
-                if (parentWidget.declaredClass === 'dijit.form.TextBox') {
+                    var nl = query(".dijitValidationContainer", parent);
+                    if (nl.length === 0) {
 
-                  var nl = query(".dijitValidationContainer", parent);
-                  if (nl.length === 0) {
+                      var newDiv = document.createElement('div');
+                      newDiv.setAttribute('class', "dijitReset dijitValidationContainer");
+                      var newIn = document.createElement('input');
+                      newIn.setAttribute('class', "dijitReset dijitInputField dijitValidationIcon dijitValidationInner");
+                      newIn.setAttribute('value', "x");
+                      newIn.setAttribute('type', 'text');
+                      newIn.setAttribute('tabindex', '-1');
+                      newIn.setAttribute('readonly', 'readonly');
+                      newIn.setAttribute('role', 'presentation');
+                      newDiv.appendChild(newIn);
+                      valueCell.insertBefore(newDiv, valueCell.childNodes[0]);
+                    }
 
-                    var newDiv = document.createElement('div');
-                    newDiv.setAttribute('class', "dijitReset dijitValidationContainer");
-                    var newIn = document.createElement('input');
-                    newIn.setAttribute('class', "dijitReset dijitInputField dijitValidationIcon dijitValidationInner");
-                    newIn.setAttribute('value', "x");
-                    newIn.setAttribute('type', 'text');
-                    newIn.setAttribute('tabindex', '-1');
-                    newIn.setAttribute('readonly', 'readonly');
-                    newIn.setAttribute('role', 'presentation');
-                    newDiv.appendChild(newIn);
-                    valueCell.insertBefore(newDiv, valueCell.childNodes[0]);
+                    domClass.add(valueCell, ["dijitTextBoxError", "dijitValidationTextBox", "dijitValidationTextBoxError", "dijitError"]);
+
+                  } else if (widget.declaredClass === 'dijit.form.FilteringSelect') {
+
+                    domClass.add(valueCell, ["dijitTextBoxError", "dijitComboBoxError", "dijitError", "dijitValidationTextBoxError"]);
+
                   }
+                  else {
 
-                  domClass.add(valueCell, ["dijitTextBoxError", "dijitValidationTextBox", "dijitValidationTextBoxError", "dijitError"]);
+                    domClass.add(valueCell, ["dijitTextBoxError", "dijitError"]);
 
-                } else if (parentWidget.declaredClass === 'dijit.form.FilteringSelect') {
-
-                   domClass.add(valueCell, ["dijitTextBoxError", "dijitComboBoxError", "dijitError", "dijitValidationTextBoxError"]);
-
+                  }
                 }
-                else {
 
-                  domClass.add(valueCell, ["dijitTextBoxError", "dijitError"]);
-
-                }
-                if (row[0].childNodes.length === 1) {
+                astNode = query("a.asteriskIndicator", row[0]);
+                if (astNode.length === 0) {
                   var newA = document.createElement('a');
                   newA.setAttribute('class', "asteriskIndicator");
                   newA.innerHTML = " *";
                   row[0].appendChild(newA);
-
-
                 }
+
+                //  if (astNode.length > 0) {
+                //    astNode.forEach(function (node) {
+                //      node.parentNode.removeChild(node);
+                //    });
+                //  }
+                //}
+                //else {
+
+
                 break;
               case 'Value':
                 break;
               default:
+                this._removeRequireFieldMarkings(row[0], fieldName,valueCell, parent, widget);
+                astNode = query("a.asteriskIndicator", row[0]);
 
-                if (this._gdbRequiredFields.indexOf(fieldName) === -1) {
-                  if (parentWidget.declaredClass === 'dijit.form.TextBox') {
-                    if (domClass.contains(valueCell, "dijitTextBoxError")) {
-                      domClass.remove(valueCell, "dijitTextBoxError");
-                    }
-                    if (domClass.contains(valueCell, "dijitValidationTextBox")) {
-                      domClass.remove(valueCell, "dijitValidationTextBox");
-                    }
-                    if (domClass.contains(valueCell, "dijitValidationTextBoxError")) {
-                      domClass.remove(valueCell, "dijitValidationTextBoxError");
-                    }
-                    if (domClass.contains(valueCell, "dijitError")) {
-                      domClass.remove(valueCell, "dijitError");
-                    }
-                    var nl = query(".dijitValidationContainer", parent);
-                    nl.forEach(function (node) {
-                      node.parentNode.removeChild(node);
-                    });
-                  }
-                  else if (parentWidget.declaredClass === 'dijit.form.FilteringSelect') {
-
-                    if (domClass.contains(valueCell, "dijitTextBoxError")) {
-                      domClass.remove(valueCell, "dijitTextBoxError");
-                    }
-                    if (domClass.contains(valueCell, "dijitComboBoxError")) {
-                      domClass.remove(valueCell, "dijitComboBoxError");
-                    }
-                    if (domClass.contains(valueCell, "dijitError")) {
-                      domClass.remove(valueCell, "dijitError");
-                    }
-                    if (domClass.contains(valueCell, "dijitValidationTextBoxError")) {
-                      domClass.remove(valueCell, "dijitValidationTextBoxError");
-                    }
-                  }
-                  if (row[0].childNodes.length > 1) {
-                    row[0].removeChild(row[0].childNodes[1]);
-
-                  }
+                if (astNode.length > 0) {
+                  astNode.forEach(function (node) {
+                    node.parentNode.removeChild(node);
+                  });
                 }
+
 
                 if (domClass.contains(parent, "hideField")) {
                   domClass.remove(parent, "hideField");

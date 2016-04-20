@@ -229,8 +229,8 @@ define([
 
           this.currentFeature = this.updateFeatures[0] = newGraphic;
           this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
-          this._createSmartAttributes();
-          this._validateAttributeInspector();
+          //this._createSmartAttributes();
+          //this._validateAttributeInspector();
           this._enableAttrInspectorSaveButton(true);
         }));
 
@@ -365,11 +365,10 @@ define([
       _endsWith: function (str, suffix) {
         return str.indexOf(suffix, str.length - suffix.length) !== -1;
       },
-      _validateAttributeInspector: function () {
-        var rowsWithErrors = this._smartAttributes.toggleFields()
-        if (rowsWithErrors.length > 0) {
-          //
-        }
+      _validateAttributes: function () {
+        var rowsWithGDBRequiredFieldErrors = this._validateRequiredFields()
+        var rowsWithSmartErrors = this._smartAttributes.toggleFields();
+        return (editUtils.isObjectEmpty(rowsWithGDBRequiredFieldErrors) && rowsWithSmartErrors.length === 0);
 
       },
       _toggleEditGeoSwitch: function (layerID) {
@@ -431,7 +430,7 @@ define([
               this.currentFeature = evt.feature;
               this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
               this._createSmartAttributes();
-              this._validateAttributeInspector();
+              this._enableAttrInspectorSaveButton(this._validateAttributes());
               this.currentFeature.setSymbol(
                 this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
             }
@@ -449,7 +448,7 @@ define([
             this.currentFeature = evt.feature;
             this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
             this._createSmartAttributes();
-            this._validateAttributeInspector();
+            this._enableAttrInspectorSaveButton(this._validateAttributes());
             this.currentFeature.setSymbol(
               this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
           }
@@ -576,8 +575,8 @@ define([
 
             this.currentFeature.attributes[evt.fieldName] = evt.fieldValue;
             this._isDirty = true;
-            this._enableAttrInspectorSaveButton(true);
-            this._validateAttributeInspector();
+            
+            this._enableAttrInspectorSaveButton(this._validateAttributes());
           }
         })));
 
@@ -653,7 +652,9 @@ define([
         this.own(on(this.editToolbar,
           "graphic-move-stop, rotate-stop, scale-stop, vertex-move-stop, vertex-click",
           lang.hitch(this, function () {
-            this._enableAttrInspectorSaveButton(true);
+            
+            this._enableAttrInspectorSaveButton(this._validateAttributes());
+            //this._enableAttrInspectorSaveButton(true);
             this._isDirty = true;
           })));
 
@@ -1419,10 +1420,11 @@ define([
         // disable the save button even if the saving is done
         this._enableAttrInspectorSaveButton(false);
 
-        var errorObj = this._validateRequiredFields();
-
+        //var errorObj = this._validateRequiredFields();
+       
         // all required fields are good, proceed with posting changes
-        if (editUtils.isObjectEmpty(errorObj)) {
+        //if (editUtils.isObjectEmpty(errorObj)) {
+        if (this._validateAttributes()){
           var processIndicator = query(".processing-indicator")[0];
           if (!domClass.contains(processIndicator, "busy")) {
             domClass.add(processIndicator, "busy");
@@ -1494,6 +1496,7 @@ define([
               this.attrInspector.first();
             }
             this.attrInspector.refresh();
+            this._enableAttrInspectorSaveButton(this._validateAttributes());
             this._toggleEditGeoSwitch(this.currentLayerInfo.featureLayer.id);
 
          
@@ -1521,12 +1524,12 @@ define([
         if (fieldValidation === null) {
           return;
         }
+       
         smartAttParams = {
           _attrInspector: this.attrInspector,
           _fieldValidation: fieldValidation,
           _feature: this.currentFeature,
-          _gdbRequiredFields: this._gdbRequired,
-          _configNotEditableFields: this._configNotEditable,
+          _fieldInfo: this.currentLayerInfo.fieldInfos
         }
         this._smartAttributes = new smartAttributes(smartAttParams);
 

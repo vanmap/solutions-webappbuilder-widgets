@@ -9,7 +9,7 @@
 	border-width: 2px;
 	border-radius: 5px;
 	width: 100%;
-	height: 70%;
+	height: 65%;
 	position:relative;
 	overflow-y: auto;
 	overflow-x: auto;
@@ -101,12 +101,12 @@
 }
 
 .jimu-widget-map-filter .tdOperatorHide {
-	display: none;
+	display: block;
 	width: 75px;
 }
 
 .jimu-widget-map-filter .operatorSelect {
-	
+
 }
 
 .jimu-widget-map-filter .tdValue {
@@ -124,7 +124,7 @@
 }
 
 .jimu-widget-map-filter .conjuncSelect {
-	width: 70px;	
+	width: 70px;
 }
 
 .jimu-widget-map-filter .tdRemove {
@@ -165,14 +165,14 @@
     content: url("../images/setting_default.png");
     padding-right: 10px;
     cursor: hand;
-    cursor: pointer;   
+    cursor: pointer;
 }
 
 .jimu-widget-map-filter .advModeOffset:after {
     content: url("../images/setting_default.png");
     padding-right: 10px;
     cursor: hand;
-    cursor: pointer;    
+    cursor: pointer;
 }
 
 .jimu-widget-map-filter .advModeClose {
@@ -227,15 +227,15 @@
 	position: absolute;
 	left: 0px;
 	bottom: 0px;
-	width: 100%;	
+	width: 100%;
 }
 
 .jimu-widget-map-filter .buttonContainerTable {
-	width: 100%;	
+	width: 100%;
 }
 
 .jimu-widget-map-filter .buttonContainerSubtable {
-	float: right;	
+	float: right;
 }
 
 .jimu-widget-map-filter .filter-add-criteria {
@@ -250,3 +250,22 @@
 .jimu-widget-map-filter .filter-button-cancel {
 	text-align: right;
 }
+
+.jimu-widget-map-filter .subTableStyle {
+	border-radius: 50px;
+}
+
+.jimu-widget-map-filter .criteriaCellSize {
+	width: 90%;
+	vertical-align: top;
+	padding-top: 5px;
+	padding-left: 2px;
+}
+
+.jimu-widget-map-filter .deleteCellSize {
+	width: 20px;
+	text-align: right;
+	vertical-align: top;
+	padding-top: 5px;
+}
+

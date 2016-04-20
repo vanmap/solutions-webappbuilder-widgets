@@ -137,46 +137,69 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       var table = dom.byId("tblPredicates");
 
       if(pValue.state === "new") {
-        if(table.rows.length > 2) {
-          var prevRowConjunCell = table.rows[(table.rows.length-1)].cells[2];
+        if(table.rows.length > 1) {
+          var prevRowConjunTable = table.rows[(table.rows.length-1)].cells[0].firstChild;
+          var prevRowConjunCell = prevRowConjunTable.rows[2].cells[0];
           this.createConditionSelection(prevRowConjunCell, pValue);
+
+          //var prevRowConjunCell = table.rows[(table.rows.length-1)].cells[0];
+          //this.createConditionSelection(prevRowConjunCell, pValue);
         } else {
-          if(table.rows.length === 2) {
-            var prevRowConjunCell = table.rows[(table.rows.length-1)].cells[2];
+          if(table.rows.length === 1) {
+            var prevRowConjunTable = table.rows[(table.rows.length-1)].cells[0].firstChild;
+            var prevRowConjunCell = prevRowConjunTable.rows[2].cells[0];
             this.createConditionSelection(prevRowConjunCell, pValue);
           }
         }
       }
-      var row = table.insertRow(-1);
-      var cell_operator = row.insertCell(0);
-      var cell_value = row.insertCell(1);
-      var cell_conjunc = row.insertCell(2);
-      var cell_remove = row.insertCell(3);
 
-      domClass.add(cell_operator, "tdOperatorHide");
-      if(this.isAdvMode) {
-        this.showAdvMode(this.isAdvMode);
-      }
-      //this.addStyleToCell(cell_operator, "tdOperatorHide");
-      //if((table.rows.length % 2) === 0) {
-        //domClass.add(row, "tableRow");
-      //}
+      var row = table.insertRow(-1);
+      var subTableNode = row.insertCell(0);
+      var deleteNode = row.insertCell(1);
+      domClass.add(subTableNode, "criteriaCellSize");
+      domClass.add(deleteNode, "deleteCellSize");
+
+      var subTable = domConstruct.create("table", null, subTableNode);
+
+      var rowOperator = subTable.insertRow(-1);
+      var cell_operator = rowOperator.insertCell(0);
+
+      var rowValue = subTable.insertRow(-1);
+      var cell_value = rowValue.insertCell(0);
+
+      var rowConjunc = subTable.insertRow(-1);
+      var cell_conjunc = rowConjunc.insertCell(0);
+
+      var rowRemove = subTable.insertRow(-1);
+      var cell_remove = rowRemove.insertCell(0);
+
+      this.colorRows();
 
       this.createOperatorSelection(cell_operator,pValue);
       this.createInputFilter(cell_value,pValue);
-      this.removeTableRow(cell_remove,row,table.rows.length);
+      this.removeTableRow(deleteNode,row,table.rows.length);
 
       if(pValue.state === "reload") {
         if(pValue.conjunc !== "") {
-          var currRowConjunCell = table.rows[(table.rows.length-1)].cells[2];
-          this.createConditionSelection(currRowConjunCell, pValue);
+          var prevRowConjunTable = table.rows[(table.rows.length-1)].cells[0].firstChild;
+          var prevRowConjunCell = prevRowConjunTable.rows[2].cells[0];
+          this.createConditionSelection(prevRowConjunCell, pValue);
         }
       }
 
     },
 
-    addStyleToCell: function(pCell, pCSS) {
-      domClass.add(pCell, pCSS);
+    colorRows: function() {
+      var table = dom.byId("tblPredicates");
+      var rows = table.rows;
+      array.forEach(rows, function(row, i) {
+        if(i % 2 === 0) {
+          domClass.remove(row, "tableRow");
+
+        } else {
+          domClass.add(row, "tableRow");
+        }
+      });
     },
 
     createGroupSelection: function() {
@@ -225,7 +248,6 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         {'value': 'END', 'label': this.nls.inputs.optionEND},
         {'value': 'LIKE', 'label': this.nls.inputs.optionLIKE},
         {'value': 'NOT LIKE', 'label': this.nls.inputs.optionNOTLIKE}
-        
       ];
       var opSelect = new Select({
         options: ObjList,
@@ -263,6 +285,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           }
           var txtRange = new NumberTextBox({
             value: defaultNum,
+            placeHolder: "Between " + this.useDomain.minValue + " and " + this.useDomain.maxValue,
             constraints: {min:this.useDomain.minValue,max:this.useDomain.maxValue}
           }).placeAt(pCell);
           txtRange.startup();
@@ -304,7 +327,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
     },
 
     removeTableRow: function(pCell,pRow,pCount) {
-      if(pCount !== 2) {
+      if(pCount > 1) {
         var dsNode = domConstruct.create("div",{
           'class': 'deleteCell',
           innerHTML: ''
@@ -312,10 +335,12 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         on(dsNode,'click',lang.hitch(this, function() {
           domConstruct.destroy(pRow);
           var table = dom.byId("tblPredicates");
-          if(table.rows.length >= 2) {
-            var conjunCell = table.rows[table.rows.length-1].cells[2];
-            domConstruct.empty(conjunCell);
+          if(table.rows.length >= 1) {
+            var prevRowConjunTable = table.rows[(table.rows.length-1)].cells[0].firstChild;
+            var prevRowConjunCell = prevRowConjunTable.rows[2].cells[0];
+            domConstruct.empty(prevRowConjunCell);
           }
+          this.colorRows();
         }));
         domConstruct.place(dsNode, pCell);
       }
@@ -323,8 +348,8 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
 
     removeAllRows: function() {
       var table = dom.byId("tblPredicates");
-      if(table.rows.length > 1) {
-          domConstruct.destroy(table.rows[1]);
+      if(table.rows.length >= 1) {
+          domConstruct.destroy(table.rows[0]);
           this.removeAllRows();
       }
     },
@@ -355,12 +380,13 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       var sqlParams = [];
       var rows = dom.byId("tblPredicates").rows;
       array.forEach(rows, lang.hitch(this, function(row, i){
-        if(i >= 1) {
-          var cell_operator = registry.byNode(row.cells[0].childNodes[0]);
-          var cell_value = registry.byNode(row.cells[1].childNodes[0]);
+        if(i >= 0) {
+          var subTable = row.cells[0].firstChild;
+          var cell_operator = registry.byNode(subTable.rows[0].cells[0].childNodes[0]);
+          var cell_value = registry.byNode(subTable.rows[1].cells[0].childNodes[0]);
           var cell_conjunc = {};
-          if(typeof(row.cells[2].childNodes[0]) !== 'undefined') {
-            cell_conjunc = registry.byNode(row.cells[2].childNodes[0]);
+          if(typeof(subTable.rows[2].cells[0].childNodes[0]) !== 'undefined') {
+            cell_conjunc = registry.byNode(subTable.rows[2].cells[0].childNodes[0]);
           } else {
             cell_conjunc.value = '';
           }
@@ -373,8 +399,8 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       }));
       return sqlParams;
     },
-    
-  
+
+
 
     setFilterLayerDef: function() {
       var createQuery = function(isNum, field, op, value, junc) {
@@ -400,7 +426,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
 
           return [field, op, value, junc].join(" ") + " ";
       };
-      var sqlParams = this.parseTable();      
+      var sqlParams = this.parseTable();
       array.forEach(this.layerList, lang.hitch(this, function(layer) {
         array.forEach(this.config.groups, lang.hitch(this, function(group) {
           if(this.grpSelect.value === group.name) {
@@ -411,7 +437,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
               if(layer.id === grpLayer.layer) {
                 group.def = [];
                 filterType = "FeatureLayer";
-                array.forEach(sqlParams, lang.hitch(this, function(p) {                  
+                array.forEach(sqlParams, lang.hitch(this, function(p) {
                     array.forEach(layer.layerObject.fields, lang.hitch(this, function(field) {
                       if(field.name === grpLayer.field) {
                         if(((field.type).indexOf("Integer") > -1) || (field.type).indexOf("Double") > -1) {
@@ -431,7 +457,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
                         }
                         group.def.push({value: utils.sanitizeHTML(p.userValue), operator: p.operator, conjunc: p.conjunc});
                       }
-                    }));                  
+                    }));
                 }));
               }
               else if(grpLayer.layer.indexOf(layer.id) >= 0) {  //if it's a map service, sublayers .x is appended. so check if the root layerID is there

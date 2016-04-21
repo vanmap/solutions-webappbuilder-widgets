@@ -88,7 +88,6 @@ define([
       _creationDisabledOnAll: false,
       _configNotEditable: null,
       _gdbRequired: null,
-      _layersWithGeometryDisabled: null,
       _editGeomSwitch: null,
       postCreate: function () {
         this.inherited(arguments);
@@ -101,8 +100,6 @@ define([
         .then(lang.hitch(this, function (operLayerInfos) {
           this._jimuLayerInfos = operLayerInfos;
           this._createEditor();
-
-          this._allowGeometryEdits(this.settings.layerInfos);
         }));
       },
       _mapClickHandler: function (create) {
@@ -230,6 +227,8 @@ define([
           this.currentFeature = this.updateFeatures[0] = newGraphic;
           this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
           this._toggleDeleteButton(this.currentLayerInfo.allowDelete);
+          this._toggleEditGeoSwitch(this.currentLayerInfo.disableGeometryUpdate);
+
           //this._createSmartAttributes();
           //this._validateAttributeInspector();
           this._enableAttrInspectorSaveButton(true);
@@ -379,50 +378,23 @@ define([
         return (editUtils.isObjectEmpty(rowsWithGDBRequiredFieldErrors) && rowsWithSmartErrors.length === 0);
 
       },
-      _toggleEditGeoSwitch: function (layerID) {
+      _toggleEditGeoSwitch: function (disable) {
         if (this._editGeomSwitch === undefined || this._editGeomSwitch === null) {
           return;
         }
-        if (this._layersWithGeometryDisabled !== undefined &&
-            this._layersWithGeometryDisabled !== null) {
-          if (this._layersWithGeometryDisabled.length > 0) {
-            if (this._layersWithGeometryDisabled.some(function (layer) { return (layer == layerID); })) {
-              dojo.style(this._editGeomSwitch.domNode.parentNode, "display", "none");
-              this._turnEditGeometryToggleOff();
-
-            }
-            else {
-              dojo.style(this._editGeomSwitch.domNode.parentNode, "display", "block");
-              this._turnEditGeometryToggleOff();
-            }
-          }
-          else {
-            dojo.style(this._editGeomSwitch.domNode.parentNode, "display", "block");
-            this._turnEditGeometryToggleOff();
-          }
-        } else {
+        if (disable === false) {
           dojo.style(this._editGeomSwitch.domNode.parentNode, "display", "block");
           this._turnEditGeometryToggleOff();
+
         }
-      },
-      _allowGeometryEdits: function (layerInfos) {
+        else {
+          dojo.style(this._editGeomSwitch.domNode.parentNode, "display", "none");
+          this._turnEditGeometryToggleOff();
 
-        this._layersWithGeometryDisabled = [];
-        array.forEach(layerInfos, function (layerInfo) {
-
-          if (layerInfo.disableGeometryUpdate === undefined ||
-            layerInfo.disableGeometryUpdate === null) {
-            //do nothing
-          }
-          else if (layerInfo.disableGeometryUpdate === true) {
-
-            this._layersWithGeometryDisabled.push(layerInfo.featureLayer.id);
-          }
-
-
-        }, this);
+        }
 
       },
+     
       _attributeInspectorChangeRecord: function (evt) {
         if (this._isDirty && this.currentFeature) {
           // do not show templatePicker after saving
@@ -441,6 +413,7 @@ define([
               this._validateAttributes();
               this._enableAttrInspectorSaveButton(false);
               this._toggleDeleteButton(this.currentLayerInfo.allowDelete);
+              this._toggleEditGeoSwitch(this.currentLayerInfo.disableGeometryUpdate);
               this.currentFeature.setSymbol(
                 this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
             }
@@ -461,12 +434,13 @@ define([
             this._validateAttributes();
             this._enableAttrInspectorSaveButton(false);
             this._toggleDeleteButton(this.currentLayerInfo.allowDelete);
+            this._toggleEditGeoSwitch(this.currentLayerInfo.disableGeometryUpdate);
             this.currentFeature.setSymbol(
               this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
           }
         }
-        //var layerID = (this.currentFeature.getLayer().hasOwnProperty(originalLayerId) ? feature.getLayer().originalLayerId : feature.getLayer().id);
-        this._toggleEditGeoSwitch(this.currentLayerInfo);
+
+
       },
 
       _createAttributeInspector: function (layerInfos) {
@@ -483,30 +457,29 @@ define([
         attrInspector.placeAt(this.attributeInspectorNode);
         attrInspector.startup();
 
-        if (this._layersWithGeometryDisabled.length !== this.settings.layerInfos.length) {
 
-          //domConstruct.place(domConstruct.create("div", { "class": "spacer" }),
-          // attrInspector.deleteBtn.domNode, "before");
+        //domConstruct.place(domConstruct.create("div", { "class": "spacer" }),
+        // attrInspector.deleteBtn.domNode, "before");
 
-          this.editSwitchDiv = domConstruct.create("div");
-          this.editSwitchDiv.appendChild(domConstruct.create("div", { "class": "spacer" }));
-          // edit geometry toggle button
-          this._editGeomSwitch = new CheckBox({
-            id: "editGeometrySwitch",
-            value: this.nls.editGeometry
-          }, null);
+        this.editSwitchDiv = domConstruct.create("div");
+        this.editSwitchDiv.appendChild(domConstruct.create("div", { "class": "spacer" }));
+        // edit geometry toggle button
+        this._editGeomSwitch = new CheckBox({
+          id: "editGeometrySwitch",
+          value: this.nls.editGeometry
+        }, null);
 
-          this.editSwitchDiv.appendChild(this._editGeomSwitch.domNode);
+        this.editSwitchDiv.appendChild(this._editGeomSwitch.domNode);
 
-          domConstruct.place(lang.replace(
-           "<label for='editGeometrySwitch'>{replace}</label></br></br>",
-           { replace: this.nls.editGeometry }), this._editGeomSwitch.domNode, "after");
+        domConstruct.place(lang.replace(
+         "<label for='editGeometrySwitch'>{replace}</label></br></br>",
+         { replace: this.nls.editGeometry }), this._editGeomSwitch.domNode, "after");
 
-          domConstruct.place(this.editSwitchDiv, attrInspector.deleteBtn.domNode, "before");
+        domConstruct.place(this.editSwitchDiv, attrInspector.deleteBtn.domNode, "before");
 
-          this.own(on(this._editGeomSwitch, 'Change', lang.hitch(this, this._editGeometry)));
+        this.own(on(this._editGeomSwitch, 'Change', lang.hitch(this, this._editGeometry)));
 
-        }
+
         //add close/cancel/switch to template button
         var cancelButton = domConstruct.create("div", {
           innerHTML: this.nls.cancel,
@@ -594,7 +567,7 @@ define([
         this.own(on(attrInspector, "next", lang.hitch(this, function (evt) {
 
           this._attributeInspectorChangeRecord(evt);
-         
+
         })));
 
         ////remove default delete button
@@ -614,8 +587,8 @@ define([
         } else {
           this._deleteButton.style.display = "none";
         }
-        
-       
+
+
       },
       _activateTemplateToolbar: function () {
 
@@ -1521,7 +1494,7 @@ define([
               this._enableAttrInspectorSaveButton(false);
             }
 
-            this._toggleEditGeoSwitch(this.currentLayerInfo.featureLayer.id);
+            this._toggleEditGeoSwitch(this.currentLayerInfo.disableGeometryUpdate);
 
 
 

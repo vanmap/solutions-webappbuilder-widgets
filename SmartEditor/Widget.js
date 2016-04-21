@@ -437,7 +437,8 @@ define([
               this.currentFeature = evt.feature;
               this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
               this._createSmartAttributes();
-              this._enableAttrInspectorSaveButton(this._validateAttributes());
+              this._validateAttributes();
+              this._enableAttrInspectorSaveButton(false);
               this.currentFeature.setSymbol(
                 this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
             }
@@ -455,7 +456,8 @@ define([
             this.currentFeature = evt.feature;
             this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
             this._createSmartAttributes();
-            this._enableAttrInspectorSaveButton(this._validateAttributes());
+            this._validateAttributes();
+            this._enableAttrInspectorSaveButton(false);
             this.currentFeature.setSymbol(
               this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
           }
@@ -1504,7 +1506,12 @@ define([
               this.attrInspector.first();
             }
             this.attrInspector.refresh();
-            this._enableAttrInspectorSaveButton(this._validateAttributes());
+            if (this.currentFeature.getLayer().originalLayerId) {
+              this._enableAttrInspectorSaveButton(this._validateAttributes());
+            } else {
+              this._enableAttrInspectorSaveButton(false);
+            }
+            
             this._toggleEditGeoSwitch(this.currentLayerInfo.featureLayer.id);
 
 

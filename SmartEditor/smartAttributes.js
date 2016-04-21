@@ -618,6 +618,24 @@ define([
             node.parentNode.removeChild(node);
           });
         }
+        else if (widget.declaredClass === 'dijit.form.DateTextBox') {
+          if (domClass.contains(valueCell, "dijitTextBoxError")) {
+            domClass.remove(valueCell, "dijitTextBoxError");
+          }
+          if (domClass.contains(valueCell, "dijitValidationTextBox")) {
+            domClass.remove(valueCell, "dijitValidationTextBox");
+          }
+          if (domClass.contains(valueCell, "dijitValidationTextBoxError")) {
+            domClass.remove(valueCell, "dijitValidationTextBoxError");
+          }
+          if (domClass.contains(valueCell, "dijitError")) {
+            domClass.remove(valueCell, "dijitError");
+          }
+          var nl = query(".dijitValidationContainer", parent);
+          nl.forEach(function (node) {
+            node.parentNode.removeChild(node);
+          });
+        }
         else if (widget.declaredClass === 'dijit.form.FilteringSelect') {
 
           if (domClass.contains(valueCell, "dijitTextBoxError")) {

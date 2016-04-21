@@ -84,11 +84,11 @@ define(
                 if (rowData.expression !== undefined && rowData.expression !== null &&
                   rowData.expression !== '') {
                   if (rowData.filter !== '') {
-
+                    var filter = JSON.parse(entities.decode(rowData.filter))
                     this._fieldValidations[this._fieldName][rowData.label] =
                         {
-                          'expression': rowData.expression,
-                          'filter': JSON.parse(rowData.filter)
+                          'expression': filter.expr,
+                          'filter': filter
                         };
                   }
 

@@ -598,7 +598,7 @@ define([
 
       return [valueCell, parent, widget, label];
     },
-    _removeRequireFieldMarkings: function (row, fieldName, valueCell,parent, widget) {
+    _removeRequireFieldMarkings: function (row, fieldName, valueCell, parent, widget) {
       if (this._gdbRequiredFields.indexOf(fieldName) === -1) {
         if (widget.declaredClass === 'dijit.form.TextBox') {
           if (domClass.contains(valueCell, "dijitTextBoxError")) {
@@ -650,6 +650,27 @@ define([
           if (domClass.contains(valueCell, "dijitValidationTextBoxError")) {
             domClass.remove(valueCell, "dijitValidationTextBoxError");
           }
+        } else {
+          if (domClass.contains(valueCell, "dijitComboBoxError")) {
+            domClass.remove(valueCell, "dijitComboBoxError");
+          }
+          if (domClass.contains(valueCell, "dijitTextBoxError")) {
+            domClass.remove(valueCell, "dijitTextBoxError");
+          }
+          if (domClass.contains(valueCell, "dijitValidationTextBox")) {
+            domClass.remove(valueCell, "dijitValidationTextBox");
+          }
+          if (domClass.contains(valueCell, "dijitValidationTextBoxError")) {
+            domClass.remove(valueCell, "dijitValidationTextBoxError");
+          }
+          if (domClass.contains(valueCell, "dijitError")) {
+            domClass.remove(valueCell, "dijitError");
+          }
+          var nl = query(".dijitValidationContainer", parent);
+          nl.forEach(function (node) {
+            node.parentNode.removeChild(node);
+          });
+
         }
 
       }
@@ -669,7 +690,7 @@ define([
         domClass.remove(parent, "hideField");
       }
     },
-    _removeDisableRule: function (fieldName,valueCell) {
+    _removeDisableRule: function (fieldName, valueCell) {
       if (this._notEditableFields.indexOf(fieldName) === -1) {
         if (domClass.contains(valueCell, "dijitTextBoxDisabled")) {
           domClass.remove(valueCell, "dijitTextBoxDisabled");
@@ -711,15 +732,15 @@ define([
             var widget = rowInfo[2];
             switch (actionType) {
               case 'Hide':
-                this._removeRequireFieldMarkings(row[0], fieldName,valueCell, parent, widget);
+                this._removeRequireFieldMarkings(row[0], fieldName, valueCell, parent, widget);
                 this._removeRedAst(row[0]);
-                this._removeDisableRule(fieldName,valueCell);
+                this._removeDisableRule(fieldName, valueCell);
                 //this._removeHideRule(parent);
                 domClass.add(parent, "hideField");
-                
+
                 break;
               case 'Disabled':
-                this._removeRequireFieldMarkings(row[0], fieldName,valueCell, parent, widget);
+                this._removeRequireFieldMarkings(row[0], fieldName, valueCell, parent, widget);
                 this._removeRedAst(row[0]);
                 //this._removeDisableRule(fieldName,valueCell);
                 this._removeHideRule(parent);
@@ -731,10 +752,10 @@ define([
               case 'Required':
                 //this._removeRequireFieldMarkings(row[0], fieldName,valueCell, parent, widget);
                 //this._removeRedAst(row[0]);
-                this._removeDisableRule(fieldName,valueCell);
+                this._removeDisableRule(fieldName, valueCell);
                 this._removeHideRule(parent);
                 if (fieldHasValidValue === true) {
-                  this._removeRequireFieldMarkings(row[0], fieldName, valueCell,parent, widget);
+                  this._removeRequireFieldMarkings(row[0], fieldName, valueCell, parent, widget);
                 } else {
                   if (widget.declaredClass === 'dijit.form.TextBox') {
 
@@ -780,9 +801,9 @@ define([
               case 'Value':
                 break;
               default:
-                this._removeRequireFieldMarkings(row[0], fieldName,valueCell, parent, widget);
+                this._removeRequireFieldMarkings(row[0], fieldName, valueCell, parent, widget);
                 this._removeRedAst(row[0]);
-                this._removeDisableRule(fieldName,valueCell);
+                this._removeDisableRule(fieldName, valueCell);
                 this._removeHideRule(parent);
             }
 

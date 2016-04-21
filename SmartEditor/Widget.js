@@ -229,6 +229,7 @@ define([
 
           this.currentFeature = this.updateFeatures[0] = newGraphic;
           this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
+          this._toggleDeleteButton(this.currentLayerInfo.allowDelete);
           //this._createSmartAttributes();
           //this._validateAttributeInspector();
           this._enableAttrInspectorSaveButton(true);
@@ -439,6 +440,7 @@ define([
               this._createSmartAttributes();
               this._validateAttributes();
               this._enableAttrInspectorSaveButton(false);
+              this._toggleDeleteButton(this.currentLayerInfo.allowDelete);
               this.currentFeature.setSymbol(
                 this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
             }
@@ -458,6 +460,7 @@ define([
             this._createSmartAttributes();
             this._validateAttributes();
             this._enableAttrInspectorSaveButton(false);
+            this._toggleDeleteButton(this.currentLayerInfo.allowDelete);
             this.currentFeature.setSymbol(
               this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
           }
@@ -516,38 +519,35 @@ define([
           "class": "saveButton jimu-btn jimu-state-disabled"
         }, cancelButton, "after");
 
-        // create delete button if specified in the config
-        if (this._configEditor.showDeleteButton) {
-          if (query(".jimu-widget-smartEditor .deleteButton").length < 1) {
-            var deleteButton = domConstruct.create("div", {
-              innerHTML: this.nls.del,
-              "class": "deleteButton jimu-btn"
-            }, saveButton, "after");
-            // query(".jimu-widget-smartEditor .topButtonsRowDiv")[0], "first");
+        if (query(".jimu-widget-smartEditor .deleteButton").length < 1) {
+          this._deleteButton = domConstruct.create("div", {
+            innerHTML: this.nls.del,
+            "class": "deleteButton jimu-btn"
+          }, saveButton, "after");
+          // query(".jimu-widget-smartEditor .topButtonsRowDiv")[0], "first");
 
-            on(deleteButton, "click", lang.hitch(this, function () {
-              //if (this.currentFeature) {
-              if (this.map.infoWindow.isShowing) {
-                this.map.infoWindow.hide();
-              }
+          on(this._deleteButton, "click", lang.hitch(this, function () {
+            //if (this.currentFeature) {
+            if (this.map.infoWindow.isShowing) {
+              this.map.infoWindow.hide();
+            }
 
-              if (this._configEditor.displayPromptOnDelete) {
-                var confirmDialog = new ConfirmDialog({
-                  title: this.nls.deletePromptTitle,
-                  content: this.nls.deletePrompt,
-                  style: "width: 400px",
-                  onExecute: lang.hitch(this, function () {
-                    this._deleteFeature();
-                  })
-                });
-                confirmDialog.show();
-              } else {
-                this._deleteFeature();
-              }
-              //}
-            }));
-          }
-        } // end of delete button
+            if (this._configEditor.displayPromptOnDelete) {
+              var confirmDialog = new ConfirmDialog({
+                title: this.nls.deletePromptTitle,
+                content: this.nls.deletePrompt,
+                style: "width: 400px",
+                onExecute: lang.hitch(this, function () {
+                  this._deleteFeature();
+                })
+              });
+              confirmDialog.show();
+            } else {
+              this._deleteFeature();
+            }
+            //}
+          }));
+        }
 
         //wire up the button events
         this.own(on(cancelButton, "click", lang.hitch(this, function () {
@@ -592,8 +592,9 @@ define([
 
 
         this.own(on(attrInspector, "next", lang.hitch(this, function (evt) {
-          this._attributeInspectorChangeRecord(evt);
 
+          this._attributeInspectorChangeRecord(evt);
+         
         })));
 
         ////remove default delete button
@@ -607,7 +608,15 @@ define([
 
         return attrInspector;
       },
-
+      _toggleDeleteButton: function (show) {
+        if (show === true) {
+          this._deleteButton.style.display = "block";
+        } else {
+          this._deleteButton.style.display = "none";
+        }
+        
+       
+      },
       _activateTemplateToolbar: function () {
 
         if (this.templatePicker.getSelected()) {
@@ -1511,7 +1520,7 @@ define([
             } else {
               this._enableAttrInspectorSaveButton(false);
             }
-            
+
             this._toggleEditGeoSwitch(this.currentLayerInfo.featureLayer.id);
 
 

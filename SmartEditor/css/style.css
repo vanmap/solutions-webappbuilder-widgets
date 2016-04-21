@@ -56,7 +56,7 @@
 
         .jimu-widget-smartEditor .esriAttributeInspector .atiNavButtons {
             position: absolute;
-            top: -18px;
+            top: -15px;
             right: 0;
 
         }
@@ -115,7 +115,9 @@
     .jimu-widget-smartEditor .spacer {
         height: 12px;
     }
-
+      .jimu-widget-smartEditor .spacerSmall {
+        height: 8px;
+    }
     .jimu-widget-smartEditor .esriAttributeInspector .atiField {
         width: 100%;
     }

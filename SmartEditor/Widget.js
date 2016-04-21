@@ -1647,6 +1647,13 @@ define([
         if (labelLayer) {
           labelLayer.hide();
         }
+        array.forEach(this.settings.layerInfos, function (layerInfo) {
+          var jimuLayerInfo =
+            this._jimuLayerInfos.getLayerInfoByTopLayerId(layerInfo.featureLayer.id);
+          if (jimuLayerInfo) {
+            layerInfo.featureLayer.name = jimuLayerInfo.title;
+          }
+        }, this);
       },
 
       _getDefaultFieldInfos: function (layerId) {

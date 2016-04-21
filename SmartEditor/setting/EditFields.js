@@ -26,7 +26,7 @@ define(
       templateString: template,
       _layerInfo: null,
       _fieldValid: null,
-      _fieldValidations:null,
+      _fieldValidations: null,
       postCreate: function () {
         this.inherited(arguments);
         this._initFieldsTable();
@@ -44,10 +44,11 @@ define(
           buttons: [{
             label: this.nls.ok,
             onClick: lang.hitch(this, function () {
-              this._resetFieldInfos();
-              
-              this._layerInfo.fieldValidations = this._fieldValidations;
-              //if (this._fieldValid !== undefined && this._fieldValid !== null) {
+              if (this._validateTable()) {
+                this._resetFieldInfos();
+
+                this._layerInfo.fieldValidations = this._fieldValidations;
+                //if (this._fieldValid !== undefined && this._fieldValid !== null) {
                 //var savedSettings = this._fieldValid.getSettings();
                 //if (savedSettings !== undefined && savedSettings !== null) {
                 //  this._layerInfo.fieldValidations = {};
@@ -57,9 +58,10 @@ define(
                 //    }
                 //  }
                 //}
-              //}
+                //}
 
-              fieldsPopup.close();
+                fieldsPopup.close();
+              }
             })
           }, {
             label: this.nls.cancel,
@@ -117,6 +119,17 @@ define(
         this.own(on(this._fieldsTable,
           'actions-edit',
           lang.hitch(this, this._onEditFieldInfoClick)));
+      },
+      _validateTable: function () {
+        var rows = this._fieldsTable.getRows();
+
+        if (rows.length === 0) { return false; }
+
+        return rows.some(function (row) {
+          rowData = this._fieldsTable.getRowData(row);
+          return rowData.isEditable;
+        }, this);
+
       },
       _onEditFieldInfoClick: function (tr) {
         var rowData = this._fieldsTable.getRowData(tr);

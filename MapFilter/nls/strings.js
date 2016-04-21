@@ -8,8 +8,8 @@ define({
       uploadHeading: "Upload a Saved File",
       saveHeading: "Save Current Settings",
       layerOptionHeading: "Filter Options",
-      AppendDefHeading: "Append Filter to Existing Layer Definition",
-      PersistDefHeading: "Persist Filter after Widget is Closed"
+      AppendDefHeading: "Append to Existing Definitions Using",
+      PersistDefHeading: "Persist After Widget is Closed"
     },
     buttons: {
       save: "Save",

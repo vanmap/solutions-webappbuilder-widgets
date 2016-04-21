@@ -501,7 +501,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
                   if(this.chkAppendToDef.checked) {
                     array.forEach(this.defaultDef, lang.hitch(this, function(def) {
                       if(def.layer === layer.id ) {
-                        var compositeDef = def.definition + " OR " + expr.trim();
+                        var compositeDef = def.definition + " "  + this.slAppendChoice.value +  " " + expr.trim();
                         layer.layerObject.setDefinitionExpression(compositeDef);
                       }
                     }));
@@ -519,7 +519,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
                           for(var key in def.definition) {
                             if(def.definition[key] !== 'undefined') {
                               if(msExpr[eval('"'+i+'"')]) {
-                                msExpr[eval('"'+i+'"')] = def.definition[key] + " OR " + expr;
+                                msExpr[eval('"'+i+'"')] = def.definition[key] + " "  + this.slAppendChoice.value +  " " + expr;
                                 console.log(expr);
                               }
                             }
@@ -553,7 +553,8 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
               layer.layerObject.setDefinitionExpression(def.definition);
             }
             else if(typeof(layer.layerObject.layerDefinitions) !== 'undefined') {
-              layer.layerObject.setDefaultLayerDefinitions();
+              //layer.layerObject.setDefaultLayerDefinitions();
+              layer.layerObject.setLayerDefinitions(def.definition);
             }
             else {
               layer.layerObject.setDefinitionExpression(def.definition);

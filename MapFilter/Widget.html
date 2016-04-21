@@ -46,7 +46,12 @@
 					<td class="tdLabel">${nls.labels.layerOptionHeading}</td>
 				</tr>
 				<tr>
-					<td class="tdData"><input type="checkbox" data-dojo-type="dijit/form/CheckBox"  data-dojo-attach-point="chkAppendToDef" data-dojo-props="value:true,checked:false"/> ${nls.labels.AppendDefHeading}</td>
+					<td class="tdData"><input type="checkbox" data-dojo-type="dijit/form/CheckBox"  data-dojo-attach-point="chkAppendToDef" data-dojo-props="value:true,checked:false"/> ${nls.labels.AppendDefHeading}
+						<select data-dojo-attach-point="slAppendChoice" data-dojo-type="dijit/form/Select">
+						    <option value="OR">${nls.inputs.optionOR}</option>
+						    <option value="AND">${nls.inputs.optionAND}</option>
+						</select>
+					</td>
 				</tr>
 				<tr>
 					<td class="tdData"><input type="checkbox" data-dojo-type="dijit/form/CheckBox"  data-dojo-attach-point="chkPersistDef" data-dojo-props="value:true,checked:false"/> ${nls.labels.PersistDefHeading}</td>

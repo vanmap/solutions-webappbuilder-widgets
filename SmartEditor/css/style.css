@@ -1,0 +1,158 @@
+.jimu-widget-smartEditor {
+    position: relative;
+}
+    .jimu-widget-smartEditor .hideField {
+        display:none;
+    }
+    /***********about templatePicker**************/
+
+    .jimu-widget-smartEditor .templatePicker {
+        position: relative;
+        height: 300px; 
+    }
+
+    .jimu-widget-smartEditor .grid {
+        height: 100% !important;
+    }
+
+    .jimu-widget-smartEditor .dojoxGridMasterHeader {
+        height: 0 !important;
+    }
+
+    .jimu-widget-smartEditor .dojoxGridContent {
+        width: 100% !important;
+    }
+
+        .jimu-widget-smartEditor .dojoxGridContent div[role=presentation] {
+            right: 0;
+        }
+
+    .jimu-widget-smartEditor .dojoxGridRowTable {
+        width: 100%;
+    }
+
+    .jimu-widget-smartEditor .dojoxGridRow {
+        width: 100%;
+    }
+    .jimu-widget-smartEditor .dojoxGridView {
+        width: 100% !important;
+    }
+    
+    /********about attributeInspector*********/
+    .jimu-widget-smartEditor .esriAttributeInspector {
+        height: 100%;
+        width: 100%;
+    }
+
+        .jimu-widget-smartEditor .esriAttributeInspector .atiLabel {
+            display: inline-block;
+            overflow: hidden;
+            white-space: nowrap;
+            -ms-text-overflow: ellipsis;
+            -o-text-overflow: ellipsis;
+            text-overflow: ellipsis;
+           width:100%
+        }
+
+        .jimu-widget-smartEditor .esriAttributeInspector .atiNavButtons {
+            position: absolute;
+            top: -15px;
+            right: 0;
+
+        }
+
+        .jimu-widget-smartEditor .esriAttributeInspector .asteriskIndicator {
+            color: red;
+        }
+
+        
+        .jimu-widget-smartEditor .esriAttributeInspector .saveButton {
+            float: right;
+        }
+          .jimu-widget-smartEditor .esriAttributeInspector .deleteButton
+        {
+            float: right;
+            margin-right:20px;
+        }
+    /*********about preset values table*********/
+
+    .jimu-widget-smartEditor .ee-presetValueTableDiv {
+        height: 100%;
+        width: 100%;
+    }
+
+    .jimu-widget-smartEditor .ee-presetValueHeaderTable {
+        color: #000000;
+        font-size: 14px;
+        padding: 8px;
+        background-color: #E3E3E3;
+        vertical-align: middle;
+        width: 100%;
+    }
+
+    .jimu-widget-smartEditor .ee-presetValueBody {
+        vertical-align: top;
+    }
+
+    .jimu-widget-smartEditor .ee-presetValueBodyTable {
+        width: 100%;
+    }
+
+    .jimu-widget-smartEditor .ee-presetValue-label-header-field,
+    .jimu-widget-smartEditor .field-alias-label {
+        width: 40%;
+    }
+
+    .jimu-widget-smartEditor .ee-presetValue-value-header-field,
+    .jimu-widget-smartEditor .preset-value-editable {
+        width: 60%;
+    }
+
+    .jimu-widget-smartEditor .ee-inputField {
+        width: 100%;
+    }
+
+    .jimu-widget-smartEditor .spacer {
+        height: 12px;
+    }
+      .jimu-widget-smartEditor .spacerSmall {
+        height: 8px;
+    }
+    .jimu-widget-smartEditor .esriAttributeInspector .atiField {
+        width: 100%;
+    }
+ 
+    .jimu-widget-smartEditor .esriAttributeInspector .dijitTextBox  {
+        width: 100%;
+    } 
+   .jimu-widget-smartEditor div.atiAttributes table {
+        width:98%;
+    }
+
+    .jimu-widget-smartEditor .processing-indicator {
+        display: none;
+        height: 100%;
+        width: 100%;
+        z-index: 500;
+        position: absolute;
+        top: 0;
+        left: 0;
+        overflow: hidden;
+        background:  rgba(224,224,224,0.65);
+        height: 100%;
+        width: 100%;
+        
+            background-position: center center;
+            background-image: url(../images/busy.gif);
+            background-repeat: no-repeat;
+    }
+
+        .jimu-widget-smartEditor .processing-indicator.busy {
+            display: block;
+
+        }
+
+    .jimu-widget-smartEditor .updateOnlyText {
+        vertical-align: middle;
+        padding: 10px;
+    }

@@ -41,9 +41,9 @@
     "count": "COUNT",
     "area": "AREA",
     "length": "LENGTH",
-    "count_checkBox": "Показать количество",
-    "area_checkBox": "Показать площадь",
-    "length_checkBox": "Показать длину",
+    "count_checkBox": "Показать количество объектов",
+    "area_checkBox": "Показать сумму площади",
+    "length_checkBox": "Показать сумму длины",
     "max_records": "Достигнуто максимальное ограничение",
     "save_label": "Опции сохранения",
     "save_checkbox": "Включить сохранение",
@@ -51,6 +51,11 @@
     "csv_checkbox": "Экспортировать все поля в слое.",
     "display_label": "Опции отображения",
     "display_checkbox": "Отобразить суммарные объекты",
-    "must_select_template": "Выберите один из шаблонов редактирования в Опциях сохранения."
+    "must_select_template": "Выберите один из шаблонов редактирования в Опциях сохранения.",
+    "count_label": "Подпись числа",
+    "area_label": "Подпись площади",
+    "length_label": "Подпись длины",
+    "invalid_string_width": "Значение слишком длинное. ",
+    "layer_type_not_supported": "Тип слоя не поддерживается: "
   })
 );

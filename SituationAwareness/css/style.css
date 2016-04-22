@@ -196,6 +196,13 @@
   overflow: hidden;
 }
 
+.jimu-rtl .jimu-widget-SAT .SATcolSave {
+  float: right;
+  border-left: 1px solid #ffffff;
+  border-left: 1px solid rgba(255, 255, 255, 0.5);
+  border-right: none;
+}
+
 .jimu-rtl .jimu-widget-SAT .SATcol {
   float: right;
   border-left: 1px solid #ffffff;
@@ -664,11 +671,8 @@
 }
 
 .esriAttributeInspector .atiButton {
-     background-repeat: no-repeat;
-     height:30px;
-     width:60px;
-     background-image:none;
      padding:2px;
+     display: inline-table;
 }
 
 .esriAttributeInspector .atiButtons {

@@ -41,9 +41,9 @@
     "count": "TOTAL",
     "area": "SURFACE",
     "length": "LENGTH",
-    "count_checkBox": "Afficher le total",
-    "area_checkBox": "Afficher la zone",
-    "length_checkBox": "Afficher la longueur",
+    "count_checkBox": "Afficher le nombre d’entités",
+    "area_checkBox": "Afficher la somme de la surface",
+    "length_checkBox": "Afficher la somme des longueurs",
     "max_records": "Limite maximale atteinte",
     "save_label": "Options d\'enregistrement",
     "save_checkbox": "Activer l\'enregistrement",
@@ -51,6 +51,11 @@
     "csv_checkbox": "Exportez tous les champs de la couche.",
     "display_label": "Options d\'affichage",
     "display_checkbox": "Afficher les entités de synthèse",
-    "must_select_template": "Sélectionnez un des rapports de mise à jour dans les options d\'enregistrement."
+    "must_select_template": "Sélectionnez un des rapports de mise à jour dans les options d\'enregistrement.",
+    "count_label": "Etiquette de nombre",
+    "area_label": "Etiquette de zone",
+    "length_label": "Etiquette de longueur",
+    "invalid_string_width": "La valeur est trop longue. ",
+    "layer_type_not_supported": "Le type de couche n’est pas pris en charge : "
   })
 );

@@ -41,9 +41,9 @@
     "count": "COUNT",
     "area": "AREA",
     "length": "LENGTH",
-    "count_checkBox": "개수 보기",
-    "area_checkBox": "면적 보기",
-    "length_checkBox": "길이 보기",
+    "count_checkBox": "피처 개수 보기",
+    "area_checkBox": "영역의 합 보기",
+    "length_checkBox": "길이의 합 보기",
     "max_records": "최대 제한 도달",
     "save_label": "옵션 저장",
     "save_checkbox": "저장 활성화",
@@ -51,6 +51,11 @@
     "csv_checkbox": "레이어의 모든 필드를 내보냅니다.",
     "display_label": "디스플레이 옵션",
     "display_checkbox": "요약 피처 보기",
-    "must_select_template": "저장 옵션에서 편집 템플릿 중 하나를 선택하세요."
+    "must_select_template": "저장 옵션에서 편집 템플릿 중 하나를 선택하세요.",
+    "count_label": "개수 레이블",
+    "area_label": "영역 레이블",
+    "length_label": "길이 레이블",
+    "invalid_string_width": "값이 너무 깁니다. ",
+    "layer_type_not_supported": "다음 레이어 유형은 지원되지 않습니다. "
   })
 );

@@ -42,8 +42,8 @@
     "area": "POWIERZCHNIA",
     "length": "DŁUGOŚĆ",
     "count_checkBox": "Wyświetl liczbę obiektów",
-    "area_checkBox": "Wyświetl powierzchnię",
-    "length_checkBox": "Wyświetl długość",
+    "area_checkBox": "Wyświetl sumę powierzchni",
+    "length_checkBox": "Wyświetl sumę długości",
     "max_records": "Osiągnięto limit maksymalny",
     "save_label": "Opcje zapisywania",
     "save_checkbox": "Włącz zapisywanie",
@@ -51,6 +51,11 @@
     "csv_checkbox": "Wyeksportuj wszystkie pola w warstwie.",
     "display_label": "Opcje wyświetlania",
     "display_checkbox": "Wyświetl obiekty podsumowania",
-    "must_select_template": "W opcjach zapisywania wybierz jeden z szablonów edycji."
+    "must_select_template": "W opcjach zapisywania wybierz jeden z szablonów edycji.",
+    "count_label": "Etykieta liczby",
+    "area_label": "Etykieta powierzchni",
+    "length_label": "Etykieta długości",
+    "invalid_string_width": "Wartość jest za długa. ",
+    "layer_type_not_supported": "Typ warstwy jest nieobsługiwany: "
   })
 );

@@ -14,7 +14,6 @@ The ArcGIS Solutions Builder Widgets is a set of widgets for use with the Web Ap
 ## Features
 The Widget Repository currently includes:
 
-* [Batch Attribute Editor](./BatchAttributeEditor/README.md) | WAB 1.2 | 1.0
 * [Bomb Threat Tool](./BombThreat/README.md) | WAB 1.2 | 1.0
 * [Coordinate Tool](./CoordinateTool/ReadMe.md) | WAB 1.2
 * [Filter Editor](./FilterEditor/README.md) | WAB 1.2 | 1.0
@@ -30,7 +29,7 @@ Requires Web AppBuilder for ArcGIS version 1.2
 ## Instructions
 Deploying Widgets.
 
-To use the widgets with you should copy any of the widgets to the stemapp/widget directory. This is located in %webappbuilder_install%/client directory.
+To use the widgets with you should copy any of the widgets to the stemapp/widgets directory. This is located in %webappbuilder_install%/client directory.
 
 For more resources on developing modifying widgets please visit
 [Web AppBuilder for ArcGIS Documentation](http://doc.arcgis.com/en/web-appbuilder/)
@@ -80,5 +79,5 @@ limitations under the License.
 A copy of the license is available in the repository's
 [license.txt](license.txt) file.
 
-[](Esri Tags: ArcGISSolutions ArcGIS Defense and Intelligence Military Environment Planning Analysis Emergency Management Local-Government Local Government State-Government State Government Utilities)
+[](Esri Tags: ArcGISSolutions ArcGIS Defense and Intelligence Military Environment Planning Analysis Local-Government Local Government State-Government State Government Emergency-Management Emergency Management Utilities)
 [](Esri Language: Javascript)

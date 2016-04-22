@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Conocimiento de la situación (Beta)",
+    _widgetLabel: "Conocimiento de la situación",
     locate_incident: "Localizar incidente",
     clear_incidents: "Borrar incidentes",
     reverse_geocoded_address: "Dirección más próxima",
@@ -20,7 +20,7 @@
     THU: "JUE",
     FRI: "VIE",
     SAT: "SÁB",
-    defaultTabMsg: "No se han identificado incidentes.",
+    defaultTabMsg: "Define un área de incidente.",
     actionLabel: "Establecer como incidente",
     drawPoint: "Dibujar punto",
     drawLine: "Dibujar línea",
@@ -41,7 +41,10 @@
     area: "ÁREA",
     length: "LONGITUD",
     notPolySave: "Antes de guardar, especifica una distancia de búfer.",
-    update_btn: "Actualizar",
-    delete_btn: "Eliminar"
+    update_btn: "Hecho",
+    delete_btn: "Eliminar",
+    get_directions: "Obtener instrucciones",
+    incident: "Incidente",
+    weather: "Tiempo"
   })
 );

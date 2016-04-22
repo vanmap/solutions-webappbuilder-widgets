@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Situationsopmærksomhed (beta)",
+    _widgetLabel: "Situationsopmærksomhed",
     locate_incident: "Find hændelse",
     clear_incidents: "Ryd hændelser",
     reverse_geocoded_address: "Nærmeste adresse",
@@ -20,7 +20,7 @@
     THU: "TOR",
     FRI: "FRE",
     SAT: "LØR",
-    defaultTabMsg: "Ingen hændelser identificeret.",
+    defaultTabMsg: "Definér et hændelsesområde.",
     actionLabel: "Indstil som hændelse",
     drawPoint: "Tegn punkt",
     drawLine: "Tegn linje",
@@ -30,9 +30,9 @@
     useMapExtent: "Brug den aktuelle kortudstrækning",
     noFeaturesFound: "Ingen objekte fundet.",
     downloadCSV: "HENT CSV",
-    editComplete: "Objekt gemt med succes!",
-    updateComplete: "Objekt opdateret med succes!",
-    deleteComplete: "Objekt slettet med succes!",
+    editComplete: "Objekt gemt med succes.",
+    updateComplete: "Objekt opdateret med succes.",
+    deleteComplete: "Objekt slettet med succes.",
     sum: "SUM",
     min: "MIN",
     max: "MAKS",
@@ -41,7 +41,10 @@
     area: "OMRÅDE",
     length: "LÆNGDE",
     notPolySave: "Angiv en bufferafstand, før du gemmer.",
-    update_btn: "Opdatér",
-    delete_btn: "Slet"
+    update_btn: "Udført",
+    delete_btn: "Slet",
+    get_directions: "Hent kørselsvejledning",
+    incident: "Hændelse",
+    weather: "Vejr"
   })
 );

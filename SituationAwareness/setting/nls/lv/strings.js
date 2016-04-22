@@ -41,9 +41,9 @@
     "count": "SKAITĪT",
     "area": "APGABALS",
     "length": "GARUMS",
-    "count_checkBox": "Rādīt skaitu",
-    "area_checkBox": "Rādīt apgabalu",
-    "length_checkBox": "Rādīt garumu",
+    "count_checkBox": "Rādīt elementu skaitu",
+    "area_checkBox": "Rādīt laukuma summu",
+    "length_checkBox": "Rādīt garuma summu",
     "max_records": "Sasniegts maksimālais ierobežojums",
     "save_label": "Saglabāšanas opcijas",
     "save_checkbox": "Iespējot saglabāšanu",
@@ -51,6 +51,11 @@
     "csv_checkbox": "Eksportēt visus laukus slānī.",
     "display_label": "Parādīšanas opcijas",
     "display_checkbox": "Rādīt kopsavilkuma elementus",
-    "must_select_template": "Lūdzu, sadaļā Saglabāšanas opcijas atlasiet vienu no rediģēšanas veidnēm."
+    "must_select_template": "Lūdzu, sadaļā Saglabāšanas opcijas atlasiet vienu no rediģēšanas veidnēm.",
+    "count_label": "Skaita etiķete",
+    "area_label": "Laukuma etiķete",
+    "length_label": "Garuma etiķete",
+    "invalid_string_width": "Vērtība ir pārāk gara. ",
+    "layer_type_not_supported": "Slāņa tips netiek atbalstīts: "
   })
 );

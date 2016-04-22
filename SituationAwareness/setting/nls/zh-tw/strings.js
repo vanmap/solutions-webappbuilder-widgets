@@ -41,9 +41,9 @@
     "count": "計數",
     "area": "區域",
     "length": "長度",
-    "count_checkBox": "顯示計數",
-    "area_checkBox": "顯示區域",
-    "length_checkBox": "顯示長度",
+    "count_checkBox": "顯示圖徵計數",
+    "area_checkBox": "顯示面積總和",
+    "length_checkBox": "顯示長度總和",
     "max_records": "已達上限",
     "save_label": "儲存選項",
     "save_checkbox": "啟用儲存",
@@ -51,6 +51,11 @@
     "csv_checkbox": "匯出圖層中的所有欄位。",
     "display_label": "顯示選項",
     "display_checkbox": "顯示摘要圖徵",
-    "must_select_template": "請在「儲存選項」中選擇其中一個編輯範本。"
+    "must_select_template": "請在「儲存選項」中選擇其中一個編輯範本。",
+    "count_label": "計數標籤",
+    "area_label": "面積標籤",
+    "length_label": "長度標籤",
+    "invalid_string_width": "值太長。 ",
+    "layer_type_not_supported": "圖層類型不受支援: "
   })
 );

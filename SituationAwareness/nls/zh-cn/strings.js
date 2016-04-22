@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "情况感知 (Beta 版)",
+    _widgetLabel: "态势感知",
     locate_incident: "查找事件点",
     clear_incidents: "清除事件点",
     reverse_geocoded_address: "最近的地址",
@@ -20,7 +20,7 @@
     THU: "星期四",
     FRI: "星期五",
     SAT: "星期六",
-    defaultTabMsg: "未识别任何事件点。",
+    defaultTabMsg: "请定义事件区域。",
     actionLabel: "设为事件点",
     drawPoint: "绘制点",
     drawLine: "绘制线",
@@ -30,9 +30,9 @@
     useMapExtent: "使用当前地图范围",
     noFeaturesFound: "未找到任何要素。",
     downloadCSV: "下载 CSV",
-    editComplete: "要素已成功保存！",
-    updateComplete: "要素已成功更新！",
-    deleteComplete: "要素已成功删除！",
+    editComplete: "要素已成功保存。",
+    updateComplete: "要素已成功更新。",
+    deleteComplete: "要素已成功删除。",
     sum: "总和",
     min: "最小值",
     max: "最大值",
@@ -41,7 +41,10 @@
     area: "面积",
     length: "长度",
     notPolySave: "在执行保存操作前请指定缓冲距离。",
-    update_btn: "更新",
-    delete_btn: "删除"
+    update_btn: "完成",
+    delete_btn: "删除",
+    get_directions: "获取方向",
+    incident: "事件",
+    weather: "天气"
   })
 );

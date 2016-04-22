@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Situationsmedvetenhet (beta)",
+    _widgetLabel: "Situationsmedvetenhet",
     locate_incident: "Hitta incident",
     clear_incidents: "Rensa incidenter",
     reverse_geocoded_address: "Närmaste adress",
@@ -20,7 +20,7 @@
     THU: "TOR",
     FRI: "FRE",
     SAT: "LÖR",
-    defaultTabMsg: "Inga incidenter har identifierats.",
+    defaultTabMsg: "Definiera ett incidentområde.",
     actionLabel: "Ange som incident",
     drawPoint: "Rita punkt",
     drawLine: "Rita linje",
@@ -41,7 +41,10 @@
     area: "AREA",
     length: "LÄNGD",
     notPolySave: "Ange ett buffertavstånd innan du sparar.",
-    update_btn: "Uppdatera",
-    delete_btn: "Ta bort"
+    update_btn: "Färdig",
+    delete_btn: "Ta bort",
+    get_directions: "Hämta vägbeskrivningar",
+    incident: "Händelse",
+    weather: "Väder"
   })
 );

@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "מודעות למצב (Beta)",
+    _widgetLabel: "מודעות למצב",
     locate_incident: "אתר מקרים",
     clear_incidents: "נקה מקרים",
     reverse_geocoded_address: "הכתובת הקרובה ביותר",
@@ -20,7 +20,7 @@
     THU: "ה\'",
     FRI: "ו\'",
     SAT: "שבת",
-    defaultTabMsg: "לא זוהו מקרים.",
+    defaultTabMsg: "הגדר אזור מקרה.",
     actionLabel: "הגדר כמקרה",
     drawPoint: "שרטט נקודה",
     drawLine: "שרטט קו",
@@ -30,9 +30,9 @@
     useMapExtent: "השתמש בתיחום המפה הנוכחי",
     noFeaturesFound: "לא נמצאו ישויות",
     downloadCSV: "הורד CSV",
-    editComplete: "הישות נשמרה בהצלחה!",
-    updateComplete: "הישות עודכנה בהצלחה!",
-    deleteComplete: "הישות נמחקה בהצלחה!",
+    editComplete: "הישות נשמרה בהצלחה.",
+    updateComplete: "הישות עודכנה בהצלחה.",
+    deleteComplete: "הישות נמחקה בהצלחה.",
     sum: "סכום",
     min: "מינימום",
     max: "מקסימום",
@@ -41,7 +41,10 @@
     area: "אזור",
     length: "אורך",
     notPolySave: "ציין מרחק חיץ לפני השמירה.",
-    update_btn: "עדכן",
-    delete_btn: "מחק"
+    update_btn: "בוצע",
+    delete_btn: "מחק",
+    get_directions: "קבל הנחיות",
+    incident: "מקרה",
+    weather: "מזג אויר"
   })
 );

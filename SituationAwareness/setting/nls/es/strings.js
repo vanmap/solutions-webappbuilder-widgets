@@ -41,9 +41,9 @@
     "count": "TOTAL",
     "area": "ÁREA",
     "length": "LONGITUD",
-    "count_checkBox": "Mostrar recuento",
-    "area_checkBox": "Mostrar área",
-    "length_checkBox": "Mostrar longitud",
+    "count_checkBox": "Mostrar recuento de entidades",
+    "area_checkBox": "Mostrar suma de área",
+    "length_checkBox": "Mostrar suma de longitud",
     "max_records": "Se ha alcanzado el límite máximo",
     "save_label": "Opciones para guardar",
     "save_checkbox": "Habilitar guardar",
@@ -51,6 +51,11 @@
     "csv_checkbox": "Exportar todos los campos en la capa.",
     "display_label": "Opciones de visualización",
     "display_checkbox": "Mostrar entidades de resumen",
-    "must_select_template": "Selecciona una de las plantillas de edición en Opciones para guardar."
+    "must_select_template": "Selecciona una de las plantillas de edición en Opciones para guardar.",
+    "count_label": "Etiqueta de recuento",
+    "area_label": "Etiqueta de área",
+    "length_label": "Etiqueta de longitud",
+    "invalid_string_width": "El valor es demasiado largo. ",
+    "layer_type_not_supported": "El tipo de capa no es compatible: "
   })
 );

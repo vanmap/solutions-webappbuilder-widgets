@@ -41,9 +41,9 @@
     "count": "NUMĂR",
     "area": "SUPRAFAŢĂ",
     "length": "LUNGIME",
-    "count_checkBox": "Afişare număr",
-    "area_checkBox": "Afişare zonă",
-    "length_checkBox": "Afişare lungime",
+    "count_checkBox": "Afişare număr obiecte spaţiale",
+    "area_checkBox": "Afişare sumă suprafeţe",
+    "length_checkBox": "Afişare sumă lungimi",
     "max_records": "Limită maximă atinsă",
     "save_label": "Opţiuni salvare",
     "save_checkbox": "Activare salvare",
@@ -51,6 +51,11 @@
     "csv_checkbox": "Exportaţi toate câmpurile din stratul tematic.",
     "display_label": "Opţiuni de afişare",
     "display_checkbox": "Afişare obiecte spaţiale rezumat",
-    "must_select_template": "Selectaţi unul dintre şabloanele de editare din Opţiuni salvare."
+    "must_select_template": "Selectaţi unul dintre şabloanele de editare din Opţiuni salvare.",
+    "count_label": "Etichetă număr",
+    "area_label": "Etichetă suprafaţă",
+    "length_label": "Etichetă lungime",
+    "invalid_string_width": "Valoarea este prea lungă. ",
+    "layer_type_not_supported": "Tipul de strat tematic nu este acceptat: "
   })
 );

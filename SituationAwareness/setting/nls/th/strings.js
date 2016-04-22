@@ -41,9 +41,9 @@
     "count": "จำนวน",
     "area": "พื้นที่",
     "length": "ความยาว",
-    "count_checkBox": "แสดงการนับ",
-    "area_checkBox": "แสดงพื้นที่",
-    "length_checkBox": "แสดงความยาว",
+    "count_checkBox": "แสดงการนับข้อมูล",
+    "area_checkBox": "แสดงการรวมพื้นที่",
+    "length_checkBox": "แสดงการรวความยาว",
     "max_records": "วงเงินสูงสุด",
     "save_label": "ตัวเลือกการบันทึก",
     "save_checkbox": "เปิดใช้งานการบันทึก",
@@ -51,6 +51,11 @@
     "csv_checkbox": "ส่งทุกฟิลด์ในชั้นข้อมูลออก",
     "display_label": "แสดงตัวเลือก",
     "display_checkbox": "แสดงผลสรุปข้อมูล",
-    "must_select_template": "กรุณาเลือกหนึ่งในแม่แบบเพื่อการแก้ไขในตัวเลือกการบันทึก"
+    "must_select_template": "กรุณาเลือกหนึ่งในแม่แบบเพื่อการแก้ไขในตัวเลือกการบันทึก",
+    "count_label": "รวมตัวอักษร",
+    "area_label": "พื้นที่ตัวอักษร",
+    "length_label": "ความยาวตัวอักษร",
+    "invalid_string_width": "ค่ายาวมากเกินไป ",
+    "layer_type_not_supported": "ประเภทของชั้นข้อมูลไม่สามารถใช้งานได้ "
   })
 );

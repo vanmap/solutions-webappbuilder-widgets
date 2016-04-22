@@ -1,6 +1,6 @@
 ﻿define(
    ({
-    _widgetLabel: "Контроль за ситуацией (бета)",
+    _widgetLabel: "Контроль за ситуацией",
     locate_incident: "Найти инцидент",
     clear_incidents: "Очистить инциденты",
     reverse_geocoded_address: "Ближайший адрес",
@@ -20,7 +20,7 @@
     THU: "ЧТ",
     FRI: "ПТ",
     SAT: "СБ",
-    defaultTabMsg: "Нет идентифицированных инцидентов.",
+    defaultTabMsg: "Задайте область инцидента.",
     actionLabel: "Установить как инцидент",
     drawPoint: "Нарисовать точку",
     drawLine: "Нарисовать линию",
@@ -30,9 +30,9 @@
     useMapExtent: "Использовать текущий экстент карты",
     noFeaturesFound: "Объекты не найдены.",
     downloadCSV: "ЗАГРУЗИТЬ CSV",
-    editComplete: "Объект сохранен успешно!",
-    updateComplete: "Объект обновлен успешно!",
-    deleteComplete: "Объекты успешно удален!",
+    editComplete: "Объект сохранен успешно.",
+    updateComplete: "Объект обновлен успешно.",
+    deleteComplete: "Объекты успешно удален.",
     sum: "SUM",
     min: "MIN",
     max: "MAX",
@@ -41,7 +41,10 @@
     area: "AREA",
     length: "LENGTH",
     notPolySave: "Перед сохранением необходимо указать буферное расстояние.",
-    update_btn: "Обновить",
-    delete_btn: "Удалить"
+    update_btn: "Готово",
+    delete_btn: "Удалить",
+    get_directions: "Построить маршрут",
+    incident: "Инцидент",
+    weather: "Погода"
   })
 );

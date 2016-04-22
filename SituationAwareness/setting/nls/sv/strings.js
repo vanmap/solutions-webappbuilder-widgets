@@ -41,9 +41,9 @@
     "count": "ANTAL",
     "area": "AREA",
     "length": "LÄNGD",
-    "count_checkBox": "Visa antal",
-    "area_checkBox": "Visa area",
-    "length_checkBox": "Visa längd",
+    "count_checkBox": "Visa geoobjektsantal",
+    "area_checkBox": "Visa summa för området",
+    "length_checkBox": "Visa total längd",
     "max_records": "Maximigränsen är nådd",
     "save_label": "Alternativ för att spara",
     "save_checkbox": "Aktivera sparfunktionen",
@@ -51,6 +51,11 @@
     "csv_checkbox": "CSV-alternativ",
     "display_label": "Visningsalternativ",
     "display_checkbox": "Visa sammanfattningsgeoobjekt",
-    "must_select_template": "Markera en av redigeringsmallarna i Alternativ för att spara."
+    "must_select_template": "Markera en av redigeringsmallarna i Alternativ för att spara.",
+    "count_label": "Antalsetikett",
+    "area_label": "Områdesetikett",
+    "length_label": "Längdetikett",
+    "invalid_string_width": "Värdet är för långt. ",
+    "layer_type_not_supported": "Lagertypen stöds inte: "
   })
 );

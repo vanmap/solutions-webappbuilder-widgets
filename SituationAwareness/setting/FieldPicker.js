@@ -17,6 +17,7 @@ define(['dojo/_base/declare',
   'dijit/_WidgetsInTemplateMixin',
   'dijit/form/Select',
   'dijit/form/ValidationTextBox',
+  'dojo/dom-construct',
   'dojo/_base/array',
   'dojo/_base/lang',
   'dojo/_base/html',
@@ -25,6 +26,7 @@ define(['dojo/_base/declare',
   'dojo/query',
   'jimu/BaseWidget',
   'jimu/dijit/Message',
+  'jimu/utils',
   'esri/layers/FeatureLayer',
   'dojo/text!./FieldPicker.html',
   'dojo/Evented',
@@ -33,6 +35,7 @@ function (declare,
   _WidgetsInTemplateMixin,
   Select,
   ValidationTextBox,
+  domConstruct,
   array,
   lang,
   html,
@@ -41,6 +44,7 @@ function (declare,
   query,
   BaseWidget,
   Message,
+  utils,
   FeatureLayer,
   template,
   Evented,
@@ -164,8 +168,10 @@ function (declare,
       /*jshint unused: true*/
       if (this.callerTab.type === "summary") {
         domStyle.set(this.chk_summary, "display", "block");
+        domStyle.set(this.chk_summaryLabels, "display", "block");
       } else {
         domStyle.set(this.chk_summary, "display", "none");
+        domStyle.set(this.chk_summaryLabels, "display", "none");
       }
 
       this.own(on(this.btnCancel, 'click', lang.hitch(this, function () {
@@ -285,15 +291,18 @@ function (declare,
         //if (this.summaryLayers.length >= 1) {
         if (this.advStat.url) {
           this._setFields(fields);
-          if (typeof (this.callerTab.advStat) !== 'undefined') {
+          if (typeof (this.callerTab.advStat) !== 'undefined' && this.callerTab.advStat) {
             var statGroup = this.callerTab.advStat.stats;
             for (var key in statGroup) {
               if (key === "count") {
                 this.chk_count.set('value', true);
+                this.featureCountLabel.set('value', statGroup[key][0].label);
               } else if (key === "area") {
                 this.chk_area.set('value', true);
+                this.featureAreaLabel.set('value', statGroup[key][0].label);
               } else if (key === "length") {
                 this.chk_length.set('value', true);
+                this.featureLengthLabel.set('value', statGroup[key][0].label);
               } else {
                 array.forEach(statGroup[key], lang.hitch(this, function (exp) {
                   this._populateTabTableRow(key, exp);
@@ -311,6 +320,20 @@ function (declare,
 
       }
 
+    },
+
+    checkStringWidth: function (v) {
+      var visSpan = domConstruct.create("div", {
+        "class": "visDivLength",
+        "id": "SA_VisDiv",
+        "innerHTML": v
+      }, this.domNode);
+
+      var fitsWidth = visSpan.clientWidth < 220 ? true : false;
+
+      domConstruct.destroy(visSpan);
+
+      return fitsWidth;
     },
 
     _setFields: function (pFields) {
@@ -353,8 +376,8 @@ function (declare,
         this._addTabTypes(tr);
         this._addTabLabel(tr);
         tr.selectFields.set("value", pTab.expression);
-        tr.labelText.set("value", pTab.label);
         if (this.callerTab.type === "summary") {
+          tr.labelText.set("value", pTab.label);
           tr.selectTypes.set("value", pKey);
         }
       }
@@ -409,8 +432,11 @@ function (declare,
           height: "30px"
         }
       });
+
+      labelTextBox.invalidMessage = this.nls.invalid_string_width;
       labelTextBox.placeAt(td);
       labelTextBox.startup();
+      labelTextBox.validator = this.checkStringWidth;
       tr.labelText = labelTextBox;
     },
 
@@ -464,7 +490,7 @@ function (declare,
             {
               value: 0,
               expression: this.objectIdField,
-              label: this.nls.count
+              label: utils.sanitizeHTML(this.featureCountLabel.value ? this.featureCountLabel.value : this.nls.count)
             }
           ];
         }
@@ -475,7 +501,7 @@ function (declare,
             {
               value: 0,
               expression: this.objectIdField,
-              label: this.nls.area
+              label: utils.sanitizeHTML(this.featureAreaLabel.value ? this.featureAreaLabel.value : this.nls.area)
             }
           ];
         }
@@ -486,7 +512,7 @@ function (declare,
             {
               value: 0,
               expression: this.objectIdField,
-              label: this.nls.length
+              label: utils.sanitizeHTML(this.featureLengthLabel.value ? this.featureLengthLabel.value : this.nls.length)
             }
           ];
         }
@@ -516,11 +542,37 @@ function (declare,
       console.log("ADVSTAT", this.advStat);
     },
 
+    chkCountChanged: function (v) {
+      this.featureCountLabel.set("disabled", !v);
+      this.featureCountLabel.validator = this.checkStringWidth;
+      this.featureCountLabel.invalidMessage = this.nls.invalid_string_width;
+      if (v && this.featureCountLabel.value === '') {
+        this.featureCountLabel.set("value", this.nls.count);
+      }
+    },
+
+    chkAreaChanged: function (v) {
+      this.featureAreaLabel.set("disabled", !v);
+      this.featureAreaLabel.validator = this.checkStringWidth;
+      this.featureAreaLabel.invalidMessage = this.nls.invalid_string_width;
+      if (v && this.featureAreaLabel.value === '') {
+        this.featureAreaLabel.set("value", this.nls.area);
+      }
+    },
+
+    chkLengthChanged: function (v) {
+      this.featureLengthLabel.set("disabled", !v);
+      this.featureLengthLabel.validator = this.checkStringWidth;
+      this.featureLengthLabel.invalidMessage = this.nls.invalid_string_width;
+      if (v && this.featureLengthLabel.value === '') {
+        this.featureLengthLabel.set("value", this.nls.length);
+      }
+    },
+
     destroy: function () {
       //this.summaryLayers = null;
       this.advStat = null;
     }
-
   });
 
 });

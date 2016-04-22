@@ -1,6 +1,8 @@
 define({
   root: ({
     _widgetLabel: "Smart Editor",
+    yes: "Yes",
+    no:"No",
     title: "Select a template to create features",
     pressStr: "Press ",
     ctrlStr: " CTRL ",

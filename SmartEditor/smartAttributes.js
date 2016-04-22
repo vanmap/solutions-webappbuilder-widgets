@@ -71,9 +71,12 @@ define([
       //this._fieldNameToAlias = {};
       this._fieldsWithRules = [];
 
-      this._gdbRequired = this._mapLayer.fields.filter(function (field) {
-        return field.nullable === false && field.editable === true;
-      });
+      this._mapLayer.fields.forEach(function (field) {
+        if (field.nullable === false && field.editable === true)
+        {
+          this._gdbRequiredFields.push(field.alias);
+        }
+      },this);
 
       this._fieldInfo.forEach(function (finfo) {
         if (finfo.isEditable === false || finfo.isEditableSettingInWebmap === false) {
@@ -676,13 +679,16 @@ define([
       }
 
     },
-    _removeRedAst: function (row) {
-      astNode = query("a.asteriskIndicator", row);
+    _removeRedAst: function (row,fieldName) {
+      if (this._gdbRequiredFields.indexOf(fieldName) === -1) {
 
-      if (astNode.length > 0) {
-        astNode.forEach(function (node) {
-          node.parentNode.removeChild(node);
-        });
+        astNode = query("a.asteriskIndicator", row);
+
+        if (astNode.length > 0) {
+          astNode.forEach(function (node) {
+            node.parentNode.removeChild(node);
+          });
+        }
       }
     },
     _removeHideRule: function (parent) {
@@ -733,7 +739,7 @@ define([
             switch (actionType) {
               case 'Hide':
                 this._removeRequireFieldMarkings(row[0], fieldName, valueCell, parent, widget);
-                this._removeRedAst(row[0]);
+                this._removeRedAst(row[0], fieldName);
                 this._removeDisableRule(fieldName, valueCell);
                 //this._removeHideRule(parent);
                 domClass.add(parent, "hideField");
@@ -741,7 +747,7 @@ define([
                 break;
               case 'Disabled':
                 this._removeRequireFieldMarkings(row[0], fieldName, valueCell, parent, widget);
-                this._removeRedAst(row[0]);
+                this._removeRedAst(row[0], fieldName);
                 //this._removeDisableRule(fieldName,valueCell);
                 this._removeHideRule(parent);
                 domClass.add(valueCell, ["dijitValidationTextBox", "dijitTextBoxDisabled", "dijitComboBoxDisabled",
@@ -802,7 +808,7 @@ define([
                 break;
               default:
                 this._removeRequireFieldMarkings(row[0], fieldName, valueCell, parent, widget);
-                this._removeRedAst(row[0]);
+                this._removeRedAst(row[0], fieldName);
                 this._removeDisableRule(fieldName, valueCell);
                 this._removeHideRule(parent);
             }

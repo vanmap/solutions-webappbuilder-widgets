@@ -54,7 +54,8 @@ define([
     'dijit/form/TextBox',
     'dijit/form/TimeTextBox',
     'dojo/store/Memory',
-    'dojo/date/stamp'
+    'dojo/date/stamp',
+    "jimu/dijit/Popup"
 ],
   function (declare, lang, array, html, query, esriBundle, domConstruct,
     domClass, on, JSON, _WidgetsInTemplateMixin,
@@ -62,7 +63,7 @@ define([
     AttributeInspector, Draw, Edit, Query, Graphic, FeatureLayer, ConfirmDialog, all, Deferred,
     SimpleMarkerSymbol, SimpleLineSymbol, SimpleFillSymbol, Color, geometryJsonUtil, registry,
     editUtils, smartAttributes, CheckBox, DateTextBox, NumberSpinner, NumberTextBox,
-    FilteringSelect, TextBox, TimeTextBox, Memory, dojoStamp) {
+    FilteringSelect, TextBox, TimeTextBox, Memory, dojoStamp, Popup) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
       name: 'SmartEditor',
       baseClass: 'jimu-widget-smartEditor',
@@ -230,8 +231,8 @@ define([
           this._toggleEditGeoSwitch(this.currentLayerInfo.disableGeometryUpdate);
 
           //this._createSmartAttributes();
-          //this._validateAttributeInspector();
-          this._enableAttrInspectorSaveButton(true);
+          //
+          this._enableAttrInspectorSaveButton(this._validateAttributes());
         }));
 
         this._showTemplate(false);
@@ -394,53 +395,17 @@ define([
         }
 
       },
-     
+
       _attributeInspectorChangeRecord: function (evt) {
         if (this._isDirty && this.currentFeature) {
           // do not show templatePicker after saving
-          this._promptToResolvePendingEdit(false).then(lang.hitch(this, function () {
+          this._promptToResolvePendingEdit(false, evt);
 
-            if (this.updateFeatures && this.updateFeatures.length > 1) {
-              array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
-                feature.setSymbol(this._getSelectionSymbol(feature.getLayer().geometryType, false));
-              }));
-            }
-
-            if (evt.feature) {
-              this.currentFeature = evt.feature;
-              this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
-              this._createSmartAttributes();
-              this._validateAttributes();
-              this._enableAttrInspectorSaveButton(false);
-              this._toggleDeleteButton(this.currentLayerInfo.allowDelete);
-              this._toggleEditGeoSwitch(this.currentLayerInfo.disableGeometryUpdate);
-              this.currentFeature.setSymbol(
-                this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
-            }
-
-          }));
         } else {
 
-          if (this.updateFeatures && this.updateFeatures.length > 1) {
-            array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
-              feature.setSymbol(this._getSelectionSymbol(feature.getLayer().geometryType, false));
-            }));
-          }
+          this._postFeatureSave(evt);
 
-          if (evt.feature) {
-            this.currentFeature = evt.feature;
-            this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
-            this._createSmartAttributes();
-            this._validateAttributes();
-            this._enableAttrInspectorSaveButton(false);
-            this._toggleDeleteButton(this.currentLayerInfo.allowDelete);
-            this._toggleEditGeoSwitch(this.currentLayerInfo.disableGeometryUpdate);
-            this.currentFeature.setSymbol(
-              this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
-          }
         }
-
-
       },
 
       _createAttributeInspector: function (layerInfos) {
@@ -506,15 +471,17 @@ define([
             }
 
             if (this._configEditor.displayPromptOnDelete) {
-              var confirmDialog = new ConfirmDialog({
-                title: this.nls.deletePromptTitle,
-                content: this.nls.deletePrompt,
-                style: "width: 400px",
-                onExecute: lang.hitch(this, function () {
-                  this._deleteFeature();
-                })
-              });
-              confirmDialog.show();
+              this._promptToDelete();
+
+              //var confirmDialog = new ConfirmDialog({
+              //  title: this.nls.deletePromptTitle,
+              //  content: this.nls.deletePrompt,
+              //  style: "width: 400px",
+              //  onExecute: lang.hitch(this, function () {
+              //    this._deleteFeature();
+              //  })
+              //});
+              //confirmDialog.show();
             } else {
               this._deleteFeature();
             }
@@ -529,7 +496,7 @@ define([
           }
 
           if (this._configEditor.displayPromptOnSave && this._isDirty) {
-            this._promptToResolvePendingEdit(true);
+            this._promptToResolvePendingEdit(true,null);
           } else {
             this._cancelEditingFeature(true);
           }
@@ -1046,15 +1013,17 @@ define([
       },
 
       _hasPresetValueFields: function () {
-        for (var i = 0; i < this.settings.layerInfos.length; i++) {
-          var found = this.settings.layerInfos[i].fieldInfos.some(function (fi) {
-            return fi.canPresetValue === true;
-          });
-          if (found) {
-            return true;
+        return this.settings.layerInfos.some(function(layerInfo){
+          if (layerInfo.allowUpdateOnly === false) {
+            return layerInfo.fieldInfos.some(function (fi) {
+              return fi.canPresetValue === true;
+            });
           }
-        }
-        return false;
+          else {
+            return false;
+          }
+         },this);
+       
       },
 
       _initPresetFieldsTable: function () {
@@ -1342,29 +1311,138 @@ define([
           }));
         }
       },
+      
+      _postFeatureSave: function (evt) {
 
-      // if yes then call _saveEdit()
-      _promptToResolvePendingEdit: function (switchToTemplate) {
-        var deferred = new Deferred();
-        var confirmDialog = new ConfirmDialog({
-          title: this.nls.savePromptTitle,
-          content: this.nls.savePrompt,
-          style: "width: 400px",
-          onExecute: lang.hitch(this, function () {
-            this._saveEdit(this.currentFeature, switchToTemplate).then(function () {
-              deferred.resolve();
-            });
-          }),
-          onCancel: lang.hitch(this, function () { // not saving
-            this._cancelEditingFeature(switchToTemplate);
-            deferred.resolve();
+        if (this.updateFeatures && this.updateFeatures.length > 1) {
+          array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
+            feature.setSymbol(this._getSelectionSymbol(feature.getLayer().geometryType, false));
+          }));
+        }
+
+        if (evt && evt.feature) {
+          this.currentFeature = evt.feature;
+          this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
+          this._createSmartAttributes();
+          this._validateAttributes();
+          this._enableAttrInspectorSaveButton(false);
+          this._toggleDeleteButton(this.currentLayerInfo.allowDelete);
+          this._toggleEditGeoSwitch(this.currentLayerInfo.disableGeometryUpdate);
+          this.currentFeature.setSymbol(
+            this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
+        }
+
+      },
+
+      _promptToDelete: function () {
+
+        //var confirmDialog = new ConfirmDialog({
+        //  title: this.nls.deletePromptTitle,
+        //  content: this.nls.deletePrompt,
+        //  style: "width: 400px",
+        //  onExecute: lang.hitch(this, function () {
+        //    this._deleteFeature();
+        //  })
+        //});       
+        var dialog = new Popup({
+          titleLabel: this.nls.deletePromptTitle,
+          width: 300,
+          maxHeight: 200,
+          autoHeight: true,
+          content: this.nls.deletePrompt,
+          buttons: [{
+            label: this.nls.yes,
+            classNames: ['jimu-btn'],
+            onClick: lang.hitch(this, function () {
+              this._deleteFeature();
+              dialog.close();
+
+            })
+          }, {
+            label: this.nls.no,
+            classNames: ['jimu-btn'],
+
+            onClick: lang.hitch(this, function () {
+              
+              dialog.close();
+
+            })
+          }
+          //, {
+          //  label: this.nls.cancel,
+          //  classNames: ['jimu-btn'],
+          //  onClick: lang.hitch(this, function () {
+          //    dialog.close();
+          //  })
+          //}
+          ],
+          onClose: lang.hitch(this, function () {
+
           })
         });
-        confirmDialog.show();
-        //needed?
-        // this.templatePicker.clearSelection();
+      },
+      _promptToResolvePendingEdit: function (switchToTemplate, evt) {
+        var disable = !this._validateAttributes();
+        var dialog = new Popup({
+          titleLabel: this.nls.savePromptTitle,
+          width: 300,
+          maxHeight: 200,
+          autoHeight: true,
+          content: this.nls.savePrompt,
+          buttons: [{
+            label: this.nls.yes,
+            classNames: ['jimu-btn'],
+            disable: disable,
+            onClick: lang.hitch(this, function () {
+              this._saveEdit(this.currentFeature, switchToTemplate).then(function () {
+                deferred.resolve();
+              });
+              this._postFeatureSave(evt);
+              dialog.close();
 
-        return deferred.promise;
+            })
+          }, {
+            label: this.nls.no,
+            classNames: ['jimu-btn'],
+           
+            onClick: lang.hitch(this, function () {
+              this._cancelEditingFeature(switchToTemplate);
+              this._postFeatureSave(evt);
+              dialog.close();
+
+            })
+          }, {
+            label: this.nls.cancel,
+            classNames: ['jimu-btn'],
+            onClick: lang.hitch(this, function () {
+              dialog.close();
+            })
+          }],
+          onClose: lang.hitch(this, function () {
+            
+          })
+        });
+
+
+
+        //var deferred = new Deferred();
+        //var confirmDialog = new ConfirmDialog({
+        //  title: this.nls.savePromptTitle,
+        //  content: this.nls.savePrompt,
+        //  style: "width: 400px",
+        //  onExecute: lang.hitch(this, function () {
+        //    this._saveEdit(this.currentFeature, switchToTemplate).then(function () {
+        //      deferred.resolve();
+        //    });
+        //  }),
+        //  onCancel: lang.hitch(this, function () { // not saving
+        //    this._cancelEditingFeature(switchToTemplate);
+        //    deferred.resolve();
+        //  })
+        //});
+        //confirmDialog.show();
+
+        //return deferred.promise;
       },
 
       _removeLocalLayers: function () {

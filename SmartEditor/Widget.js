@@ -1174,6 +1174,16 @@ define([
         var deferred = new Deferred();
 
         if (feature) {
+          if (this._smartAttributes !== undefined && this._smartAttributes !== null) {
+            for (var k in feature.attributes) {
+              if (feature.attributes.hasOwnProperty(k) === true) {
+                ruleInfo = this._smartAttributes.validateField(k);
+                if (ruleInfo[1] === 'Hide') {
+                  delete feature.attributes[k];
+                }
+              }
+            }
+          }
           if (feature.getLayer().originalLayerId) {
 
             // added feature
@@ -1182,6 +1192,7 @@ define([
               // modify some attributes before calling applyEdits
               feature.attributes.OBJECTID = null;
               feature.symbol = null;
+              
               featureLayer.applyEdits([feature], null, null, lang.hitch(this, function (e) {
                 // since after save, keep att Inspect displayed
                 // reselect the feature

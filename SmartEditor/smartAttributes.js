@@ -162,8 +162,8 @@ define([
 
               }
             }
-          },this);
-          
+          }, this);
+
           return result;
         }
       }
@@ -211,7 +211,7 @@ define([
           }
 
           switch (part.valueObj.type) {
-            case 'value':
+            case 'value', 'unique':
               partResults.push(this.validatePart(part.operator,
                                this._feature.attributes[part.fieldObj.name],
                                value1,
@@ -433,7 +433,7 @@ define([
             return false;
           }
 
-           d = new Date(0);
+          d = new Date(0);
           d.setUTCSeconds(field);
           return value1.toDateString() === field.toDateString();
           break;
@@ -445,7 +445,7 @@ define([
             return false;
           }
 
-           d = new Date(0);
+          d = new Date(0);
           d.setUTCSeconds(field);
           return !(value1.toDateString() === field.toDateString());
           break;
@@ -567,7 +567,7 @@ define([
     },
     _smartComboValidate: function () {
       this.toggleFields();
-    
+
     },
     _getRowInfo: function (row) {
       var valueCell = row.parentNode.childNodes[1].childNodes[0];
@@ -618,6 +618,21 @@ define([
           nl.forEach(function (node) {
             node.parentNode.removeChild(node);
           });
+        }
+        else if (widget.declaredClass === 'dijit.form.ValidationTextBox') {
+          if (domClass.contains(valueCell, "dijitTextBoxError")) {
+            domClass.remove(valueCell, "dijitTextBoxError");
+          }
+          if (domClass.contains(valueCell, "dijitTextBoxDisabled")) {
+            domClass.remove(valueCell, "dijitTextBoxDisabled");
+          }
+          if (domClass.contains(valueCell, "dijitValidationTextBoxError")) {
+            domClass.remove(valueCell, "dijitValidationTextBoxError");
+          }
+          if (domClass.contains(valueCell, "dijitError")) {
+            domClass.remove(valueCell, "dijitError");
+          }
+         
         }
         else if (widget.declaredClass === 'dijit.form.DateTextBox') {
           if (domClass.contains(valueCell, "dijitTextBoxError")) {
@@ -784,9 +799,14 @@ define([
                       }
 
                       domClass.add(valueCell, ["dijitTextBoxError", "dijitValidationTextBox", "dijitValidationTextBoxError", "dijitError"]);
+                    } else if (widget.declaredClass === 'dijit.form.ValidationTextBox') {
 
+                      var nl = query(".dijitValidationContainer", parent);
+                    
+
+                      domClass.add(valueCell, ["dijitTextBoxError", "dijitValidationTextBox", "dijitValidationTextBoxError", "dijitError"]);
                     } else if (widget.declaredClass === 'dijit.form.FilteringSelect') {
-
+                        
                       domClass.add(valueCell, ["dijitTextBoxError", "dijitComboBoxError", "dijitError", "dijitValidationTextBoxError"]);
 
                     }

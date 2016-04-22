@@ -3,6 +3,7 @@ define(
     "dojo/_base/lang",
     "dojo/_base/array",
     'dojo/on',
+    'dojo/JSON',
     "dojox/html/entities",
     "dojo/text!./FieldValidation.html",
     'dijit/_TemplatedMixin',
@@ -17,6 +18,7 @@ define(
     lang,
     array,
     on,
+    JSON,
     entities,
     template,
     _TemplatedMixin,
@@ -48,12 +50,12 @@ define(
         if (this._fieldValidations !== undefined &&
           this._fieldValidations !== null) {
           if (this._fieldValidations.hasOwnProperty(this._fieldName)) {
-            if (this._fieldValidations[this._fieldName].hasOwnProperty(actionName)) {
-              return this._fieldValidations[this._fieldName][actionName];
+          
+              this._fieldValidations[this._fieldName].some(function (action) {
+                return action.actionName === actionName ? (result = action, true) : false;
+              });
+              return result;
             }
-
-
-          }
         }
         return result;
       },
@@ -78,18 +80,19 @@ define(
               }
 
               //this._fieldActions[this._fieldName] = [];
-              this._fieldValidations[this._fieldName] = {};
+              this._fieldValidations[this._fieldName] = [];
               array.forEach(rows, function (row) {
                 var rowData = this._validationTable.getRowData(row);
                 if (rowData.expression !== undefined && rowData.expression !== null &&
                   rowData.expression !== '') {
                   if (rowData.filter !== '') {
-                    var filter = JSON.parse(entities.decode(rowData.filter))
-                    this._fieldValidations[this._fieldName][rowData.label] =
+                    var filter = JSON.parse(entities.decode(rowData.filter));
+                    this._fieldValidations[this._fieldName].push( 
                         {
+                          'actionName':rowData.label,
                           'expression': filter.expr,
                           'filter': filter
-                        };
+                        });
                   }
 
                 }
@@ -255,17 +258,8 @@ define(
           else {
 
             filter.buildByExpr(this._url, entities.decode(rowData.expression), this._resourceInfo);
-            //filter.buildByFilterObj(this._layerInfo.mapLayer.url, rowData.filter, this._layerInfo.mapLayer.resourceInfo);
+         
           }
-
-          //if (rowData.expression === undefined ||
-          //  rowData.expression === null ||
-          //  rowData.expression === '') {
-          //  filter.buildByExpr(this._layerInfo.mapLayer.url, null, this._layerInfo.mapLayer.resourceInfo);
-
-          //} else {
-          //  filter.buildByExpr(this._layerInfo.mapLayer.url, rowData.expression, this._layerInfo.mapLayer.resourceInfo);
-          //}
 
           window.jimuNls.filterBuilder.matchMsg = origNLS;
 

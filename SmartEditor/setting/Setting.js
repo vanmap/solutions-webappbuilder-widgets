@@ -47,7 +47,7 @@ define([
       _jimuLayerInfos: null,
       _layersTable: null,
       _editableLayerInfos: null,
-
+      _editFields:null,
       startup: function () {
         this.inherited(arguments);
         this.nls = lang.mixin(this.nls, window.jimuNls.common);
@@ -57,6 +57,19 @@ define([
             this._init();
             this.setConfig();
           }));
+      },
+
+      destroy: function () {
+        this._jimuLayerInfos = null;
+        delete this._jimuLayerInfos;
+        this._layersTable = null;
+        delete this._layersTable;
+        this._editableLayerInfos = null;
+        delete this._editableLayerInfos;
+        this._editFields = null;
+        delete this._editFields;
+  
+        this.inherited(arguments);
       },
 
       _init: function () {
@@ -121,12 +134,38 @@ define([
         this._layersTable = new Table(args);
         this._layersTable.placeAt(this.tableLayerInfos);
         this._layersTable.startup();
-
+     
+        var nl = query("th.simple-table-field", this._layersTable.domNode);
+        nl.forEach(function (node) {
+          switch (node.innerText) {
+            case this.nls.layersPage.layerSettingsTable.edit:
+              node.title = this.nls.layersPage.layerSettingsTable.editTip;
+              break;
+            case this.nls.layersPage.layerSettingsTable.label:
+              node.title = this.nls.layersPage.layerSettingsTable.labelTip;
+              break;
+            case this.nls.layersPage.layerSettingsTable.allowUpdateOnly:
+              node.title = this.nls.layersPage.layerSettingsTable.allowUpdateOnlyTip;
+              break;
+            case this.nls.layersPage.layerSettingsTable.allowDelete:
+              node.title = this.nls.layersPage.layerSettingsTable.allowDeleteTip;
+              break;
+            case this.nls.layersPage.layerSettingsTable.update:
+              node.title = this.nls.layersPage.layerSettingsTable.updateTip;
+              break;
+            case this.nls.layersPage.layerSettingsTable.fields:
+              node.title = this.nls.layersPage.layerSettingsTable.fieldsTip;
+              break;
+       
+          }
+          
+        },this);
+          
         this.own(on(this._layersTable,
           'actions-edit',
           lang.hitch(this, this._onEditFieldInfoClick)));
       },
-
+     
       _initSettings: function () {
         //this.showDeleteButton.set('checked', this.config.editor.showDeleteButton);
         this.displayPromptOnSave.set('checked', this.config.editor.displayPromptOnSave);
@@ -368,11 +407,12 @@ define([
       _onEditFieldInfoClick: function (tr) {
         var rowData = this._layersTable.getRowData(tr);
         if (rowData && rowData.edit) {
-          var editFields = new EditFields({
+          this._editFields = new EditFields({
             nls: this.nls,
-            _layerInfo: tr._layerInfo
+            _layerInfo: tr._layerInfo,
+            _layerName: rowData.label
           });
-          editFields.popupEditPage();
+          this._editFields.popupEditPage();
         }
       },
 

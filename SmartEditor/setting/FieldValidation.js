@@ -3,7 +3,8 @@ define(
     "dojo/_base/lang",
     "dojo/_base/array",
     'dojo/on',
-    'dojo/JSON',
+    'dojo/query',
+    'dojo/json',
     "dojox/html/entities",
     "dojo/text!./FieldValidation.html",
     'dijit/_TemplatedMixin',
@@ -18,6 +19,7 @@ define(
     lang,
     array,
     on,
+    query,
     JSON,
     entities,
     template,
@@ -65,7 +67,7 @@ define(
         var fieldsPopup = new Popup({
           titleLabel: esriLang.substitute(
             { fieldname: this._fieldAlias },
-            this.nls.actionPage.PageTitle),
+            this.nls.actionPage.title),
           width: 720,
           maxHeight: 600,
           autoHeight: true,
@@ -103,7 +105,7 @@ define(
             })
           }, {
             label: this.nls.cancel,
-            classNames: ['jimu-btn-vacation'],
+            classNames: ['jimu-btn jimu-btn-vacation'],
             onClick: lang.hitch(this, function () {
 
               fieldsPopup.close();
@@ -118,12 +120,12 @@ define(
       _initActionsTable: function () {
         var fields2 = [{
           name: 'label',
-          title: this.nls.actionPage.actionsSeetingsTable.rule,
+          title: this.nls.actionPage.actionsSettingsTable.rule,
           type: 'text',
           'class': 'rule'
         }, {
           name: 'expression',
-          title: this.nls.actionPage.actionsSeetingsTable.expression,
+          title: this.nls.actionPage.actionsSettingsTable.expression,
           type: 'text',
           'class': 'expression'
         },
@@ -135,7 +137,7 @@ define(
          },
         {
           name: 'actions',
-          title: this.nls.actionPage.actionsSeetingsTable.actions,
+          title: this.nls.actionPage.actionsSettingsTable.actions,
           type: 'actions',
           actions: ['up', 'down', 'edit'],
           'class': 'actions'
@@ -151,6 +153,24 @@ define(
         this._validationTable = new Table(args2);
         this._validationTable.placeAt(this.validationTable);
         this._validationTable.startup();
+        var nl = query("th.simple-table-field", this._validationTable.domNode);
+        nl.forEach(function (node) {
+          switch (node.innerText) {
+            case this.nls.actionPage.actionsSettingsTable.rule:
+              node.title = this.nls.actionPage.actionsSettingsTable.ruleTip;
+              break;
+            case this.nls.actionPage.actionsSettingsTable.expression:
+              node.title = this.nls.actionPage.actionsSettingsTable.expressionTip;
+              break;
+          
+            case this.nls.actionPage.actionsSettingsTable.actions:
+              node.title = this.nls.actionPage.actionsSettingsTable.actionsTip;
+              break;
+
+
+          }
+
+        }, this);
         this.own(on(this._validationTable,
           'actions-edit',
           lang.hitch(this, this._onEditFieldInfoClick)));
@@ -216,7 +236,7 @@ define(
               {
                 action: rowData.label
               },
-              this.nls.filterPage.PageTitle),
+              this.nls.filterPage.title),
             width: 680,
             height: 485,
             content: filter,
@@ -246,7 +266,7 @@ define(
               })
             }, {
               label: this.nls.cancel,
-              classNames: ['jimu-btn-vacation']
+              classNames: ['jimu-btn jimu-btn-vacation']
             }]
           });
 

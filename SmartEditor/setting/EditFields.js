@@ -3,30 +3,35 @@ define(
     "dojo/_base/lang",
     "dojo/_base/array",
     'dojo/on',
+    'dojo/query',
     "dojo/text!./EditFields.html",
      "./FieldValidation",
     'dijit/_TemplatedMixin',
     'jimu/BaseWidgetSetting',
     'jimu/dijit/SimpleTable',
-    "jimu/dijit/Popup"
+    "jimu/dijit/Popup",
+    'esri/lang'
   ],
   function (
     declare,
     lang,
     array,
     on,
+    query,
     template,
     FieldValidation,
     _TemplatedMixin,
     BaseWidgetSetting,
     Table,
-    Popup) {
+    Popup,
+    esriLang) {
     return declare([BaseWidgetSetting, _TemplatedMixin], {
       baseClass: "jimu-widget-smartEditor-setting-fields",
       templateString: template,
       _layerInfo: null,
       _fieldValid: null,
       _fieldValidations: null,
+      __layerName:null,
       postCreate: function () {
         this.inherited(arguments);
         this._initFieldsTable();
@@ -36,7 +41,9 @@ define(
 
       popupEditPage: function () {
         var fieldsPopup = new Popup({
-          titleLabel: this.nls.fieldsPage.PageTitle,
+          titleLabel: esriLang.substitute(
+            { layername: this._layerName},
+            this.nls.fieldsPage.title),
           width: 720,
           maxHeight: 700,
           autoHeight: true,
@@ -116,6 +123,29 @@ define(
         this._fieldsTable = new Table(args2);
         this._fieldsTable.placeAt(this.fieldsTable);
         this._fieldsTable.startup();
+        var nl = query("th.simple-table-field", this._fieldsTable.domNode);
+        nl.forEach(function (node) {
+          switch (node.innerText) {
+            case this.nls.fieldsPage.fieldsSettingsTable.edit:
+              node.title = this.nls.fieldsPage.fieldsSettingsTable.editTip;
+              break;
+            case this.nls.fieldsPage.fieldsSettingsTable.fieldName:
+              node.title = this.nls.fieldsPage.fieldsSettingsTable.fieldNameTip;
+              break;
+            case this.nls.fieldsPage.fieldsSettingsTable.fieldAlias:
+              node.title = this.nls.fieldsPage.fieldsSettingsTable.fieldAliasTip;
+              break;
+            case this.nls.fieldsPage.fieldsSettingsTable.canPresetValue:
+              node.title = this.nls.fieldsPage.fieldsSettingsTable.canPresetValueTip;
+              break;
+            case this.nls.fieldsPage.fieldsSettingsTable.actions:
+              node.title = this.nls.fieldsPage.fieldsSettingsTable.actionsTip;
+              break;
+           
+
+          }
+
+        }, this);
         this.own(on(this._fieldsTable,
           'actions-edit',
           lang.hitch(this, this._onEditFieldInfoClick)));

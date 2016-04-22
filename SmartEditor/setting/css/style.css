@@ -35,6 +35,10 @@
 .jimu-widget-smartEditor-setting-fields .fieldLabel{
 
 }
+.jimu-widget-smartEditor-setting-fields .settingsDesc{
+ padding-bottom:10px;
+ font-size: 14px;
+}
 
 .jimu-widget-smartEditor-setting-fields .actions{
 }
@@ -50,6 +54,10 @@
   width:100px;  
 }
 
+.jimu-widget-smartEditor-rule-table .settingsDesc{
+    font-size: 14px;
+  padding-bottom:10px;
+}
 
 
 .jimu-widget-smartEditor-setting .setting-table > thead > tr > th,

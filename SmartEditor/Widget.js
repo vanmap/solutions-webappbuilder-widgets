@@ -460,7 +460,7 @@ define([
         if (query(".jimu-widget-smartEditor .deleteButton").length < 1) {
           this._deleteButton = domConstruct.create("div", {
             innerHTML: this.nls.del,
-            "class": "deleteButton jimu-btn"
+            "class": "deleteButton jimu-btn jimu-btn-vacation"
           }, saveButton, "after");
           // query(".jimu-widget-smartEditor .topButtonsRowDiv")[0], "first");
 

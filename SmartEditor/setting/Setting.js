@@ -226,7 +226,8 @@ define([
             
             layerInfo.mapLayer.resourceInfo =
               this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.resourceInfo;
-            layerInfo.mapLayer.url = this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.url;
+            layerInfo.mapLayer.url =
+              this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.url;
             
           }
         }
@@ -256,9 +257,10 @@ define([
         if (this.config.editor.layerInfos &&
             this.config.editor.layerInfos.length > 0) {
           editable = this.config.editor.layerInfos.some(function (layerInfo) {
-            return (layerInfo.featureLayer.id === layerObject.id)
+            return (layerInfo.featureLayer.id === layerObject.id);
           });
         }
+        var origLayerInfo = this._jimuLayerInfos.getLayerInfoById(layerObject.id);
         var layerInfo = {
           'featureLayer': {
             'id': layerObject.id,
@@ -268,8 +270,8 @@ define([
             'layerAllowGeometryUpdates': allowGeometryUpdates
           },
           'mapLayer': {
-            'resourceInfo': this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.resourceInfo,
-            'url': this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.url
+            'resourceInfo': origLayerInfo.originOperLayer.resourceInfo,
+            'url': origLayerInfo.originOperLayer.url
           },
           'disableGeometryUpdate': !allowGeometryUpdates,
           'allowUpdateOnly': !allowsCreate,
@@ -281,17 +283,21 @@ define([
       },
 
       _setLayersTable: function (layerInfos) {
+        var nl = null;
         array.forEach(layerInfos, function (layerInfo) {
           var _jimuLayerInfo = this._jimuLayerInfos.getLayerInfoById(layerInfo.featureLayer.id);
           var addRowResult = this._layersTable.addRow({
             label: _jimuLayerInfo.title,
             edit: layerInfo._editFlag,
             allowUpdateOnly: layerInfo.allowUpdateOnly,
-            allowUpdateOnlyHidden: layerInfo.allowUpdateOnly === null ? false : layerInfo.allowUpdateOnly,
+            allowUpdateOnlyHidden: layerInfo.allowUpdateOnly === null ?
+              false : layerInfo.allowUpdateOnly,
             allowDelete: layerInfo.allowDelete,
-            allowDeleteHidden: layerInfo.allowDelete === null ? false : layerInfo.allowDelete,
+            allowDeleteHidden: layerInfo.allowDelete === null ?
+              false : layerInfo.allowDelete,
             disableGeometryUpdate: layerInfo.disableGeometryUpdate,
-            disableGeometryUpdateHidden: layerInfo.disableGeometryUpdate === null ? false : layerInfo.disableGeometryUpdate,
+            disableGeometryUpdateHidden: layerInfo.disableGeometryUpdate === null ?
+              false : layerInfo.disableGeometryUpdate
           });
           addRowResult.tr._layerInfo = layerInfo;
 
@@ -418,15 +424,20 @@ define([
 
       _resetSettingsConfig: function () {
         //this.config.editor.showDeleteButton =
-        //  this.showDeleteButton.checked === undefined ? false : this.showDeleteButton.checked;
+        //  this.showDeleteButton.checked === undefined ? 
+        //  false : this.showDeleteButton.checked;
         this.config.editor.displayPromptOnSave =
-          this.displayPromptOnSave.checked === undefined ? false : this.displayPromptOnSave.checked;
+          this.displayPromptOnSave.checked === undefined ?
+          false : this.displayPromptOnSave.checked;
         this.config.editor.displayPromptOnDelete =
-          this.displayPromptOnDelete.checked === undefined ? false : this.displayPromptOnDelete.checked;
+          this.displayPromptOnDelete.checked === undefined ?
+          false : this.displayPromptOnDelete.checked;
         this.config.editor.removeOnSave =
-          this.removeOnSave.checked === undefined ? false : this.removeOnSave.checked;
+          this.removeOnSave.checked === undefined ?
+          false : this.removeOnSave.checked;
         //this.config.editor.clearSelectionOnClose = false;
-        //this.clearSelectionOnClose.checked === undefined ? false : this.clearSelectionOnClose.checked;
+        //this.clearSelectionOnClose.checked === undefined ?
+        //  false : this.clearSelectionOnClose.checked;
       },
 
       getConfig: function () {
@@ -438,9 +449,13 @@ define([
         var layersTableData = this._layersTable.getData();
         array.forEach(this._editableLayerInfos, function (layerInfo, index) {
           layerInfo._editFlag = layersTableData[index].edit;
-          layerInfo.allowUpdateOnly = (layersTableData[index].allowUpdateOnly === null ? layersTableData[index].allowUpdateOnlyHidden : layersTableData[index].allowUpdateOnly);
-          layerInfo.allowDelete = (layersTableData[index].allowDelete === null ? layersTableData[index].allowDeleteHidden : layersTableData[index].allowDelete);
-          layerInfo.disableGeometryUpdate = (layersTableData[index].disableGeometryUpdate === null ? layersTableData[index].disableGeometryUpdateHidden : layersTableData[index].disableGeometryUpdate);
+          layerInfo.allowUpdateOnly = (layersTableData[index].allowUpdateOnly === null ?
+            layersTableData[index].allowUpdateOnlyHidden : layersTableData[index].allowUpdateOnly);
+          layerInfo.allowDelete = (layersTableData[index].allowDelete === null ?
+            layersTableData[index].allowDeleteHidden : layersTableData[index].allowDelete);
+          layerInfo.disableGeometryUpdate = (layersTableData[index].disableGeometryUpdate === null ?
+            layersTableData[index].disableGeometryUpdateHidden :
+            layersTableData[index].disableGeometryUpdate);
           if (layerInfo._editFlag) {
             delete layerInfo._editFlag;
             delete layerInfo.mapLayer;

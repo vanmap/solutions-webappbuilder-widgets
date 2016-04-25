@@ -3,8 +3,8 @@ define({
     layersPage: {
       displayPrompt: "Display Prompt:",
       displayPromptTip: "Select when to display a prompt",
-      promptOnSave: "on Save",
-      promptOnSaveTip: "Display a prompt when the user clicks saved, with the option to cancel, save or reject the changes.",
+      promptOnSave: "On close, when there are edits",
+      promptOnSaveTip: "Display a prompt when the user clicks close or navigates to the next editable record when the current feature has unsaved edits.",
       promptOnDelete: "on Delete",
       promptOnDeleteTip: "Display a prompt when the user clicks delete to confirm the aciton.",
       removeOnSave: "Remove Feature from Selection on Save",

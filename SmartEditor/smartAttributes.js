@@ -25,7 +25,6 @@ define([
    'dojo/query',
    'dijit/registry',
    'jimu/filterUtils',
-   'dijit/_TemplatedMixin',
     'jimu/BaseWidgetSetting'
 ], function (
   dojo,
@@ -36,10 +35,9 @@ define([
   query,
   registry,
   filterUtils,
-  _TemplatedMixin,
   BaseWidgetSetting
   ) {
-  return declare([BaseWidgetSetting, _TemplatedMixin], {
+  return declare([BaseWidgetSetting], {
     _attrInspector: null,
     _fieldValidation: null,
     _feature: null,
@@ -134,8 +132,8 @@ define([
           return [false, null, true];
         }
         else {
-          var result = [false, null, null];;
-          var ruleValid = this._fieldValidation[fieldName].some(function (actionDetails) {
+          var result = [false, null, null];
+          this._fieldValidation[fieldName].some(function (actionDetails) {
             filter = actionDetails.filter;
             if (filter !== undefined && filter !== null) {
               result = [true, null, null];
@@ -358,57 +356,51 @@ define([
           if (String(field).indexOf(value1 >= 0)) {
             return false;
           }
-
-          break;
+          return false;
+          
         case this.OPERATORS.stringOperatorIsBlank:
           return (field === null || field === undefined);
-          break;
+          
         case this.OPERATORS.stringOperatorIsNotBlank:
           return (field !== null && field !== undefined);
 
-          break;
         case this.OPERATORS.numberOperatorIs:
           if (this._isNumeric(field)) {
             return String(field) === String(value1);
           }
           return false;
-          break;
+          
         case this.OPERATORS.numberOperatorIsNot:
           if (this._isNumeric(field)) {
             return (String(field) !== String(value1));
           }
           return false;
-          break;
         case this.OPERATORS.numberOperatorIsAtLeast:
           if (this._isNumeric(field) && this._isNumeric(value1)) {
             return field >= value1;
           }
           return false;
-          break;
+          
         case this.OPERATORS.numberOperatorIsLessThan:
           if (this._isNumeric(field) && this._isNumeric(value1)) {
             return field < value1;
           }
           return false;
-          break;
         case this.OPERATORS.numberOperatorIsAtMost:
           if (this._isNumeric(field) && this._isNumeric(value1)) {
             return field <= value1;
           }
           return false;
-          break;
         case this.OPERATORS.numberOperatorIsGreaterThan:
           if (this._isNumeric(field) && this._isNumeric(value1)) {
             return field > value1;
           }
           return false;
-          break;
         case this.OPERATORS.numberOperatorIsBetween:
           if (this._isNumeric(field) && this._isNumeric(value1) && this._isNumeric(value2)) {
             return field > value1 && field < value2;
           }
           return false;
-          break;
         case this.OPERATORS.numberOperatorIsNotBetween:
           if (this._isNumeric(field) && this._isNumeric(value1) && this._isNumeric(value2)) {
             return field <= value1 || field >= value2;
@@ -418,13 +410,12 @@ define([
           if (field === null || field === undefined) {
             return true;
           }
-          break;
+          return false;
         case this.OPERATORS.numberOperatorIsNotBlank:
           if (field !== null && field !== undefined) {
             return true;
           }
-
-          break;
+          return false;
         case this.OPERATORS.dateOperatorIsOn:
           if (field === undefined || field === null) {
             return false;
@@ -436,7 +427,6 @@ define([
           d = new Date(0);
           d.setUTCSeconds(field);
           return value1.toDateString() === field.toDateString();
-          break;
         case this.OPERATORS.dateOperatorIsNotOn:
           if (field === undefined || field === null) {
             return false;
@@ -447,8 +437,8 @@ define([
 
           d = new Date(0);
           d.setUTCSeconds(field);
-          return !(value1.toDateString() === field.toDateString());
-          break;
+          var res = (value1.toDateString() === field.toDateString());
+          return (!res);
         case this.OPERATORS.dateOperatorIsBefore:
           if (field === null || field === undefined) {
             return false;
@@ -457,7 +447,6 @@ define([
             return false;
           }
           return field < (value1.getTime());
-          break;
         case this.OPERATORS.dateOperatorIsAfter:
           if (field === null || field === undefined) {
             return false;
@@ -466,7 +455,6 @@ define([
             return false;
           }
           return field > (value1.getTime());
-          break;
         case this.OPERATORS.dateOperatorIsBetween:
           if (field === null || field === undefined) {
             return false;
@@ -478,7 +466,6 @@ define([
             return false;
           }
           return field > (value1.getTime()) && field < (value2.getTime());
-          break;
         case this.OPERATORS.dateOperatorIsNotBetween:
           if (field === null || field === undefined) {
             return false;
@@ -490,54 +477,46 @@ define([
             return false;
           }
           return field <= (value1.getTime()) || field >= (value2.getTime());
-          break;
         case this.OPERATORS.dateOperatorIsBlank:
           if (field === null || field === undefined) {
             return true;
           }
-
-          break;
+          return false;
         case this.OPERATORS.dateOperatorIsNotBlank:
           if (field !== null && field !== undefined) {
             return true;
           }
-
-          break;
+          return false;
         case this.OPERATORS.dateOperatorDays:
           //Not exposed in control, not implemented in app
           if (field === null || field === undefined) {
             //return true;
           }
           return false;
-          break;
         case this.OPERATORS.dateOperatorWeeks:
           //Not exposed in control, not implemented in app
           if (field === null || field === undefined) {
             //return true;
           }
           return false;
-          break;
         case this.OPERATORS.dateOperatorMonths:
           //Not exposed in control, not implemented in app
           if (field === null || field === undefined) {
             //return true;
           }
           return false;
-          break;
         case this.OPERATORS.dateOperatorInTheLast:
           //Not exposed in control, not implemented in app
           if (field === null || field === undefined) {
             //return true;
           }
           return false;
-          break;
         case this.OPERATORS.dateOperatorNotInTheLast:
           //Not exposed in control, not implemented in app
           if (field === null || field === undefined) {
             //return true;
           }
           return false;
-          break;
         default:
           return false;
       }
@@ -741,7 +720,7 @@ define([
         var row = this._attTable.filter(lang.hitch(this, function (row) {
           return row.childNodes[0].data === fieldName;
         }));
-
+        var nl = null;
         if (row !== null) {
           if (row.length > 0) {
             var rowInfo = this._getRowInfo(row[0]);
@@ -767,8 +746,8 @@ define([
                   this._removeRedAst(row[0], fieldName);
                   //this._removeDisableRule(fieldName,valueCell);
                   this._removeHideRule(parent);
-                  domClass.add(valueCell, ["dijitValidationTextBox", "dijitTextBoxDisabled", "dijitComboBoxDisabled",
-                                           "dijitValidationTextBoxDisabled", "dijitDisabled"]);
+                  domClass.add(valueCell, ["dijitValidationTextBox", "dijitTextBoxDisabled",
+                    "dijitComboBoxDisabled","dijitValidationTextBoxDisabled", "dijitDisabled"]);
 
                   this._processChildNodes(valueCell, true);
                   break;
@@ -782,7 +761,7 @@ define([
                   } else {
                     if (widget.declaredClass === 'dijit.form.TextBox') {
 
-                      var nl = query(".dijitValidationContainer", parent);
+                      nl = query(".dijitValidationContainer", parent);
                       if (nl.length === 0) {
 
                         var newDiv = document.createElement('div');
@@ -798,16 +777,19 @@ define([
                         valueCell.insertBefore(newDiv, valueCell.childNodes[0]);
                       }
 
-                      domClass.add(valueCell, ["dijitTextBoxError", "dijitValidationTextBox", "dijitValidationTextBoxError", "dijitError"]);
+                      domClass.add(valueCell, ["dijitTextBoxError", "dijitValidationTextBox",
+                        "dijitValidationTextBoxError", "dijitError"]);
                     } else if (widget.declaredClass === 'dijit.form.ValidationTextBox') {
 
-                      var nl = query(".dijitValidationContainer", parent);
+                      nl = query(".dijitValidationContainer", parent);
                     
 
-                      domClass.add(valueCell, ["dijitTextBoxError", "dijitValidationTextBox", "dijitValidationTextBoxError", "dijitError"]);
+                      domClass.add(valueCell, ["dijitTextBoxError", "dijitValidationTextBox",
+                        "dijitValidationTextBoxError", "dijitError"]);
                     } else if (widget.declaredClass === 'dijit.form.FilteringSelect') {
                         
-                      domClass.add(valueCell, ["dijitTextBoxError", "dijitComboBoxError", "dijitError", "dijitValidationTextBoxError"]);
+                      domClass.add(valueCell, ["dijitTextBoxError", "dijitComboBoxError",
+                        "dijitError", "dijitValidationTextBoxError"]);
 
                     }
                     else {

@@ -7,12 +7,11 @@ define({
     pressStr: "Press ",
     ctrlStr: " CTRL ",
     snapStr: " to enable snapping",
-    close: "Close",
     noAvailableTempaltes: "No available templates",
     editorCache: " - Editor Cache",
-    del: "Delete",
-    submit: "Save",
-    cancel: "Close",
+    deleteText: "Delete",
+    save: "Save",
+    close: "Close",
     presetFieldAlias: "Field",
     presetValue: "Preset Value",
     usePresetValues: " Use Preset Values (New features only)",
@@ -22,6 +21,11 @@ define({
     savePrompt: "Would you like to save the current feature?",
     deletePromptTitle: "Delete feature",
     deletePrompt: "Are you sure you want to delete the selected feature?",
+    attachment: {
+      title: "test",
+      add:"Add"
+    },
+    attachmentLoadingError:"Error uploading attachments"
   }),
   "ar": 1,
   "cs": 1,

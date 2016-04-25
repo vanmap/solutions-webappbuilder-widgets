@@ -36,7 +36,8 @@ define(
         this.inherited(arguments);
         this._initFieldsTable();
         this._setFiedsTable(this._layerInfo.fieldInfos);
-        this._fieldValidations = this._layerInfo.fieldValidations === undefined ? {} : lang.clone(this._layerInfo.fieldValidations)
+        this._fieldValidations = this._layerInfo.fieldValidations === undefined ?
+          {} : lang.clone(this._layerInfo.fieldValidations);
       },
 
       popupEditPage: function () {
@@ -156,7 +157,7 @@ define(
         if (rows.length === 0) { return false; }
 
         return rows.some(function (row) {
-          rowData = this._fieldsTable.getRowData(row);
+          var rowData = this._fieldsTable.getRowData(row);
           return rowData.isEditable;
         }, this);
 
@@ -172,10 +173,8 @@ define(
             _fieldName: rowData.fieldName,
             _fieldAlias: rowData.label
           });
-          var result = this._fieldValid.popupActionsPage();
-          if (result !== null) {
-
-          }
+          this._fieldValid.popupActionsPage();
+         
         }
       },
       _setFiedsTable: function (fieldInfos) {

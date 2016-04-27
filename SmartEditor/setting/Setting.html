@@ -1,38 +1,48 @@
 <div style="width:100%;">
-  <div data-dojo-attach-point="firstPageDiv">
-    <table class="setting-table input-table" cellspacing="0">
-      <tbody>
-        
-        <tr class="prompt-options-tr">
-            <td class="first jimu-trailing-padding1 prompt-options-td" title="${nls.layersPage.displayPromptTip}">${nls.layersPage.displayPrompt}</td>
-          <td class="second jimu-leading-padding1 prompt-options-td">
-              <span class="jimu-trailing-margin05 jimu-float-leading" title="${nls.layersPage.promptOnSaveTip}">${nls.layersPage.promptOnSave}</span>
-            <div class="jimu-trailing-margin2 jimu-float-leading">
-              <input data-dojo-attach-point="displayPromptOnSave"
-                     data-dojo-type="dijit/form/CheckBox" />
-            </div>
+    <div data-dojo-attach-point="firstPageDiv">
 
-              <span class="jimu-trailing-margin05 jimu-float-leading" title="${nls.layersPage.promptOnDeleteTip}">${nls.layersPage.promptOnDelete}</span>
-            <div class="jimu-trailing-margin2 jimu-float-leading">
-              <input data-dojo-attach-point="displayPromptOnDelete"
-                     data-dojo-type="dijit/form/CheckBox" />
-            </div>
-          </td>
-          <td><div style="height: 40px;"></div></td>
-        </tr>
+            
         
-        <tr>
-            <td class="first jimu-trailing-padding1" title="${nls.layersPage.removeOnSaveTip}">${nls.layersPage.removeOnSave}</td>
-          <td class="second jimu-leading-padding1">
-            <div class="" style="">
-              <input data-dojo-attach-point="removeOnSave"
-                     data-dojo-type="dijit/form/CheckBox" />
-            </div>
-          </td>
-        </tr>  
-      </tbody>
-    </table>
-    <div data-dojo-attach-point="tableLayerInfos"></div>
-    <div data-dojo-attach-point="tableLayerInfosError" style="display:none; padding: 5px;"></div>
-  </div>
+        <table class="setting-table input-table" cellspacing="0">
+            <tbody>
+            
+                <tr class="prompt-options-tr">
+                    <td class="first jimu-trailing-padding1 prompt-options-td" title="${nls.layersPage.displayPromptTip}">${nls.layersPage.displayPrompt}</td>
+                    <td class="second jimu-leading-padding1 prompt-options-td">
+                        <span class="jimu-trailing-margin05 jimu-float-leading" title="${nls.layersPage.promptOnSaveTip}">${nls.layersPage.promptOnSave}</span>
+                        <div class="jimu-trailing-margin2 jimu-float-leading">
+                            <input data-dojo-attach-point="displayPromptOnSave"
+                                   data-dojo-type="dijit/form/CheckBox" />
+                        </div>
+
+                        <span class="jimu-trailing-margin05 jimu-float-leading" title="${nls.layersPage.promptOnDeleteTip}">${nls.layersPage.promptOnDelete}</span>
+                        <div class="jimu-trailing-margin2 jimu-float-leading">
+                            <input data-dojo-attach-point="displayPromptOnDelete"
+                                   data-dojo-type="dijit/form/CheckBox" />
+                        </div>
+                    </td>
+                    <td><div style="height: 40px;"></div></td>
+                </tr>
+
+                <tr>
+                    <td class="first jimu-trailing-padding1" title="${nls.layersPage.removeOnSaveTip}">${nls.layersPage.removeOnSave}</td>
+                    <td class="second jimu-leading-padding1">
+                        <div class="" style="">
+                            <input data-dojo-attach-point="removeOnSave"
+                                   data-dojo-type="dijit/form/CheckBox" />
+                        </div>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <div data-dojo-attach-point="tableLayerInfos"></div>
+        <div data-dojo-attach-point="tableLayerInfosError" style="display:none; padding: 5px;"></div>
+
+        <div title="${nls.layersPage.editDescriptionTip}">${nls.layersPage.editDescription}</div>
+
+        <div class="edit-description-box">
+            <div data-dojo-attach-point="editorDescription"></div>
+        </div>
+
+    </div>
 </div>

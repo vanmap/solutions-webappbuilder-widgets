@@ -5,6 +5,23 @@
 }
 
 
+.jimu-widget-smartEditor-setting .edit-description-tr{
+  width: 100%;
+  height: 100px;
+}
+.jimu-widget-smartEditor-setting .edit-description-box{
+  width: 100%;
+  height: 200px;
+  padding-top:20px;
+}
+.jimu-widget-smartEditor-setting .dijitEditorIFrameContainer
+{
+    background-color: #ffffff;
+    border: none !important;
+    width: 100% !important;
+    height: 154px !important;
+}
+
 /*CSS for Layers config tables*/
 .jimu-widget-smartEditor-setting .editable{
   width: 100px;
@@ -59,12 +76,16 @@
   padding-bottom:10px;
 }
 
+.jimu-widget-smartEditor-setting .setting-table {
+      width:100%;
+}
 
 .jimu-widget-smartEditor-setting .setting-table > thead > tr > th,
 .jimu-widget-smartEditor-setting .setting-table > tbody > tr > td{
   height:40px;
   line-height:40px;
   vertical-align:middle;
+
 }
 
 .jimu-widget-smartEditor-setting .input-table > tbody > tr > .first{

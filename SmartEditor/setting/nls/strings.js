@@ -1,6 +1,8 @@
 define({
   root: ({
     layersPage: {
+      editDescription: "Provide display text for the edit panel",
+      editDescriptionTip: "This text is displayed above the Template picker, leave blank for no text.",
       displayPrompt: "Display Prompt:",
       displayPromptTip: "Select when to display a prompt",
       promptOnSave: "On close, when there are edits",
@@ -24,6 +26,8 @@ define({
         fieldsTip: "Modify the fields to be edited and define Smart Attributes"
       }
     },
+    editDescriptionPage: {
+      title: "Define attribute overview text for <b>${layername}</b> "},
     fieldsPage: {
       title: "Configure fields for <b>${layername}</b>",
       description:"Set the fields that will be editable in the Smart Editor.  Use the Preset column to allow the user to enter a value prior to creating a new feature.  These values can be apply to every new feature that contains these fields.  If the same field is present in more than one layer, they are combined in the Preset field list.  The preset fields are only applied to new features.  Use the Action edit button to activate Smart Attributes on a layer.  The Smart Attributes can require, hide or disable a field based on values in other fields.",

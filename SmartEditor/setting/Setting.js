@@ -26,7 +26,10 @@ define([
     'dijit/registry',
     'dojo/_base/array',
     "./EditFields",
-    "../utils"
+    "./EditDescription",
+    "../utils",
+    'dijit/Editor',
+        'dojo/dom-style'
 ],
   function (
     declare,
@@ -40,14 +43,19 @@ define([
     registry,
     array,
     EditFields,
-    editUtils) {
+    EditDescription,
+    editUtils,
+    Editor,
+    domStyle
+
+    ) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
       //these two properties is defined in the BaseWidget
       baseClass: 'jimu-widget-smartEditor-setting',
       _jimuLayerInfos: null,
       _layersTable: null,
       _editableLayerInfos: null,
-      _editFields:null,
+      _editFields: null,
       startup: function () {
         this.inherited(arguments);
         this.nls = lang.mixin(this.nls, window.jimuNls.common);
@@ -57,6 +65,7 @@ define([
             this._init();
             this.setConfig();
           }));
+        this._initEditor();
       },
 
       destroy: function () {
@@ -68,7 +77,8 @@ define([
         delete this._editableLayerInfos;
         this._editFields = null;
         delete this._editFields;
-  
+        this._editDescriptions = null;
+        delete this._editDescriptions;
         this.inherited(arguments);
       },
 
@@ -134,7 +144,7 @@ define([
         this._layersTable = new Table(args);
         this._layersTable.placeAt(this.tableLayerInfos);
         this._layersTable.startup();
-     
+
         var nl = query("th.simple-table-field", this._layersTable.domNode);
         nl.forEach(function (node) {
           switch (node.innerText) {
@@ -156,16 +166,20 @@ define([
             case this.nls.layersPage.layerSettingsTable.fields:
               node.title = this.nls.layersPage.layerSettingsTable.fieldsTip;
               break;
-       
+
           }
-          
-        },this);
-          
+
+        }, this);
+
         this.own(on(this._layersTable,
           'actions-edit',
           lang.hitch(this, this._onEditFieldInfoClick)));
+        this.own(on(this._layersTable,
+          'row-dblclick',
+          lang.hitch(this, this._onRowDoubleClick)));
+
       },
-     
+
       _initSettings: function () {
         //this.showDeleteButton.set('checked', this.config.editor.showDeleteButton);
         this.displayPromptOnSave.set('checked', this.config.editor.displayPromptOnSave);
@@ -223,12 +237,12 @@ define([
             layerInfo._editFlag = true;
 
             layerInfo.mapLayer = [];
-            
+
             layerInfo.mapLayer.resourceInfo =
               this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.resourceInfo;
             layerInfo.mapLayer.url =
               this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.url;
-            
+
           }
         }
         return layerInfo;
@@ -409,7 +423,17 @@ define([
         }
         return simpleFieldInfos;
       },
-
+      _onRowDoubleClick: function (tr) {
+        var rowData = this._layersTable.getRowData(tr);
+        if (rowData && rowData.edit) {
+          this._editDescriptions = new EditDescription({
+            nls: this.nls,
+            _layerInfo: tr._layerInfo,
+            _layerName: rowData.label
+          });
+          this._editDescriptions.popupEditDescription();
+        }
+      },
       _onEditFieldInfoClick: function (tr) {
         var rowData = this._layersTable.getRowData(tr);
         if (rowData && rowData.edit) {
@@ -421,6 +445,52 @@ define([
           this._editFields.popupEditPage();
         }
       },
+
+      _getText: function () {
+        var editorText, regExp;
+        editorText = this._editorObj.focusNode.innerHTML;
+        editorText = editorText.replace(/&nbsp;/g, '');
+        regExp = new RegExp("<div><br></div>", 'g');
+        editorText = editorText.replace(regExp, "");
+        regExp = new RegExp("<p><br></p>", 'g');
+        editorText = editorText.replace(regExp, "");
+        regExp = new RegExp("<p></p>", 'g');
+        editorText = editorText.replace(regExp, "");
+        editorText = editorText.replace(/<br>/g, "");
+        editorText = lang.trim(editorText);
+
+        return editorText;
+      },
+      _initEditor: function () {
+        if (!this._editorObj) {
+          this._editorObj = new Editor({
+            plugins: [
+              "bold", "italic", "underline", "|", "cut", "copy",
+              "paste", "|", "foreColor"
+            ],
+            height: "95%"
+          }, this.editorDescription);
+          domStyle.set(this._editorObj.domNode, {
+            "width": '100%',
+            "height": '100%'
+          });
+          this.own(on(this._editorObj, "focus", lang.hitch(this,
+            function () {
+
+            })));
+          this.own(on(this._editorObj, "blur", lang.hitch(this,
+            function () {
+
+            })));
+
+          this._editorObj.onLoadDeferred.then(lang.hitch(this, function () {
+
+          }));
+
+          this._editorObj.startup();
+        }
+      },
+
 
       _resetSettingsConfig: function () {
         //this.config.editor.showDeleteButton =

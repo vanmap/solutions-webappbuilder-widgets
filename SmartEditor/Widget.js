@@ -1448,6 +1448,7 @@ define([
         if (evt && evt.feature) {
           this.currentFeature = evt.feature;
           this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
+        
           this._createSmartAttributes();
           this._validateAttributes();
           this._enableAttrInspectorSaveButton(false);
@@ -1455,6 +1456,13 @@ define([
           this._toggleEditGeoSwitch(this.currentLayerInfo.disableGeometryUpdate);
           this.currentFeature.setSymbol(
             this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
+          if (this.currentLayerInfo.editDescription && this.currentLayerInfo.editDescription !== null) {
+            this.editDescription.innerHTML = this.currentLayerInfo.editDescription;
+            this.editDescription.style.display = "block";
+          }
+          else {
+            this.editDescription.style.display = "none";
+          }
         }
 
       },
@@ -1698,6 +1706,7 @@ define([
           //show attribute inspector
           query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "none";
           query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "block";
+        
 
           this._mapClickHandler(false);
           if (this.attrInspector) {
@@ -1711,9 +1720,15 @@ define([
             } else {
               this._enableAttrInspectorSaveButton(false);
             }
-
+            if (this.currentLayerInfo.editDescription && this.currentLayerInfo.editDescription !== null) {
+              this.editDescription.innerHTML = this.currentLayerInfo.editDescription;
+              this.editDescription.style.display = "block";
+            }
+            else {
+              this.editDescription.style.display = "none";
+            }
             this._toggleEditGeoSwitch(this.currentLayerInfo.disableGeometryUpdate);
-
+          
           }
         }
 

@@ -69,13 +69,13 @@ define([
       //this._fieldNameToAlias = {};
       this._fieldsWithRules = [];
 
-      this._mapLayer.fields.forEach(function (field) {
+      array.forEach(this._mapLayer.fields,function (field) {
         if (field.nullable === false && field.editable === true) {
           this._gdbRequiredFields.push(field.alias);
         }
       }, this);
 
-      this._fieldInfo.forEach(function (finfo) {
+      array.forEach(this._fieldInfo, function (finfo) {
         if (finfo.isEditable === false || finfo.isEditableSettingInWebmap === false) {
           this._notEditableFields.push(finfo.label);
 
@@ -107,7 +107,7 @@ define([
 
       var rowsWithError = [];
       var results;
-      fields.forEach(lang.hitch(this, function (field) {
+      array.forEach(fields, lang.hitch(this, function (field) {
         actionType = null;
         // hasRule, actionType, fieldValid 
         results = this.validateField(field.name);
@@ -133,7 +133,7 @@ define([
         }
         else {
           var result = [false, null, null];
-          this._fieldValidation[fieldName].some(function (actionDetails) {
+          array.some(this._fieldValidation[fieldName], function (actionDetails) {
             filter = actionDetails.filter;
             if (filter !== undefined && filter !== null) {
               result = [true, null, null];
@@ -177,7 +177,7 @@ define([
       }
 
       if (this._attTable.length > 0) {
-        this._attTable.forEach(function (row) {
+        array.forEach(this._attTable,function (row) {
           var rowInfo = this._getRowInfo(row);
           if (this._fieldsWithRules.indexOf(rowInfo[3]) !== -1) {
             if (rowInfo[2].declaredClass === 'dijit.form.FilteringSelect') {
@@ -209,7 +209,8 @@ define([
           }
 
           switch (part.valueObj.type) {
-            case 'value', 'unique':
+            case 'value':
+            case 'unique':
               partResults.push(this.validatePart(part.operator,
                                this._feature.attributes[part.fieldObj.name],
                                value1,
@@ -576,7 +577,7 @@ define([
             domClass.remove(valueCell, "dijitError");
           }
           nl = query(".dijitValidationContainer", parent);
-          nl.forEach(function (node) {
+          array.forEach(nl, function (node) {
             node.parentNode.removeChild(node);
           });
         }
@@ -594,7 +595,7 @@ define([
             domClass.remove(valueCell, "dijitError");
           }
           nl = query(".dijitValidationContainer", parent);
-          nl.forEach(function (node) {
+          array.forEach(nl, function (node) {
             node.parentNode.removeChild(node);
           });
         }
@@ -627,7 +628,7 @@ define([
             domClass.remove(valueCell, "dijitError");
           }
           nl = query(".dijitValidationContainer", parent);
-          nl.forEach(function (node) {
+          array.forEach(nl, function (node) {
             node.parentNode.removeChild(node);
           });
         }
@@ -662,7 +663,7 @@ define([
             domClass.remove(valueCell, "dijitError");
           }
           nl = query(".dijitValidationContainer", parent);
-          nl.forEach(function (node) {
+          array.forEach(nl,function (node) {
             node.parentNode.removeChild(node);
           });
 
@@ -677,7 +678,7 @@ define([
         var astNode = query("a.asteriskIndicator", row);
 
         if (astNode.length > 0) {
-          astNode.forEach(function (node) {
+          array.forEach(astNode,function (node) {
             node.parentNode.removeChild(node);
           });
         }

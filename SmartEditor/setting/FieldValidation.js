@@ -53,7 +53,7 @@ define(
           this._fieldValidations !== null) {
           if (this._fieldValidations.hasOwnProperty(this._fieldName)) {
           
-              this._fieldValidations[this._fieldName].some(function (action) {
+              array.some(this._fieldValidations[this._fieldName],function (action) {
                 return action.actionName === actionName ? (result = action, true) : false;
               });
               return result;

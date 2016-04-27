@@ -156,7 +156,7 @@ define(
 
         if (rows.length === 0) { return false; }
 
-        return rows.some(function (row) {
+        return array.some(rows, function (row) {
           var rowData = this._fieldsTable.getRowData(row);
           return rowData.isEditable;
         }, this);

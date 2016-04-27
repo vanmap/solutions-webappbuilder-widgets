@@ -69,7 +69,12 @@
 
         .jimu-widget-smartEditor .esriAttributeInspector .saveButton {
             float: right;
+            display: inline;
         }
+
+            .jimu-widget-smartEditor .esriAttributeInspector .saveButton.hide {
+                display: none;
+            }
 
         .jimu-widget-smartEditor .esriAttributeInspector .deleteButton {
             float: right;
@@ -134,21 +139,32 @@
     }
 
     .jimu-widget-smartEditor .processing-indicator {
-        display: none;
-        height: 100%;
-        width: 100%;
-        z-index: 500;
-        position: absolute;
-        top: 0;
-        left: 0;
-        overflow: hidden;
-        background: rgba(224,224,224,0.65);
+        display:none;
+        float:right; 
+        width:40px;
+        height:40px;
         background-position: center center;
         background-image: url(../images/busy.gif);
         background-repeat: no-repeat;
     }
 
         .jimu-widget-smartEditor .processing-indicator.busy {
+            display: inline;
+        }
+ .jimu-widget-smartEditor .processing-indicator-panel {
+        display:none;
+        width:100%;
+        height:100%;
+        z-index:500;
+        top:0;
+        left:0;
+        position:absolute;
+        background-position: center center;
+        background-image: url(../images/busy.gif);
+        background-repeat: no-repeat;
+    }
+
+        .jimu-widget-smartEditor .processing-indicator-panel.busy {
             display: block;
         }
 
@@ -160,12 +176,12 @@
     .jimu-widget-smartEditor .attInput {
         padding-top: 3px;
         padding-bottom: 3px;
-        display:inline-block;
+        display: inline-block;
     }
 
     .jimu-widget-smartEditor .deleteAttachment {
         padding-right: 5px;
-        cursor:pointer;
-        color:red;
-        font-weight:bold;
+        cursor: pointer;
+        color: red;
+        font-weight: bold;
     }

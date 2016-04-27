@@ -256,7 +256,7 @@ define([
         var editable = true;
         if (this.config.editor.layerInfos &&
             this.config.editor.layerInfos.length > 0) {
-          editable = this.config.editor.layerInfos.some(function (layerInfo) {
+          editable = array.some(this.config.editor.layerInfos, function (layerInfo) {
             return (layerInfo.featureLayer.id === layerObject.id);
           });
         }

@@ -497,6 +497,9 @@ define([
           innerHTML: this.nls.save,
           "class": "saveButton jimu-btn jimu-state-disabled"
         }, cancelButton, "after");
+        var processInd = domConstruct.create("div", {
+          "class": "processing-indicator"
+        }, saveButton, "before");
 
         if (query(".jimu-widget-smartEditor .deleteButton").length < 1) {
           this._deleteButton = domConstruct.create("div", {
@@ -782,15 +785,25 @@ define([
           this._showTemplate(true);
 
         } else {
-          var processIndicator = query(".processing-indicator")[0];
-          if (!domClass.contains(processIndicator, "busy")) {
-            domClass.add(processIndicator, "busy");
+          var processIndicators = query(".processing-indicator");
+          var processIndicatorsPanel = query(".processing-indicator-panel");
+          var saveBtn = query(".saveButton")[0];
+          array.forEach(processIndicators, function (processIndicator) {
+            if (!domClass.contains(processIndicator, "busy")) {
+              domClass.add(processIndicator, "busy");
+            }
+          });
+          array.forEach(processIndicatorsPanel, function (processIndicator) {
+            if (!domClass.contains(processIndicator, "busy")) {
+              domClass.add(processIndicator, "busy");
+            }
+          });
+          if (!domClass.contains(saveBtn, "hide")) {
+            domClass.add(saveBtn, "hide");
           }
 
           layer.applyEdits(null, null, [this.currentFeature], lang.hitch(this, function () {
-            if (domClass.contains(processIndicator, "busy")) {
-              domClass.remove(processIndicator, "busy");
-            }
+
             this.updateFeatures.splice(this.updateFeatures.indexOf(this.currentFeature), 1);
 
             if (this.updateFeatures && this.updateFeatures.length > 0) {
@@ -798,6 +811,19 @@ define([
               this.attrInspector.first();
             } else {
               this._showTemplate(true);
+            }
+            array.forEach(processIndicators, function (processIndicator) {
+              if (domClass.contains(processIndicator, "busy")) {
+                domClass.remove(processIndicator, "busy");
+              }
+            });
+            array.forEach(processIndicatorsPanel, function (processIndicator) {
+              if (domClass.contains(processIndicator, "busy")) {
+                domClass.remove(processIndicator, "busy");
+              }
+            });
+            if (domClass.contains(saveBtn, "hide")) {
+              domClass.remove(saveBtn, "hide");
             }
           }));
         }
@@ -1132,10 +1158,10 @@ define([
         if (!layerInfo) { return; }
         //layerInfo = lang.clone(layerInfo);
         var layerObject = this.map.getLayer(layerInfo.featureLayer.id);
-        layerObject.fields.filter(lang.hitch(this, function (field) {
+        array.forEach(array.filter(layerObject.fields, lang.hitch(this, function (field) {
           return field.nullable === false && field.editable === true;
-        })).forEach(lang.hitch(this, function (f) {
-          layerInfo.fieldInfos.forEach(function (finfo) {
+        })), lang.hitch(this, function (f) {
+          array.forEach(layerInfo.fieldInfos, function (finfo) {
             if (finfo.fieldName === f.name) {
               this._gdbRequired.push(finfo.label);
               finfo.label = finfo.label +
@@ -1145,7 +1171,7 @@ define([
           }, this);
         }));
         // add the type for layer use, by the way
-        layerInfo.fieldInfos.forEach(function (finfo) {
+        array.forEach(layerInfo.fieldInfos, function (finfo) {
           if (finfo.isEditable === false || finfo.isEditableSettingInWebmap === false) {
             this._configNotEditable.push(finfo.label);
           }
@@ -1379,7 +1405,7 @@ define([
           var deferreds = [];
           this.currentFeature = null;
           this.currentLayerInfo = null;
-          layers.forEach(lang.hitch(this, function (layer) {
+          array.forEach(layers, lang.hitch(this, function (layer) {
             // set selection symbol
             layer.setSelectionSymbol(this._getSelectionSymbol(layer.geometryType, false));
 
@@ -1529,11 +1555,13 @@ define([
       _removeLocalLayers: function () {
         var mymap = this.map;
         if (mymap) {
-          mymap.graphicsLayerIds.filter(function (e) {
+          var filteredID = mymap.graphicsLayerIds.filter(function (e) {
             return e.lastIndexOf("_lfl") > 0;
-          }).map(function (e) {
+          })
+          var mappedArr = array.map(filteredID, function (e) {
             return mymap.getLayer(e);
-          }).forEach(function (e) {
+          })
+          array.forEach(mappedArr, function (e) {
             mymap.removeLayer(e);
           });
 
@@ -1544,11 +1572,12 @@ define([
       _removeSpacesInLayerTemplates: function (layer) {
         if (!layer) { return; }
 
-        layer.fields.filter(lang.hitch(this, function (field) {
+        var filteredFields = array.filter(layer.fields, lang.hitch(this, function (field) {
           return field.nullable === false && field.editable === true;
-        })).forEach(lang.hitch(this, function (f) {
+        }));
+        array.forEach(filteredFields, lang.hitch(this, function (f) {
           // trim of space in the field value
-          layer.templates.forEach(function (t) {
+          array.forEach(layer.templates, function (t) {
             if (t.prototype.attributes[f.name] === " ") {
               t.prototype.attributes[f.name] = t.prototype.attributes[f.name].trim();
             }
@@ -1576,15 +1605,25 @@ define([
         // all required fields are good, proceed with posting changes
         //if (editUtils.isObjectEmpty(errorObj)) {
         if (this._validateAttributes()) {
-          var processIndicator = query(".processing-indicator")[0];
-          if (!domClass.contains(processIndicator, "busy")) {
-            domClass.add(processIndicator, "busy");
+          var processIndicators = query(".processing-indicator");
+          var processIndicatorsPanel = query(".processing-indicator-panel");
+          var saveBtn = query(".saveButton")[0];
+          array.forEach(processIndicators, function (processIndicator) {
+            if (!domClass.contains(processIndicator, "busy")) {
+              domClass.add(processIndicator, "busy");
+            }
+          });
+          array.forEach(processIndicatorsPanel, function (processIndicator) {
+            if (!domClass.contains(processIndicator, "busy")) {
+              domClass.add(processIndicator, "busy");
+            }
+          });
+          if (!domClass.contains(saveBtn, "hide")) {
+            domClass.add(saveBtn, "hide");
           }
           // call applyEdit
           this._postChanges(feature).then(lang.hitch(this, function () {
-            if (domClass.contains(processIndicator, "busy")) {
-              domClass.remove(processIndicator, "busy");
-            }
+
             // if currently only one selected feature
             if (this._configEditor.removeOnSave && this.updateFeatures.length === 1) {
               switchToTemplate = true;
@@ -1618,6 +1657,21 @@ define([
               }
             }
             deferred.resolve("success");
+
+            array.forEach(processIndicators, function (processIndicator) {
+              if (domClass.contains(processIndicator, "busy")) {
+                domClass.remove(processIndicator, "busy");
+              }
+            });
+            array.forEach(processIndicatorsPanel, function (processIndicator) {
+              if (domClass.contains(processIndicator, "busy")) {
+                domClass.remove(processIndicator, "busy");
+              }
+            });
+            if (domClass.contains(saveBtn, "hide")) {
+              domClass.remove(saveBtn, "hide");
+            }
+
           }));
         }
         //else
@@ -1656,8 +1710,6 @@ define([
             }
 
             this._toggleEditGeoSwitch(this.currentLayerInfo.disableGeometryUpdate);
-
-
 
           }
         }
@@ -1757,9 +1809,11 @@ define([
 
         var layer = this.currentFeature.getLayer();
 
-        layer.fields.filter(lang.hitch(this, function (field) {
+        var filteredFields = array.filter(layer.fields, lang.hitch(this, function (field) {
           return field.nullable === false && field.editable === true;
-        })).forEach(lang.hitch(this, function (f) {
+        }));
+
+        array.forEach(filteredFields, lang.hitch(this, function (f) {
           if (this.currentFeature.attributes[f.name] === "undefined") {
             errorObj[f.alias] = "undefined";
           } else {

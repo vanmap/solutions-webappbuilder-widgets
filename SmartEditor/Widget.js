@@ -206,6 +206,9 @@ define([
 
       onOpen: function () {
         this._update();
+        if (this.map) {
+          this._mapClickHandler(true);
+        }
       },
 
       _activateEditToolbar: function (feature) {

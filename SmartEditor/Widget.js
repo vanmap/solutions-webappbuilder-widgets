@@ -245,18 +245,10 @@ define([
         if (!this.templatePicker.getSelected()) { return; }
         var selectedTemp = this.templatePicker.getSelected();
 
-        var newAttributes = lang.clone(selectedTemp.template.prototype.attributes);
-        if (this._usePresetValues) {
-          this._modifyAttributesWithPresetValues(newAttributes);
-        }
-
-        var newGraphic = new Graphic(evt.geometry, null, newAttributes);
-
-        // store original attrs for later use
-        newGraphic.preEditAttrs = JSON.parse(JSON.stringify(newGraphic.attributes));
+       
 
         var myLayer;
-
+        var newTempLayerInfos;
         if (this._newAttrInspectorNeeded()) {
           // remove the previous local layer
           this._removeLocalLayers();
@@ -267,13 +259,25 @@ define([
 
           var localLayerInfo = this._getLayerInfoForLocalLayer(myLayer);
 
-          var newTempLayerInfos = this._converConfiguredLayerInfos([localLayerInfo]);
+          newTempLayerInfos = this._converConfiguredLayerInfos([localLayerInfo]);
 
           this.attrInspector = this._createAttributeInspector(newTempLayerInfos);
         } else {
+         
           myLayer = this.attrInspector.layerInfos[0].featureLayer;
+          var localLayerInfo = this._getLayerInfoForLocalLayer(myLayer);
+          newTempLayerInfos = this.attrInspector.layerInfos;
+
+        }
+        var newAttributes = lang.clone(selectedTemp.template.prototype.attributes);
+        if (this._usePresetValues) {
+          this._modifyAttributesWithPresetValues(newAttributes, newTempLayerInfos[0]);
         }
 
+        var newGraphic = new Graphic(evt.geometry, null, newAttributes);
+
+        // store original attrs for later use
+        newGraphic.preEditAttrs = JSON.parse(JSON.stringify(newGraphic.attributes));
         myLayer.applyEdits([newGraphic], null, null, lang.hitch(this, function (e) {
           this._isDirty = true;
           var query = new Query();
@@ -732,7 +736,7 @@ define([
 
           }
 
-          nodes.push(node.domNode);
+          nodes.push(node);
 
         } else {
           switch (fieldInfo.type) {
@@ -742,13 +746,17 @@ define([
                 name: fieldInfo.fieldName
               }, domConstruct.create("div"));
 
-              nodes.push(node.domNode);
+              nodes.push(node);
 
-              //
-              var timeNode = new TimeTextBox({
-                "class": "ee-inputField"
-              }, domConstruct.create("div"));
-              nodes.push(timeNode.domNode);
+              if (fieldInfo.format) {
+                if (fieldInfo.format.time && fieldInfo.format.time === true) {
+                  var timeNode = new TimeTextBox({
+                    "class": "ee-inputField"
+                  }, domConstruct.create("div"));
+                  nodes.push(timeNode);
+
+                }
+              }
 
               break;
             case "esriFieldTypeString":
@@ -757,7 +765,7 @@ define([
                 name: fieldInfo.fieldName
               }, domConstruct.create("div"));
 
-              nodes.push(node.domNode);
+              nodes.push(node);
 
               break;
               // todo: check for more types
@@ -770,7 +778,7 @@ define([
                 name: fieldInfo.fieldName
               }, domConstruct.create("div"));
 
-              nodes.push(node.domNode);
+              nodes.push(node);
 
               break;
             default:
@@ -781,7 +789,7 @@ define([
                 readOnly: true
               }, domConstruct.create("div"));
 
-              nodes.push(node.domNode);
+              nodes.push(node);
 
               break;
           }
@@ -928,6 +936,9 @@ define([
                       });
                       break;
                     }
+                    else {
+                      presetFieldInfos[i].format = fieldInfo.format;
+                    }
                   } //
                 }
 
@@ -949,20 +960,32 @@ define([
         // fill the table
         array.forEach(presetFieldInfos, lang.hitch(this, function (presetFieldInfo) {
           var row = domConstruct.create("tr");
+          var label = domConstruct.create("td", { "class": "ee-atiLabel" });
+          label.innerHTML = lang.replace('{fieldAlias}',
+            {
+              fieldAlias: presetFieldInfo.label
+            });
 
-          domConstruct.place(lang.replace(
-            "<td class='atiLabel'>{fieldAlias}</td>",
-            { fieldAlias: presetFieldInfo.label }), row);
+          domConstruct.place(label, row);
 
           var valueColumnNode = domConstruct.create("td",
             { "class": "preset-value-editable" }, row);
 
           var presetValueNodes = this._createPresetFieldContentNode(presetFieldInfo);
-
+          var dateWidget = null;
+          var timeWidget = null
           array.forEach(presetValueNodes, function (presetValueNode) {
-            domConstruct.place(presetValueNode, valueColumnNode, "last");
-          });
-
+            if (presetValueNode.declaredClass === "dijit.form.DateTextBox") {
+              dateWidget = presetValueNode;
+            }
+            if (presetValueNode.declaredClass === "dijit.form.TimeTextBox") {
+              timeWidget = presetValueNode;
+            }
+            domConstruct.place(presetValueNode.domNode, valueColumnNode, "last");
+          }, this);
+          if (dateWidget !== null) {
+            this.own(on(label, 'click', lang.hitch(this, this._dateClick(dateWidget, timeWidget))));
+          }
           query("#eePresetValueBody")[0].appendChild(row);
         }));
       },
@@ -993,7 +1016,17 @@ define([
       //    list[0].lastChild.getElementsByClassName("dijitReset dijitInputInner")[0].focus();
       //  }
       //},
+      _dateClick: function (dateWidget, timeWidget) {
+        return function (evt) {
+          if (dateWidget !== undefined && dateWidget !== null) {
+            dateWidget.set('value', new Date());
+          }
+          if (timeWidget !== undefined && timeWidget !== null) {
+            timeWidget.set('value', new Date());
+          }
+        };
 
+      },
       _getEditableLayers: function (layerInfos, allLayers) {
         var layers = [];
         array.forEach(layerInfos, function (layerInfo) {
@@ -1120,9 +1153,15 @@ define([
           bodyTable, "first");
       },
 
-      _modifyAttributesWithPresetValues: function (attributes) {
+      _modifyAttributesWithPresetValues: function (attributes, newTempLayerInfos) {
         var presetValueTable = query("#eePresetValueBody")[0];
-
+        var presetFieldInfos = array.filter(newTempLayerInfos.fieldInfos,function(fieldInfo){
+          return (fieldInfo.canPresetValue === true);
+            
+        })
+        var presetFields = array.map(presetFieldInfos, function (presetFieldInfo) {
+          return presetFieldInfo.fieldName;
+        })
         if (presetValueTable) {
           var inputElements = query(".preset-value-editable .ee-inputField");
           array.forEach(inputElements, lang.hitch(this, function (ele) {
@@ -1142,15 +1181,23 @@ define([
                 // get the sibling time component node
                 var timeElement = query(".dijitTimeTextBox", ele.parentNode)[0];
                 // retrieve the value
-                var timeStr = query("input[type='hidden']", timeElement)[0].value;
-                dateTime = dojoStamp.fromISOString(
-                  element[0].value + timeStr);
+                if (timeElement !== undefined && timeElement !== null) {
+                  var timeStr = query("input[type='hidden']", timeElement)[0].value;
+                  dateTime = dojoStamp.fromISOString(
+                    element[0].value + timeStr);
+                } else {
+                  dateTime = dojoStamp.fromISOString(
+                   element[0].value);
+
+                }
               }
 
               // set the attribute value
               if (element[0].value) {
                 for (var attribute in attributes) {
-                  if (attributes.hasOwnProperty(attribute) && attribute === element[0].name) {
+                  if (attributes.hasOwnProperty(attribute) &&
+                    attribute === element[0].name
+                    && presetFields.indexOf(element[0].name) >= 0) {
                     if (isDateTime) {
                       attributes[attribute] = dateTime;
                     } else {

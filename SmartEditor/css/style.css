@@ -60,11 +60,11 @@
             display: block;
             clear: both;
         }
-        /*tr td {
-  padding: 20px 40px;
-  border: 1px solid black;
-  display: block;
-}*/
+            /*tr td {
+      padding: 20px 40px;
+      border: 1px solid black;
+      display: block;
+    }*/
         .jimu-widget-smartEditor .esriAttributeInspector .atiNavButtons {
             position: absolute;
             top: -10px;

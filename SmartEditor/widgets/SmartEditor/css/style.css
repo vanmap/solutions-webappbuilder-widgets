@@ -1,14 +1,15 @@
 .jimu-widget-smartEditor {
     position: relative;
 }
+
     .jimu-widget-smartEditor .hideField {
-        display:none;
+        display: none;
     }
     /***********about templatePicker**************/
 
     .jimu-widget-smartEditor .templatePicker {
         position: relative;
-        height: 300px; 
+        height: 300px;
     }
 
     .jimu-widget-smartEditor .grid {
@@ -34,45 +35,63 @@
     .jimu-widget-smartEditor .dojoxGridRow {
         width: 100%;
     }
+
     .jimu-widget-smartEditor .dojoxGridView {
         width: 100% !important;
     }
-    
+
     /********about attributeInspector*********/
     .jimu-widget-smartEditor .esriAttributeInspector {
         height: 100%;
         width: 100%;
     }
-
+    
         .jimu-widget-smartEditor .esriAttributeInspector .atiLabel {
+            color:midnightblue !important;
+          
+        }
+        /*.jimu-widget-smartEditor .esriAttributeInspector .atiLabel {
             display: inline-block;
             overflow: hidden;
             white-space: nowrap;
             -ms-text-overflow: ellipsis;
             -o-text-overflow: ellipsis;
             text-overflow: ellipsis;
-           width:100%
-        }
+            width: 100%;
+        }*/
 
+        .jimu-widget-smartEditor .esriAttributeInspector td {
+            display: block;
+            clear: both;
+        }
+            /*tr td {
+      padding: 20px 40px;
+      border: 1px solid black;
+      display: block;
+    }*/
         .jimu-widget-smartEditor .esriAttributeInspector .atiNavButtons {
             position: absolute;
-            top: -18px;
+            top: -10px;
             right: 0;
-
         }
 
         .jimu-widget-smartEditor .esriAttributeInspector .asteriskIndicator {
             color: red;
         }
 
-        
+
         .jimu-widget-smartEditor .esriAttributeInspector .saveButton {
             float: right;
+            display: inline;
         }
-          .jimu-widget-smartEditor .esriAttributeInspector .deleteButton
-        {
+
+            .jimu-widget-smartEditor .esriAttributeInspector .saveButton.hide {
+                display: none;
+            }
+
+        .jimu-widget-smartEditor .esriAttributeInspector .deleteButton {
             float: right;
-            margin-right:20px;
+            margin-right: 20px;
         }
     /*********about preset values table*********/
 
@@ -116,41 +135,72 @@
         height: 12px;
     }
 
+    .jimu-widget-smartEditor .spacerSmall {
+        height: 8px;
+    }
+
+    .jimu-widget-smartEditor .attributeInspectorDiv {
+        padding-top: 8px;
+        position: relative;
+    }
+
     .jimu-widget-smartEditor .esriAttributeInspector .atiField {
         width: 100%;
     }
- 
-    .jimu-widget-smartEditor .esriAttributeInspector .dijitTextBox  {
+
+    .jimu-widget-smartEditor .esriAttributeInspector .dijitTextBox {
         width: 100%;
-    } 
-   .jimu-widget-smartEditor div.atiAttributes table {
-        width:98%;
+    }
+
+    .jimu-widget-smartEditor div.atiAttributes table {
+        width: 98%;
     }
 
     .jimu-widget-smartEditor .processing-indicator {
         display: none;
-        height: 100%;
-        width: 100%;
-        z-index: 500;
-        position: absolute;
-        top: 0;
-        left: 0;
-        overflow: hidden;
-        background:  rgba(224,224,224,0.65);
-        height: 100%;
-        width: 100%;
-        
-            background-position: center center;
-            background-image: url(../images/busy.gif);
-            background-repeat: no-repeat;
+        float: right;
+        width: 40px;
+        height: 40px;
+        background-position: center center;
+        background-image: url(../images/busy.gif);
+        background-repeat: no-repeat;
     }
 
         .jimu-widget-smartEditor .processing-indicator.busy {
-            display: block;
+            display: inline;
+        }
 
+    .jimu-widget-smartEditor .processing-indicator-panel {
+        display: none;
+        width: 100%;
+        height: 100%;
+        z-index: 500;
+        top: 0;
+        left: 0;
+        position: absolute;
+        background-position: center center;
+        background-image: url(../images/busy.gif);
+        background-repeat: no-repeat;
+    }
+
+        .jimu-widget-smartEditor .processing-indicator-panel.busy {
+            display: block;
         }
 
     .jimu-widget-smartEditor .updateOnlyText {
         vertical-align: middle;
         padding: 10px;
+    }
+
+    .jimu-widget-smartEditor .attInput {
+        padding-top: 3px;
+        padding-bottom: 3px;
+        display: inline-block;
+    }
+
+    .jimu-widget-smartEditor .deleteAttachment {
+        padding-right: 5px;
+        cursor: pointer;
+        color: red;
+        font-weight: bold;
     }

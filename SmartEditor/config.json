@@ -18,7 +18,7 @@
   "authorizedCrossOriginDomains": [
     "arcrestdev1.esri.com"
   ],
-  "title": "SmartEditorDemo",
+  "title": "Stormwater Inspection",
   "subtitle": "with Web AppBuilder for ArcGIS",
   "keepAppState": true,
   "logo": "images/app-logo.png",
@@ -219,7 +219,7 @@
       "right": 0,
       "bottom": 0
     },
-    "itemId": "cbc6ddbb230b4d0697b83cf9adccb47c",
+    "itemId": "2526849f31a247d983985c3b2b0899b7",
     "mapOptions": {},
     "id": "map",
     "portalUrl": "http://arcgissolutions.maps.arcgis.com"

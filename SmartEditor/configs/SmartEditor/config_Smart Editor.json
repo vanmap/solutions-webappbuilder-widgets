@@ -4,12 +4,10 @@
     "prompOnSave": false,
     "promptOnDelete": true,
     "removeOnSave": true,
-    "displayPromptOnSave": false,
-    "displayPromptOnDelete": false,
     "layerInfos": [
       {
         "featureLayer": {
-          "id": "SmartTestDemo_6447",
+          "id": "StormwaterInspection_6752",
           "layerAllowsCreate": true,
           "layerAllowsUpdate": true,
           "layerAllowsDelete": true,
@@ -20,543 +18,1294 @@
         "allowDelete": false,
         "fieldInfos": [
           {
-            "fieldName": "ACTIVATESMART",
-            "label": "Activate Smart",
-            "canPresetValue": false,
-            "isEditable": true
-          },
-          {
-            "fieldName": "REQUIRED",
-            "label": "Required",
+            "fieldName": "INSPECTOR",
+            "label": "Inspector",
             "canPresetValue": true,
             "isEditable": true
           },
           {
-            "fieldName": "VISIBLE",
-            "label": "Visible",
+            "fieldName": "INSPECTDATE",
+            "label": "Inspection Date",
             "canPresetValue": true,
             "isEditable": true
           },
           {
-            "fieldName": "DISABLED",
-            "label": "Disabled",
+            "fieldName": "FACILITYID",
+            "label": "Facility ID",
             "canPresetValue": true,
             "isEditable": true
           },
           {
-            "fieldName": "VALUE",
-            "label": "Set a Value",
-            "canPresetValue": true,
-            "isEditable": true
-          },
-          {
-            "fieldName": "ActiveSmart1Hide",
-            "label": "Smart 1 - Hide",
+            "fieldName": "EVISHEDFLOW",
+            "label": "A: When in the field, does the channel have apparent evidence of watershed flow? This would indicate a more significant flow, more erodible soil, and higher chance of impacting the impaired water.",
             "canPresetValue": false,
             "isEditable": true
           },
           {
-            "fieldName": "ActiveSmart1Required1",
-            "label": "Smart 1 - Req 1",
+            "fieldName": "SEDERR",
+            "label": "B: Is there sediment embedded within the facility from upstream sources (filling 1/3 or more of the facility)? Large amounts means there is a higher risk of transport to the impaired water.",
             "canPresetValue": false,
             "isEditable": true
           },
           {
-            "fieldName": "ActiveSmart1Required2",
-            "label": "Smart 1 - Req 2",
+            "fieldName": "SOURCEERR",
+            "label": "C. Look at the surrounding fill and cut slopes (roadway related only), does there appear to be a significant contributing source of erosion to the facility or the channel?",
             "canPresetValue": false,
             "isEditable": true
           },
           {
-            "fieldName": "ActiveSmart1Disabled1",
-            "label": "Smart 1 - Disabled",
+            "fieldName": "FLOWROAD",
+            "label": "D. Is flow from the roadway able to get to the facility or channel at all?",
             "canPresetValue": false,
             "isEditable": true
           },
           {
-            "fieldName": "GDBRequired",
-            "label": "GDBRequired",
-            "canPresetValue": true,
-            "isEditable": true
-          },
-          {
-            "fieldName": "GDBRequiredCombi",
-            "label": "GDBRequiredCombi",
-            "canPresetValue": true,
-            "isEditable": true
-          },
-          {
-            "fieldName": "GDBRequireRange",
-            "label": "GDBRequireRange",
-            "canPresetValue": true,
-            "isEditable": true
-          },
-          {
-            "fieldName": "GDBRequiredDate",
-            "label": "GDBRequiredDate",
-            "canPresetValue": true,
-            "isEditable": true
-          },
-          {
-            "fieldName": "ActiveSmart2Hide",
-            "label": "Smart 2 - Hide",
-            "canPresetValue": false,
-            "isEditable": true
-          },
-          {
-            "fieldName": "ActiveSmart2Required1",
-            "label": "Smart 2 - Req 1",
-            "canPresetValue": false,
-            "isEditable": true
-          },
-          {
-            "fieldName": "ActiveSmart2Disabled1",
-            "label": "Smart 2 - Disabled",
-            "canPresetValue": false,
-            "isEditable": true
-          },
-          {
-            "fieldName": "ActiveSmart2Required2",
-            "label": "Smart 2 - Req 2",
+            "fieldName": "NOTES",
+            "label": "Notes and Visual Observations",
             "canPresetValue": false,
             "isEditable": true
           }
         ],
         "fieldValidations": {
-          "ActiveSmart1Hide": {
-            "Hide": {
-              "expression": "ACTIVATESMART = '1'",
+          "INSPECTOR": [
+            {
+              "actionName": "Disabled",
+              "expression": "INSPECTOR IS NOT NULL",
               "filter": {
                 "logicalOperator": "AND",
                 "parts": [
                   {
                     "fieldObj": {
-                      "name": "ACTIVATESMART",
-                      "label": "ACTIVATESMART",
+                      "name": "INSPECTOR",
+                      "label": "INSPECTOR",
                       "shortType": "string",
                       "type": "esriFieldTypeString"
                     },
-                    "operator": "stringOperatorIs",
+                    "operator": "stringOperatorIsNotBlank",
                     "valueObj": {
                       "isValid": true,
                       "type": "value",
-                      "value": "1"
+                      "value": null
                     },
                     "interactiveObj": "",
                     "caseSensitive": false,
-                    "expr": "ACTIVATESMART = '1'"
+                    "expr": "INSPECTOR IS NOT NULL"
                   }
                 ],
-                "expr": "ACTIVATESMART = '1'"
-              }
-            },
-            "Disabled": {
-              "expression": "ACTIVATESMART = '2'",
-              "filter": {
-                "logicalOperator": "AND",
-                "parts": [
-                  {
-                    "fieldObj": {
-                      "name": "ACTIVATESMART",
-                      "label": "ACTIVATESMART",
-                      "shortType": "string",
-                      "type": "esriFieldTypeString"
-                    },
-                    "operator": "stringOperatorIs",
-                    "valueObj": {
-                      "isValid": true,
-                      "type": "value",
-                      "value": "2"
-                    },
-                    "interactiveObj": "",
-                    "caseSensitive": false,
-                    "expr": "ACTIVATESMART = '2'"
-                  }
-                ],
-                "expr": "ACTIVATESMART = '2'"
+                "expr": "INSPECTOR IS NOT NULL"
               }
             }
+          ],
+          "INSPECTDATE": [
+            {
+              "actionName": "Disabled",
+              "expression": "INSPECTDATE IS NOT NULL",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "INSPECTDATE",
+                      "label": "INSPECTDATE",
+                      "shortType": "date",
+                      "type": "esriFieldTypeDate"
+                    },
+                    "operator": "dateOperatorIsNotBlank",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": null
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "INSPECTDATE IS NOT NULL"
+                  }
+                ],
+                "expr": "INSPECTDATE IS NOT NULL"
+              }
+            }
+          ],
+          "FACILITYID": [
+            {
+              "actionName": "Disabled",
+              "expression": "FACILITYID IS NOT NULL",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "FACILITYID",
+                      "label": "FACILITYID",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIsNotBlank",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": null
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "FACILITYID IS NOT NULL"
+                  }
+                ],
+                "expr": "FACILITYID IS NOT NULL"
+              }
+            }
+          ]
+        },
+        "editDescription": "<div><b><font color=\"#4169e1\">Overview</font></b></div><div>The intent of this assessment is to identify if the facility is confirmed to have a connection with the impaired water. This assessment also analyzes the adjacent fill and cut slopes as a source of erosion.</div><div><br></div><div><b><font color=\"#4169e1\">Checklist</font></b></div><div>Please do a quick analysis and complete the following checklist. For additional comments, describe briefly in the note section and take many photos from multiple angles to allow for further review in the office if necessary.&nbsp;</div>"
+      },
+      {
+        "featureLayer": {
+          "id": "StormwaterInspection_2188",
+          "layerAllowsCreate": true,
+          "layerAllowsUpdate": true,
+          "layerAllowsDelete": true,
+          "layerAllowGeometryUpdates": true
+        },
+        "disableGeometryUpdate": false,
+        "allowUpdateOnly": false,
+        "allowDelete": false,
+        "fieldInfos": [
+          {
+            "fieldName": "INSPECTOR",
+            "label": "Inspector",
+            "canPresetValue": true,
+            "isEditable": true
           },
-          "ActiveSmart1Required1": {
-            "Hide": {
-              "expression": "ACTIVATESMART = '2'",
-              "filter": {
-                "logicalOperator": "AND",
-                "parts": [
-                  {
-                    "fieldObj": {
-                      "name": "ACTIVATESMART",
-                      "label": "ACTIVATESMART",
-                      "shortType": "string",
-                      "type": "esriFieldTypeString"
-                    },
-                    "operator": "stringOperatorIs",
-                    "valueObj": {
-                      "isValid": true,
-                      "type": "value",
-                      "value": "2"
-                    },
-                    "interactiveObj": "",
-                    "caseSensitive": false,
-                    "expr": "ACTIVATESMART = '2'"
-                  }
-                ],
-                "expr": "ACTIVATESMART = '2'"
-              }
-            },
-            "Required": {
-              "expression": "ACTIVATESMART = '1'",
-              "filter": {
-                "logicalOperator": "AND",
-                "parts": [
-                  {
-                    "fieldObj": {
-                      "name": "ACTIVATESMART",
-                      "label": "ACTIVATESMART",
-                      "shortType": "string",
-                      "type": "esriFieldTypeString"
-                    },
-                    "operator": "stringOperatorIs",
-                    "valueObj": {
-                      "isValid": true,
-                      "type": "value",
-                      "value": "1"
-                    },
-                    "interactiveObj": "",
-                    "caseSensitive": false,
-                    "expr": "ACTIVATESMART = '1'"
-                  }
-                ],
-                "expr": "ACTIVATESMART = '1'"
-              }
-            }
+          {
+            "fieldName": "INSPECTDATE",
+            "label": "Inspection Date",
+            "canPresetValue": true,
+            "isEditable": true
           },
-          "ActiveSmart1Required2": {
-            "Hide": {
-              "expression": "ACTIVATESMART = '2'",
-              "filter": {
-                "logicalOperator": "AND",
-                "parts": [
-                  {
-                    "fieldObj": {
-                      "name": "ACTIVATESMART",
-                      "label": "ACTIVATESMART",
-                      "shortType": "string",
-                      "type": "esriFieldTypeString"
-                    },
-                    "operator": "stringOperatorIs",
-                    "valueObj": {
-                      "isValid": true,
-                      "type": "value",
-                      "value": "2"
-                    },
-                    "interactiveObj": "",
-                    "caseSensitive": false,
-                    "expr": "ACTIVATESMART = '2'"
-                  }
-                ],
-                "expr": "ACTIVATESMART = '2'"
-              }
-            },
-            "Required": {
-              "expression": "ACTIVATESMART = '1'",
-              "filter": {
-                "logicalOperator": "AND",
-                "parts": [
-                  {
-                    "fieldObj": {
-                      "name": "ACTIVATESMART",
-                      "label": "ACTIVATESMART",
-                      "shortType": "string",
-                      "type": "esriFieldTypeString"
-                    },
-                    "operator": "stringOperatorIs",
-                    "valueObj": {
-                      "isValid": true,
-                      "type": "value",
-                      "value": "1"
-                    },
-                    "interactiveObj": "",
-                    "caseSensitive": false,
-                    "expr": "ACTIVATESMART = '1'"
-                  }
-                ],
-                "expr": "ACTIVATESMART = '1'"
-              }
-            }
+          {
+            "fieldName": "FACILITYID",
+            "label": "Facility ID",
+            "canPresetValue": true,
+            "isEditable": true
           },
-          "ActiveSmart1Disabled1": {
-            "Hide": {
-              "expression": "ACTIVATESMART = '2'",
-              "filter": {
-                "logicalOperator": "AND",
-                "parts": [
-                  {
-                    "fieldObj": {
-                      "name": "ACTIVATESMART",
-                      "label": "ACTIVATESMART",
-                      "shortType": "string",
-                      "type": "esriFieldTypeString"
-                    },
-                    "operator": "stringOperatorIs",
-                    "valueObj": {
-                      "isValid": true,
-                      "type": "value",
-                      "value": "2"
-                    },
-                    "interactiveObj": "",
-                    "caseSensitive": false,
-                    "expr": "ACTIVATESMART = '2'"
-                  }
-                ],
-                "expr": "ACTIVATESMART = '2'"
-              }
-            },
-            "Disabled": {
-              "expression": "ACTIVATESMART = '1'",
-              "filter": {
-                "logicalOperator": "AND",
-                "parts": [
-                  {
-                    "fieldObj": {
-                      "name": "ACTIVATESMART",
-                      "label": "ACTIVATESMART",
-                      "shortType": "string",
-                      "type": "esriFieldTypeString"
-                    },
-                    "operator": "stringOperatorIs",
-                    "valueObj": {
-                      "isValid": true,
-                      "type": "value",
-                      "value": "1"
-                    },
-                    "interactiveObj": "",
-                    "caseSensitive": false,
-                    "expr": "ACTIVATESMART = '1'"
-                  }
-                ],
-                "expr": "ACTIVATESMART = '1'"
-              }
-            }
+          {
+            "fieldName": "WEATHER",
+            "label": "Weather Conditions:",
+            "canPresetValue": false,
+            "isEditable": true
           },
-          "ActiveSmart2Hide": {
-            "Hide": {
-              "expression": "ACTIVATESMART = '2'",
-              "filter": {
-                "logicalOperator": "AND",
-                "parts": [
-                  {
-                    "fieldObj": {
-                      "name": "ACTIVATESMART",
-                      "label": "ACTIVATESMART",
-                      "shortType": "string",
-                      "type": "esriFieldTypeString"
-                    },
-                    "operator": "stringOperatorIs",
-                    "valueObj": {
-                      "isValid": true,
-                      "type": "value",
-                      "value": "2"
-                    },
-                    "interactiveObj": "",
-                    "caseSensitive": false,
-                    "expr": "ACTIVATESMART = '2'"
-                  }
-                ],
-                "expr": "ACTIVATESMART = '2'"
-              }
-            },
-            "Disabled": {
-              "expression": "ACTIVATESMART = '1'",
-              "filter": {
-                "logicalOperator": "AND",
-                "parts": [
-                  {
-                    "fieldObj": {
-                      "name": "ACTIVATESMART",
-                      "label": "ACTIVATESMART",
-                      "shortType": "string",
-                      "type": "esriFieldTypeString"
-                    },
-                    "operator": "stringOperatorIs",
-                    "valueObj": {
-                      "isValid": true,
-                      "type": "value",
-                      "value": "1"
-                    },
-                    "interactiveObj": "",
-                    "caseSensitive": false,
-                    "expr": "ACTIVATESMART = '1'"
-                  }
-                ],
-                "expr": "ACTIVATESMART = '1'"
-              }
-            }
+          {
+            "fieldName": "WATERWAY",
+            "label": "Waterway Name (if known):",
+            "canPresetValue": false,
+            "isEditable": true
           },
-          "ActiveSmart2Required1": {
-            "Hide": {
-              "expression": "ACTIVATESMART = '1'",
-              "filter": {
-                "logicalOperator": "AND",
-                "parts": [
-                  {
-                    "fieldObj": {
-                      "name": "ACTIVATESMART",
-                      "label": "ACTIVATESMART",
-                      "shortType": "string",
-                      "type": "esriFieldTypeString"
-                    },
-                    "operator": "stringOperatorIs",
-                    "valueObj": {
-                      "isValid": true,
-                      "type": "value",
-                      "value": "1"
-                    },
-                    "interactiveObj": "",
-                    "caseSensitive": false,
-                    "expr": "ACTIVATESMART = '1'"
-                  }
-                ],
-                "expr": "ACTIVATESMART = '1'"
-              }
-            },
-            "Required": {
-              "expression": "ACTIVATESMART = '2'",
-              "filter": {
-                "logicalOperator": "AND",
-                "parts": [
-                  {
-                    "fieldObj": {
-                      "name": "ACTIVATESMART",
-                      "label": "ACTIVATESMART",
-                      "shortType": "string",
-                      "type": "esriFieldTypeString"
-                    },
-                    "operator": "stringOperatorIs",
-                    "valueObj": {
-                      "isValid": true,
-                      "type": "value",
-                      "value": "2"
-                    },
-                    "interactiveObj": "",
-                    "caseSensitive": false,
-                    "expr": "ACTIVATESMART = '2'"
-                  }
-                ],
-                "expr": "ACTIVATESMART = '2'"
-              }
-            }
+          {
+            "fieldName": "LOCATION",
+            "label": "Location (District, route, county, milepost, city/town)",
+            "canPresetValue": false,
+            "isEditable": true
           },
-          "ActiveSmart2Required2": {
-            "Hide": {
-              "expression": "ACTIVATESMART = '1'",
-              "filter": {
-                "logicalOperator": "AND",
-                "parts": [
-                  {
-                    "fieldObj": {
-                      "name": "ACTIVATESMART",
-                      "label": "ACTIVATESMART",
-                      "shortType": "string",
-                      "type": "esriFieldTypeString"
-                    },
-                    "operator": "stringOperatorIs",
-                    "valueObj": {
-                      "isValid": true,
-                      "type": "value",
-                      "value": "1"
-                    },
-                    "interactiveObj": "",
-                    "caseSensitive": false,
-                    "expr": "ACTIVATESMART = '1'"
-                  }
-                ],
-                "expr": "ACTIVATESMART = '1'"
-              }
-            },
-            "Required": {
-              "expression": "ACTIVATESMART = '2'",
-              "filter": {
-                "logicalOperator": "AND",
-                "parts": [
-                  {
-                    "fieldObj": {
-                      "name": "ACTIVATESMART",
-                      "label": "ACTIVATESMART",
-                      "shortType": "string",
-                      "type": "esriFieldTypeString"
-                    },
-                    "operator": "stringOperatorIs",
-                    "valueObj": {
-                      "isValid": true,
-                      "type": "value",
-                      "value": "2"
-                    },
-                    "interactiveObj": "",
-                    "caseSensitive": false,
-                    "expr": "ACTIVATESMART = '2'"
-                  }
-                ],
-                "expr": "ACTIVATESMART = '2'"
-              }
-            }
+          {
+            "fieldName": "DUMPCONT",
+            "label": "1: Is there evidence of dumped containers that have the ability to hold liquid?",
+            "canPresetValue": false,
+            "isEditable": true
           },
-          "ActiveSmart2Disabled1": {
-            "Hide": {
-              "expression": "ACTIVATESMART = '1'",
-              "filter": {
-                "logicalOperator": "AND",
-                "parts": [
-                  {
-                    "fieldObj": {
-                      "name": "ACTIVATESMART",
-                      "label": "ACTIVATESMART",
-                      "shortType": "string",
-                      "type": "esriFieldTypeString"
-                    },
-                    "operator": "stringOperatorIs",
-                    "valueObj": {
-                      "isValid": true,
-                      "type": "value",
-                      "value": "1"
-                    },
-                    "interactiveObj": "",
-                    "caseSensitive": false,
-                    "expr": "ACTIVATESMART = '1'"
-                  }
-                ],
-                "expr": "ACTIVATESMART = '1'"
-              }
-            },
-            "Disabled": {
-              "expression": "ACTIVATESMART = '2'",
-              "filter": {
-                "logicalOperator": "AND",
-                "parts": [
-                  {
-                    "fieldObj": {
-                      "name": "ACTIVATESMART",
-                      "label": "ACTIVATESMART",
-                      "shortType": "string",
-                      "type": "esriFieldTypeString"
-                    },
-                    "operator": "stringOperatorIs",
-                    "valueObj": {
-                      "isValid": true,
-                      "type": "value",
-                      "value": "2"
-                    },
-                    "interactiveObj": "",
-                    "caseSensitive": false,
-                    "expr": "ACTIVATESMART = '2'"
-                  }
-                ],
-                "expr": "ACTIVATESMART = '2'"
-              }
-            }
+          {
+            "fieldName": "DUMPCONTLQ",
+            "label": "1a: Do they appear to have liquid in them or is liquid coming out of them?",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "PIPES",
+            "label": "2: Are there any pipes running through the facility or discharging into or around the facility that do not appear to be part of the storm water network? (e.g. utilities, farmer irrigation, etc.)",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "HYDRAULIC",
+            "label": "3: Are any of the hydraulic facilities meant for storm water running water when they should not be? (e.g. no storm events, known groundwater, etc.)",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "WATERRUNNING",
+            "label": "4: If there is water running out from the facility?",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "FOAMING",
+            "label": "4a: Is it foaming?",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "DISCOLOR",
+            "label": "4b: Is there significant water discoloration?",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "SMELL",
+            "label": "4c: Is there a horrible smell?",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "GARBAGE",
+            "label": "4d: Does there appear to be a lot of garbage?",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "OIL",
+            "label": "4e: Does there appear to be a lot of oil?",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "OTHER",
+            "label": "4f: Does there appear to be a lot of other chemicals?",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "CAUSEEVENT",
+            "label": "5: If there is water running out from the facility, is there any possibility that current weather events could be contributing rain or snow water to it?",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "CAUSEEVENTSRC",
+            "label": "5a: Possible source",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "REDFLAGS",
+            "label": "6: Overall, does there appear to be any environmental red flags that impact to or around this facility?",
+            "canPresetValue": false,
+            "isEditable": true
           }
-        }
+        ],
+        "fieldValidations": {
+          "INSPECTOR": [
+            {
+              "actionName": "Disabled",
+              "expression": "INSPECTOR IS NOT NULL",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "INSPECTOR",
+                      "label": "INSPECTOR",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIsNotBlank",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": null
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "INSPECTOR IS NOT NULL"
+                  }
+                ],
+                "expr": "INSPECTOR IS NOT NULL"
+              }
+            }
+          ],
+          "INSPECTDATE": [
+            {
+              "actionName": "Disabled",
+              "expression": "INSPECTDATE IS NOT NULL",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "INSPECTDATE",
+                      "label": "INSPECTDATE",
+                      "shortType": "date",
+                      "type": "esriFieldTypeDate"
+                    },
+                    "operator": "dateOperatorIsNotBlank",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": null
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "INSPECTDATE IS NOT NULL"
+                  }
+                ],
+                "expr": "INSPECTDATE IS NOT NULL"
+              }
+            }
+          ],
+          "FACILITYID": [
+            {
+              "actionName": "Disabled",
+              "expression": "FACILITYID IS NOT NULL",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "FACILITYID",
+                      "label": "FACILITYID",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIsNotBlank",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": null
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "FACILITYID IS NOT NULL"
+                  }
+                ],
+                "expr": "FACILITYID IS NOT NULL"
+              }
+            }
+          ],
+          "DUMPCONTLQ": [
+            {
+              "actionName": "Hide",
+              "expression": "DUMPCONT <> 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "DUMPCONT",
+                      "label": "DUMPCONT",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIsNot",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "DUMPCONT <> 'Yes'"
+                  }
+                ],
+                "expr": "DUMPCONT <> 'Yes'"
+              }
+            },
+            {
+              "actionName": "Required",
+              "expression": "DUMPCONT = 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "DUMPCONT",
+                      "label": "DUMPCONT",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "DUMPCONT = 'Yes'"
+                  }
+                ],
+                "expr": "DUMPCONT = 'Yes'"
+              }
+            }
+          ],
+          "FOAMING": [
+            {
+              "actionName": "Hide",
+              "expression": "WATERRUNNING <> 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "WATERRUNNING",
+                      "label": "WATERRUNNING",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIsNot",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "WATERRUNNING <> 'Yes'"
+                  }
+                ],
+                "expr": "WATERRUNNING <> 'Yes'"
+              }
+            },
+            {
+              "actionName": "Required",
+              "expression": "WATERRUNNING = 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "WATERRUNNING",
+                      "label": "WATERRUNNING",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "WATERRUNNING = 'Yes'"
+                  }
+                ],
+                "expr": "WATERRUNNING = 'Yes'"
+              }
+            }
+          ],
+          "DISCOLOR": [
+            {
+              "actionName": "Hide",
+              "expression": "WATERRUNNING <> 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "WATERRUNNING",
+                      "label": "WATERRUNNING",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIsNot",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "WATERRUNNING <> 'Yes'"
+                  }
+                ],
+                "expr": "WATERRUNNING <> 'Yes'"
+              }
+            },
+            {
+              "actionName": "Required",
+              "expression": "WATERRUNNING = 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "WATERRUNNING",
+                      "label": "WATERRUNNING",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "WATERRUNNING = 'Yes'"
+                  }
+                ],
+                "expr": "WATERRUNNING = 'Yes'"
+              }
+            }
+          ],
+          "SMELL": [
+            {
+              "actionName": "Hide",
+              "expression": "WATERRUNNING <> 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "WATERRUNNING",
+                      "label": "WATERRUNNING",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIsNot",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "WATERRUNNING <> 'Yes'"
+                  }
+                ],
+                "expr": "WATERRUNNING <> 'Yes'"
+              }
+            },
+            {
+              "actionName": "Required",
+              "expression": "WATERRUNNING = 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "WATERRUNNING",
+                      "label": "WATERRUNNING",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "WATERRUNNING = 'Yes'"
+                  }
+                ],
+                "expr": "WATERRUNNING = 'Yes'"
+              }
+            }
+          ],
+          "GARBAGE": [
+            {
+              "actionName": "Hide",
+              "expression": "WATERRUNNING <> 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "WATERRUNNING",
+                      "label": "WATERRUNNING",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIsNot",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "WATERRUNNING <> 'Yes'"
+                  }
+                ],
+                "expr": "WATERRUNNING <> 'Yes'"
+              }
+            },
+            {
+              "actionName": "Required",
+              "expression": "WATERRUNNING = 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "WATERRUNNING",
+                      "label": "WATERRUNNING",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "WATERRUNNING = 'Yes'"
+                  }
+                ],
+                "expr": "WATERRUNNING = 'Yes'"
+              }
+            }
+          ],
+          "OIL": [
+            {
+              "actionName": "Hide",
+              "expression": "WATERRUNNING <> 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "WATERRUNNING",
+                      "label": "WATERRUNNING",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIsNot",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "WATERRUNNING <> 'Yes'"
+                  }
+                ],
+                "expr": "WATERRUNNING <> 'Yes'"
+              }
+            },
+            {
+              "actionName": "Required",
+              "expression": "WATERRUNNING = 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "WATERRUNNING",
+                      "label": "WATERRUNNING",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "WATERRUNNING = 'Yes'"
+                  }
+                ],
+                "expr": "WATERRUNNING = 'Yes'"
+              }
+            }
+          ],
+          "OTHER": [
+            {
+              "actionName": "Hide",
+              "expression": "WATERRUNNING <> 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "WATERRUNNING",
+                      "label": "WATERRUNNING",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIsNot",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "WATERRUNNING <> 'Yes'"
+                  }
+                ],
+                "expr": "WATERRUNNING <> 'Yes'"
+              }
+            },
+            {
+              "actionName": "Required",
+              "expression": "WATERRUNNING = 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "WATERRUNNING",
+                      "label": "WATERRUNNING",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "WATERRUNNING = 'Yes'"
+                  }
+                ],
+                "expr": "WATERRUNNING = 'Yes'"
+              }
+            }
+          ],
+          "CAUSEEVENTSRC": [
+            {
+              "actionName": "Hide",
+              "expression": "CAUSEEVENT <> 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "CAUSEEVENT",
+                      "label": "CAUSEEVENT",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIsNot",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "CAUSEEVENT <> 'Yes'"
+                  }
+                ],
+                "expr": "CAUSEEVENT <> 'Yes'"
+              }
+            },
+            {
+              "actionName": "Required",
+              "expression": "CAUSEEVENT = 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "CAUSEEVENT",
+                      "label": "CAUSEEVENT",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "CAUSEEVENT = 'Yes'"
+                  }
+                ],
+                "expr": "CAUSEEVENT = 'Yes'"
+              }
+            }
+          ]
+        },
+        "editDescription": "<div><b><font color=\"#4169e1\">Overview</font></b></div><div>The intent of this assessment is to quickly identify in the field any illicit discharges into or around the hydraulic facilities.</div><div><br></div><div><b><font color=\"#4169e1\">Checklist</font></b></div><div>Please do a quick analysis and complete the following checklist. If anything is a “Yes”, then describe briefly in the note section and take many photos from multiple angles to allow for further review in the office.</div>"
+      },
+      {
+        "featureLayer": {
+          "id": "StormwaterInspection_4139",
+          "layerAllowsCreate": true,
+          "layerAllowsUpdate": true,
+          "layerAllowsDelete": true,
+          "layerAllowGeometryUpdates": true
+        },
+        "disableGeometryUpdate": false,
+        "allowUpdateOnly": false,
+        "allowDelete": false,
+        "fieldInfos": [
+          {
+            "fieldName": "INSPECTOR",
+            "label": "Inspector",
+            "canPresetValue": true,
+            "isEditable": true
+          },
+          {
+            "fieldName": "INSPECTDATE",
+            "label": "Inspection Date",
+            "canPresetValue": true,
+            "isEditable": true
+          },
+          {
+            "fieldName": "FACILITYID",
+            "label": "Facility ID",
+            "canPresetValue": true,
+            "isEditable": true
+          },
+          {
+            "fieldName": "CUTFAIL",
+            "label": "1: Is there bank cut or failure of the channel around the inlet of the facility?",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "SCOURHOLE",
+            "label": "2: Is there a scour hole at the outlet? Is there bank cut or failure of the channel around the outlet of the facility?",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "SCOURHOLEDIMW",
+            "label": "2a: What are its width?",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "SCOURHOLEDIML",
+            "label": "2b: What are its length?",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "SCOURHOLEDIMD",
+            "label": "2c: What are its depth?",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "COMPENT",
+            "label": "3: Look inside the pipe, does it look competent? (not rusted through, joints separated, pipe broke, etc.)",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "PERBMPIN",
+            "label": "4: Are there current engineered permanent BMPs in place at the facility inlet? (riprap, energy dissipater, etc)?",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "PERBMPINSC",
+            "label": "4a: How well does it appear to be holding together? (scale of 1 to 5, 5 holds together real well)",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "PERBMPOUT",
+            "label": "5: Are there current engineered permanent BMPs in place at the facility outlet? (riprap, energy dissipater, etc)?",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "PERBMPOUTSC",
+            "label": "5a: How well does it appear to be holding together? (scale of 1 to 5, 5 holds together real well)",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "ROADSOURCE",
+            "label": "6: Overall, does it appear that the roadway is a source for sediment in the storm water runoff?",
+            "canPresetValue": false,
+            "isEditable": true
+          },
+          {
+            "fieldName": "NOTES",
+            "label": "Notes and Visual Observations",
+            "canPresetValue": false,
+            "isEditable": true
+          }
+        ],
+        "fieldValidations": {
+          "INSPECTOR": [
+            {
+              "actionName": "Disabled",
+              "expression": "INSPECTOR IS NOT NULL",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "INSPECTOR",
+                      "label": "INSPECTOR",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIsNotBlank",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": null
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "INSPECTOR IS NOT NULL"
+                  }
+                ],
+                "expr": "INSPECTOR IS NOT NULL"
+              }
+            }
+          ],
+          "INSPECTDATE": [
+            {
+              "actionName": "Disabled",
+              "expression": "INSPECTDATE IS NOT NULL",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "INSPECTDATE",
+                      "label": "INSPECTDATE",
+                      "shortType": "date",
+                      "type": "esriFieldTypeDate"
+                    },
+                    "operator": "dateOperatorIsNotBlank",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": null
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "INSPECTDATE IS NOT NULL"
+                  }
+                ],
+                "expr": "INSPECTDATE IS NOT NULL"
+              }
+            }
+          ],
+          "FACILITYID": [
+            {
+              "actionName": "Disabled",
+              "expression": "FACILITYID IS NOT NULL",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "FACILITYID",
+                      "label": "FACILITYID",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIsNotBlank",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": null
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "FACILITYID IS NOT NULL"
+                  }
+                ],
+                "expr": "FACILITYID IS NOT NULL"
+              }
+            }
+          ],
+          "SCOURHOLEDIMW": [
+            {
+              "actionName": "Hide",
+              "expression": "SCOURHOLE <> 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "SCOURHOLE",
+                      "label": "SCOURHOLE",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIsNot",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "SCOURHOLE <> 'Yes'"
+                  }
+                ],
+                "expr": "SCOURHOLE <> 'Yes'"
+              }
+            },
+            {
+              "actionName": "Required",
+              "expression": "SCOURHOLE = 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "SCOURHOLE",
+                      "label": "SCOURHOLE",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "SCOURHOLE = 'Yes'"
+                  }
+                ],
+                "expr": "SCOURHOLE = 'Yes'"
+              }
+            }
+          ],
+          "SCOURHOLEDIML": [
+            {
+              "actionName": "Hide",
+              "expression": "SCOURHOLE <> 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "SCOURHOLE",
+                      "label": "SCOURHOLE",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIsNot",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "SCOURHOLE <> 'Yes'"
+                  }
+                ],
+                "expr": "SCOURHOLE <> 'Yes'"
+              }
+            },
+            {
+              "actionName": "Required",
+              "expression": "SCOURHOLE = 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "SCOURHOLE",
+                      "label": "SCOURHOLE",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "SCOURHOLE = 'Yes'"
+                  }
+                ],
+                "expr": "SCOURHOLE = 'Yes'"
+              }
+            }
+          ],
+          "SCOURHOLEDIMD": [
+            {
+              "actionName": "Hide",
+              "expression": "SCOURHOLE <> 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "SCOURHOLE",
+                      "label": "SCOURHOLE",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIsNot",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "SCOURHOLE <> 'Yes'"
+                  }
+                ],
+                "expr": "SCOURHOLE <> 'Yes'"
+              }
+            },
+            {
+              "actionName": "Required",
+              "expression": "SCOURHOLE = 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "SCOURHOLE",
+                      "label": "SCOURHOLE",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "SCOURHOLE = 'Yes'"
+                  }
+                ],
+                "expr": "SCOURHOLE = 'Yes'"
+              }
+            }
+          ],
+          "PERBMPINSC": [
+            {
+              "actionName": "Hide",
+              "expression": "PERBMPIN <> 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "PERBMPIN",
+                      "label": "PERBMPIN",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIsNot",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "PERBMPIN <> 'Yes'"
+                  }
+                ],
+                "expr": "PERBMPIN <> 'Yes'"
+              }
+            },
+            {
+              "actionName": "Required",
+              "expression": "PERBMPIN = 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "PERBMPIN",
+                      "label": "PERBMPIN",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "PERBMPIN = 'Yes'"
+                  }
+                ],
+                "expr": "PERBMPIN = 'Yes'"
+              }
+            }
+          ],
+          "PERBMPOUTSC": [
+            {
+              "actionName": "Hide",
+              "expression": "PERBMPOUT <> 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "PERBMPOUT",
+                      "label": "PERBMPOUT",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIsNot",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "PERBMPOUT <> 'Yes'"
+                  }
+                ],
+                "expr": "PERBMPOUT <> 'Yes'"
+              }
+            },
+            {
+              "actionName": "Required",
+              "expression": "PERBMPOUT = 'Yes'",
+              "filter": {
+                "logicalOperator": "AND",
+                "parts": [
+                  {
+                    "fieldObj": {
+                      "name": "PERBMPOUT",
+                      "label": "PERBMPOUT",
+                      "shortType": "string",
+                      "type": "esriFieldTypeString"
+                    },
+                    "operator": "stringOperatorIs",
+                    "valueObj": {
+                      "isValid": true,
+                      "type": "value",
+                      "value": "Yes"
+                    },
+                    "interactiveObj": "",
+                    "caseSensitive": false,
+                    "expr": "PERBMPOUT = 'Yes'"
+                  }
+                ],
+                "expr": "PERBMPOUT = 'Yes'"
+              }
+            }
+          ]
+        },
+        "editDescription": "<div><b><font color=\"#4169e1\">Overview</font></b></div><div>The intent of this assessment is to identify if the facility has an existing BMP and if it is sufficient to protect the impaired waterway. It is also to identify if the facility is confirmed to be a source of sediment to the impaired waterway.</div><div><br></div><div><b><font color=\"#4169e1\">Checklist</font></b></div><div>Please do a quick analysis and complete the following checklist. For additional comments, describe briefly in the note section and take many photos from multiple angles to allow for further review in the office if necessary.</div>"
       }
-    ]
+    ],
+    "displayPromptOnSave": false,
+    "displayPromptOnDelete": false,
+    "editDescription": "Select a form template below and place the location of the inspection on the map. You may be required to place more than one form on the map to capture the full details of a site inspection.<div>&nbsp;&nbsp;<div>Additional Details on &lt;a href=\"http://esri.github.io/solutions-webappbuilder-widgets/SmartEditor/formImage1.png\" target=\"_blank\"&gt;BMP and Scour Assessment&lt;/a&gt;.</div></div>"
   }
 }

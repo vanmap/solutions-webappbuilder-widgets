@@ -26,7 +26,10 @@ define([
     'dijit/registry',
     'dojo/_base/array',
     "./EditFields",
-    "../utils"
+    "./EditDescription",
+    "../utils",
+    'dijit/Editor',
+        'dojo/dom-style'
 ],
   function (
     declare,
@@ -40,14 +43,19 @@ define([
     registry,
     array,
     EditFields,
-    editUtils) {
+    EditDescription,
+    editUtils,
+    Editor,
+    domStyle
+
+    ) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
       //these two properties is defined in the BaseWidget
       baseClass: 'jimu-widget-smartEditor-setting',
       _jimuLayerInfos: null,
       _layersTable: null,
       _editableLayerInfos: null,
-
+      _editFields: null,
       startup: function () {
         this.inherited(arguments);
         this.nls = lang.mixin(this.nls, window.jimuNls.common);
@@ -56,7 +64,23 @@ define([
             this._jimuLayerInfos = operLayerInfos;
             this._init();
             this.setConfig();
+            this._initEditor();
           }));
+       
+      },
+
+      destroy: function () {
+        this._jimuLayerInfos = null;
+        delete this._jimuLayerInfos;
+        this._layersTable = null;
+        delete this._layersTable;
+        this._editableLayerInfos = null;
+        delete this._editableLayerInfos;
+        this._editFields = null;
+        delete this._editFields;
+        this._editDescriptions = null;
+        delete this._editDescriptions;
+        this.inherited(arguments);
       },
 
       _init: function () {
@@ -122,9 +146,39 @@ define([
         this._layersTable.placeAt(this.tableLayerInfos);
         this._layersTable.startup();
 
+        var nl = query("th.simple-table-field", this._layersTable.domNode);
+        nl.forEach(function (node) {
+          switch (node.innerText) {
+            case this.nls.layersPage.layerSettingsTable.edit:
+              node.title = this.nls.layersPage.layerSettingsTable.editTip;
+              break;
+            case this.nls.layersPage.layerSettingsTable.label:
+              node.title = this.nls.layersPage.layerSettingsTable.labelTip;
+              break;
+            case this.nls.layersPage.layerSettingsTable.allowUpdateOnly:
+              node.title = this.nls.layersPage.layerSettingsTable.allowUpdateOnlyTip;
+              break;
+            case this.nls.layersPage.layerSettingsTable.allowDelete:
+              node.title = this.nls.layersPage.layerSettingsTable.allowDeleteTip;
+              break;
+            case this.nls.layersPage.layerSettingsTable.update:
+              node.title = this.nls.layersPage.layerSettingsTable.updateTip;
+              break;
+            case this.nls.layersPage.layerSettingsTable.fields:
+              node.title = this.nls.layersPage.layerSettingsTable.fieldsTip;
+              break;
+
+          }
+
+        }, this);
+
         this.own(on(this._layersTable,
           'actions-edit',
           lang.hitch(this, this._onEditFieldInfoClick)));
+        this.own(on(this._layersTable,
+          'row-dblclick',
+          lang.hitch(this, this._onRowDoubleClick)));
+
       },
 
       _initSettings: function () {
@@ -141,6 +195,7 @@ define([
         // }
         this._editableLayerInfos = this._getEditableLayerInfos();
         this._setLayersTable(this._editableLayerInfos);
+       
       },
 
       _getEditableLayerInfos: function () {
@@ -184,11 +239,12 @@ define([
             layerInfo._editFlag = true;
 
             layerInfo.mapLayer = [];
-            
+
             layerInfo.mapLayer.resourceInfo =
               this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.resourceInfo;
-            layerInfo.mapLayer.url = this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.url;
-            
+            layerInfo.mapLayer.url =
+              this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.url;
+
           }
         }
         return layerInfo;
@@ -216,10 +272,11 @@ define([
         var editable = true;
         if (this.config.editor.layerInfos &&
             this.config.editor.layerInfos.length > 0) {
-          editable = this.config.editor.layerInfos.some(function (layerInfo) {
-            return (layerInfo.featureLayer.id === layerObject.id)
+          editable = array.some(this.config.editor.layerInfos, function (layerInfo) {
+            return (layerInfo.featureLayer.id === layerObject.id);
           });
         }
+        var origLayerInfo = this._jimuLayerInfos.getLayerInfoById(layerObject.id);
         var layerInfo = {
           'featureLayer': {
             'id': layerObject.id,
@@ -229,8 +286,8 @@ define([
             'layerAllowGeometryUpdates': allowGeometryUpdates
           },
           'mapLayer': {
-            'resourceInfo': this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.resourceInfo,
-            'url': this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.url
+            'resourceInfo': origLayerInfo.originOperLayer.resourceInfo,
+            'url': origLayerInfo.originOperLayer.url
           },
           'disableGeometryUpdate': !allowGeometryUpdates,
           'allowUpdateOnly': !allowsCreate,
@@ -242,17 +299,21 @@ define([
       },
 
       _setLayersTable: function (layerInfos) {
+        var nl = null;
         array.forEach(layerInfos, function (layerInfo) {
           var _jimuLayerInfo = this._jimuLayerInfos.getLayerInfoById(layerInfo.featureLayer.id);
           var addRowResult = this._layersTable.addRow({
             label: _jimuLayerInfo.title,
             edit: layerInfo._editFlag,
             allowUpdateOnly: layerInfo.allowUpdateOnly,
-            allowUpdateOnlyHidden: layerInfo.allowUpdateOnly === null ? false : layerInfo.allowUpdateOnly,
+            allowUpdateOnlyHidden: layerInfo.allowUpdateOnly === null ?
+              false : layerInfo.allowUpdateOnly,
             allowDelete: layerInfo.allowDelete,
-            allowDeleteHidden: layerInfo.allowDelete === null ? false : layerInfo.allowDelete,
+            allowDeleteHidden: layerInfo.allowDelete === null ?
+              false : layerInfo.allowDelete,
             disableGeometryUpdate: layerInfo.disableGeometryUpdate,
-            disableGeometryUpdateHidden: layerInfo.disableGeometryUpdate === null ? false : layerInfo.disableGeometryUpdate,
+            disableGeometryUpdateHidden: layerInfo.disableGeometryUpdate === null ?
+              false : layerInfo.disableGeometryUpdate
           });
           addRowResult.tr._layerInfo = layerInfo;
 
@@ -364,66 +425,116 @@ define([
         }
         return simpleFieldInfos;
       },
-
+      _onRowDoubleClick: function (tr) {
+        var rowData = this._layersTable.getRowData(tr);
+        if (rowData && rowData.edit) {
+          this._editDescriptions = new EditDescription({
+            nls: this.nls,
+            _layerInfo: tr._layerInfo,
+            _layerName: rowData.label
+          });
+          this._editDescriptions.popupEditDescription();
+        }
+      },
       _onEditFieldInfoClick: function (tr) {
         var rowData = this._layersTable.getRowData(tr);
         if (rowData && rowData.edit) {
-          var editFields = new EditFields({
+          this._editFields = new EditFields({
             nls: this.nls,
-            _layerInfo: tr._layerInfo
+            _layerInfo: tr._layerInfo,
+            _layerName: rowData.label
           });
-          editFields.popupEditPage();
+          this._editFields.popupEditPage();
         }
       },
 
+      _getText: function () {
+        var editorText, regExp;
+        editorText = this._editorObj.focusNode.innerHTML;
+        //editorText = editorText.replace(/&nbsp;/g, '');
+        //regExp = new RegExp("<div><br></div>", 'g');
+        //editorText = editorText.replace(regExp, "");
+        //regExp = new RegExp("<p><br></p>", 'g');
+        //editorText = editorText.replace(regExp, "");
+        //regExp = new RegExp("<p></p>", 'g');
+        //editorText = editorText.replace(regExp, "");
+        //editorText = editorText.replace(/<br>/g, "");
+        //editorText = lang.trim(editorText);
+
+        return editorText;
+      },
+      _initEditor: function () {
+        if (!this._editorObj) {
+          this._editorObj = new Editor({
+            plugins: [
+              "bold", "italic", "underline", "|", "cut", "copy",
+              "paste", "|", "foreColor"
+            ],
+            height: "95%"
+          }, this.editorDescription);
+          domStyle.set(this._editorObj.domNode, {
+            "width": '100%',
+            "height": '100%'
+          });
+          this.own(on(this._editorObj, "focus", lang.hitch(this,
+            function () {
+
+            })));
+          this.own(on(this._editorObj, "blur", lang.hitch(this,
+            function () {
+
+            })));
+
+          this._editorObj.onLoadDeferred.then(lang.hitch(this, function () {
+
+          }));
+          if (this.config.editor.editDescription === undefined || this.config.editor.editDescription === null) {
+            this._editorObj.set("value", this.nls.layersPage.title);
+          }
+          else {
+            this._editorObj.set("value", this.config.editor.editDescription);
+          }
+          this._editorObj.startup();
+        }
+      },
+
+
       _resetSettingsConfig: function () {
-        //this.config.editor.showDeleteButton =
-        //  this.showDeleteButton.checked === undefined ? false : this.showDeleteButton.checked;
+        
         this.config.editor.displayPromptOnSave =
-          this.displayPromptOnSave.checked === undefined ? false : this.displayPromptOnSave.checked;
+          this.displayPromptOnSave.checked === undefined ?
+          false : this.displayPromptOnSave.checked;
         this.config.editor.displayPromptOnDelete =
-          this.displayPromptOnDelete.checked === undefined ? false : this.displayPromptOnDelete.checked;
+          this.displayPromptOnDelete.checked === undefined ?
+          false : this.displayPromptOnDelete.checked;
         this.config.editor.removeOnSave =
-          this.removeOnSave.checked === undefined ? false : this.removeOnSave.checked;
-        //this.config.editor.clearSelectionOnClose = false;
-        //this.clearSelectionOnClose.checked === undefined ? false : this.clearSelectionOnClose.checked;
+          this.removeOnSave.checked === undefined ?
+          false : this.removeOnSave.checked;
+      
       },
 
       getConfig: function () {
 
         this._resetSettingsConfig();
-
+        this.config.editor.editDescription = this._getText();
         // get layerInfos config
         var checkedLayerInfos = [];
         var layersTableData = this._layersTable.getData();
         array.forEach(this._editableLayerInfos, function (layerInfo, index) {
           layerInfo._editFlag = layersTableData[index].edit;
-          layerInfo.allowUpdateOnly = (layersTableData[index].allowUpdateOnly === null ? layersTableData[index].allowUpdateOnlyHidden : layersTableData[index].allowUpdateOnly);
-          layerInfo.allowDelete = (layersTableData[index].allowDelete === null ? layersTableData[index].allowDeleteHidden : layersTableData[index].allowDelete);
-          layerInfo.disableGeometryUpdate = (layersTableData[index].disableGeometryUpdate === null ? layersTableData[index].disableGeometryUpdateHidden : layersTableData[index].disableGeometryUpdate);
+          layerInfo.allowUpdateOnly = (layersTableData[index].allowUpdateOnly === null ?
+            layersTableData[index].allowUpdateOnlyHidden : layersTableData[index].allowUpdateOnly);
+          layerInfo.allowDelete = (layersTableData[index].allowDelete === null ?
+            layersTableData[index].allowDeleteHidden : layersTableData[index].allowDelete);
+          layerInfo.disableGeometryUpdate = (layersTableData[index].disableGeometryUpdate === null ?
+            layersTableData[index].disableGeometryUpdateHidden :
+            layersTableData[index].disableGeometryUpdate);
           if (layerInfo._editFlag) {
             delete layerInfo._editFlag;
             delete layerInfo.mapLayer;
             checkedLayerInfos.push(layerInfo);
           }
-          //if (layerInfo.fieldValidations !== undefined && layerInfo.fieldValidations !== null) {
-
-          //for (var k in layerInfo.fieldValidations) {
-          //if (layerInfo.fieldValidations.hasOwnProperty(k)) {
-          //layerInfo.fieldValidations[k] = layerInfo.fieldValidations[k].sort(function (a, b) {
-          //  if (a.order > b.order) {
-          //    return 1;
-          //  }
-          //  if (a.order < b.order) {
-          //    return -1;
-          //  }
-          //  // a must be equal to b
-          //  return 0;
-          //});
-          //}
-
-          //}
-          //}
+         
 
         });
 

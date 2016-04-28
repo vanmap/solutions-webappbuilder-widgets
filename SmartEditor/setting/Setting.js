@@ -64,8 +64,9 @@ define([
             this._jimuLayerInfos = operLayerInfos;
             this._init();
             this.setConfig();
+            this._initEditor();
           }));
-        this._initEditor();
+       
       },
 
       destroy: function () {
@@ -194,6 +195,7 @@ define([
         // }
         this._editableLayerInfos = this._getEditableLayerInfos();
         this._setLayersTable(this._editableLayerInfos);
+       
       },
 
       _getEditableLayerInfos: function () {
@@ -486,16 +488,19 @@ define([
           this._editorObj.onLoadDeferred.then(lang.hitch(this, function () {
 
           }));
-
+          if (this.config.editor.editDescription === undefined || this.config.editor.editDescription === null) {
+            this._editorObj.set("value", this.nls.layersPage.title);
+          }
+          else {
+            this._editorObj.set("value", this.config.editor.editDescription);
+          }
           this._editorObj.startup();
         }
       },
 
 
       _resetSettingsConfig: function () {
-        //this.config.editor.showDeleteButton =
-        //  this.showDeleteButton.checked === undefined ? 
-        //  false : this.showDeleteButton.checked;
+        
         this.config.editor.displayPromptOnSave =
           this.displayPromptOnSave.checked === undefined ?
           false : this.displayPromptOnSave.checked;
@@ -505,15 +510,13 @@ define([
         this.config.editor.removeOnSave =
           this.removeOnSave.checked === undefined ?
           false : this.removeOnSave.checked;
-        //this.config.editor.clearSelectionOnClose = false;
-        //this.clearSelectionOnClose.checked === undefined ?
-        //  false : this.clearSelectionOnClose.checked;
+      
       },
 
       getConfig: function () {
 
         this._resetSettingsConfig();
-
+        this.config.editor.editDescription = this._getText();
         // get layerInfos config
         var checkedLayerInfos = [];
         var layersTableData = this._layersTable.getData();
@@ -531,24 +534,7 @@ define([
             delete layerInfo.mapLayer;
             checkedLayerInfos.push(layerInfo);
           }
-          //if (layerInfo.fieldValidations !== undefined && layerInfo.fieldValidations !== null) {
-
-          //for (var k in layerInfo.fieldValidations) {
-          //if (layerInfo.fieldValidations.hasOwnProperty(k)) {
-          //layerInfo.fieldValidations[k] = layerInfo.fieldValidations[k].sort(function (a, b) {
-          //  if (a.order > b.order) {
-          //    return 1;
-          //  }
-          //  if (a.order < b.order) {
-          //    return -1;
-          //  }
-          //  // a must be equal to b
-          //  return 0;
-          //});
-          //}
-
-          //}
-          //}
+         
 
         });
 

@@ -1,13 +1,14 @@
 define({
   root: ({
     layersPage: {
+      title: "Select a template to create features",
+      generalSettings: "General Settings",
+      layerSettings:"Layer Settings",
       editDescription: "Provide display text for the edit panel",
       editDescriptionTip: "This text is displayed above the Template picker, leave blank for no text.",
-      displayPrompt: "Display Prompt:",
-      displayPromptTip: "Select when to display a prompt",
-      promptOnSave: "On close, when there are edits",
+      promptOnSave: "Prompt to save unsaved edits when form is close or switched to the next record?",
       promptOnSaveTip: "Display a prompt when the user clicks close or navigates to the next editable record when the current feature has unsaved edits.",
-      promptOnDelete: "on Delete",
+      promptOnDelete: "Require confirmation when deleting a record?",
       promptOnDeleteTip: "Display a prompt when the user clicks delete to confirm the aciton.",
       removeOnSave: "Remove Feature from Selection on Save",
       removeOnSaveTip: "Option to remove the feature from the selection set when the record is saved.  If it is the only selected record, the panel is switched back to the template page.",

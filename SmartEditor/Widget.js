@@ -136,6 +136,10 @@ define([
 
       startup: function () {
         this.inherited(arguments);
+        if (this.config.editor.editDescription === undefined || this.config.editor.editDescription === null) {
+          this.config.editor.editDescription = '';
+        }
+        this.templateTitle.innerHTML = this.config.editor.editDescription;
         //this.nls = lang.mixin(this.nls, window.jimuNls.common);
         LayerInfos.getInstance(this.map, this.map.itemInfo)
         .then(lang.hitch(this, function (operLayerInfos) {
@@ -627,6 +631,7 @@ define([
 
       _createEditor: function () {
         this.settings = this._getSettingsParam();
+       
         var layers = this._getEditableLayers(this.settings.layerInfos, false);
 
         this._workBeforeCreate();
@@ -1450,6 +1455,7 @@ define([
           this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
         
           this._createSmartAttributes();
+          this._swizzleAttrbuteTable();
           this._validateAttributes();
           this._enableAttrInspectorSaveButton(false);
           this._toggleDeleteButton(this.currentLayerInfo.allowDelete);
@@ -1711,6 +1717,7 @@ define([
           this._mapClickHandler(false);
           if (this.attrInspector) {
             this._createSmartAttributes();
+            this._swizzleAttrbuteTable();
             if (!this.currentFeature) {
               this.attrInspector.first();
             }
@@ -1733,6 +1740,21 @@ define([
         }
 
 
+      },
+      _swizzleAttrbuteTable: function () {
+      
+        //var attTable = query("tr", this.attrInspector.domNode);
+        //if (attTable === undefined || attTable === null) {
+        //  return;
+        //}
+        //if (attTable.length > 0) {
+        //  array.forEach(attTable, function (row) {
+        //    row.innerHTML = row.innerHTML.replace('<td>', '<div>').replace('</td>', '</div>').replace('<td ', '<div ');
+           
+        //  }, this);
+        //}
+
+        
       },
       _createSmartAttributes: function () {
         if (this.currentFeature === undefined || this.currentFeature === null) {
@@ -1768,15 +1790,13 @@ define([
         query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "block";
 
         if (this._creationDisabledOnAll) {
-          // hide the templatepick div and show the updateOnly div
-          query(".jimu-widget-smartEditor .templatePickerDiv")[0].style.display = "none";
-          query(".jimu-widget-smartEditor .updateFeaturesOnlyDiv")[0].style.display = "block";
+          dojo.style(this.templatePicker.domNode, "display", "none");
+        
 
         } else {
           //
-          query(".jimu-widget-smartEditor .updateFeaturesOnlyDiv")[0].style.display = "none";
-          query(".jimu-widget-smartEditor .templatePickerDiv")[0].style.display = "block";
-
+          dojo.style(this.templatePicker.domNode, "display", "block");
+      
         }
 
         this.templatePicker.clearSelection();

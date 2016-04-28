@@ -45,7 +45,11 @@
         height: 100%;
         width: 100%;
     }
-
+    
+        .jimu-widget-smartEditor .esriAttributeInspector .atiLabel {
+            color:midnightblue !important;
+          
+        }
         /*.jimu-widget-smartEditor .esriAttributeInspector .atiLabel {
             display: inline-block;
             overflow: hidden;

@@ -57,7 +57,8 @@ define([
     'dojo/date/stamp',
     "jimu/dijit/Popup",
     "./AttachmentUploader",
-    "esri/lang"
+    "esri/lang",
+     "dojox/html/entities"
 ],
   function (
     dojo,
@@ -102,7 +103,8 @@ define([
     dojoStamp,
     Popup,
     AttachmentUploader,
-    esriLang) {
+    esriLang,
+    entities) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
       name: 'SmartEditor',
       baseClass: 'jimu-widget-smartEditor',
@@ -138,8 +140,13 @@ define([
         this.inherited(arguments);
         if (this.config.editor.editDescription === undefined || this.config.editor.editDescription === null) {
           this.config.editor.editDescription = '';
+          this.templateTitle.innerHTML = this.config.editor.editDescription;
+
         }
-        this.templateTitle.innerHTML = this.config.editor.editDescription;
+        else {
+          this.templateTitle.innerHTML = entities.decode(this.config.editor.editDescription);
+        }
+
         //this.nls = lang.mixin(this.nls, window.jimuNls.common);
         LayerInfos.getInstance(this.map, this.map.itemInfo)
         .then(lang.hitch(this, function (operLayerInfos) {
@@ -631,7 +638,7 @@ define([
 
       _createEditor: function () {
         this.settings = this._getSettingsParam();
-       
+
         var layers = this._getEditableLayers(this.settings.layerInfos, false);
 
         this._workBeforeCreate();
@@ -1260,23 +1267,25 @@ define([
               }
             }
           }, this);
-          var dialog = new Popup({
-            titleLabel: this.nls.attachmentLoadingError,
-            width: 400,
-            maxHeight: 200,
-            autoHeight: true,
-            content: errorMsg,
-            buttons: [{
-              label: this.nls.close,
-              classNames: ['jimu-btn'],
-              onClick: lang.hitch(this, function () {
-                dialog.close();
-              })
-            }],
-            onClose: lang.hitch(this, function () {
+          if (errorMsg !== "") {
+            var dialog = new Popup({
+              titleLabel: this.nls.attachmentLoadingError,
+              width: 400,
+              maxHeight: 200,
+              autoHeight: true,
+              content: errorMsg,
+              buttons: [{
+                label: this.nls.close,
+                classNames: ['jimu-btn'],
+                onClick: lang.hitch(this, function () {
+                  dialog.close();
+                })
+              }],
+              onClose: lang.hitch(this, function () {
 
-            })
-          });
+              })
+            });
+          }
           return this._completePost(featureLayer, oid, deferred);
         };
 
@@ -1445,7 +1454,7 @@ define([
           all(deferreds).then(lang.hitch(this, function () {
             this.updateFeatures = updateFeatures;
             if (this.updateFeatures.length > 0) {
-            ;
+              ;
               this._showTemplate(false);
               //return;
             }
@@ -1469,7 +1478,7 @@ define([
         if (evt && evt.feature) {
           this.currentFeature = evt.feature;
           this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
-        
+
           this._createSmartAttributes();
           this._swizzleAttrbuteTable();
           this._validateAttributes();
@@ -1728,7 +1737,7 @@ define([
           //show attribute inspector
           query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "none";
           query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "block";
-        
+
 
           this._mapClickHandler(false);
           if (this.attrInspector) {
@@ -1751,14 +1760,14 @@ define([
               this.editDescription.style.display = "none";
             }
             this._toggleEditGeoSwitch(this.currentLayerInfo.disableGeometryUpdate);
-          
+
           }
         }
 
 
       },
       _swizzleAttrbuteTable: function () {
-      
+
         //var attTable = query("tr", this.attrInspector.domNode);
         //if (attTable === undefined || attTable === null) {
         //  return;
@@ -1766,11 +1775,11 @@ define([
         //if (attTable.length > 0) {
         //  array.forEach(attTable, function (row) {
         //    row.innerHTML = row.innerHTML.replace('<td>', '<div>').replace('</td>', '</div>').replace('<td ', '<div ');
-           
+
         //  }, this);
         //}
 
-        
+
       },
       _createSmartAttributes: function () {
         if (this.currentFeature === undefined || this.currentFeature === null) {
@@ -1807,12 +1816,12 @@ define([
 
         if (this._creationDisabledOnAll) {
           dojo.style(this.templatePicker.domNode, "display", "none");
-        
+
 
         } else {
           //
           dojo.style(this.templatePicker.domNode, "display", "block");
-      
+
         }
 
         this.templatePicker.clearSelection();

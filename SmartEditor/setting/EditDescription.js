@@ -72,15 +72,15 @@ define(
       _getText: function () {
         var editorText, regExp;
         editorText = this._editorObj.focusNode.innerHTML;
-        editorText = editorText.replace(/&nbsp;/g, '');
-        regExp = new RegExp("<div><br></div>", 'g');
-        editorText = editorText.replace(regExp, "");
-        regExp = new RegExp("<p><br></p>", 'g');
-        editorText = editorText.replace(regExp, "");
-        regExp = new RegExp("<p></p>", 'g');
-        editorText = editorText.replace(regExp, "");
-        editorText = editorText.replace(/<br>/g, "");
-        editorText = lang.trim(editorText);
+        //editorText = editorText.replace(/&nbsp;/g, '');
+        //regExp = new RegExp("<div><br></div>", 'g');
+        //editorText = editorText.replace(regExp, "");
+        //regExp = new RegExp("<p><br></p>", 'g');
+        //editorText = editorText.replace(regExp, "");
+        //regExp = new RegExp("<p></p>", 'g');
+        //editorText = editorText.replace(regExp, "");
+        //editorText = editorText.replace(/<br>/g, "");
+        //editorText = lang.trim(editorText);
 
         return editorText;
       },

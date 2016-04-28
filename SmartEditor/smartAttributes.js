@@ -706,6 +706,12 @@ define([
       }
       this._processChildNodes(valueCell, false);
     },
+    _remove: function (row, fieldName, valueCell, parent, widget) {
+      this._removeRequireFieldMarkings(fieldName, valueCell, parent, widget);
+      this._removeRedAst(row[0], fieldName);
+      this._removeDisableRule(fieldName, valueCell);
+      this._removeHideRule(parent);
+    },
     toggleFieldOnAttributeInspector: function (fieldName, actionType, fieldHasValidValue) {
       if (this._gdbRequiredFields === undefined || this._gdbRequiredFields === null) {
         this._gdbRequiredFields = [];
@@ -747,10 +753,27 @@ define([
                   this._removeRedAst(row[0], fieldName);
                   //this._removeDisableRule(fieldName,valueCell);
                   this._removeHideRule(parent);
-                  domClass.add(valueCell, ["dijitValidationTextBox", "dijitTextBoxDisabled",
-                    "dijitComboBoxDisabled","dijitValidationTextBoxDisabled", "dijitDisabled"]);
 
-                  this._processChildNodes(valueCell, true);
+                  domClass.add(valueCell, ["dijitValidationTextBox", "dijitTextBoxDisabled",
+                   "dijitComboBoxDisabled", "dijitValidationTextBoxDisabled", "dijitDisabled"]);
+
+                   this._processChildNodes(valueCell, true);
+                  //if (valueCell.childNodes.length === 2) {
+                  //  var disable = false;
+                  //  array.forEach(valueCell.childNodes, function (node) {
+                  //    if (node.innerText === '') {
+
+                  //    }
+                  //  });
+                  //  this.remove(row, fieldName, valueCell, parent, widget);
+
+                  //} else {
+                  //  domClass.add(valueCell, ["dijitValidationTextBox", "dijitTextBoxDisabled",
+                  // "dijitComboBoxDisabled", "dijitValidationTextBoxDisabled", "dijitDisabled"]);
+
+                  //  this._processChildNodes(valueCell, true);
+                  //}
+                 
                   break;
                 case 'Required':
                   //this._removeRequireFieldMarkings(row[0], fieldName,valueCell, parent, widget);
@@ -812,10 +835,7 @@ define([
                 case 'Value':
                   break;
                 default:
-                  this._removeRequireFieldMarkings(fieldName, valueCell, parent, widget);
-                  this._removeRedAst(row[0], fieldName);
-                  this._removeDisableRule(fieldName, valueCell);
-                  this._removeHideRule(parent);
+                  this._remove(row, fieldName, valueCell, parent, widget);
               }
             }
           }

@@ -1222,6 +1222,17 @@ define([
       },
 
       _onMapClick: function (evt) {
+        if (this._byPass === true) {
+          this._byPass = false;
+          return;
+        }
+        var loc = null;
+        //if (evt.graphic !== undefined){
+        //  loc =evt.graphic;
+        //}
+        //else if (evt.mapPoint) {
+        //  loc = evt.mapPoint;
+        //}
         if (!this._attrInspIsCurrentlyDisplayed && evt.graphic &&
           this.templatePicker && !this.templatePicker.getSelected()) {
           this._processOnMapClick(evt);
@@ -1434,8 +1445,13 @@ define([
           all(deferreds).then(lang.hitch(this, function () {
             this.updateFeatures = updateFeatures;
             if (this.updateFeatures.length > 0) {
+            ;
               this._showTemplate(false);
               //return;
+            }
+            else {
+              this._byPass = true;
+              this.map.popupManager._showPopup(evt);
             }
             //this._showTemplate(false);
           }));

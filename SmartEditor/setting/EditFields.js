@@ -10,7 +10,8 @@ define(
     'jimu/BaseWidgetSetting',
     'jimu/dijit/SimpleTable',
     "jimu/dijit/Popup",
-    'esri/lang'
+    'esri/lang',
+    'dijit/registry'
   ],
   function (
     declare,
@@ -24,7 +25,7 @@ define(
     BaseWidgetSetting,
     Table,
     Popup,
-    esriLang) {
+    esriLang, registry) {
     return declare([BaseWidgetSetting, _TemplatedMixin], {
       baseClass: "jimu-widget-smartEditor-setting-fields",
       templateString: template,
@@ -179,15 +180,21 @@ define(
       },
       _setFiedsTable: function (fieldInfos) {
         array.forEach(fieldInfos, function (fieldInfo) {
-          if (fieldInfo.hasOwnProperty('nullable') && fieldInfo.nullable === false) {
-            // do nothing
-          }
-          else {
-            this._fieldsTable.addRow({
+          
+          
+          var addRowResult = this._fieldsTable.addRow({
               fieldName: fieldInfo.fieldName,
               isEditable: fieldInfo.isEditable,
               canPresetValue: fieldInfo.canPresetValue,
               label: fieldInfo.label
+            });
+          if (fieldInfo.hasOwnProperty('nullable') && fieldInfo.nullable === false) {
+            nl = query(".editable", addRowResult.tr);
+            nl.forEach(function (node) {
+
+              var widget = registry.getEnclosingWidget(node.childNodes[0]);
+
+              widget.setStatus(false);
             });
           }
         }, this);

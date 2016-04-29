@@ -118,15 +118,16 @@ function(declare, lang, array, on, domClass, _WidgetsInTemplateMixin, BaseWidget
     addNewFilterSet:function(){
       var addResult = this.filterList.addRow({name:''});
       var tr = addResult.tr;
-      var tdContent = tr.insertCell(0);
-      var tdAction = tr.insertCell(1);
+      var cell = tr.cells[0];
+      //var tdContent = tr.insertCell(0);
+      //var tdAction = tr.insertCell(1);
       //if(index === 0){
         //this.filterList.selectRow(tr);
       //}
-      domClass.add(tdContent, "filter-set-style");
-      domClass.add(tdAction, "filter-set-style");
+      //domClass.add(tdContent, "filter-set-style");
+      //domClass.add(tdAction, "filter-set-style");
 
-      this.addFilterSetName({cell: tdContent});
+      this.addFilterSetName({cell: cell});
       //this.addFilterSetName()
     },
 

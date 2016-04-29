@@ -24,8 +24,10 @@ define([
     'dojo/promise/all',
     'dojo/Deferred',
     'dojo/dom-class',
+    'dojo/on',
     'dijit/_WidgetsInTemplateMixin',
     'dijit/TitlePane',
+    'dijit/form/Button',
     'jimu/BaseWidget',
     'jimu/dijit/Message',
     'jimu/dijit/DrawBox',
@@ -43,8 +45,8 @@ define([
     './SingleTask',
     'jimu/dijit/LoadingShelter'
   ],
-  function(declare, lang, query, html, array, fx, all, Deferred, domClass, _WidgetsInTemplateMixin,
-    TitlePane, BaseWidget, Message, DrawBox, jimuUtils, FilterUtils, FilterParameters, LayerInfos,
+  function(declare, lang, query, html, array, fx, all, Deferred, domClass, on, _WidgetsInTemplateMixin,
+    TitlePane, Button, BaseWidget, Message, DrawBox, jimuUtils, FilterUtils, FilterParameters, LayerInfos,
     GraphicsLayer, FeatureLayer, SimpleRenderer, InfoTemplate, symbolJsonUtils, esriLang,
     esriRequest, SingleTask) {
 
@@ -348,6 +350,8 @@ define([
           var queryNameDiv = query(".query-name-div", tr)[0];
           queryNameDiv.innerHTML = jimuUtils.stripHTML(name);
           html.place(tr, this.queriesTbody);
+          this.own(on(queryNameDiv, "click", lang.hitch(this, this._onQueryListClicked)));
+
           tr.singleConfig = singleConfig;
           if(index % 2 === 0){
             html.addClass(tr, 'even');
@@ -388,7 +392,7 @@ define([
 
         var target = event.target || event.srcElement;
         var tr = jimuUtils.getAncestorDom(target, lang.hitch(this, function(dom){
-          return html.hasClass(dom, 'single-query');
+            return html.hasClass(dom, 'single-query');
         }), 10);
         if(!tr){
           return;
@@ -397,10 +401,8 @@ define([
         this.filterList = [];
         var singleConfig = tr.singleConfig;
 
-        console.log(tr);
+        //console.log(singleConfig);
 
-        // call reset def here.
-        this.resetLayerDef();
 
         var inputFlag = false;
         array.forEach(singleConfig.filters, lang.hitch(this, function(fltr) {
@@ -423,6 +425,7 @@ define([
           //html.setStyle(this.parametersDiv, 'display', 'none');
 
           //not asking for input, just execute layer def
+          this.resetLayerDef();
           this.applyFilterToLayer(this.filterList);
         }
 
@@ -432,7 +435,7 @@ define([
 
 
       applyFilterToLayer: function(params) {
-        console.log(params);
+        //console.log(params);
         array.forEach(params, lang.hitch(this, function(param) {
           if((param.layer.originOperLayer.layerType).indexOf("MapService") > -1) {
 
@@ -456,7 +459,7 @@ define([
           } else {
             if (params.filterObj.name === layer.title) {
               var newFilter = params.filterObj.filter.expr;
-              this.filterList.push({layer:layer, filter:newFilter});
+              this.filterList.push({layer:layer, filter:newFilter, originObject: layer});
             }
           }
         }));
@@ -477,14 +480,14 @@ define([
                     if(list.layer === Node.parentLayerInfo)  {
                       list.filter[msSubId] = params.filterObj.filter.expr;
                     } else {
-                      this.filterList.push({layer:Node.parentLayerInfo, filter:build});
+                      this.filterList.push({layer:Node.parentLayerInfo, filter:build, originObject: Node});
                     }
                   } else {
-                    this.filterList.push({layer:Node.parentLayerInfo, filter:build});
+                    this.filterList.push({layer:Node.parentLayerInfo, filter:build, originObject: Node});
                   }
                 }));
               } else {
-                this.filterList.push({layer:Node.parentLayerInfo, filter:build});
+                this.filterList.push({layer:Node.parentLayerInfo, filter:build, originObject: Node});
               }
             }
           }
@@ -493,6 +496,11 @@ define([
 
 
       resetLayerDef: function() {
+        var queryNameInput = query(".query-name-input-show");
+        array.forEach(queryNameInput, lang.hitch(this, function(input) {
+          domClass.replace(input, "query-name-input-hide", "query-name-input-show");
+        }));
+
         array.forEach(this.layerList, lang.hitch(this, function(layer) {
           array.forEach(this.defaultDef, lang.hitch(this, function(def) {
             if(def.layer === layer.id ) {
@@ -515,41 +523,86 @@ define([
 
 
       _checkUserInput: function(params, tr) {
-        var diffFlag = false;
-        console.log(params);
-        var fieldHolder = params[0].filter.parts[0].fieldObj.shortType;
-        array.forEach(params, lang.hitch(this, function(param) {
-          array.forEach(param.filter.parts, lang.hitch(this, function(part) {
-            if(part.fieldObj.shortType !== fieldHolder) {
-              diffFlag = true;
-            }
-            fieldHolder = part.fieldObj.shortType;
-          }));
-        }));
-
+        var arrParams = [];
         var queryNameInput = query(".query-name-input-hide", tr)[0];
         domClass.replace(queryNameInput, "query-name-input-show", "query-name-input-hide");
 
-        if(diffFlag) {
-          //if types are different, just show textbox
-          queryNameInput.innerHTML = "different";
-        } else {
-          //show field context types (dates, numbers, etc)
-          this.paramsDijit = new FilterParameters();
-          this.paramsDijit.placeAt(queryNameInput);
-          this.paramsDijit.startup();
-console.log(params);
-          var layerUrl = params[0].url;
-          var partsObj = lang.clone(params[0].filter);
-          this.paramsDijit.build(layerUrl, this.layerList[1].layerObject, partsObj);
-          console.log(this.layerList[1]);
-        }
+        array.forEach(params, lang.hitch(this, function(param) {
+          array.forEach(this.filterList, lang.hitch(this, function(lyr) {
+            if(lyr.originObject.title === param.name) {
+               array.forEach(param.filter.parts, lang.hitch(this, function(part) {
+                //show field context types (dates, numbers, etc)
+                var inputParam = new FilterParameters();
+                inputParam.placeAt(queryNameInput);
+                inputParam.startup();
+
+                var layerUrl = param.url;
+                var partsObj = lang.clone(param.filter);
+                if(lyr.originObject.parentLayerInfo !== null) {
+                  var newFL = new FeatureLayer(param.url);
+                  this.own(on(newFL, "load", lang.hitch(this, function() {
+                    inputParam.build(layerUrl, newFL, partsObj);
+                    arrParams.push(inputParam);
+                  })));
+                } else {
+                  inputParam.build(layerUrl, lyr.layer.layerObject, partsObj);
+                  arrParams.push(inputParam);
+                }
+
+              }));
+            }
+          }));
+        }));
+
+        var myButton = new Button({
+            label: "Apply",
+            onClick: lang.hitch(this, function(){
+              var valid = this._modifyFilterInputs(arrParams);
+              if(valid) {
+                this.applyFilterToLayer(this.filterList);
+              } else {
+                //throw error message
+              }
+
+            })
+        });
+        myButton.placeAt(queryNameInput);
+        myButton.startup();
 
       },
 
+      _modifyFilterInputs: function(params) {
+        var noInput = array.some(params, lang.hitch(this, function(param) {
+          return (param.getFilterExpr() === null);
+        }));
+        if(noInput === true) {
+          return false;
+        } else {
+          array.forEach(params, lang.hitch(this, function(param) {
+              var expr = param.getFilterExpr();
+              array.forEach(this.filterList, lang.hitch(this, function(lyr) {
+                //console.log(param);
+                //console.log(lyr);
 
-
-
+                if(lyr.originObject.parentLayerInfo !== null) {
+                  if(lyr.originObject.title === param.layerInfo.name) {
+                    var buildExp =[];
+                    buildExp[param.layerInfo.layerId] = expr;
+                    lyr.filter = buildExp;
+                    console.log(lyr);
+                    //think about any need to append.
+                  }
+                } else {
+                  if(lyr.originObject.id === param.layerInfo.id) {
+                    lyr.filter = expr;
+                    //think about any need to append.
+                  }
+                }
+              }));
+          }));
+          return true;
+        }
+      },
 
       _getLayerInfoWithRelationships: function(layerUrl){
         var def = new Deferred();

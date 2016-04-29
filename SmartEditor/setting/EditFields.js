@@ -31,7 +31,7 @@ define(
       _layerInfo: null,
       _fieldValid: null,
       _fieldValidations: null,
-      __layerName:null,
+      __layerName: null,
       postCreate: function () {
         this.inherited(arguments);
         this._initFieldsTable();
@@ -43,7 +43,7 @@ define(
       popupEditPage: function () {
         var fieldsPopup = new Popup({
           titleLabel: esriLang.substitute(
-            { layername: this._layerName},
+            { layername: this._layerName },
             this.nls.fieldsPage.title),
           width: 720,
           maxHeight: 700,
@@ -142,7 +142,7 @@ define(
             case this.nls.fieldsPage.fieldsSettingsTable.actions:
               node.title = this.nls.fieldsPage.fieldsSettingsTable.actionsTip;
               break;
-           
+
 
           }
 
@@ -174,17 +174,22 @@ define(
             _fieldAlias: rowData.label
           });
           this._fieldValid.popupActionsPage();
-         
+
         }
       },
       _setFiedsTable: function (fieldInfos) {
         array.forEach(fieldInfos, function (fieldInfo) {
-          this._fieldsTable.addRow({
-            fieldName: fieldInfo.fieldName,
-            isEditable: fieldInfo.isEditable,
-            canPresetValue: fieldInfo.canPresetValue,
-            label: fieldInfo.label
-          });
+          if (fieldInfo.hasOwnProperty('nullable') && fieldInfo.nullable === false) {
+            // do nothing
+          }
+          else {
+            this._fieldsTable.addRow({
+              fieldName: fieldInfo.fieldName,
+              isEditable: fieldInfo.isEditable,
+              canPresetValue: fieldInfo.canPresetValue,
+              label: fieldInfo.label
+            });
+          }
         }, this);
       },
 

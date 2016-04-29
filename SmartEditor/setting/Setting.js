@@ -359,13 +359,69 @@ define([
       // about fieldInfos mehtods.
       _getDefaultSimpleFieldInfos: function (layerObject) {
         var fieldInfos = [];
+        var webmapFieldInfos =
+         editUtils.getFieldInfosFromWebmap(layerObject.id, this._jimuLayerInfos);
         for (var i = 0; i < layerObject.fields.length; i++) {
           if (layerObject.fields[i].editable) {
-            fieldInfos.push({
-              fieldName: layerObject.fields[i].name,
-              label: layerObject.fields[i].alias || layerObject.fields[i].name,
-              isEditable: true
+            var filteredArr = dojo.filter(webmapFieldInfos, function (webmapFieldInfo) {
+              return webmapFieldInfo.fieldName == layerObject.fields[i].name;
             });
+
+            fldInfo = lang.clone(layerObject.fields[i]);
+            if (fldInfo.hasOwnProperty('alias')) {
+              fldInfo.label = fldInfo.alias;
+              delete fldInfo.alias;
+            }
+            if (fldInfo.hasOwnProperty('domain')) {
+           
+              delete fldInfo.domain;
+            }
+            if (fldInfo.hasOwnProperty('visible')) {
+
+              delete fldInfo.visible;
+            }
+            if (fldInfo.hasOwnProperty('name')) {
+              fldInfo.fieldName = fldInfo.name;
+              delete fldInfo.name;
+            }
+            if (fldInfo.hasOwnProperty('editable')) {
+              fldInfo.isEditable = fldInfo.editable;
+              delete fldInfo.editable;
+            }
+            //var str = JSON.stringify(lang.clone(layerObject.fields[i]));
+            //str = str.replace(/alias/g, 'label');
+            //str = str.replace(/name/g, 'fieldName');
+            //str = str.replace(/editable/g, 'isEditable');
+            
+            //var fldInfo = JSON.parse(str);
+            //fldInfo.label = "test";
+              //array.forEach(webmapFieldInfos, function (webmapFieldInfo) {
+              //  if (webmapFieldInfo.isEditable) {
+              //    webmapSimpleFieldInfos.push({
+              //      fieldName: webmapFieldInfo.fieldName,
+              //      label: webmapFieldInfo.label,
+              //      isEditable: webmapFieldInfo.isEditable
+              //    });
+              //  }
+              //});
+              
+            //fieldInfos.push({
+            //  fieldName: layerObject.fields[i].name,
+            //  label: layerObject.fields[i].alias || layerObject.fields[i].name,
+            //  isEditable: true,
+            //  nullable: layerObject.fields[i].nullable
+
+            //});
+            if (filteredArr.length == 1) {
+              fieldInfos.push(lang.mixin(
+                fldInfo,
+                filteredArr[0])
+                );
+            }
+            else {
+              fieldInfos.push(fldInfo);
+            }
+            
           }
         }
         return fieldInfos;
@@ -377,7 +433,7 @@ define([
           editUtils.getFieldInfosFromWebmap(layerObject.id, this._jimuLayerInfos);
         if (webmapFieldInfos) {
           array.forEach(webmapFieldInfos, function (webmapFieldInfo) {
-            if (webmapFieldInfo.isEditableOnLayer) {
+            if (webmapFieldInfo.isEditable) {
               webmapSimpleFieldInfos.push({
                 fieldName: webmapFieldInfo.fieldName,
                 label: webmapFieldInfo.label,
@@ -395,14 +451,9 @@ define([
       },
 
       _getSimpleFieldInfos: function (layerObject, layerInfo) {
-        var baseSimpleFieldInfos;
         var simpleFieldInfos = [];
-        var defautlSimpleFieldInfos = this._getDefaultSimpleFieldInfos(layerObject);
-        var webmapSimpleFieldInfos = this._getWebmapSimpleFieldInfos(layerObject);
-
-        baseSimpleFieldInfos =
-          webmapSimpleFieldInfos ? webmapSimpleFieldInfos : defautlSimpleFieldInfos;
-
+        var baseSimpleFieldInfos = this._getDefaultSimpleFieldInfos(layerObject);
+     
         if (layerInfo && layerInfo.fieldInfos) {
           // Edit widget had been configured
           // keep order of config fieldInfos and add new fieldInfos at end.

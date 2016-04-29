@@ -162,7 +162,7 @@ define([
         //if (this.appConfig.theme.name === "BoxTheme" ||
         //    this.appConfig.theme.name === "DartTheme" ||
         //    this.appConfig.theme.name === "LaunchpadTheme") {
-        if (  this.appConfig.theme.name === "DartTheme" ) {
+        if (this.appConfig.theme.name === "DartTheme") {
           utils.loadStyleLink('dartOverrideCSS', this.folderUrl + "/css/dartTheme.css", null);
         }
       },
@@ -775,7 +775,7 @@ define([
             case "esriFieldTypeDate":
               node = new DateTextBox({
                 "class": "ee-inputField",
-                
+
                 name: fieldInfo.fieldName
               }, domConstruct.create("div"));
               //value: new Date(),
@@ -785,8 +785,8 @@ define([
                 if (fieldInfo.format.time && fieldInfo.format.time === true) {
                   var timeNode = new TimeTextBox({
                     "class": "ee-inputField",
-                    "style":"margin-top:2px;"
-                    
+                    "style": "margin-top:2px;"
+
                   }, domConstruct.create("div"));
                   nodes.push(timeNode);
                   //value: new Date()
@@ -1147,9 +1147,14 @@ define([
       _hasPresetValueFields: function () {
         return this.settings.layerInfos.some(function (layerInfo) {
           if (layerInfo.allowUpdateOnly === false) {
-            return layerInfo.fieldInfos.some(function (fi) {
-              return fi.canPresetValue === true;
-            });
+            if (layerInfo.fieldInfos) {
+              return layerInfo.fieldInfos.some(function (fi) {
+                return fi.canPresetValue === true;
+              });
+            }
+            else {
+              return false;
+            }
           }
           else {
             return false;
@@ -1962,7 +1967,11 @@ define([
         array.forEach(filteredFields, lang.hitch(this, function (f) {
           if (this.currentFeature.attributes[f.name] === "undefined") {
             errorObj[f.alias] = "undefined";
-          } else {
+          }
+          else if (this.currentFeature.attributes[f.name] === null) {
+            errorObj[f.alias] = "null";
+          }
+          else {
             switch (f.type) {
               case "esriFieldTypeString":
                 if (this.currentFeature.attributes[f.name] === "" ||

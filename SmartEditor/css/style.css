@@ -45,11 +45,11 @@
         height: 100%;
         width: 100%;
     }
-    
-        .jimu-widget-smartEditor .esriAttributeInspector .atiLabel {
+
+        /*.jimu-widget-smartEditor .esriAttributeInspector .atiLabel {
             color:midnightblue !important;
           
-        }
+        }*/
         /*.jimu-widget-smartEditor .esriAttributeInspector .atiLabel {
             display: inline-block;
             overflow: hidden;
@@ -64,19 +64,20 @@
             display: block;
             clear: both;
         }
-            /*tr td {
+        /*tr td {
       padding: 20px 40px;
       border: 1px solid black;
       display: block;
     }*/
         .jimu-widget-smartEditor .esriAttributeInspector .atiNavButtons {
             position: absolute;
+            left: 50%;
+            margin-left: -90px;
             top: -10px;
-            right: 0;
         }
 
         .jimu-widget-smartEditor .esriAttributeInspector .asteriskIndicator {
-            color: red;
+            color: red !important;
         }
 
 
@@ -141,7 +142,6 @@
 
     .jimu-widget-smartEditor .attributeInspectorDiv {
         padding-top: 8px;
-        position: relative;
     }
 
     .jimu-widget-smartEditor .esriAttributeInspector .atiField {
@@ -201,6 +201,35 @@
     .jimu-widget-smartEditor .deleteAttachment {
         padding-right: 5px;
         cursor: pointer;
-        color: red;
+        color: red !important;
         font-weight: bold;
+    }
+
+    .jimu-widget-smartEditor .atiNavMessage {
+        display: inline-block;
+        float: none;
+    }
+
+    .jimu-widget-smartEditor .dijitButtonHover .dijitButtonNode {
+        background-color: transparent !important;
+        background-image: none !important;
+        border: none !important;
+        -webkit-box-shadow: none !important;
+        -moz-box-shadow: none !important;
+    }
+
+    .jimu-widget-smartEditor .dijitButton .dijitButtonNode {
+        background-color: transparent !important;
+        background-image: none !important;
+        border: none !important;
+        -webkit-box-shadow: none !important;
+        -moz-box-shadow: none !important;
+    }
+
+    .jimu-widget-smartEditor .dijitButton {
+        background-color: transparent !important;
+        background-image: none !important;
+        border: none !important;
+        -webkit-box-shadow: none !important;
+        -moz-box-shadow: none !important;
     }

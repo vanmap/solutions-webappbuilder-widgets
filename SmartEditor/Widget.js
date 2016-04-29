@@ -58,7 +58,8 @@ define([
     "jimu/dijit/Popup",
     "./AttachmentUploader",
     "esri/lang",
-     "dojox/html/entities"
+    "dojox/html/entities",
+    'jimu/utils'
 ],
   function (
     dojo,
@@ -104,7 +105,8 @@ define([
     Popup,
     AttachmentUploader,
     esriLang,
-    entities) {
+    entities,
+    utils) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
       name: 'SmartEditor',
       baseClass: 'jimu-widget-smartEditor',
@@ -134,6 +136,7 @@ define([
       postCreate: function () {
         this.inherited(arguments);
         this._init();
+        this._setTheme();
       },
 
       startup: function () {
@@ -153,6 +156,14 @@ define([
           this._jimuLayerInfos = operLayerInfos;
           this._createEditor();
         }));
+      },
+      /*jshint unused:true */
+      _setTheme: function () {
+        if (this.appConfig.theme.name === "BoxTheme" ||
+            this.appConfig.theme.name === "DartTheme" ||
+            this.appConfig.theme.name === "LaunchpadTheme") {
+          utils.loadStyleLink('dartOverrideCSS', this.folderUrl + "/css/dartTheme.css", null);
+        }
       },
       _mapClickHandler: function (create) {
 
@@ -466,6 +477,21 @@ define([
           this._postFeatureSave(evt);
 
         }
+        if (this.editDescription.style.display === "block") {
+          if (this.updateFeatures.length > 1) {
+            dojo.style(this.editDescription, "padding-top", "20px");
+          } else {
+            dojo.style(this.editDescription, "padding-top", "0");
+          }
+        } else {
+          if (this.updateFeatures.length > 1) {
+            dojo.style(query(".attributeInspectorDiv")[0], "padding-top", "20px");
+          } else {
+            dojo.style(query(".attributeInspectorDiv")[0], "padding-top", "8px");
+          }
+          
+        }
+        //editDescription
       },
 
       _createAttributeInspector: function (layerInfos) {
@@ -480,8 +506,13 @@ define([
         }));
         attrInspector.placeAt(this.attributeInspectorNode);
         attrInspector.startup();
-
-
+        //if (domClass.contains(attrInspector.navMessage, "atiNavMessage")) {
+        //  domClass.remove(attrInspector.navMessage, "atiNavMessage");
+        //  dojo.style(attrInspector.navMessage, "display", "inline-block");
+        //  dojo.style(attrInspector.navMessage, "display", "inline-block");
+        //}
+        domConstruct.place(attrInspector.navMessage, attrInspector.nextFeatureButton.domNode,"before"),
+       
         //domConstruct.place(domConstruct.create("div", { "class": "spacer" }),
         // attrInspector.deleteBtn.domNode, "before");
 
@@ -1809,6 +1840,7 @@ define([
             this._toggleEditGeoSwitch(this.currentLayerInfo.disableGeometryUpdate);
 
           }
+
         }
 
 

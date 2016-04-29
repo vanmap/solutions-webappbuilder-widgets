@@ -24,6 +24,7 @@ define([
     'dojo/promise/all',
     'dojo/Deferred',
     'dojo/dom-class',
+    'dojo/dom-construct',
     'dojo/on',
     'dijit/_WidgetsInTemplateMixin',
     'dijit/TitlePane',
@@ -35,6 +36,7 @@ define([
     'jimu/filterUtils',
     'jimu/dijit/FilterParameters',
     'jimu/LayerInfos/LayerInfos',
+    'jimu/dijit/Message',
     'esri/layers/GraphicsLayer',
     'esri/layers/FeatureLayer',
     'esri/renderers/SimpleRenderer',
@@ -45,8 +47,8 @@ define([
     './SingleTask',
     'jimu/dijit/LoadingShelter'
   ],
-  function(declare, lang, query, html, array, fx, all, Deferred, domClass, on, _WidgetsInTemplateMixin,
-    TitlePane, Button, BaseWidget, Message, DrawBox, jimuUtils, FilterUtils, FilterParameters, LayerInfos,
+  function(declare, lang, query, html, array, fx, all, Deferred, domClass, domConstruct, on, _WidgetsInTemplateMixin,
+    TitlePane, Button, BaseWidget, Message, DrawBox, jimuUtils, FilterUtils, FilterParameters, LayerInfos, Message,
     GraphicsLayer, FeatureLayer, SimpleRenderer, InfoTemplate, symbolJsonUtils, esriLang,
     esriRequest, SingleTask) {
 
@@ -396,13 +398,10 @@ define([
         }), 10);
         if(!tr){
           return;
-        }
+        }     
 
         this.filterList = [];
         var singleConfig = tr.singleConfig;
-
-        //console.log(singleConfig);
-
 
         var inputFlag = false;
         array.forEach(singleConfig.filters, lang.hitch(this, function(fltr) {
@@ -417,19 +416,16 @@ define([
         }));
 
         if(inputFlag){
-          //html.setStyle(this.parametersDiv, 'display', 'block');
-
+          this.resetLayerDef();         
           this._checkUserInput(singleConfig.filters, tr);
         }
         else{
-          //html.setStyle(this.parametersDiv, 'display', 'none');
-
           //not asking for input, just execute layer def
           this.resetLayerDef();
           this.applyFilterToLayer(this.filterList);
         }
-
-
+        
+        domClass.add(tr, "active-filter");
 
       },
 
@@ -500,6 +496,14 @@ define([
         array.forEach(queryNameInput, lang.hitch(this, function(input) {
           domClass.replace(input, "query-name-input-hide", "query-name-input-show");
         }));
+        var queryArrow = query(".arrow-down");
+        array.forEach(queryArrow, lang.hitch(this, function(input) {
+          domClass.replace(input, "arrow", "arrow-down");
+        }));
+        var queryActFil = query(".active-filter");
+        array.forEach(queryActFil, lang.hitch(this, function(input) {
+          domClass.remove(input, "active-filter");
+        }));
 
         array.forEach(this.layerList, lang.hitch(this, function(layer) {
           array.forEach(this.defaultDef, lang.hitch(this, function(def) {
@@ -526,6 +530,10 @@ define([
         var arrParams = [];
         var queryNameInput = query(".query-name-input-hide", tr)[0];
         domClass.replace(queryNameInput, "query-name-input-show", "query-name-input-hide");
+        domConstruct.empty(queryNameInput);
+        
+        var queryArrow = query(".arrow", tr)[0];
+        domClass.replace(queryArrow, "arrow-down", "arrow");               
 
         array.forEach(params, lang.hitch(this, function(param) {
           array.forEach(this.filterList, lang.hitch(this, function(lyr) {
@@ -554,8 +562,10 @@ define([
           }));
         }));
 
+/*
         var myButton = new Button({
-            label: "Apply",
+            label: "",
+            'class': "jimu-btn jimu-priority-secondary btn-clear-all",
             onClick: lang.hitch(this, function(){
               var valid = this._modifyFilterInputs(arrParams);
               if(valid) {
@@ -568,6 +578,28 @@ define([
         });
         myButton.placeAt(queryNameInput);
         myButton.startup();
+
+    <div data-dojo-attach-point="btnClearAll" data-dojo-attach-event="onclick:_onBtnClearAllClicked"
+    class="jimu-btn jimu-priority-secondary btn-clear-all" title="${nls.clearResults}" >${nls.clearResults}</div>
+
+
+*/
+        var divBtn = domConstruct.create("div",{
+          'class': 'jimu-btn jimu-priority-secondary btn-clear-all',
+          innerHTML: "Apply",
+          onclick: lang.hitch(this, function(){
+              var valid = this._modifyFilterInputs(arrParams);
+              if(valid) {
+                this.applyFilterToLayer(this.filterList);
+              } else {
+                new Message({
+                  message : "All fields need a value"
+                });
+              }
+          }) 
+        });
+        domConstruct.place(divBtn, queryNameInput);
+
 
       },
 

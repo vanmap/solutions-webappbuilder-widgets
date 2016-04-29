@@ -159,9 +159,10 @@ define([
       },
       /*jshint unused:true */
       _setTheme: function () {
-        if (this.appConfig.theme.name === "BoxTheme" ||
-            this.appConfig.theme.name === "DartTheme" ||
-            this.appConfig.theme.name === "LaunchpadTheme") {
+        //if (this.appConfig.theme.name === "BoxTheme" ||
+        //    this.appConfig.theme.name === "DartTheme" ||
+        //    this.appConfig.theme.name === "LaunchpadTheme") {
+        if (  this.appConfig.theme.name === "DartTheme" ) {
           utils.loadStyleLink('dartOverrideCSS', this.folderUrl + "/css/dartTheme.css", null);
         }
       },
@@ -256,7 +257,7 @@ define([
         if (!this.templatePicker.getSelected()) { return; }
         var selectedTemp = this.templatePicker.getSelected();
 
-       
+
 
         var myLayer;
         var newTempLayerInfos;
@@ -274,7 +275,7 @@ define([
 
           this.attrInspector = this._createAttributeInspector(newTempLayerInfos);
         } else {
-         
+
           myLayer = this.attrInspector.layerInfos[0].featureLayer;
           var localLayerInfo = this._getLayerInfoForLocalLayer(myLayer);
           newTempLayerInfos = this.attrInspector.layerInfos;
@@ -489,7 +490,7 @@ define([
           } else {
             dojo.style(query(".attributeInspectorDiv")[0], "padding-top", "8px");
           }
-          
+
         }
         //editDescription
       },
@@ -511,8 +512,8 @@ define([
         //  dojo.style(attrInspector.navMessage, "display", "inline-block");
         //  dojo.style(attrInspector.navMessage, "display", "inline-block");
         //}
-        domConstruct.place(attrInspector.navMessage, attrInspector.nextFeatureButton.domNode,"before"),
-       
+        domConstruct.place(attrInspector.navMessage, attrInspector.nextFeatureButton.domNode, "before"),
+
         //domConstruct.place(domConstruct.create("div", { "class": "spacer" }),
         // attrInspector.deleteBtn.domNode, "before");
 
@@ -774,18 +775,21 @@ define([
             case "esriFieldTypeDate":
               node = new DateTextBox({
                 "class": "ee-inputField",
+                
                 name: fieldInfo.fieldName
               }, domConstruct.create("div"));
-
+              //value: new Date(),
               nodes.push(node);
 
               if (fieldInfo.format) {
                 if (fieldInfo.format.time && fieldInfo.format.time === true) {
                   var timeNode = new TimeTextBox({
-                    "class": "ee-inputField"
+                    "class": "ee-inputField",
+                    "style":"margin-top:2px;"
+                    
                   }, domConstruct.create("div"));
                   nodes.push(timeNode);
-
+                  //value: new Date()
                 }
               }
 
@@ -1186,9 +1190,9 @@ define([
 
       _modifyAttributesWithPresetValues: function (attributes, newTempLayerInfos) {
         var presetValueTable = query("#eePresetValueBody")[0];
-        var presetFieldInfos = array.filter(newTempLayerInfos.fieldInfos,function(fieldInfo){
+        var presetFieldInfos = array.filter(newTempLayerInfos.fieldInfos, function (fieldInfo) {
           return (fieldInfo.canPresetValue === true);
-            
+
         })
         var presetFields = array.map(presetFieldInfos, function (presetFieldInfo) {
           return presetFieldInfo.fieldName;

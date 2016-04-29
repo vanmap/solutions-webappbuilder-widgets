@@ -150,8 +150,12 @@
 
     .jimu-widget-smartEditor .esriAttributeInspector .dijitTextBox {
         width: 100%;
+         
     }
-
+      .jimu-widget-smartEditor  .dijitTextBox {
+        
+         height: 28px !important;
+    }
     .jimu-widget-smartEditor div.atiAttributes table {
         width: 98%;
     }
@@ -233,3 +237,40 @@
         -webkit-box-shadow: none !important;
         -moz-box-shadow: none !important;
     }
+
+
+
+.dijitCalendarDateTemplate.dijitCalendarCurrentDate .dijitCalendarDateLabel {
+    color: red;
+    border-color: red;
+}
+
+/* hover */
+
+.dijitCalendarDateTemplate.dijitCalendarHoveredDate .dijitCalendarDateLabel,
+.dijitCalendarDateTemplate.dijitCalendarEnabledDate:hover .dijitCalendarDateLabel {
+    background-color: greenyellow;
+}
+
+/* active 
+
+.dijitCalendarDateTemplate.dijitCalendarActiveDate .dijitCalendarDateLabel,
+.dijitCalendarDateTemplate.dijitCalendarEnabledDate:active .dijitCalendarDateLabel {
+    background-color: darkslategray;
+}
+*/
+/* selected */
+
+.dijitCalendarDateTemplate.dijitCalendarSelectedDate .dijitCalendarDateLabel,
+.dijitCalendarDateTemplate.dijitCalendarSelectedDate.dijitCalendarHoveredDate .dijitCalendarDateLabel {
+    background-color: cyan;
+}
+.jimu-widget-smartEditor .dijitComboBox > div.dijitArrowButton.dijitDownArrowButton {
+    width:25px!important;
+}
+.jimu-widget-smartEditor  .dijitTextBox .dijitInputField {
+    height:100%!important;
+}
+.jimu-widget-smartEditor  .dijitComboBox > div.dijitArrowButton.dijitDownArrowButton > input {
+    width:100%;
+}

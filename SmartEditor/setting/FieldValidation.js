@@ -11,8 +11,8 @@ define(
     'jimu/BaseWidgetSetting',
     'jimu/dijit/SimpleTable',
     "jimu/dijit/Popup",
-    'jimu/dijit/Filter',
-    'esri/lang'
+    'esri/lang',
+      "./FilterPage",
   ],
   function (
     declare,
@@ -27,8 +27,8 @@ define(
     BaseWidgetSetting,
     Table,
     Popup,
-    Filter,
-    esriLang
+    esriLang,
+    FilterPage
     ) {
     return declare([BaseWidgetSetting, _TemplatedMixin], {
       baseClass: "jimu-widget-smartEditor-rule-table",
@@ -63,7 +63,12 @@ define(
       },
 
       popupActionsPage: function () {
-
+        this._filterPage = new FilterPage({
+          nls: this.nls,
+          _resourceInfo: this._resourceInfo,
+          _url: this._url,
+          _validationTable: this._validationTable
+        });
         var fieldsPopup = new Popup({
           titleLabel: esriLang.substitute(
             { fieldname: this._fieldAlias },
@@ -219,71 +224,7 @@ define(
                     });
       },
       _showFilter: function (tr) {
-        var rowData = this._validationTable.getRowData(tr);
-        if (rowData) {
-          var origNLS = window.jimuNls.filterBuilder.matchMsg;
-
-          window.jimuNls.filterBuilder.matchMsg = this.nls.filterPage.filterBuilder;
-
-          var filter = new Filter({
-            style: "width:100%;margin-top:22px;",
-            noFilterTip: this.nls.filterPage.noFilterTip
-          });
-
-          var filterPopup = new Popup({
-
-            titleLabel: esriLang.substitute(
-              {
-                action: rowData.label
-              },
-              this.nls.filterPage.title),
-            width: 680,
-            height: 485,
-            content: filter,
-            rowData: rowData,
-            buttons: [{
-              label: this.nls.ok,
-              onClick: lang.hitch(this, function () {
-                var partsObj = filter.toJson();
-                if (partsObj && partsObj.expr) {
-                  if (partsObj.expr === '1=1') {
-                    this._validationTable.editRow(tr,
-                     {
-                       'expression': '',
-                       'filter': null
-                     });
-                  } else {
-                    this._validationTable.editRow(tr,
-                      {
-                        'expression': partsObj.expr,
-                        'filter': JSON.stringify(partsObj)
-                      });
-                  }
-
-                  filterPopup.close();
-                  filterPopup = null;
-                }
-              })
-            }, {
-              label: this.nls.cancel,
-              classNames: ['jimu-btn jimu-btn-vacation']
-            }]
-          });
-
-          if (rowData.filter === undefined ||
-              rowData.filter === null ||
-            rowData.filter === '') {
-            filter.buildByExpr(this._url, null, this._resourceInfo);
-          }
-          else {
-
-            filter.buildByExpr(this._url, entities.decode(rowData.expression), this._resourceInfo);
-         
-          }
-
-          window.jimuNls.filterBuilder.matchMsg = origNLS;
-
-        }
+        this._filterPage.popup(tr);
       }
 
     });

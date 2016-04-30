@@ -23,7 +23,8 @@ define({
       title: "test",
       add:"Add"
     },
-    attachmentLoadingError:"Error uploading attachments"
+    attachmentLoadingError: "Error uploading attachments",
+    attachmentSaveDeleteWarning: "Warning, adding or deleting an attachment is saved immediately"
   }),
   "ar": 1,
   "cs": 1,

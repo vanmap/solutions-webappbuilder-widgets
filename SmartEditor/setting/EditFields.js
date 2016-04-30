@@ -11,7 +11,8 @@ define(
     'jimu/dijit/SimpleTable',
     "jimu/dijit/Popup",
     'esri/lang',
-    'dijit/registry'
+    'dijit/registry',
+    'jimu/dijit/Message'
   ],
   function (
     declare,
@@ -25,7 +26,7 @@ define(
     BaseWidgetSetting,
     Table,
     Popup,
-    esriLang, registry) {
+    esriLang, registry, Message) {
     return declare([BaseWidgetSetting, _TemplatedMixin], {
       baseClass: "jimu-widget-smartEditor-setting-fields",
       templateString: template,
@@ -166,9 +167,14 @@ define(
       _onEditFieldInfoClick: function (tr) {
         var rowData = this._fieldsTable.getRowData(tr);
         if (rowData && rowData.isEditable) {
+          var layerDefinition = {};
+          //layerDefinition['fields'] = lang.clone(this._fieldValidations.fields);
+          layerDefinition['fields'] = array.filter(this._layerInfo.mapLayer.resourceInfo.fields, function (field) {
+            return (field.name !== rowData.fieldName);
+          });
           this._fieldValid = new FieldValidation({
             nls: this.nls,
-            _resourceInfo: this._layerInfo.mapLayer.resourceInfo,
+            _resourceInfo: layerDefinition,//this._layerInfo.mapLayer.resourceInfo,
             _url: this._layerInfo.mapLayer.url,
             _fieldValidations: this._fieldValidations,
             _fieldName: rowData.fieldName,
@@ -177,17 +183,22 @@ define(
           this._fieldValid.popupActionsPage();
 
         }
+        else {
+          new Message({
+            message: this.nls.fieldsPage.smartAttSupport
+          });
+        }
       },
       _setFiedsTable: function (fieldInfos) {
         array.forEach(fieldInfos, function (fieldInfo) {
-          
-          
+
+
           var addRowResult = this._fieldsTable.addRow({
-              fieldName: fieldInfo.fieldName,
-              isEditable: fieldInfo.isEditable,
-              canPresetValue: fieldInfo.canPresetValue,
-              label: fieldInfo.label
-            });
+            fieldName: fieldInfo.fieldName,
+            isEditable: fieldInfo.isEditable,
+            canPresetValue: fieldInfo.canPresetValue,
+            label: fieldInfo.label
+          });
           if (fieldInfo.hasOwnProperty('nullable') && fieldInfo.nullable === false) {
             nl = query(".editable", addRowResult.tr);
             nl.forEach(function (node) {
@@ -208,7 +219,7 @@ define(
             "fieldName": fieldData.fieldName,
             "label": fieldData.label,
             "canPresetValue": fieldData.canPresetValue,
-            "isEditable": fieldData.isEditable
+            "isEditable": fieldData.isEditable === null ? true : fieldData.isEditable
           });
         });
 

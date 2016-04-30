@@ -149,7 +149,7 @@ define([
         else {
           this.templateTitle.innerHTML = entities.decode(this.config.editor.editDescription);
         }
-
+        this._orignls = esriBundle.widgets.attachmentEditor.NLS_attachments;
         //this.nls = lang.mixin(this.nls, window.jimuNls.common);
         LayerInfos.getInstance(this.map, this.map.itemInfo)
         .then(lang.hitch(this, function (operLayerInfos) {
@@ -619,7 +619,11 @@ define([
         this.own(on(attrInspector, "next", lang.hitch(this, function (evt) {
 
           this._attributeInspectorChangeRecord(evt);
-
+          if (query(".attwarning").length === 0) {
+            var txt = domConstruct.create("div", { 'class': 'attwarning' });
+            txt.innerHTML = this.nls.attachmentSaveDeleteWarning;
+            this.attrInspector._attachmentEditor.domNode.appendChild(txt);
+          }
         })));
         if (this._attachmentUploader && this._attachmentUploader !== null) {
           this._attachmentUploader.destroy();
@@ -1818,8 +1822,9 @@ define([
           this._mapClickHandler(true);
           this._showTemplatePicker();
 
-
+          // esriBundle.widgets.attachmentEditor.NLS_attachments = this._orignls;
         } else {
+          //esriBundle.widgets.attachmentEditor.NLS_attachments = this._orignls + " " + this.nls.attachmentSaveDeleteWarning;
           this._mapClickHandler(false);
           //show attribute inspector
           query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "none";

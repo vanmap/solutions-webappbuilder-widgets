@@ -43,7 +43,8 @@ define({
         canPresetValueTip: "Option to show the field in the preset field list, allow the user to set the value prior to editing",
         actions: "Actions",
         actionsTip: "Change the order of the fields or set up Smart Attributes",
-      }
+      },
+      smartAttSupport: "Smart Attributes not supported on required database fields"
     },
     actionPage: {
       title: "Configure the Smart Attribute actions for <b>${fieldname}</b>",

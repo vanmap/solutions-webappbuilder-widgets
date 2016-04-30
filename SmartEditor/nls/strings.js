@@ -3,7 +3,6 @@ define({
     _widgetLabel: "Smart Editor",
     yes: "Yes",
     no:"No",
-    title: "Select a template to create features",
     pressStr: "Press ",
     ctrlStr: " CTRL ",
     snapStr: " to enable snapping",
@@ -16,7 +15,6 @@ define({
     presetValue: "Preset Value",
     usePresetValues: " Use Preset Values (New features only)",
     editGeometry: " Edit Geometry",
-    updateOnly: "Please select a feature to update, creation of new features has been disabled.",
     savePromptTitle: "Save feature",
     savePrompt: "Would you like to save the current feature?",
     deletePromptTitle: "Delete feature",
@@ -25,7 +23,8 @@ define({
       title: "test",
       add:"Add"
     },
-    attachmentLoadingError:"Error uploading attachments"
+    attachmentLoadingError: "Error uploading attachments",
+    attachmentSaveDeleteWarning: "Warning, adding or deleting an attachment is saved immediately"
   }),
   "ar": 1,
   "cs": 1,

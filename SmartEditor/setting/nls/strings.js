@@ -1,11 +1,14 @@
 define({
   root: ({
     layersPage: {
-      displayPrompt: "Display Prompt:",
-      displayPromptTip: "Select when to display a prompt",
-      promptOnSave: "On close, when there are edits",
+      title: "Select a template to create features",
+      generalSettings: "General Settings",
+      layerSettings:"Layer Settings",
+      editDescription: "Provide display text for the edit panel",
+      editDescriptionTip: "This text is displayed above the Template picker, leave blank for no text.",
+      promptOnSave: "Prompt to save unsaved edits when form is close or switched to the next record?",
       promptOnSaveTip: "Display a prompt when the user clicks close or navigates to the next editable record when the current feature has unsaved edits.",
-      promptOnDelete: "on Delete",
+      promptOnDelete: "Require confirmation when deleting a record?",
       promptOnDeleteTip: "Display a prompt when the user clicks delete to confirm the aciton.",
       removeOnSave: "Remove Feature from Selection on Save",
       removeOnSaveTip: "Option to remove the feature from the selection set when the record is saved.  If it is the only selected record, the panel is switched back to the template page.",
@@ -24,6 +27,8 @@ define({
         fieldsTip: "Modify the fields to be edited and define Smart Attributes"
       }
     },
+    editDescriptionPage: {
+      title: "Define attribute overview text for <b>${layername}</b> "},
     fieldsPage: {
       title: "Configure fields for <b>${layername}</b>",
       description:"Set the fields that will be editable in the Smart Editor.  Use the Preset column to allow the user to enter a value prior to creating a new feature.  These values can be apply to every new feature that contains these fields.  If the same field is present in more than one layer, they are combined in the Preset field list.  The preset fields are only applied to new features.  Use the Action edit button to activate Smart Attributes on a layer.  The Smart Attributes can require, hide or disable a field based on values in other fields.",
@@ -38,7 +43,8 @@ define({
         canPresetValueTip: "Option to show the field in the preset field list, allow the user to set the value prior to editing",
         actions: "Actions",
         actionsTip: "Change the order of the fields or set up Smart Attributes",
-      }
+      },
+      smartAttSupport: "Smart Attributes not supported on required database fields"
     },
     actionPage: {
       title: "Configure the Smart Attribute actions for <b>${fieldname}</b>",

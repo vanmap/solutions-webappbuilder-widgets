@@ -26,7 +26,10 @@ define([
     'dijit/registry',
     'dojo/_base/array',
     "./EditFields",
-    "../utils"
+    "./EditDescription",
+    "../utils",
+    'dijit/Editor',
+        'dojo/dom-style'
 ],
   function (
     declare,
@@ -40,14 +43,19 @@ define([
     registry,
     array,
     EditFields,
-    editUtils) {
+    EditDescription,
+    editUtils,
+    Editor,
+    domStyle
+
+    ) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
       //these two properties is defined in the BaseWidget
       baseClass: 'jimu-widget-smartEditor-setting',
       _jimuLayerInfos: null,
       _layersTable: null,
       _editableLayerInfos: null,
-      _editFields:null,
+      _editFields: null,
       startup: function () {
         this.inherited(arguments);
         this.nls = lang.mixin(this.nls, window.jimuNls.common);
@@ -56,7 +64,9 @@ define([
             this._jimuLayerInfos = operLayerInfos;
             this._init();
             this.setConfig();
+            this._initEditor();
           }));
+       
       },
 
       destroy: function () {
@@ -68,7 +78,8 @@ define([
         delete this._editableLayerInfos;
         this._editFields = null;
         delete this._editFields;
-  
+        this._editDescriptions = null;
+        delete this._editDescriptions;
         this.inherited(arguments);
       },
 
@@ -134,7 +145,7 @@ define([
         this._layersTable = new Table(args);
         this._layersTable.placeAt(this.tableLayerInfos);
         this._layersTable.startup();
-     
+
         var nl = query("th.simple-table-field", this._layersTable.domNode);
         nl.forEach(function (node) {
           switch (node.innerText) {
@@ -156,16 +167,20 @@ define([
             case this.nls.layersPage.layerSettingsTable.fields:
               node.title = this.nls.layersPage.layerSettingsTable.fieldsTip;
               break;
-       
+
           }
-          
-        },this);
-          
+
+        }, this);
+
         this.own(on(this._layersTable,
           'actions-edit',
           lang.hitch(this, this._onEditFieldInfoClick)));
+        this.own(on(this._layersTable,
+          'row-dblclick',
+          lang.hitch(this, this._onRowDoubleClick)));
+
       },
-     
+
       _initSettings: function () {
         //this.showDeleteButton.set('checked', this.config.editor.showDeleteButton);
         this.displayPromptOnSave.set('checked', this.config.editor.displayPromptOnSave);
@@ -180,6 +195,7 @@ define([
         // }
         this._editableLayerInfos = this._getEditableLayerInfos();
         this._setLayersTable(this._editableLayerInfos);
+       
       },
 
       _getEditableLayerInfos: function () {
@@ -223,12 +239,12 @@ define([
             layerInfo._editFlag = true;
 
             layerInfo.mapLayer = [];
-            
+
             layerInfo.mapLayer.resourceInfo =
               this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.resourceInfo;
             layerInfo.mapLayer.url =
               this._jimuLayerInfos.getLayerInfoById(layerObject.id).originOperLayer.url;
-            
+
           }
         }
         return layerInfo;
@@ -256,7 +272,7 @@ define([
         var editable = true;
         if (this.config.editor.layerInfos &&
             this.config.editor.layerInfos.length > 0) {
-          editable = this.config.editor.layerInfos.some(function (layerInfo) {
+          editable = array.some(this.config.editor.layerInfos, function (layerInfo) {
             return (layerInfo.featureLayer.id === layerObject.id);
           });
         }
@@ -343,13 +359,69 @@ define([
       // about fieldInfos mehtods.
       _getDefaultSimpleFieldInfos: function (layerObject) {
         var fieldInfos = [];
+        var webmapFieldInfos =
+         editUtils.getFieldInfosFromWebmap(layerObject.id, this._jimuLayerInfos);
         for (var i = 0; i < layerObject.fields.length; i++) {
           if (layerObject.fields[i].editable) {
-            fieldInfos.push({
-              fieldName: layerObject.fields[i].name,
-              label: layerObject.fields[i].alias || layerObject.fields[i].name,
-              isEditable: true
+            var filteredArr = dojo.filter(webmapFieldInfos, function (webmapFieldInfo) {
+              return webmapFieldInfo.fieldName == layerObject.fields[i].name;
             });
+
+            fldInfo = lang.clone(layerObject.fields[i]);
+            if (fldInfo.hasOwnProperty('alias')) {
+              fldInfo.label = fldInfo.alias;
+              delete fldInfo.alias;
+            }
+            if (fldInfo.hasOwnProperty('domain')) {
+           
+              delete fldInfo.domain;
+            }
+            if (fldInfo.hasOwnProperty('visible')) {
+
+              delete fldInfo.visible;
+            }
+            if (fldInfo.hasOwnProperty('name')) {
+              fldInfo.fieldName = fldInfo.name;
+              delete fldInfo.name;
+            }
+            if (fldInfo.hasOwnProperty('editable')) {
+              fldInfo.isEditable = fldInfo.editable;
+              delete fldInfo.editable;
+            }
+            //var str = JSON.stringify(lang.clone(layerObject.fields[i]));
+            //str = str.replace(/alias/g, 'label');
+            //str = str.replace(/name/g, 'fieldName');
+            //str = str.replace(/editable/g, 'isEditable');
+            
+            //var fldInfo = JSON.parse(str);
+            //fldInfo.label = "test";
+              //array.forEach(webmapFieldInfos, function (webmapFieldInfo) {
+              //  if (webmapFieldInfo.isEditable) {
+              //    webmapSimpleFieldInfos.push({
+              //      fieldName: webmapFieldInfo.fieldName,
+              //      label: webmapFieldInfo.label,
+              //      isEditable: webmapFieldInfo.isEditable
+              //    });
+              //  }
+              //});
+              
+            //fieldInfos.push({
+            //  fieldName: layerObject.fields[i].name,
+            //  label: layerObject.fields[i].alias || layerObject.fields[i].name,
+            //  isEditable: true,
+            //  nullable: layerObject.fields[i].nullable
+
+            //});
+            if (filteredArr.length == 1) {
+              fieldInfos.push(lang.mixin(
+                fldInfo,
+                filteredArr[0])
+                );
+            }
+            else {
+              fieldInfos.push(fldInfo);
+            }
+            
           }
         }
         return fieldInfos;
@@ -361,7 +433,7 @@ define([
           editUtils.getFieldInfosFromWebmap(layerObject.id, this._jimuLayerInfos);
         if (webmapFieldInfos) {
           array.forEach(webmapFieldInfos, function (webmapFieldInfo) {
-            if (webmapFieldInfo.isEditableOnLayer) {
+            if (webmapFieldInfo.isEditable) {
               webmapSimpleFieldInfos.push({
                 fieldName: webmapFieldInfo.fieldName,
                 label: webmapFieldInfo.label,
@@ -379,14 +451,9 @@ define([
       },
 
       _getSimpleFieldInfos: function (layerObject, layerInfo) {
-        var baseSimpleFieldInfos;
         var simpleFieldInfos = [];
-        var defautlSimpleFieldInfos = this._getDefaultSimpleFieldInfos(layerObject);
-        var webmapSimpleFieldInfos = this._getWebmapSimpleFieldInfos(layerObject);
-
-        baseSimpleFieldInfos =
-          webmapSimpleFieldInfos ? webmapSimpleFieldInfos : defautlSimpleFieldInfos;
-
+        var baseSimpleFieldInfos = this._getDefaultSimpleFieldInfos(layerObject);
+     
         if (layerInfo && layerInfo.fieldInfos) {
           // Edit widget had been configured
           // keep order of config fieldInfos and add new fieldInfos at end.
@@ -409,7 +476,17 @@ define([
         }
         return simpleFieldInfos;
       },
-
+      _onRowDoubleClick: function (tr) {
+        var rowData = this._layersTable.getRowData(tr);
+        if (rowData && rowData.edit) {
+          this._editDescriptions = new EditDescription({
+            nls: this.nls,
+            _layerInfo: tr._layerInfo,
+            _layerName: rowData.label
+          });
+          this._editDescriptions.popupEditDescription();
+        }
+      },
       _onEditFieldInfoClick: function (tr) {
         var rowData = this._layersTable.getRowData(tr);
         if (rowData && rowData.edit) {
@@ -422,10 +499,59 @@ define([
         }
       },
 
+      _getText: function () {
+        var editorText, regExp;
+        editorText = this._editorObj.focusNode.innerHTML;
+        //editorText = editorText.replace(/&nbsp;/g, '');
+        //regExp = new RegExp("<div><br></div>", 'g');
+        //editorText = editorText.replace(regExp, "");
+        //regExp = new RegExp("<p><br></p>", 'g');
+        //editorText = editorText.replace(regExp, "");
+        //regExp = new RegExp("<p></p>", 'g');
+        //editorText = editorText.replace(regExp, "");
+        //editorText = editorText.replace(/<br>/g, "");
+        //editorText = lang.trim(editorText);
+
+        return editorText;
+      },
+      _initEditor: function () {
+        if (!this._editorObj) {
+          this._editorObj = new Editor({
+            plugins: [
+              "bold", "italic", "underline", "|", "cut", "copy",
+              "paste", "|", "foreColor"
+            ],
+            height: "95%"
+          }, this.editorDescription);
+          domStyle.set(this._editorObj.domNode, {
+            "width": '100%',
+            "height": '100%'
+          });
+          this.own(on(this._editorObj, "focus", lang.hitch(this,
+            function () {
+
+            })));
+          this.own(on(this._editorObj, "blur", lang.hitch(this,
+            function () {
+
+            })));
+
+          this._editorObj.onLoadDeferred.then(lang.hitch(this, function () {
+
+          }));
+          if (this.config.editor.editDescription === undefined || this.config.editor.editDescription === null) {
+            this._editorObj.set("value", this.nls.layersPage.title);
+          }
+          else {
+            this._editorObj.set("value", this.config.editor.editDescription);
+          }
+          this._editorObj.startup();
+        }
+      },
+
+
       _resetSettingsConfig: function () {
-        //this.config.editor.showDeleteButton =
-        //  this.showDeleteButton.checked === undefined ? 
-        //  false : this.showDeleteButton.checked;
+        
         this.config.editor.displayPromptOnSave =
           this.displayPromptOnSave.checked === undefined ?
           false : this.displayPromptOnSave.checked;
@@ -435,15 +561,13 @@ define([
         this.config.editor.removeOnSave =
           this.removeOnSave.checked === undefined ?
           false : this.removeOnSave.checked;
-        //this.config.editor.clearSelectionOnClose = false;
-        //this.clearSelectionOnClose.checked === undefined ?
-        //  false : this.clearSelectionOnClose.checked;
+      
       },
 
       getConfig: function () {
 
         this._resetSettingsConfig();
-
+        this.config.editor.editDescription = this._getText();
         // get layerInfos config
         var checkedLayerInfos = [];
         var layersTableData = this._layersTable.getData();
@@ -461,24 +585,7 @@ define([
             delete layerInfo.mapLayer;
             checkedLayerInfos.push(layerInfo);
           }
-          //if (layerInfo.fieldValidations !== undefined && layerInfo.fieldValidations !== null) {
-
-          //for (var k in layerInfo.fieldValidations) {
-          //if (layerInfo.fieldValidations.hasOwnProperty(k)) {
-          //layerInfo.fieldValidations[k] = layerInfo.fieldValidations[k].sort(function (a, b) {
-          //  if (a.order > b.order) {
-          //    return 1;
-          //  }
-          //  if (a.order < b.order) {
-          //    return -1;
-          //  }
-          //  // a must be equal to b
-          //  return 0;
-          //});
-          //}
-
-          //}
-          //}
+         
 
         });
 

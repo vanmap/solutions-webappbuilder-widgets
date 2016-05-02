@@ -1,0 +1,229 @@
+{
+  "filterSets": [
+    {
+      "name": "Counties, Cities, and RMT003 in Naperville",
+      "filters": [
+        {
+          "name": "Cities",
+          "url": "http://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer/0",
+          "filter": {
+            "logicalOperator": "AND",
+            "parts": [
+              {
+                "fieldObj": {
+                  "name": "areaname",
+                  "label": "areaname",
+                  "shortType": "string",
+                  "type": "esriFieldTypeString"
+                },
+                "operator": "stringOperatorIs",
+                "valueObj": {
+                  "isValid": true,
+                  "type": "unique",
+                  "value": "Naperville"
+                },
+                "interactiveObj": "",
+                "caseSensitive": false,
+                "expr": "areaname = 'Naperville'"
+              }
+            ],
+            "expr": "areaname = 'Naperville'"
+          }
+        },
+        {
+          "name": "Counties",
+          "url": "http://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer/3",
+          "filter": {
+            "logicalOperator": "OR",
+            "parts": [
+              {
+                "fieldObj": {
+                  "name": "NAME",
+                  "label": "NAME",
+                  "shortType": "string",
+                  "type": "esriFieldTypeString"
+                },
+                "operator": "stringOperatorIs",
+                "valueObj": {
+                  "isValid": true,
+                  "type": "unique",
+                  "value": "DuPage"
+                },
+                "interactiveObj": "",
+                "caseSensitive": false,
+                "expr": "NAME = 'DuPage'"
+              },
+              {
+                "fieldObj": {
+                  "name": "NAME",
+                  "label": "NAME",
+                  "shortType": "string",
+                  "type": "esriFieldTypeString"
+                },
+                "operator": "stringOperatorIs",
+                "valueObj": {
+                  "isValid": true,
+                  "type": "unique",
+                  "value": "Will"
+                },
+                "interactiveObj": "",
+                "caseSensitive": false,
+                "expr": "NAME = 'Will'"
+              }
+            ],
+            "expr": "(NAME = 'Will') OR (NAME = 'DuPage')"
+          }
+        },
+        {
+          "name": "CircuitMap - Primary Overhead Conductor",
+          "url": "http://services2.arcgis.com/PWJUSsdoJDp7SgLj/arcgis/rest/services/CircuitMap/FeatureServer/5",
+          "filter": {
+            "logicalOperator": "AND",
+            "parts": [
+              {
+                "fieldObj": {
+                  "name": "FeederID",
+                  "label": "FeederID",
+                  "shortType": "string",
+                  "type": "esriFieldTypeString"
+                },
+                "operator": "stringOperatorIs",
+                "valueObj": {
+                  "isValid": true,
+                  "type": "unique",
+                  "value": "RMT003"
+                },
+                "interactiveObj": "",
+                "caseSensitive": false,
+                "expr": "FeederID = 'RMT003'"
+              }
+            ],
+            "expr": "FeederID = 'RMT003'"
+          }
+        },
+        {
+          "name": "CircuitMap - Primary Underground Conductor",
+          "url": "http://services2.arcgis.com/PWJUSsdoJDp7SgLj/arcgis/rest/services/CircuitMap/FeatureServer/6",
+          "filter": {
+            "logicalOperator": "AND",
+            "parts": [
+              {
+                "fieldObj": {
+                  "name": "FeederID",
+                  "label": "FeederID",
+                  "shortType": "string",
+                  "type": "esriFieldTypeString"
+                },
+                "operator": "stringOperatorIs",
+                "valueObj": {
+                  "isValid": true,
+                  "type": "unique",
+                  "value": "RMT003"
+                },
+                "interactiveObj": "",
+                "caseSensitive": false,
+                "expr": "FeederID = 'RMT003'"
+              }
+            ],
+            "expr": "FeederID = 'RMT003'"
+          }
+        }
+      ]
+    },
+   	{
+      "name": "Just City of Naperville",
+      "filters": [
+        {
+          "name": "Cities",
+          "url": "http://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer/0",
+          "filter": {
+            "logicalOperator": "AND",
+            "parts": [
+              {
+                "fieldObj": {
+                  "name": "areaname",
+                  "label": "areaname",
+                  "shortType": "string",
+                  "type": "esriFieldTypeString"
+                },
+                "operator": "stringOperatorIs",
+                "valueObj": {
+                  "isValid": true,
+                  "type": "unique",
+                  "value": "Naperville"
+                },
+                "interactiveObj": "",
+                "caseSensitive": false,
+                "expr": "areaname = 'Naperville'"
+              }
+            ],
+            "expr": "areaname = 'Naperville'"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ask for Feeder ID and city",
+      "filters": [
+        {
+          "name": "CircuitMap - Primary Underground Conductor",
+          "url": "http://services2.arcgis.com/PWJUSsdoJDp7SgLj/arcgis/rest/services/CircuitMap/FeatureServer/6",
+          "filter": {
+            "logicalOperator": "AND",
+            "parts": [
+              {
+                "fieldObj": {
+                  "name": "FeederID",
+                  "label": "FeederID",
+                  "shortType": "string",
+                  "type": "esriFieldTypeString"
+                },
+                "operator": "stringOperatorIs",
+                "valueObj": {
+                  "isValid": true,
+                  "type": "unique",
+                  "value": ""
+                },
+                "interactiveObj": {
+                  "prompt": "FeederID is",
+                  "hint": "Type in RMT003 (see red dash lines)"
+                },
+                "caseSensitive": false
+              }
+            ],
+            "expr": ""
+          }
+        },
+        {
+          "name": "Cities",
+          "url": "http://sampleserver6.arcgisonline.com/arcgis/rest/services/USA/MapServer/0",
+          "filter": {
+            "logicalOperator": "AND",
+            "parts": [
+              {
+                "fieldObj": {
+                  "name": "areaname",
+                  "label": "areaname",
+                  "shortType": "string",
+                  "type": "esriFieldTypeString"
+                },
+                "operator": "stringOperatorIs",
+                "valueObj": {
+                  "isValid": true,
+                  "type": "value",
+                  "value": ""
+                },
+                "interactiveObj": {
+                  "prompt": "city name is",
+                  "hint": "Type in Naperville"
+                },
+                "caseSensitive": false
+              }
+            ],
+            "expr": ""
+          }
+        }
+      ]
+    }
+  ]
+}

@@ -491,7 +491,12 @@ define([
         }
         //editDescription
       },
+      _sytleFields: function (attrInspector) {
+        //query("td.atiLabel", attrInspector.domNode).style({
+        //  "color": "#FFFF00"
+        //});
 
+      },
       _createAttributeInspector: function (layerInfos) {
 
         var attrInspector = new AttributeInspector({
@@ -504,6 +509,7 @@ define([
         }));
         attrInspector.placeAt(this.attributeInspectorNode);
         attrInspector.startup();
+      
         //if (domClass.contains(attrInspector.navMessage, "atiNavMessage")) {
         //  domClass.remove(attrInspector.navMessage, "atiNavMessage");
         //  dojo.style(attrInspector.navMessage, "display", "inline-block");
@@ -1581,6 +1587,7 @@ define([
           this._enableAttrInspectorSaveButton(false);
           this._toggleDeleteButton(this.currentLayerInfo.allowDelete);
           this._toggleEditGeoSwitch(this.currentLayerInfo.disableGeometryUpdate);
+          this._sytleFields(this.attrInspector);
           this.currentFeature.setSymbol(
             this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
           if (this.currentLayerInfo.editDescription && this.currentLayerInfo.editDescription !== null) {
@@ -1844,6 +1851,7 @@ define([
               this.attrInspector.first();
             }
             this.attrInspector.refresh();
+            this._sytleFields(this.attrInspector);
             if (this.currentFeature.getLayer().originalLayerId) {
               this._enableAttrInspectorSaveButton(this._validateAttributes());
             } else {

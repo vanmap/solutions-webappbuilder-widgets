@@ -118,6 +118,12 @@
         width:100%;
         margin-bottom:3px;
     }
+    .jimu-widget-smartEditor .atiLabel {
+        width:100%;
+    
+        margin-top:6px!important;
+        margin-bottom:3px!important;
+    }
     .jimu-widget-smartEditor .ee-presetValueBody {
         vertical-align: top;
     }

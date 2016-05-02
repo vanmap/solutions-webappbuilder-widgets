@@ -110,6 +110,14 @@
         width: 100%;
     }
 
+    .jimu-widget-smartEditor .ee-presetValueBodyTable td {
+        display: block;
+        clear: both;
+    }
+  .jimu-widget-smartEditor .ee-atiLabel {
+        width:100%;
+        margin-bottom:3px;
+    }
     .jimu-widget-smartEditor .ee-presetValueBody {
         vertical-align: top;
     }
@@ -125,7 +133,8 @@
 
     .jimu-widget-smartEditor .ee-presetValue-value-header-field,
     .jimu-widget-smartEditor .preset-value-editable {
-        width: 60%;
+        width: 100%;
+        margin-bottom:6px;
     }
 
     .jimu-widget-smartEditor .ee-inputField {

@@ -7,6 +7,7 @@
 
     .jimu-widget-smartEditor-setting .edit-description-box {
         width: 100%;
+        position: relative;
         height: 200px;
         padding-top: 5px;
     }
@@ -19,7 +20,7 @@
         background-color: #ffffff;
         border: none !important;
         width: 100% !important;
-        height: 154px !important;
+        height: 132px !important;
     }
 
     /*CSS for Layers config tables*/

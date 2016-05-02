@@ -115,7 +115,7 @@ define([
       _jimuLayerInfos: null,
       _configEditor: null,
       _mapClick: null,
-      _presetFieldsTable: null,
+
       settings: null,
       templatePicker: null,
       attrInspector: null,
@@ -203,10 +203,7 @@ define([
         }
         this.templatePicker = null;
 
-        if (this._presetFieldsTable) {
-          this._presetFieldsTable.destroy();
-        }
-        this._presetFieldsTable = null;
+       
       },
 
       _init: function () {
@@ -828,14 +825,21 @@ define([
                 readOnly: true
               }, domConstruct.create("div"));
 
+           
               nodes.push(node);
 
               break;
           }
         }
+        array.forEach(nodes, function (node) {
+          this.own(on(node, 'change', lang.hitch(this, this._presetChange)));
+
+        },this)
         return nodes;
       },
-
+      _presetChange: function () {
+        this._toggleUsePresetValues(true);
+      },
       _deleteFeature: function () {
         if (!this.currentFeature) { return; }
 
@@ -995,7 +999,7 @@ define([
             }, this);
           }
         });
-
+        var presetValueTable = query("#eePresetValueBody")[0];
         // fill the table
         array.forEach(presetFieldInfos, lang.hitch(this, function (presetFieldInfo) {
           var row = domConstruct.create("tr");
@@ -1025,7 +1029,7 @@ define([
           if (dateWidget !== null) {
             this.own(on(label, 'click', lang.hitch(this, this._dateClick(dateWidget, timeWidget))));
           }
-          query("#eePresetValueBody")[0].appendChild(row);
+          presetValueTable.appendChild(row);
         }));
       },
 
@@ -1168,28 +1172,29 @@ define([
       },
 
       _initPresetFieldsTable: function () {
-        var presetValueTableNode = domConstruct.create("div", { "class": "ee-presetValueTableDiv" },
+        var presetValueTableNode = domConstruct.create("div", { "class": "ee-presetValueTableDiv templatePicker" },
           this.presetFieldsTableNode);
 
-        var headerDiv = domConstruct.create("div", { "class": "headerDiv" }, presetValueTableNode);
+        //var headerDiv = domConstruct.create("div", { "class": "headerDiv" }, presetValueTableNode);
+        
+
+        //var headerTable = domConstruct.create("table",
+        //  { "class": "ee-presetValueHeaderTable" }, headerDiv, "first");
+
+        //var header = domConstruct.create("thead", { "class": "ee-presetValueHeader" },
+        //  headerTable, "first");
+
+        //var headerRow = domConstruct.place("<tr></tr>", header);
+
+        //domConstruct.place(lang.replace(
+        //  "<th title='Field Alias' class='ee-presetValue-label-header-field'>{replace}</th>",
+        //  { replace: this.nls.presetFieldAlias }), headerRow);
+
+        //domConstruct.place(lang.replace(
+        //  "<th title='Preset Value' class='ee-presetValue-value-header-field'>{replace}</th>",
+        //  { replace: this.nls.presetValue }), headerRow);
+
         var bodyDiv = domConstruct.create("div", { "class": "bodyDiv" }, presetValueTableNode);
-
-        var headerTable = domConstruct.create("table",
-          { "class": "ee-presetValueHeaderTable" }, headerDiv, "first");
-
-        var header = domConstruct.create("thead", { "class": "ee-presetValueHeader" },
-          headerTable, "first");
-
-        var headerRow = domConstruct.place("<tr></tr>", header);
-
-        domConstruct.place(lang.replace(
-          "<th title='Field Alias' class='ee-presetValue-label-header-field'>{replace}</th>",
-          { replace: this.nls.presetFieldAlias }), headerRow);
-
-        domConstruct.place(lang.replace(
-          "<th title='Preset Value' class='ee-presetValue-value-header-field'>{replace}</th>",
-          { replace: this.nls.presetValue }), headerRow);
-
         var bodyTable = domConstruct.create("table",
           { "class": "ee-presetValueBodyTable" }, bodyDiv);
 
@@ -1940,11 +1945,15 @@ define([
 
       },
 
-      _toggleUsePresetValues: function () {
+      _setPresetValue: function () {
         var sw = registry.byId("savePresetValueSwitch");
         this._usePresetValues = sw.checked;
       },
-
+      _toggleUsePresetValues: function (checked) {
+        var sw = registry.byId("savePresetValueSwitch");
+        sw.set('checked',  checked === null ? !sw.checked : checked);
+        this._usePresetValues = sw.checked;
+      },
       _turnEditGeometryToggleOff: function () {
 
         if (this._editGeomSwitch && this._editGeomSwitch.checked) {
@@ -2114,10 +2123,10 @@ define([
           if (webmapFieldInfos) {
             for (var i = 0; i < webmapFieldInfos.length; i++) {
               if (fieldInfo.fieldName === webmapFieldInfos[i].fieldName) {
-                webmapFieldInfos[i].label = fieldInfo.label;
+                webmapFieldInfos[i].label = fieldInfo.label === undefined ? webmapFieldInfos[i].label : fieldInfo.label;
                 webmapFieldInfos[i].isEditableSettingInWebmap = webmapFieldInfos[i].isEditable;
-                webmapFieldInfos[i].isEditable = fieldInfo.isEditable;
-                webmapFieldInfos[i].canPresetValue = fieldInfo.canPresetValue;
+                webmapFieldInfos[i].isEditable = fieldInfo.isEditablelabel === undefined ? webmapFieldInfos[i].isEditable : fieldInfo.isEditable;
+                webmapFieldInfos[i].canPresetValue = fieldInfo.canPresetValue === undefined ? false: fieldInfo.canPresetValue;
                 resultFieldInfo = webmapFieldInfos[i];
                 // resultFieldInfo.label = fieldInfo.label;
                 // resultFieldInfo.isEditableSettingInWebmap = webmapFieldInfos[i].isEditable;

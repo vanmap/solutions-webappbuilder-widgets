@@ -10,7 +10,21 @@ define(
     'jimu/BaseWidgetSetting',
     'dijit/Editor',
     "jimu/dijit/Popup",
-    'esri/lang'
+    'esri/lang',
+    'dojo/sniff',
+    'jimu/utils',
+    'dijit/_editor/plugins/LinkDialog',
+    'dijit/_editor/plugins/ViewSource',
+    'dijit/_editor/plugins/FontChoice',
+    'dojox/editor/plugins/Preview',
+    'dijit/_editor/plugins/TextColor',
+    'dojox/editor/plugins/ToolbarLineBreak',
+    'dojox/editor/plugins/FindReplace',
+    'dojox/editor/plugins/PasteFromWord',
+    'dojox/editor/plugins/InsertAnchor',
+    'dojox/editor/plugins/Blockquote',
+    'dojox/editor/plugins/UploadImage',
+    './ChooseImage'
   ],
   function (
     declare,
@@ -24,7 +38,9 @@ define(
     BaseWidgetSetting,
     Editor,
     Popup,
-    esriLang) {
+    esriLang,
+    has,
+    utils) {
     return declare([BaseWidgetSetting, _TemplatedMixin], {
       baseClass: "jimu-widget-smartEditor-edit-description",
       templateString: template,
@@ -34,6 +50,7 @@ define(
       __layerName: null,
       postCreate: function () {
         this.inherited(arguments);
+      
         this._initEditor();
       },
 
@@ -86,16 +103,29 @@ define(
       },
       _initEditor: function () {
         if (!this._editorObj) {
+          this._initEditorPluginsCSS();
           this._editorObj = new Editor({
             plugins: [
-              "bold", "italic", "underline", "|", "cut", "copy",
-              "paste", "|", "foreColor"
+              'bold', 'italic', 'underline', 'foreColor', 'hiliteColor',
+              '|', 'justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull',
+              '|', 'insertOrderedList', 'insertUnorderedList', 'indent', 'outdent'
+            ],
+            extraPlugins: [
+              '|', 'createLink', 'unlink', 'pastefromword', '|', 'undo', 'redo',
+              '|', 'toolbarlinebreak',//'chooseImage', 'uploadImage',
+              'fontName', 'fontSize', 'formatBlock'
             ]
           }, this.editText);
-          domStyle.set(this._editorObj.domNode, {
-            "width": '100%',
-            "height": '100%'
-          });
+        //  this._editorObj = new Editor({
+        //    plugins: [
+        //      "bold", "italic", "underline", "|", "cut", "copy",
+        //      "paste", "|", "foreColor"
+        //    ]
+        //  }, this.editText);
+        //  domStyle.set(this._editorObj.domNode, {
+        //    "width": '100%',
+        //    "height": '100%'
+        //  });
           this.own(on(this._editorObj, "focus", lang.hitch(this,
             function () {
 
@@ -110,8 +140,43 @@ define(
           }));
 
           this._editorObj.startup();
+          if (has('ie') !== 8) {
+            this._editorObj.resize({
+              w: '100%',
+              h: '100%'
+            });
+          } else {
+            var box = html.getMarginBox(this.editText);
+            this._editorObj.resize({
+              w: box.w,
+              h: box.h
+            });
+          }
         }
-      }
+      },
+      /**
+* this function loads the editor tool plugins CSS
+* @memberOf widgets/RelatedTableCharts/setting/ChartSetting
+**/
+      _initEditorPluginsCSS: function () {
+        var head, tcCssHref, tcCss, epCssHref, epCss, pfCssHref, pfCss;
+        head = document.getElementsByTagName('head')[0];
+        tcCssHref = window.apiUrl + "dojox/editor/plugins/resources/css/TextColor.css";
+        tcCss = query('link[href="' + tcCssHref + '"]', head)[0];
+        if (!tcCss) {
+          utils.loadStyleLink("editor_plugins_resources_TextColor", tcCssHref);
+        }
+        epCssHref = window.apiUrl + "dojox/editor/plugins/resources/editorPlugins.css";
+        epCss = query('link[href="' + epCssHref + '"]', head)[0];
+        if (!epCss) {
+          utils.loadStyleLink("editor_plugins_resources_editorPlugins", epCssHref);
+        }
+        pfCssHref = window.apiUrl + "dojox/editor/plugins/resources/css/PasteFromWord.css";
+        pfCss = query('link[href="' + pfCssHref + '"]', head)[0];
+        if (!pfCss) {
+          utils.loadStyleLink("editor_plugins_resources_PasteFromWord", pfCssHref);
+        }
+      },
 
     });
   });

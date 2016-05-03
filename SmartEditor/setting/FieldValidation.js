@@ -41,11 +41,28 @@ define(
         this.inherited(arguments);
         this._initActionsTable();
 
-        this._setActionsTable(['Hide', 'Required', 'Disabled']);
+        this._setActionsTable();
 
       },
       getSettings: function () {
         return this._fieldValidations;
+      },
+      _getConfigActionOrder: function () {
+        var result = [];
+        if (this._fieldValidations !== undefined &&
+        this._fieldValidations !== null) {
+          if (this._fieldValidations.hasOwnProperty(this._fieldName)) {
+            array.forEach(this._fieldValidations[this._fieldName], function (action) {
+              result.push(action.actionName);
+            });
+            if (result === null || result.length === 0) {
+              return ['Hide', 'Required', 'Disabled'];
+            } else {
+              return result;
+            }
+          }
+        }
+        return ['Hide', 'Required', 'Disabled'];
       },
       _getConfigAction: function (actionName) {
         var result = null;
@@ -62,12 +79,7 @@ define(
       },
 
       popupActionsPage: function () {
-        this._filterPage = new FilterPage({
-          nls: this.nls,
-          _resourceInfo: this._resourceInfo,
-          _url: this._url,
-          _validationTable: this._validationTable
-        });
+
         var fieldsPopup = new Popup({
           titleLabel: esriLang.substitute(
             { fieldname: this._fieldAlias },
@@ -89,23 +101,25 @@ define(
               this._fieldValidations[this._fieldName] = [];
               array.forEach(rows, function (row) {
                 var rowData = this._validationTable.getRowData(row);
+
+                var newAction = {};
+
+                newAction.actionName = rowData.label;
                 if (rowData.expression !== undefined && rowData.expression !== null &&
                   rowData.expression !== '') {
                   if (rowData.filter !== '') {
                     var filter = JSON.parse(entities.decode(rowData.filter));
-                    this._fieldValidations[this._fieldName].push(
-                        {
-                          'actionName': rowData.label,
-                          'expression': filter.expr,
-                          'filter': filter
-                        });
+                    newAction.expression = filter.expr;
+                    newAction.filter = filter;
+
                   }
 
                 }
+                this._fieldValidations[this._fieldName].push(newAction);
               }, this);
 
               fieldsPopup.close();
-              return this._fieldValidations;
+
             })
           }, {
             label: this.nls.cancel,
@@ -113,7 +127,7 @@ define(
             onClick: lang.hitch(this, function () {
 
               fieldsPopup.close();
-              return null;
+
             })
           }],
           onClose: lang.hitch(this, function () {
@@ -194,8 +208,8 @@ define(
 
       },
 
-      _setActionsTable: function (actions) {
-
+      _setActionsTable: function () {
+        var actions = this._getConfigActionOrder();
         array.forEach(actions, function (action) {
           var configAction = this._getConfigAction(action);
           var settings = {
@@ -223,6 +237,12 @@ define(
                     });
       },
       _showFilter: function (tr) {
+        this._filterPage = new FilterPage({
+          nls: this.nls,
+          _resourceInfo: this._resourceInfo,
+          _url: this._url,
+          _validationTable: this._validationTable
+        });
         this._filterPage.popup(tr);
       }
 

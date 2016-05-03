@@ -154,3 +154,25 @@
  {
     margin-top:5px
 }
+
+/*Required for the image uploader in the editor rich text*/
+
+.jimu-widget-smartEditor-setting .jimu-image-chooser
+{
+    right: inherit !important;
+}
+
+.jimu-widget-smartEditor-setting .editor-container .uploaderInsideNode embed
+{
+    display: none;
+}
+
+jimu-widget-smartEditor-edit-description .jimu-image-chooser
+{
+    right: inherit !important;
+}
+
+jimu-widget-smartEditor-edit-description .editor-container .uploaderInsideNode embed
+{
+    display: none;
+}

@@ -82,7 +82,7 @@ define(
                   }
 
                   filterPopup.close();
-                  filterPopup = null;
+
                 }
               })
             }, {
@@ -90,7 +90,7 @@ define(
               classNames: ['jimu-btn jimu-btn-vacation'],
               onClick: function () {
                 filterPopup.close();
-                filterPopup = null;
+
               }
             }]
           });
@@ -102,7 +102,8 @@ define(
           }
           else {
 
-            this._filter.buildByExpr(this._url, entities.decode(rowData.expression), this._resourceInfo);
+            this._filter.buildByExpr(this._url, entities.decode(rowData.expression),
+              this._resourceInfo);
 
           }
 

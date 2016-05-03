@@ -15,6 +15,7 @@
 ///////////////////////////////////////////////////////////////////////////
 
 define([
+    'dojo',
     'dojo/_base/declare',
     'dijit/_WidgetsInTemplateMixin',
     'jimu/BaseWidgetSetting',
@@ -29,9 +30,25 @@ define([
     "./EditDescription",
     "../utils",
     'dijit/Editor',
-        'dojo/dom-style'
+    'dojo/dom-style',
+    'dojo/sniff',
+    'jimu/utils',
+    'dojo/_base/html',
+    'dijit/_editor/plugins/LinkDialog',
+    'dijit/_editor/plugins/ViewSource',
+    'dijit/_editor/plugins/FontChoice',
+    'dojox/editor/plugins/Preview',
+    'dijit/_editor/plugins/TextColor',
+    'dojox/editor/plugins/ToolbarLineBreak',
+    'dojox/editor/plugins/FindReplace',
+    'dojox/editor/plugins/PasteFromWord',
+    'dojox/editor/plugins/InsertAnchor',
+    'dojox/editor/plugins/Blockquote',
+    'dojox/editor/plugins/UploadImage',
+    './ChooseImage'
 ],
   function (
+    dojo,
     declare,
     _WidgetsInTemplateMixin,
     BaseWidgetSetting,
@@ -46,8 +63,10 @@ define([
     EditDescription,
     editUtils,
     Editor,
-    domStyle
-
+    domStyle,
+    has,
+    utils,
+    html
     ) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
       //these two properties is defined in the BaseWidget
@@ -66,7 +85,7 @@ define([
             this.setConfig();
             this._initEditor();
           }));
-       
+
       },
 
       destroy: function () {
@@ -195,7 +214,7 @@ define([
         // }
         this._editableLayerInfos = this._getEditableLayerInfos();
         this._setLayersTable(this._editableLayerInfos);
-       
+
       },
 
       _getEditableLayerInfos: function () {
@@ -356,24 +375,26 @@ define([
         }, this);
       },
 
-      // about fieldInfos mehtods.
+      // about fieldInfos methods.
       _getDefaultSimpleFieldInfos: function (layerObject) {
         var fieldInfos = [];
+        var fldInfo = null;
         var webmapFieldInfos =
          editUtils.getFieldInfosFromWebmap(layerObject.id, this._jimuLayerInfos);
-        for (var i = 0; i < layerObject.fields.length; i++) {
-          if (layerObject.fields[i].editable) {
+
+        array.forEach(layerObject.fields, function (field) {
+          if (field.editable) {
             var filteredArr = dojo.filter(webmapFieldInfos, function (webmapFieldInfo) {
-              return webmapFieldInfo.fieldName == layerObject.fields[i].name;
+              return webmapFieldInfo.fieldName === field.name;
             });
 
-            fldInfo = lang.clone(layerObject.fields[i]);
+            fldInfo = lang.clone(field);
             if (fldInfo.hasOwnProperty('alias')) {
               fldInfo.label = fldInfo.alias;
               delete fldInfo.alias;
             }
             if (fldInfo.hasOwnProperty('domain')) {
-           
+
               delete fldInfo.domain;
             }
             if (fldInfo.hasOwnProperty('visible')) {
@@ -388,31 +409,7 @@ define([
               fldInfo.isEditable = fldInfo.editable;
               delete fldInfo.editable;
             }
-            //var str = JSON.stringify(lang.clone(layerObject.fields[i]));
-            //str = str.replace(/alias/g, 'label');
-            //str = str.replace(/name/g, 'fieldName');
-            //str = str.replace(/editable/g, 'isEditable');
-            
-            //var fldInfo = JSON.parse(str);
-            //fldInfo.label = "test";
-              //array.forEach(webmapFieldInfos, function (webmapFieldInfo) {
-              //  if (webmapFieldInfo.isEditable) {
-              //    webmapSimpleFieldInfos.push({
-              //      fieldName: webmapFieldInfo.fieldName,
-              //      label: webmapFieldInfo.label,
-              //      isEditable: webmapFieldInfo.isEditable
-              //    });
-              //  }
-              //});
-              
-            //fieldInfos.push({
-            //  fieldName: layerObject.fields[i].name,
-            //  label: layerObject.fields[i].alias || layerObject.fields[i].name,
-            //  isEditable: true,
-            //  nullable: layerObject.fields[i].nullable
-
-            //});
-            if (filteredArr.length == 1) {
+            if (filteredArr.length === 1) {
               fieldInfos.push(lang.mixin(
                 fldInfo,
                 filteredArr[0])
@@ -421,9 +418,8 @@ define([
             else {
               fieldInfos.push(fldInfo);
             }
-            
           }
-        }
+        });
         return fieldInfos;
       },
 
@@ -449,28 +445,38 @@ define([
         }
         return webmapSimpleFieldInfos;
       },
-
+      _merge: function () {
+        var obj = {},
+            i = 0,
+            il = arguments.length,
+            key;
+        for (; i < il; i++) {
+          for (key in arguments[i]) {
+            if (arguments[i].hasOwnProperty(key)) {
+              obj[key] = arguments[i][key];
+            }
+          }
+        }
+        return obj;
+      },
       _getSimpleFieldInfos: function (layerObject, layerInfo) {
         var simpleFieldInfos = [];
         var baseSimpleFieldInfos = this._getDefaultSimpleFieldInfos(layerObject);
-     
+
         if (layerInfo && layerInfo.fieldInfos) {
           // Edit widget had been configured
           // keep order of config fieldInfos and add new fieldInfos at end.
           array.forEach(layerInfo.fieldInfos, function (configuredFieldInfo) {
-            for (var i = 0; i < baseSimpleFieldInfos.length; i++) {
-              if (configuredFieldInfo.fieldName === baseSimpleFieldInfos[i].fieldName) {
-                simpleFieldInfos.push(configuredFieldInfo);
-                baseSimpleFieldInfos[i]._exit = true;
-                break;
+            array.some(baseSimpleFieldInfos, function (baseSimpleFieldInfo) {
+              if (configuredFieldInfo.fieldName === baseSimpleFieldInfo.fieldName) {
+
+                simpleFieldInfos.push(this._merge(baseSimpleFieldInfo, configuredFieldInfo));
+                return true;
               }
-            }
-          });
-          array.forEach(baseSimpleFieldInfos, function (baseSimpleFieldInfo) {
-            if (!baseSimpleFieldInfo._exit) {
-              simpleFieldInfos.push(baseSimpleFieldInfo);
-            }
-          });
+            }, this);
+
+
+          }, this);
         } else {
           simpleFieldInfos = baseSimpleFieldInfos;
         }
@@ -500,45 +506,31 @@ define([
       },
 
       _getText: function () {
-        var editorText, regExp;
+        var editorText;
         editorText = this._editorObj.focusNode.innerHTML;
-        //editorText = editorText.replace(/&nbsp;/g, '');
-        //regExp = new RegExp("<div><br></div>", 'g');
-        //editorText = editorText.replace(regExp, "");
-        //regExp = new RegExp("<p><br></p>", 'g');
-        //editorText = editorText.replace(regExp, "");
-        //regExp = new RegExp("<p></p>", 'g');
-        //editorText = editorText.replace(regExp, "");
-        //editorText = editorText.replace(/<br>/g, "");
-        //editorText = lang.trim(editorText);
-
         return editorText;
       },
       _initEditor: function () {
+
         if (!this._editorObj) {
+          this._initEditorPluginsCSS();
           this._editorObj = new Editor({
             plugins: [
-              "bold", "italic", "underline", "|", "cut", "copy",
-              "paste", "|", "foreColor"
+              'bold', 'italic', 'underline', 'foreColor', 'hiliteColor',
+              '|', 'justifyLeft', 'justifyCenter', 'justifyRight', 'justifyFull',
+              '|', 'insertOrderedList', 'insertUnorderedList', 'indent', 'outdent'
             ],
-            height: "95%"
+            extraPlugins: [
+              '|', 'createLink', 'unlink', 'pastefromword', '|', 'undo', 'redo',
+              '|', 'toolbarlinebreak',//'chooseImage', 'uploadImage',
+              'fontName', 'fontSize', 'formatBlock'
+            ]
           }, this.editorDescription);
           domStyle.set(this._editorObj.domNode, {
             "width": '100%',
             "height": '100%'
           });
-          this.own(on(this._editorObj, "focus", lang.hitch(this,
-            function () {
 
-            })));
-          this.own(on(this._editorObj, "blur", lang.hitch(this,
-            function () {
-
-            })));
-
-          this._editorObj.onLoadDeferred.then(lang.hitch(this, function () {
-
-          }));
           if (this.config.editor.editDescription === undefined || this.config.editor.editDescription === null) {
             this._editorObj.set("value", this.nls.layersPage.title);
           }
@@ -546,12 +538,46 @@ define([
             this._editorObj.set("value", this.config.editor.editDescription);
           }
           this._editorObj.startup();
+          if (has('ie') !== 8) {
+            this._editorObj.resize({
+              w: '100%',
+              h: '100%'
+            });
+          } else {
+            var box = html.getMarginBox(this.editorDescription);
+            this._editorObj.resize({
+              w: box.w,
+              h: box.h
+            });
+          }
+        }
+      },
+      /**
+   * this function loads the editor tool plugins CSS
+   * @memberOf widgets/RelatedTableCharts/setting/ChartSetting
+   **/
+      _initEditorPluginsCSS: function () {
+        var head, tcCssHref, tcCss, epCssHref, epCss, pfCssHref, pfCss;
+        head = document.getElementsByTagName('head')[0];
+        tcCssHref = window.apiUrl + "dojox/editor/plugins/resources/css/TextColor.css";
+        tcCss = query('link[href="' + tcCssHref + '"]', head)[0];
+        if (!tcCss) {
+          utils.loadStyleLink("editor_plugins_resources_TextColor", tcCssHref);
+        }
+        epCssHref = window.apiUrl + "dojox/editor/plugins/resources/editorPlugins.css";
+        epCss = query('link[href="' + epCssHref + '"]', head)[0];
+        if (!epCss) {
+          utils.loadStyleLink("editor_plugins_resources_editorPlugins", epCssHref);
+        }
+        pfCssHref = window.apiUrl + "dojox/editor/plugins/resources/css/PasteFromWord.css";
+        pfCss = query('link[href="' + pfCssHref + '"]', head)[0];
+        if (!pfCss) {
+          utils.loadStyleLink("editor_plugins_resources_PasteFromWord", pfCssHref);
         }
       },
 
-
       _resetSettingsConfig: function () {
-        
+
         this.config.editor.displayPromptOnSave =
           this.displayPromptOnSave.checked === undefined ?
           false : this.displayPromptOnSave.checked;
@@ -561,7 +587,7 @@ define([
         this.config.editor.removeOnSave =
           this.removeOnSave.checked === undefined ?
           false : this.removeOnSave.checked;
-      
+
       },
 
       getConfig: function () {
@@ -585,9 +611,9 @@ define([
             delete layerInfo.mapLayer;
             checkedLayerInfos.push(layerInfo);
           }
-         
 
-        });
+          layerInfo.fieldInfos = this._resetFieldInfos(layerInfo.fieldInfos);
+        }, this);
 
         if (checkedLayerInfos.length === 0) {
           return false;
@@ -596,6 +622,28 @@ define([
         }
 
         return this.config;
+      },
+      _resetFieldInfos: function (fieldInfos) {
+        return array.map(fieldInfos, function (fieldInfo) {
+          var fldInfo = {};
+          fldInfo.fieldName = fieldInfo.fieldName === undefined ? '' : fieldInfo.fieldName;
+          fldInfo.canPresetValue = fieldInfo.canPresetValue === undefined ? false : fieldInfo.canPresetValue;
+          fldInfo.isEditable = fieldInfo.isEditable === undefined ? true : fieldInfo.isEditable;
+          return fldInfo;
+
+          //for (var k in fieldInfo) {
+          //  if (k !== "fieldName" &&
+          //    k !== "canPresetValue" &&
+          //    k !== "isEditable") {
+          //    delete fieldInfo[k];
+          //  }
+
+          //}
+          //if (fieldInfo.hasOwnProperty('canPresetValue') === false) {
+          //  fieldInfo.canPresetValue == false;
+          //}
+
+        });
       }
     });
   });

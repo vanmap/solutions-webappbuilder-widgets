@@ -56,20 +56,7 @@ define(
             onClick: lang.hitch(this, function () {
               if (this._validateTable()) {
                 this._resetFieldInfos();
-
                 this._layerInfo.fieldValidations = this._fieldValidations;
-                //if (this._fieldValid !== undefined && this._fieldValid !== null) {
-                //var savedSettings = this._fieldValid.getSettings();
-                //if (savedSettings !== undefined && savedSettings !== null) {
-                //  this._layerInfo.fieldValidations = {};
-                //  for (var k in savedSettings) {
-                //    if (savedSettings.hasOwnProperty(k)) {
-                //      this._layerInfo.fieldValidations[k] =this._fieldValidations 
-                //    }
-                //  }
-                //}
-                //}
-
                 fieldsPopup.close();
               }
             })
@@ -169,7 +156,7 @@ define(
         if (rowData && rowData.isEditable) {
           var layerDefinition = {};
           //layerDefinition['fields'] = lang.clone(this._fieldValidations.fields);
-          layerDefinition['fields'] = array.filter(this._layerInfo.mapLayer.resourceInfo.fields, function (field) {
+          layerDefinition.fields = array.filter(this._layerInfo.mapLayer.resourceInfo.fields, function (field) {
             return (field.name !== rowData.fieldName);
           });
           this._fieldValid = new FieldValidation({
@@ -200,11 +187,9 @@ define(
             label: fieldInfo.label
           });
           if (fieldInfo.hasOwnProperty('nullable') && fieldInfo.nullable === false) {
-            nl = query(".editable", addRowResult.tr);
+            var nl = query(".editable", addRowResult.tr);
             nl.forEach(function (node) {
-
               var widget = registry.getEnclosingWidget(node.childNodes[0]);
-
               widget.setStatus(false);
             });
           }

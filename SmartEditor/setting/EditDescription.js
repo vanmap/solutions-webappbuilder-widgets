@@ -1,10 +1,8 @@
 define(
   ["dojo/_base/declare",
     "dojo/_base/lang",
-    "dojo/_base/array",
     'dojo/on',
     'dojo/query',
-    'dojo/dom-style',
     "dojo/text!./EditDescription.html",
     'dijit/_TemplatedMixin',
     'jimu/BaseWidgetSetting',
@@ -13,6 +11,7 @@ define(
     'esri/lang',
     'dojo/sniff',
     'jimu/utils',
+    'dojo/_base/html',
     'dijit/_editor/plugins/LinkDialog',
     'dijit/_editor/plugins/ViewSource',
     'dijit/_editor/plugins/FontChoice',
@@ -29,10 +28,8 @@ define(
   function (
     declare,
     lang,
-    array,
     on,
     query,
-    domStyle,
     template,
     _TemplatedMixin,
     BaseWidgetSetting,
@@ -40,7 +37,8 @@ define(
     Popup,
     esriLang,
     has,
-    utils) {
+    utils,
+    html) {
     return declare([BaseWidgetSetting, _TemplatedMixin], {
       baseClass: "jimu-widget-smartEditor-edit-description",
       templateString: template,
@@ -50,7 +48,6 @@ define(
       __layerName: null,
       postCreate: function () {
         this.inherited(arguments);
-      
         this._initEditor();
       },
 
@@ -87,18 +84,8 @@ define(
         });
       },
       _getText: function () {
-        var editorText, regExp;
+        var editorText;
         editorText = this._editorObj.focusNode.innerHTML;
-        //editorText = editorText.replace(/&nbsp;/g, '');
-        //regExp = new RegExp("<div><br></div>", 'g');
-        //editorText = editorText.replace(regExp, "");
-        //regExp = new RegExp("<p><br></p>", 'g');
-        //editorText = editorText.replace(regExp, "");
-        //regExp = new RegExp("<p></p>", 'g');
-        //editorText = editorText.replace(regExp, "");
-        //editorText = editorText.replace(/<br>/g, "");
-        //editorText = lang.trim(editorText);
-
         return editorText;
       },
       _initEditor: function () {
@@ -116,16 +103,6 @@ define(
               'fontName', 'fontSize', 'formatBlock'
             ]
           }, this.editText);
-        //  this._editorObj = new Editor({
-        //    plugins: [
-        //      "bold", "italic", "underline", "|", "cut", "copy",
-        //      "paste", "|", "foreColor"
-        //    ]
-        //  }, this.editText);
-        //  domStyle.set(this._editorObj.domNode, {
-        //    "width": '100%',
-        //    "height": '100%'
-        //  });
           this.own(on(this._editorObj, "focus", lang.hitch(this,
             function () {
 
@@ -176,7 +153,6 @@ define(
         if (!pfCss) {
           utils.loadStyleLink("editor_plugins_resources_PasteFromWord", pfCssHref);
         }
-      },
-
+      }
     });
   });

@@ -12,7 +12,7 @@ define(
     'jimu/dijit/SimpleTable',
     "jimu/dijit/Popup",
     'esri/lang',
-      "./FilterPage",
+    "./FilterPage"
   ],
   function (
     declare,
@@ -52,12 +52,11 @@ define(
         if (this._fieldValidations !== undefined &&
           this._fieldValidations !== null) {
           if (this._fieldValidations.hasOwnProperty(this._fieldName)) {
-          
-              array.some(this._fieldValidations[this._fieldName],function (action) {
-                return action.actionName === actionName ? (result = action, true) : false;
-              });
-              return result;
-            }
+            array.some(this._fieldValidations[this._fieldName], function (action) {
+              return action.actionName === actionName ? (result = action, true) : false;
+            });
+            return result;
+          }
         }
         return result;
       },
@@ -94,9 +93,9 @@ define(
                   rowData.expression !== '') {
                   if (rowData.filter !== '') {
                     var filter = JSON.parse(entities.decode(rowData.filter));
-                    this._fieldValidations[this._fieldName].push( 
+                    this._fieldValidations[this._fieldName].push(
                         {
-                          'actionName':rowData.label,
+                          'actionName': rowData.label,
                           'expression': filter.expr,
                           'filter': filter
                         });
@@ -167,7 +166,7 @@ define(
             case this.nls.actionPage.actionsSettingsTable.expression:
               node.title = this.nls.actionPage.actionsSettingsTable.expressionTip;
               break;
-          
+
             case this.nls.actionPage.actionsSettingsTable.actions:
               node.title = this.nls.actionPage.actionsSettingsTable.actionsTip;
               break;

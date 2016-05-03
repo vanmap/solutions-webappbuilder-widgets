@@ -15,6 +15,7 @@
 ///////////////////////////////////////////////////////////////////////////
 
 define([
+    'dojo',
     'dojo/_base/declare',
     'dijit/_WidgetsInTemplateMixin',
     'jimu/BaseWidgetSetting',
@@ -32,6 +33,7 @@ define([
     'dojo/dom-style',
     'dojo/sniff',
     'jimu/utils',
+    'dojo/_base/html',
     'dijit/_editor/plugins/LinkDialog',
     'dijit/_editor/plugins/ViewSource',
     'dijit/_editor/plugins/FontChoice',
@@ -46,6 +48,7 @@ define([
     './ChooseImage'
 ],
   function (
+    dojo,
     declare,
     _WidgetsInTemplateMixin,
     BaseWidgetSetting,
@@ -62,7 +65,8 @@ define([
     Editor,
     domStyle,
     has,
-    utils
+    utils,
+    html
     ) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
       //these two properties is defined in the BaseWidget
@@ -371,18 +375,20 @@ define([
         }, this);
       },
 
-      // about fieldInfos mehtods.
+      // about fieldInfos methods.
       _getDefaultSimpleFieldInfos: function (layerObject) {
         var fieldInfos = [];
+        var fldInfo = null;
         var webmapFieldInfos =
          editUtils.getFieldInfosFromWebmap(layerObject.id, this._jimuLayerInfos);
-        for (var i = 0; i < layerObject.fields.length; i++) {
-          if (layerObject.fields[i].editable) {
+
+        array.forEach(layerObject.fields, function (field) {
+          if (field.editable) {
             var filteredArr = dojo.filter(webmapFieldInfos, function (webmapFieldInfo) {
-              return webmapFieldInfo.fieldName == layerObject.fields[i].name;
+              return webmapFieldInfo.fieldName === field.name;
             });
 
-            fldInfo = lang.clone(layerObject.fields[i]);
+            fldInfo = lang.clone(field);
             if (fldInfo.hasOwnProperty('alias')) {
               fldInfo.label = fldInfo.alias;
               delete fldInfo.alias;
@@ -403,31 +409,7 @@ define([
               fldInfo.isEditable = fldInfo.editable;
               delete fldInfo.editable;
             }
-            //var str = JSON.stringify(lang.clone(layerObject.fields[i]));
-            //str = str.replace(/alias/g, 'label');
-            //str = str.replace(/name/g, 'fieldName');
-            //str = str.replace(/editable/g, 'isEditable');
-
-            //var fldInfo = JSON.parse(str);
-            //fldInfo.label = "test";
-            //array.forEach(webmapFieldInfos, function (webmapFieldInfo) {
-            //  if (webmapFieldInfo.isEditable) {
-            //    webmapSimpleFieldInfos.push({
-            //      fieldName: webmapFieldInfo.fieldName,
-            //      label: webmapFieldInfo.label,
-            //      isEditable: webmapFieldInfo.isEditable
-            //    });
-            //  }
-            //});
-
-            //fieldInfos.push({
-            //  fieldName: layerObject.fields[i].name,
-            //  label: layerObject.fields[i].alias || layerObject.fields[i].name,
-            //  isEditable: true,
-            //  nullable: layerObject.fields[i].nullable
-
-            //});
-            if (filteredArr.length == 1) {
+            if (filteredArr.length === 1) {
               fieldInfos.push(lang.mixin(
                 fldInfo,
                 filteredArr[0])
@@ -436,9 +418,8 @@ define([
             else {
               fieldInfos.push(fldInfo);
             }
-
           }
-        }
+        });
         return fieldInfos;
       },
 
@@ -525,18 +506,8 @@ define([
       },
 
       _getText: function () {
-        var editorText, regExp;
+        var editorText;
         editorText = this._editorObj.focusNode.innerHTML;
-        //editorText = editorText.replace(/&nbsp;/g, '');
-        //regExp = new RegExp("<div><br></div>", 'g');
-        //editorText = editorText.replace(regExp, "");
-        //regExp = new RegExp("<p><br></p>", 'g');
-        //editorText = editorText.replace(regExp, "");
-        //regExp = new RegExp("<p></p>", 'g');
-        //editorText = editorText.replace(regExp, "");
-        //editorText = editorText.replace(/<br>/g, "");
-        //editorText = lang.trim(editorText);
-
         return editorText;
       },
       _initEditor: function () {
@@ -555,31 +526,11 @@ define([
               'fontName', 'fontSize', 'formatBlock'
             ]
           }, this.editorDescription);
-          //this._editorObj = new Editor({
-          //  plugins: [
-          //    "bold", "italic", "underline", "|", "cut", "copy",
-          //    "paste", "|", "foreColor"
-          //  ],
-          //  height: "95%"
-          //}, this.editorDescription);
           domStyle.set(this._editorObj.domNode, {
             "width": '100%',
             "height": '100%'
           });
 
-
-          this.own(on(this._editorObj, "focus", lang.hitch(this,
-            function () {
-
-            })));
-          this.own(on(this._editorObj, "blur", lang.hitch(this,
-            function () {
-
-            })));
-
-          this._editorObj.onLoadDeferred.then(lang.hitch(this, function () {
-
-          }));
           if (this.config.editor.editDescription === undefined || this.config.editor.editDescription === null) {
             this._editorObj.set("value", this.nls.layersPage.title);
           }

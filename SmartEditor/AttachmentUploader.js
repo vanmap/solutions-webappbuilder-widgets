@@ -31,10 +31,6 @@
     constructor: function () {
       this.nls = lang.mixin(this.nls, esriBundle.widgets.attachmentEditor);
     },
-
-    postCreate: function () {
-      
-    },
     _fileSelected: function (source) {
 
       if (source.srcElement.value.length > 0) {
@@ -55,8 +51,7 @@
     },
     _addInput: function () {
       for (var i = 0; i < this._attachmentList.childNodes.length; i++) {
-        if (this._attachmentList.childNodes[i].childNodes[this._inputIndex].hasOwnProperty('value'))
-        {
+        if (this._attachmentList.childNodes[i].childNodes[this._inputIndex].hasOwnProperty('value')) {
           if (this._attachmentList.childNodes[i].childNodes[this._inputIndex].value.length === 0) {
             return;
           }
@@ -83,7 +78,6 @@
       });
       newForm.appendChild(newDelete);
       newForm.appendChild(newInput);
-      
       this._attachmentList.appendChild(newForm);
 
       this.own(on(newInput, "change", lang.hitch(this, this._fileSelected)));

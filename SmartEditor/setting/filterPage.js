@@ -1,32 +1,26 @@
 define(
   ["dojo/_base/declare",
     "dojo/_base/lang",
-    "dojo/_base/array",
-    'dojo/on',
-    'dojo/query',
     'dojo/json',
-    'dojo/dom-style',
     "dojo/text!./FilterPage.html",
     'dijit/_TemplatedMixin',
     'jimu/BaseWidgetSetting',
     "jimu/dijit/Popup",
-        'jimu/dijit/Filter',
-    'esri/lang'
+    'jimu/dijit/Filter',
+    'esri/lang',
+    "dojox/html/entities"
   ],
   function (
     declare,
     lang,
-    array,
-    on,
-    query,
     JSON,
-    domStyle,
     template,
     _TemplatedMixin,
     BaseWidgetSetting,
     Popup,
     Filter,
-    esriLang) {
+    esriLang,
+    entities) {
     return declare([BaseWidgetSetting, _TemplatedMixin], {
       baseClass: "jimu-widget-smartEditor-filter-page",
       templateString: template,
@@ -42,9 +36,6 @@ define(
         this._origNLS = window.jimuNls.filterBuilder.matchMsg;
 
         window.jimuNls.filterBuilder.matchMsg = this.nls.filterPage.filterBuilder;
-
-      
-
       },
       destroy: function () {
         window.jimuNls.filterBuilder.matchMsg = this._origNLS;

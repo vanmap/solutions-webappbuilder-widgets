@@ -18,10 +18,13 @@ define([
   'dojo/_base/declare',
   'dojo/_base/lang',
   'dojo/_base/array',
+  'dojo/_base/query',
   'dojo/on',
+  'dojo/dom-construct',
+  'dojo/dom-style',
   'dijit/_WidgetsInTemplateMixin',
   'jimu/BaseWidgetSetting',
-  'dojo/text!./QueryLayer.html',  
+  'dojo/text!./QueryLayer.html',
   'jimu/dijit/_QueryableLayerSourcePopup',
   'jimu/utils',
   'jimu/filterUtils',
@@ -29,7 +32,7 @@ define([
   'jimu/dijit/SimpleTable',
   'jimu/dijit/TabContainer'
 ],
-function(declare, lang, array, on, _WidgetsInTemplateMixin, BaseWidgetSetting, template,
+function(declare, lang, array, query, on, domConstruct, domStyle, _WidgetsInTemplateMixin, BaseWidgetSetting, template,
   _QueryableLayerSourcePopup, jimuUtils,  FilterUtils, SingleQuerySetting) {
 
   return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
@@ -93,6 +96,7 @@ function(declare, lang, array, on, _WidgetsInTemplateMixin, BaseWidgetSetting, t
           var tr = addResult.tr;
           tr.singleConfig = lang.clone(singleConfig);
           if(index === 0){
+            console.log(tr.singleConfig);
             this.queryList.selectRow(tr);
           }
         }));
@@ -100,15 +104,21 @@ function(declare, lang, array, on, _WidgetsInTemplateMixin, BaseWidgetSetting, t
     },
 
     getConfig: function () {
+      console.log("a");
       if(this.currentSQS){
+        console.log("b");
         var currentSingleConfig = this.currentSQS.getConfig();
+        console.log(currentSingleConfig);
         if(currentSingleConfig){
+          console.log("c");
           this.currentSQS.tr.singleConfig = lang.clone(currentSingleConfig);
         }
         else{
+          console.log("d");
           return false;
         }
       }
+      console.log("e");
       var config = {
         queries:[]
       };
@@ -117,11 +127,13 @@ function(declare, lang, array, on, _WidgetsInTemplateMixin, BaseWidgetSetting, t
         var tr = trs[i];
         config.queries.push(lang.clone(tr.singleConfig));
       }
+      console.log("f");
       this.config = lang.clone(config);
       return config;
     },
 
     _createSingleQuerySetting:function(tr){
+      //domConstruct.empty(this.singleQueryContainer);
       var args = {
         map: this.map,
         nls: this.nls,
@@ -158,7 +170,7 @@ function(declare, lang, array, on, _WidgetsInTemplateMixin, BaseWidgetSetting, t
           this.currentSQS.tr.singleConfig = singleConfig;
         }
         else{
-          return;
+          //return;
         }
       }
 
@@ -213,6 +225,8 @@ function(declare, lang, array, on, _WidgetsInTemplateMixin, BaseWidgetSetting, t
       })));
 
       sourcePopup.startup();
+      var queryNameDiv = query(".radio-table", sourcePopup.contentContainerNode)[0];
+      domStyle.set(queryNameDiv, "display", "none");
     },
 
     _getSuitableQueryName: function(name){
@@ -241,22 +255,31 @@ function(declare, lang, array, on, _WidgetsInTemplateMixin, BaseWidgetSetting, t
     },
 
     _onQueryItemSelected:function(tr){
+      console.log("1");
       if(this.currentSQS){
+        console.log("2");
         if(this.currentSQS.tr !== tr){
+          console.log("3");
           var singleConfig = this.currentSQS.getConfig();
+          console.log(this.currentSQS);
           if(singleConfig){
+            console.log("4");
             this.currentSQS.tr.singleConfig = singleConfig;
             this.currentSQS.destroy();
             this.currentSQS = null;
             this._createSingleQuerySetting(tr);
           }
           else{
+            console.log("5");
             this.queryList.selectRow(this.currentSQS.tr);
+            //this._createSingleQuerySetting(tr);
           }
         }
       }
       else{
+        console.log("6");
         this._createSingleQuerySetting(tr);
+        console.log(this.currentSQS);
       }
     }
 

@@ -141,6 +141,7 @@ function(declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, templat
         this.sqs.showResultsSetting();
         this.sqs.scrollToDom(this.titleTextBox.domNode);
         this.sqs.showValidationErrorTip(this.titleTextBox);
+        console.log("aa");
         return null;
       }
       config.title = this.titleTextBox.get('value');

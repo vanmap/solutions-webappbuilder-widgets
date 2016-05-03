@@ -22,7 +22,6 @@ define([
   'dojo/dom-class',
   'dijit/_WidgetsInTemplateMixin',
   'jimu/BaseWidgetSetting',
-  'jimu/dijit/_QueryableLayerSourcePopup',
   'jimu/utils',
   'jimu/filterUtils',
   './QueryLayer',
@@ -31,7 +30,7 @@ define([
   'jimu/dijit/TabContainer'
 ],
 function(declare, lang, array, on, domClass, _WidgetsInTemplateMixin, BaseWidgetSetting,
-  _QueryableLayerSourcePopup, jimuUtils,  FilterUtils, QueryLayer, ValidationTextBox) {
+  jimuUtils,  FilterUtils, QueryLayer, ValidationTextBox) {
 
   return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
     baseClass: 'jimu-widget-query-setting',
@@ -57,7 +56,6 @@ function(declare, lang, array, on, domClass, _WidgetsInTemplateMixin, BaseWidget
         this.setConfig(this.config);
       }
 
-      this.addNewFilterSet();
     },
 
     setConfig:function(config){
@@ -67,21 +65,20 @@ function(declare, lang, array, on, domClass, _WidgetsInTemplateMixin, BaseWidget
       }
       this.currentSQS = null;
       this.queryList.clear();
+      */
 
       this.config = config;
-      var queries = this.config && this.config.queries;
-      var validConfig = queries && queries.length >= 0;
+      var filterSets = this.config && this.config.filterSets;
+      var validConfig = filterSets && filterSets.length >= 0;
       if(validConfig){
-        array.forEach(queries, lang.hitch(this, function(singleConfig, index){
-          var addResult = this.queryList.addRow({name: singleConfig.name || ''});
-          var tr = addResult.tr;
-          tr.singleConfig = lang.clone(singleConfig);
-          if(index === 0){
-            this.queryList.selectRow(tr);
-          }
+
+        array.forEach(filterSets, lang.hitch(this, function(singleConfig){
+          this.addNewFilterSet({status:'reload', filterSet: singleConfig});
         }));
+
+      } else {
+        this.addNewFilterSet({status:'new', filterSet: ""});
       }
-      */
     },
 
     getConfig: function () {
@@ -115,44 +112,53 @@ function(declare, lang, array, on, domClass, _WidgetsInTemplateMixin, BaseWidget
 
     },
 
-    addNewFilterSet:function(){
+    addNewFilterSet:function(params){
       var addResult = this.filterList.addRow({name:''});
       var tr = addResult.tr;
       var cell = tr.cells[0];
-      //var tdContent = tr.insertCell(0);
-      //var tdAction = tr.insertCell(1);
-      //if(index === 0){
-        //this.filterList.selectRow(tr);
-      //}
-      //domClass.add(tdContent, "filter-set-style");
-      //domClass.add(tdAction, "filter-set-style");
 
-      this.addFilterSetName({cell: cell});
-      //this.addFilterSetName()
+      this.addFilterSetName({cell: cell, status: params.status, filterSet: params.filterSet});
+      this.addFilterSetParams({cell: cell, status: params.status, filterSet: params.filterSet});
     },
 
     addFilterSetName: function(params) {
+      var defaultVal = "";
+      if(params.status === "reload") {
+        defaultVal = params.filterSet.name;
+      }
       this.txtGroupName.push(
         new ValidationTextBox({
           name: "txtFilterName",
-          value: "",
-          placeHolder: "Type a filter name",
+          value: defaultVal,
+          placeHolder: "Type a filter set name",
           required: "true"
         })
       );
       this.txtGroupName[this.txtGroupName.length - 1].placeAt(params.cell);
+    },
 
+    addFilterSetParams: function(params) {
+      var passConfig = this.config;
+      if(params.status === "reload") {
+        var customConfig = lang.clone(params.filterSet);
+        customConfig.queries = params.filterSet.filters;
+        delete customConfig.filters;
+        passConfig = customConfig;
+      }
+      console.log(passConfig);
       this.querySet.push(
         new QueryLayer({
         map: this.map,
         nls: this.nls,
         appConfig: this.appConfig,
-        config: this.config
+        config: passConfig
         })
       );
       this.querySet[this.querySet.length - 1].placeAt(params.cell);
-
+      //this.querySet[this.querySet.length - 1]._updateConfig();
+      //this.querySet[this.querySet.length - 1].postCreate();
     },
+
 
     test: function() {
 

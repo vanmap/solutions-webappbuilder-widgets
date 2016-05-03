@@ -1,12 +1,12 @@
 define({
   root: ({
     _widgetLabel: "Filter",
-    executeQueryTip: "Click one of the following task items to execute the query.",
+    executeQueryTip: "Click one of the following task items to filter the map.",
     invalidConfig: "Invalid configuration. Please use Query setting page to get correct configuration.",
     queryParams: "Options",
     parameters: "OPTIONS",
     queries: "QUERIES",
-    apply: "APPLY",
+    apply: "Apply",
     queryResults: "Results",
     clear: "Clear",
     noResults: "No feature found.",
@@ -53,7 +53,7 @@ define({
     useCurrentMapExtent: "Only features intersecting the current map area",
     drawGraphicOnMap: "Only features intersecting the user-defined area",
     specifySpatialFilterMsg: "Please specify spatial filter for this task.",
-    clearResults: "Clear Results",
+    clearResults: "Reset Map",
     operationalTip: 'With this option checked, results will be kept on the map until the "${clearResults}" button is clicked.',
     noneQueryTip: "No query task was configured for this widget.",
     noPermissionsMsg: "You do not have permissions to access this service.",

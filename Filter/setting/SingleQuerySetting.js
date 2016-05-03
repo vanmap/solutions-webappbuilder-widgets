@@ -29,7 +29,6 @@ define([
   'jimu/dijit/TabContainer3',
   'jimu/dijit/Message',
   'jimu/dijit/_QueryableLayerSourcePopup',
-  './PopupConfig',
   'esri/request',
   'esri/symbols/jsonUtils',
   'jimu/dijit/Filter',
@@ -39,7 +38,7 @@ define([
 ],
 function(declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, template, lang,
   array, html, on, Evented, jimuUtils, TabContainer3, Message, _QueryableLayerSourcePopup,
-  PopupConfig, esriRequest, esriSymbolJsonUtils, Filter) {
+  esriRequest, esriSymbolJsonUtils, Filter) {
   return declare([_WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, Evented], {
     baseClass: 'jimu-widget-single-query-setting',
     templateString: template,
@@ -126,6 +125,7 @@ function(declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, templat
       if(!this._layerDefinition){
         this.scrollToDom(this.generalTable);
         new Message({message: this.nls.setSourceTip});
+        console.log("a");
         return null;
       }
       config.url = this._layerDefinition.url;
@@ -133,6 +133,7 @@ function(declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, templat
       var queryName = jimuUtils.stripHTML(this.queryNameTextBox.get('value'));
       if(!queryName){
         this.showValidationErrorTip(this.queryNameTextBox);
+        console.log("b");
         return null;
       }
       config.name = queryName;
@@ -142,20 +143,14 @@ function(declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, templat
         new Message({
           message: this.nls.setFilterTip
         });
+        console.log("c");
         return null;
       }
       config.filter = filterObj;
 
-      var popup = this.popupConfig.getConfig();
-      if(!popup){
-        return null;
-      }
-      config.orderByFields = popup.orderByFields;
-      delete popup.orderByFields;
-      config.popup = popup;
-
       if(this._isTable(this._layerDefinition)){
         //if it is table, we don't save the symbol info
+        console.log("e");
         config.resultsSymbol = null;
       }else{
         /*
@@ -226,7 +221,6 @@ function(declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, templat
 
     _initSelf: function(){
       this._initFilter();
-      this._initPopupConfig();
       this._initTabs();
     },
 
@@ -260,15 +254,6 @@ function(declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, templat
       this.tab.showShelter();
     },
 
-    _initPopupConfig: function(){
-      var args = {
-        nls: this.nls,
-        sqs: this
-      };
-      this.popupConfig = new PopupConfig(args);
-      //this.popupConfig.placeAt(this.popupContainer);
-    },
-
     _getRandomString: function(){
       var str = Math.random().toString();
       str = str.slice(2, str.length);
@@ -290,7 +275,6 @@ function(declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, templat
       this.queryNameTextBox.set('value', '');
       this.filter.reset();
       this.tab.showShelter();
-      this.popupConfig.clear();
       //this.layerSymbolPicker.reset();
     },
 
@@ -375,21 +359,6 @@ function(declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, templat
         this.filter.buildByExpr(url, expr, this._layerDefinition);
       }
 
-      //reset popupConfig
-      var popupTitle = '';
-
-      if(layerInfo.displayField){
-        popupTitle = '${' + layerInfo.displayField + '}';
-      }
-
-      this.popupConfig.setConfig({
-        title: popupTitle,
-        fields: [],
-        orderByFields: []
-      });
-
-      this.popupConfig.updateSortingIcon(this._layerDefinition);
-
       //reset symbol
       var symType = '';
       if(this._isImageServiceLayer(layerInfo)){
@@ -442,29 +411,6 @@ function(declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, templat
       else{
         this.filter.buildByExpr(layerInfo.url, '1=1', layerInfo);
       }
-
-      //reset popupConfig
-      this.popupConfig.clear();
-      if(!this._isObject(config.popup)){
-        config.popup = {
-          title:'',
-          fields:[]
-        };
-      }
-      if(!(config.popup.fields && config.popup.fields.length >= 0)){
-        config.popup.fields = [];
-      }
-      if(!config.popup.title){
-        config.popup.title = '';
-      }
-
-      this.popupConfig.setConfig({
-        title: config.popup.title,
-        fields: config.popup.fields,
-        orderByFields: config.orderByFields
-      });
-
-      this.popupConfig.updateSortingIcon(layerInfo);
 
       //reset symbol
       if(this._isTable(layerInfo)){

@@ -37,7 +37,7 @@ define([
     FeatureLayer) {
 
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
-      name: 'Query',
+      name: 'Filter',
       baseClass: 'jimu-widget-query',
       isValidConfig:false,
       currentAttrs:null,

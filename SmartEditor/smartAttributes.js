@@ -357,9 +357,9 @@ define([
           }
           return false;
         case this.OPERATORS.stringOperatorIsBlank:
-          return (field === null || field === undefined);
+          return ( field === undefined  || field === null || field === "");
         case this.OPERATORS.stringOperatorIsNotBlank:
-          return (field !== null && field !== undefined);
+          return (field !== undefined && field !== null && field !== "");
         case this.OPERATORS.numberOperatorIs:
           if (this._isNumeric(field)) {
             return String(field) === String(value1);

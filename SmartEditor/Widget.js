@@ -613,7 +613,11 @@ define([
           if (query(".attwarning").length === 0) {
             var txt = domConstruct.create("div", { 'class': 'attwarning' });
             txt.innerHTML = this.nls.attachmentSaveDeleteWarning;
-            this.attrInspector._attachmentEditor.domNode.appendChild(txt);
+            if (this.attrInspector._attachmentEditor !== undefined &&
+               this.attrInspector._attachmentEditor !== null) {
+              this.attrInspector._attachmentEditor.domNode.appendChild(txt);
+            }
+
           }
         })));
         if (this._attachmentUploader && this._attachmentUploader !== null) {
@@ -1863,7 +1867,7 @@ define([
       },
       _toggleUsePresetValues: function (checked) {
         var sw = registry.byId("savePresetValueSwitch");
-        sw.set('checked',  checked === null ? !sw.checked : checked);
+        sw.set('checked', checked === null ? !sw.checked : checked);
         this._usePresetValues = sw.checked;
       },
       _turnEditGeometryToggleOff: function () {

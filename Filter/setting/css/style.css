@@ -147,3 +147,15 @@
 .jimu-widget-query-setting .filter-list-table{
   height: 80%;
 }
+
+.jimu-widget-query-setting .row-background-color-odd{
+  background-color: #D2DAE2 !important;
+}
+
+.jimu-widget-query-setting .row-background-color-even{
+  background-color: #FFFFFF !important;
+}
+
+.jimu-widget-query-setting .filter-name-textbox {
+  width: 40%;
+}

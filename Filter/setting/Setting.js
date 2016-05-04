@@ -20,6 +20,7 @@ define([
   'dojo/_base/array',
   'dojo/on',
   'dojo/dom-class',
+  'dojo/dom-construct',
   'dijit/_WidgetsInTemplateMixin',
   'jimu/BaseWidgetSetting',
   'jimu/utils',
@@ -29,7 +30,7 @@ define([
   'jimu/dijit/SimpleTable',
   'jimu/dijit/TabContainer'
 ],
-function(declare, lang, array, on, domClass, _WidgetsInTemplateMixin, BaseWidgetSetting,
+function(declare, lang, array, on, domClass, domConstruct, _WidgetsInTemplateMixin, BaseWidgetSetting,
   jimuUtils,  FilterUtils, QueryLayer, ValidationTextBox) {
 
   return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
@@ -117,6 +118,10 @@ function(declare, lang, array, on, domClass, _WidgetsInTemplateMixin, BaseWidget
       var tr = addResult.tr;
       var cell = tr.cells[0];
 
+console.log(this.filterList.getRows());
+
+      this.rowColor();
+
       this.addFilterSetName({cell: cell, status: params.status, filterSet: params.filterSet});
       this.addFilterSetParams({cell: cell, status: params.status, filterSet: params.filterSet});
     },
@@ -126,12 +131,18 @@ function(declare, lang, array, on, domClass, _WidgetsInTemplateMixin, BaseWidget
       if(params.status === "reload") {
         defaultVal = params.filterSet.name;
       }
+      var spanLabel = domConstruct.create("span",{
+        innerHTML: "Filter set name ",
+      });
+      domConstruct.place(spanLabel, params.cell);
+
       this.txtGroupName.push(
         new ValidationTextBox({
           name: "txtFilterName",
           value: defaultVal,
           placeHolder: "Type a filter set name",
-          required: "true"
+          required: "true",
+          'class': 'filter-name-textbox'
         })
       );
       this.txtGroupName[this.txtGroupName.length - 1].placeAt(params.cell);
@@ -145,7 +156,6 @@ function(declare, lang, array, on, domClass, _WidgetsInTemplateMixin, BaseWidget
         delete customConfig.filters;
         passConfig = customConfig;
       }
-      console.log(passConfig);
       this.querySet.push(
         new QueryLayer({
         map: this.map,
@@ -159,6 +169,17 @@ function(declare, lang, array, on, domClass, _WidgetsInTemplateMixin, BaseWidget
       //this.querySet[this.querySet.length - 1].postCreate();
     },
 
+    rowColor: function() {
+      array.forEach(this.filterList.getRows(), lang.hitch(this, function(row, i) {
+        if(i % 2 === 0) {
+          domClass.remove(row, "row-background-color-even");
+          domClass.add(row, "row-background-color-odd");
+        } else {
+          domClass.remove(row, "row-background-color-odd");
+          domClass.add(row, "row-background-color-even");
+        }
+      }));
+    },
 
     test: function() {
 

@@ -125,7 +125,6 @@ function(declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, templat
       if(!this._layerDefinition){
         this.scrollToDom(this.generalTable);
         new Message({message: this.nls.setSourceTip});
-        console.log("a");
         return null;
       }
       config.url = this._layerDefinition.url;
@@ -133,7 +132,6 @@ function(declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, templat
       var queryName = jimuUtils.stripHTML(this.queryNameTextBox.get('value'));
       if(!queryName){
         this.showValidationErrorTip(this.queryNameTextBox);
-        console.log("b");
         return null;
       }
       config.name = queryName;
@@ -143,14 +141,12 @@ function(declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, templat
         new Message({
           message: this.nls.setFilterTip
         });
-        console.log("c");
         return null;
       }
       config.filter = filterObj;
 
       if(this._isTable(this._layerDefinition)){
         //if it is table, we don't save the symbol info
-        console.log("e");
         config.resultsSymbol = null;
       }else{
         /*

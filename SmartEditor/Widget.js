@@ -59,7 +59,8 @@ define([
     "./AttachmentUploader",
     "esri/lang",
     "dojox/html/entities",
-    'jimu/utils'
+    'jimu/utils',
+    'jimu/dijit/LoadingShelter'
 ],
   function (
     dojo,
@@ -106,7 +107,7 @@ define([
     AttachmentUploader,
     esriLang,
     entities,
-    utils) {
+    utils, LoadingShelter) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
       name: 'SmartEditor',
       baseClass: 'jimu-widget-smartEditor',
@@ -151,11 +152,32 @@ define([
         }
         this._orignls = esriBundle.widgets.attachmentEditor.NLS_attachments;
         //this.nls = lang.mixin(this.nls, window.jimuNls.common);
-        LayerInfos.getInstance(this.map, this.map.itemInfo)
-        .then(lang.hitch(this, function (operLayerInfos) {
-          this._jimuLayerInfos = operLayerInfos;
-          this._createEditor();
-        }));
+        this.loading = new LoadingShelter({
+          hidden: true
+        });
+        this.loading.placeAt(this.domNode);
+        
+        this.editToolbar = new Edit(this.map);
+       
+        this.drawToolbar = new Draw(this.map);
+
+        // edit events
+        this.own(on(this.editToolbar,
+          "graphic-move-stop, rotate-stop, scale-stop, vertex-move-stop, vertex-click",
+          lang.hitch(this, function () {
+
+            this._enableAttrInspectorSaveButton(this._validateAttributes());
+            //this._enableAttrInspectorSaveButton(true);
+            this._isDirty = true;
+          })));
+
+        // draw event
+        this.own(on(this.drawToolbar, "draw-end", lang.hitch(this, function (evt) {
+          this.drawToolbar.deactivate();
+          this._isDirty = true; //?
+          this._addGraphicToLocalLayer(evt);
+        })));
+
       },
       /*jshint unused:true */
       _setTheme: function () {
@@ -212,6 +234,9 @@ define([
       onActive: function () {
         if (this.map) {
           this._mapClickHandler(true);
+          if (this.templatePicker && this.templatePicker !== null) {
+            this.templatePicker.update();
+          }
         }
 
       },
@@ -223,8 +248,35 @@ define([
       },
 
       onOpen: function () {
+
+        LayerInfos.getInstance(this.map, this.map.itemInfo)
+       .then(lang.hitch(this, function (operLayerInfos) {
+         var timeoutValue;
+         if (this.appConfig.theme.name === "BoxTheme") {
+           timeoutValue = 1050;
+           this.loading.show();
+         } else {
+           timeoutValue = 1;
+         }
+         setTimeout(lang.hitch(this, function () {
+           if (!this.loading.hidden) {
+             this.loading.hide();
+           }
+           this._jimuLayerInfos = operLayerInfos;
+           this.settings = this._getSettingsParam();
+           
+           this._workBeforeCreate();
+
+           this.widgetManager.activateWidget(this);
+          
+           this._createEditor();
+         }), timeoutValue);
+       }));
         this._update();
         if (this.map) {
+          if (this.templatePicker && this.templatePicker !== null) {
+            this.templatePicker.update();
+          }
           this._mapClickHandler(true);
         }
       },
@@ -672,16 +724,23 @@ define([
       },
 
       _createEditor: function () {
-        this.settings = this._getSettingsParam();
-
+     
         var layers = this._getEditableLayers(this.settings.layerInfos, false);
-
-        this._workBeforeCreate();
-
-        this.editToolbar = new Edit(this.map);
-
-
+      
+        var boolShow = false;
+        if (this.templatePicker && this.templatePicker !== null) {
+          this.templatePicker.destroy();
+          if (this._attrInspIsCurrentlyDisplayed && this._attrInspIsCurrentlyDisplayed === false){
+            boolShow = true;
+          }
+        }
+        
         //create template picker
+        this.templatePickerNode = domConstruct.create("div",
+          { 'class': "eeTemplatePicker" }
+          );
+        
+        this.templatePickerDiv.appendChild(this.templatePickerNode);
         this.templatePicker = new TemplatePicker({
           featureLayers: layers,
           'class': 'esriTemplatePicker',
@@ -692,29 +751,12 @@ define([
           rows: "auto"
         }, this.templatePickerNode);
         this.templatePicker.startup();
-
-        this.drawToolbar = new Draw(this.map);
+        //this.templatePickerNode.appendChild(this.templatePicker.domNode);
 
         // wire up events
         this.own(on(this.templatePicker, "selection-change",
           lang.hitch(this, this._activateTemplateToolbar)));
 
-        // edit events
-        this.own(on(this.editToolbar,
-          "graphic-move-stop, rotate-stop, scale-stop, vertex-move-stop, vertex-click",
-          lang.hitch(this, function () {
-
-            this._enableAttrInspectorSaveButton(this._validateAttributes());
-            //this._enableAttrInspectorSaveButton(true);
-            this._isDirty = true;
-          })));
-
-        // draw event
-        this.own(on(this.drawToolbar, "draw-end", lang.hitch(this, function (evt) {
-          this.drawToolbar.deactivate();
-          this._isDirty = true; //?
-          this._addGraphicToLocalLayer(evt);
-        })));
 
         // set preset values table
         if (layers.length > 0 && this._hasPresetValueFields()) {
@@ -728,8 +770,9 @@ define([
         if (layers.length < 1) {
           this._creationDisabledOnAll = true;
         }
-
-        this._showTemplate(true);
+        if (boolShow === true){
+          this._showTemplate(true);
+        }
       },
 
       _createPresetFieldContentNode: function (fieldInfo) {
@@ -1858,7 +1901,7 @@ define([
 
 
         this._activateTemplateToolbar();
-
+        this.templatePicker.update();
       },
 
       _setPresetValue: function () {

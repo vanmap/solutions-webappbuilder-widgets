@@ -156,11 +156,8 @@ define([
           hidden: true
         });
         this.loading.placeAt(this.domNode);
-        
         this.editToolbar = new Edit(this.map);
-       
         this.drawToolbar = new Draw(this.map);
-
         // edit events
         this.own(on(this.editToolbar,
           "graphic-move-stop, rotate-stop, scale-stop, vertex-move-stop, vertex-click",
@@ -264,11 +261,8 @@ define([
            }
            this._jimuLayerInfos = operLayerInfos;
            this.settings = this._getSettingsParam();
-           
            this._workBeforeCreate();
-
            this.widgetManager.activateWidget(this);
-          
            this._createEditor();
          }), timeoutValue);
        }));
@@ -724,9 +718,7 @@ define([
       },
 
       _createEditor: function () {
-     
         var layers = this._getEditableLayers(this.settings.layerInfos, false);
-      
         var boolShow = false;
         if (this.templatePicker && this.templatePicker !== null) {
           this.templatePicker.destroy();
@@ -734,12 +726,10 @@ define([
             boolShow = true;
           }
         }
-        
         //create template picker
         this.templatePickerNode = domConstruct.create("div",
           { 'class': "eeTemplatePicker" }
           );
-        
         this.templatePickerDiv.appendChild(this.templatePickerNode);
         this.templatePicker = new TemplatePicker({
           featureLayers: layers,

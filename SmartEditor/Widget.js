@@ -268,7 +268,7 @@ define([
            this.settings = this._getSettingsParam();
 
            this._workBeforeCreate();
-           this._createEditor(true);
+           this._createEditor();
            this.widgetManager.activateWidget(this);
 
 
@@ -702,21 +702,58 @@ define([
 
       },
       _activateTemplateToolbar: function () {
+        var selectedTemplate = this.templatePicker.getSelected();
+        if (selectedTemplate && selectedTemplate !== null) {
 
-        if (this.templatePicker.getSelected()) {
+          switch (selectedTemplate.template.drawingTool) {
+            case "esriFeatureEditToolNone":
+              switch (selectedTemplate.featureLayer.geometryType) {
+                case "esriGeometryPoint":
+                  this.drawToolbar.activate(Draw.POINT);
+                  break;
+                case "esriGeometryPolyline":
 
-          //domClass.add(this.selectedTemplate, "selectedItem");
-          switch (this.templatePicker.getSelected().featureLayer.geometryType) {
-            case "esriGeometryPoint":
+                  this.drawToolbar.activate(Draw.POLYLINE);
+                  break;
+                case "esriGeometryPolygon":
+                  this.drawToolbar.activate(Draw.POLYGON);
+                  break;
+              }
+              break;
+            case "esriFeatureEditToolPoint":
               this.drawToolbar.activate(Draw.POINT);
               break;
-            case "esriGeometryPolyline":
+            case "esriFeatureEditToolLine":
               this.drawToolbar.activate(Draw.POLYLINE);
               break;
-            case "esriGeometryPolygon":
+            case "esriFeatureEditToolAutoCompletePolygon":
+            case "esriFeatureEditToolPolygon":
               this.drawToolbar.activate(Draw.POLYGON);
               break;
+            case "esriFeatureEditToolCircle":
+              this.drawToolbar.activate(Draw.CIRCLE);
+              break;
+            case "esriFeatureEditToolEllipse":
+              this.drawToolbar.activate(Draw.ELLIPSE);
+              break;
+            case "esriFeatureEditToolRectangle":
+              this.drawToolbar.activate(Draw.RECTANGLE);
+              break;
+            case "esriFeatureEditToolFreehand":
+              switch (selectedTemplate.featureLayer.geometryType) {
+                case "esriGeometryPoint":
+                  this.drawToolbar.activate(Draw.POINT);
+                  break;
+                case "esriGeometryPolyline":
+                  this.drawToolbar.activate(Draw.FREEHAND_POLYLINE);
+                  break;
+                case "esriGeometryPolygon":
+                  this.drawToolbar.activate(Draw.FREEHAND_POLYGON);
+                  break;
+              }
+              break;
           }
+
         }
 
         else {
@@ -724,53 +761,79 @@ define([
           this.drawToolbar.deactivate();
         }
       },
-
-      _createEditor: function (recreateOnNextShow) {
-        if (this._attrInspIsCurrentlyDisplayed && this._attrInspIsCurrentlyDisplayed === true) {
-          this._recreateOnNextShow = true;
-          return;
-
+      _templatePickerNeedsToBeCreated: function (layers) {
+        if (this.templatePicker === undefined || this.templatePicker === null) {
+          return true;
         }
+        if (this.templatePicker.featureLayers.length !== layers.length) {
+          return true;
+        }
+        var recreate = array.some(layers, function (layer) {
+          var layerMatches = array.some(this.templatePicker.featureLayers, function (tpLayer) {
+            return tpLayer.id === layer.id;
+          });
+          if (layerMatches === false) {
+            return true;
+          }
+          return false;
+        }, this);
+        return recreate;
+      },
+      _createEditor: function () {
         var layers = this._getEditableLayers(this.settings.layerInfos, false);
-
-        var boolShow = false;
-        if (this.templatePicker && this.templatePicker !== null) {
-          this._select_change_event.remove();
-          this.templatePicker.destroy();
-
-        }
-        else {
-          this._createPresetTable(layers);
-
-        }
-
-        //create template picker
-        this.templatePickerNode = domConstruct.create("div",
-          { 'class': "eeTemplatePicker" }
-          );
-
-        this.templatePickerDiv.appendChild(this.templatePickerNode);
-        this.templatePicker = new TemplatePicker({
-          featureLayers: layers,
-          'class': 'esriTemplatePicker',
-          grouping: true,
-          maxLabelLength: "25",
-          showTooltip: false,
-          columns: "auto",
-          rows: "auto"
-        }, this.templatePickerNode);
-        this.templatePicker.startup();
-        //this.templatePickerNode.appendChild(this.templatePicker.domNode);
-
-        // wire up events
-        this._select_change_event = on(this.templatePicker, "selection-change",
-          lang.hitch(this, this._activateTemplateToolbar))
-        this.own(this._select_change_event);
-
         if (layers.length < 1) {
           this._creationDisabledOnAll = true;
         }
+        else if (this._templatePickerNeedsToBeCreated(layers)) {
 
+          if (this._attrInspIsCurrentlyDisplayed && this._attrInspIsCurrentlyDisplayed === true) {
+            this._recreateOnNextShow = true;
+            return;
+
+          }
+
+          if (this.templatePicker &&
+            this.templatePicker !== null) {
+
+            this._select_change_event.remove();
+            this.templatePicker.destroy();
+            this._resetEditingVariables();
+            if (this.drawToolbar) {
+              this.drawToolbar.deactivate();
+            }
+          }
+          else {
+            this._createPresetTable(layers);
+
+          }
+
+          //create template picker
+          this.templatePickerNode = domConstruct.create("div",
+            { 'class': "eeTemplatePicker" }
+            );
+
+          this.templatePickerDiv.appendChild(this.templatePickerNode);
+          this.templatePicker = new TemplatePicker({
+            featureLayers: layers,
+            'class': 'esriTemplatePicker',
+            grouping: true,
+            maxLabelLength: "25",
+            showTooltip: false,
+            columns: "auto",
+            rows: "auto"
+          }, this.templatePickerNode);
+          this.templatePicker.startup();
+          //this.templatePickerNode.appendChild(this.templatePicker.domNode);
+
+          // wire up events
+          this._select_change_event = on(this.templatePicker, "selection-change",
+            lang.hitch(this, this._activateTemplateToolbar));
+          this.own(this._select_change_event);
+
+          if (layers.length < 1) {
+            this._creationDisabledOnAll = true;
+          }
+        }
       },
       _createPresetTable: function (layers) {
         // set preset values table
@@ -1700,8 +1763,9 @@ define([
       _resetEditingVariables: function () {
         this._isDirty = false;
         this._editingEnabled = false;
-        this.editToolbar.deactivate();
-
+        if (this.editToolbar) {
+          this.editToolbar.deactivate();
+        }
         //this._turnEditGeometryToggleOff();
       },
 
@@ -1896,7 +1960,7 @@ define([
         this.currentFeature = null;
         this.currentLayerInfo = null;
         this.updateFeatures = [];
-        if (this._recreateOnNextShow == true) {
+        if (this._recreateOnNextShow === true) {
           this._recreateOnNextShow = false;
           this._createEditor();
         }

@@ -142,6 +142,8 @@ define([
 
       startup: function () {
         this.inherited(arguments);
+        this._gdbRequired = [];
+        this._configNotEditable = [];
         if (this.config.editor.editDescription === undefined || this.config.editor.editDescription === null) {
           this.config.editor.editDescription = '';
           this.templateTitle.innerHTML = this.config.editor.editDescription;
@@ -156,8 +158,11 @@ define([
           hidden: true
         });
         this.loading.placeAt(this.domNode);
+
         this.editToolbar = new Edit(this.map);
+
         this.drawToolbar = new Draw(this.map);
+
         // edit events
         this.own(on(this.editToolbar,
           "graphic-move-stop, rotate-stop, scale-stop, vertex-move-stop, vertex-click",
@@ -231,9 +236,9 @@ define([
       onActive: function () {
         if (this.map) {
           this._mapClickHandler(true);
-          if (this.templatePicker && this.templatePicker !== null) {
-            this.templatePicker.update();
-          }
+          //if (this.templatePicker && this.templatePicker !== null) {
+          //  this.templatePicker.update();
+          //}
         }
 
       },
@@ -261,16 +266,19 @@ define([
            }
            this._jimuLayerInfos = operLayerInfos;
            this.settings = this._getSettingsParam();
+
            this._workBeforeCreate();
+           this._createEditor(true);
            this.widgetManager.activateWidget(this);
-           this._createEditor();
+
+
          }), timeoutValue);
        }));
         this._update();
         if (this.map) {
-          if (this.templatePicker && this.templatePicker !== null) {
-            this.templatePicker.update();
-          }
+          //if (this.templatePicker && this.templatePicker !== null) {
+          //  this.templatePicker.update();
+          //}
           this._mapClickHandler(true);
         }
       },
@@ -346,7 +354,7 @@ define([
           this._enableAttrInspectorSaveButton(this._validateAttributes());
         }));
 
-        this._showTemplate(false);
+        this._showTemplate(false, false);
       },
 
       // cancel editing of the current feature
@@ -355,7 +363,7 @@ define([
 
         if (showTemplatePicker) {
 
-          this._showTemplate(true);
+          this._showTemplate(true, false);
         } else { // show attr inspector
 
           // restore attributes & geometry
@@ -717,19 +725,30 @@ define([
         }
       },
 
-      _createEditor: function () {
+      _createEditor: function (recreateOnNextShow) {
+        if (this._attrInspIsCurrentlyDisplayed && this._attrInspIsCurrentlyDisplayed === true) {
+          this._recreateOnNextShow = true;
+          return;
+
+        }
         var layers = this._getEditableLayers(this.settings.layerInfos, false);
+
         var boolShow = false;
         if (this.templatePicker && this.templatePicker !== null) {
+          this._select_change_event.remove();
           this.templatePicker.destroy();
-          if (this._attrInspIsCurrentlyDisplayed && this._attrInspIsCurrentlyDisplayed === false){
-            boolShow = true;
-          }
+
         }
+        else {
+          this._createPresetTable(layers);
+
+        }
+
         //create template picker
         this.templatePickerNode = domConstruct.create("div",
           { 'class': "eeTemplatePicker" }
           );
+
         this.templatePickerDiv.appendChild(this.templatePickerNode);
         this.templatePicker = new TemplatePicker({
           featureLayers: layers,
@@ -744,10 +763,16 @@ define([
         //this.templatePickerNode.appendChild(this.templatePicker.domNode);
 
         // wire up events
-        this.own(on(this.templatePicker, "selection-change",
-          lang.hitch(this, this._activateTemplateToolbar)));
+        this._select_change_event = on(this.templatePicker, "selection-change",
+          lang.hitch(this, this._activateTemplateToolbar))
+        this.own(this._select_change_event);
 
+        if (layers.length < 1) {
+          this._creationDisabledOnAll = true;
+        }
 
+      },
+      _createPresetTable: function (layers) {
         // set preset values table
         if (layers.length > 0 && this._hasPresetValueFields()) {
           this._initPresetFieldsTable();
@@ -757,14 +782,8 @@ define([
           query(".presetFieldsTableDiv")[0].style.display = "none";
         }
 
-        if (layers.length < 1) {
-          this._creationDisabledOnAll = true;
-        }
-        if (boolShow === true){
-          this._showTemplate(true);
-        }
-      },
 
+      },
       _createPresetFieldContentNode: function (fieldInfo) {
         var nodes = [];
         var node;
@@ -1246,8 +1265,7 @@ define([
       // to add (*) to the label of required fields
       // also add field type and domain to use in the preset values
       _modifyFieldInfosForEE: function (layerInfo) {
-        this._gdbRequired = [];
-        this._configNotEditable = [];
+
         if (!layerInfo) { return; }
         //layerInfo = lang.clone(layerInfo);
         var layerObject = this.map.getLayer(layerInfo.featureLayer.id);
@@ -1255,7 +1273,8 @@ define([
           return field.nullable === false && field.editable === true;
         })), lang.hitch(this, function (f) {
           array.forEach(layerInfo.fieldInfos, function (finfo) {
-            if (finfo.fieldName === f.name) {
+            if (finfo.fieldName === f.name &&
+              finfo.label.indexOf('<a class="asteriskIndicator">') < 0) {
               this._gdbRequired.push(finfo.label);
               finfo.label = finfo.label +
                 '<a class="asteriskIndicator"> *</a>';
@@ -1265,7 +1284,9 @@ define([
         }));
         // add the type for layer use, by the way
         array.forEach(layerInfo.fieldInfos, function (finfo) {
-          if (finfo.isEditable === false || finfo.isEditableSettingInWebmap === false) {
+          if ((finfo.isEditable === false ||
+              finfo.isEditableSettingInWebmap === false) &&
+              this._configNotEditable.indexOf(finfo.label) < 0) {
             this._configNotEditable.push(finfo.label);
           }
 
@@ -1860,20 +1881,7 @@ define([
         // hide the attr inspector and show the main template picker div
         query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
         query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "block";
-
-        if (this._creationDisabledOnAll) {
-          dojo.style(this.templatePicker.domNode, "display", "none");
-
-
-        } else {
-          //
-          dojo.style(this.templatePicker.domNode, "display", "block");
-
-        }
-
         this.templatePicker.clearSelection();
-
-        // reset
         this._resetEditingVariables();
 
         if (this.currentFeature && this.currentFeature.getLayer()) {
@@ -1888,10 +1896,22 @@ define([
         this.currentFeature = null;
         this.currentLayerInfo = null;
         this.updateFeatures = [];
+        if (this._recreateOnNextShow == true) {
+          this._recreateOnNextShow = false;
+          this._createEditor();
+        }
+        if (this._creationDisabledOnAll) {
+          dojo.style(this.templatePicker.domNode, "display", "none");
 
+
+        } else {
+          //
+          dojo.style(this.templatePicker.domNode, "display", "block");
+
+        }
 
         this._activateTemplateToolbar();
-        this.templatePicker.update();
+        //this.templatePicker.update();
       },
 
       _setPresetValue: function () {

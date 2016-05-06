@@ -24,7 +24,9 @@ define({
         allowUpdateOnly: "Update Only",
         allowUpdateOnlyTip: "Option to allow only the modication of existing feature, checked on my default and disabled if the layer does not support creating new features",
         fields: "Fields",
-        fieldsTip: "Modify the fields to be edited and define Smart Attributes"
+        fieldsTip: "Modify the fields to be edited and define Smart Attributes",
+        description: "Description",
+        descriptionTip:"Optionally enter text you want to display on top of the attribute page."
       }
     },
     editDescriptionPage: {

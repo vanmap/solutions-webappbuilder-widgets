@@ -162,7 +162,6 @@ define([
         this.editToolbar = new Edit(this.map);
 
         this.drawToolbar = new Draw(this.map);
-
         // edit events
         this.own(on(this.editToolbar,
           "graphic-move-stop, rotate-stop, scale-stop, vertex-move-stop, vertex-click",
@@ -702,61 +701,67 @@ define([
 
       },
       _activateTemplateToolbar: function () {
-        var selectedTemplate = this.templatePicker.getSelected();
-        if (selectedTemplate && selectedTemplate !== null) {
+        if (this.templatePicker) {
+          var selectedTemplate = this.templatePicker.getSelected();
+          if (selectedTemplate && selectedTemplate !== null) {
 
-          switch (selectedTemplate.template.drawingTool) {
-            case "esriFeatureEditToolNone":
-              switch (selectedTemplate.featureLayer.geometryType) {
-                case "esriGeometryPoint":
-                  this.drawToolbar.activate(Draw.POINT);
-                  break;
-                case "esriGeometryPolyline":
+            switch (selectedTemplate.template.drawingTool) {
+              case "esriFeatureEditToolNone":
+                switch (selectedTemplate.featureLayer.geometryType) {
+                  case "esriGeometryPoint":
+                    this.drawToolbar.activate(Draw.POINT);
+                    break;
+                  case "esriGeometryPolyline":
 
-                  this.drawToolbar.activate(Draw.POLYLINE);
-                  break;
-                case "esriGeometryPolygon":
-                  this.drawToolbar.activate(Draw.POLYGON);
-                  break;
-              }
-              break;
-            case "esriFeatureEditToolPoint":
-              this.drawToolbar.activate(Draw.POINT);
-              break;
-            case "esriFeatureEditToolLine":
-              this.drawToolbar.activate(Draw.POLYLINE);
-              break;
-            case "esriFeatureEditToolAutoCompletePolygon":
-            case "esriFeatureEditToolPolygon":
-              this.drawToolbar.activate(Draw.POLYGON);
-              break;
-            case "esriFeatureEditToolCircle":
-              this.drawToolbar.activate(Draw.CIRCLE);
-              break;
-            case "esriFeatureEditToolEllipse":
-              this.drawToolbar.activate(Draw.ELLIPSE);
-              break;
-            case "esriFeatureEditToolRectangle":
-              this.drawToolbar.activate(Draw.RECTANGLE);
-              break;
-            case "esriFeatureEditToolFreehand":
-              switch (selectedTemplate.featureLayer.geometryType) {
-                case "esriGeometryPoint":
-                  this.drawToolbar.activate(Draw.POINT);
-                  break;
-                case "esriGeometryPolyline":
-                  this.drawToolbar.activate(Draw.FREEHAND_POLYLINE);
-                  break;
-                case "esriGeometryPolygon":
-                  this.drawToolbar.activate(Draw.FREEHAND_POLYGON);
-                  break;
-              }
-              break;
+                    this.drawToolbar.activate(Draw.POLYLINE);
+                    break;
+                  case "esriGeometryPolygon":
+                    this.drawToolbar.activate(Draw.POLYGON);
+                    break;
+                }
+                break;
+              case "esriFeatureEditToolPoint":
+                this.drawToolbar.activate(Draw.POINT);
+                break;
+              case "esriFeatureEditToolLine":
+                this.drawToolbar.activate(Draw.POLYLINE);
+                break;
+              case "esriFeatureEditToolAutoCompletePolygon":
+              case "esriFeatureEditToolPolygon":
+                this.drawToolbar.activate(Draw.POLYGON);
+                break;
+              case "esriFeatureEditToolCircle":
+                this.drawToolbar.activate(Draw.CIRCLE);
+                break;
+              case "esriFeatureEditToolEllipse":
+                this.drawToolbar.activate(Draw.ELLIPSE);
+                break;
+              case "esriFeatureEditToolRectangle":
+                this.drawToolbar.activate(Draw.RECTANGLE);
+                break;
+              case "esriFeatureEditToolFreehand":
+                switch (selectedTemplate.featureLayer.geometryType) {
+                  case "esriGeometryPoint":
+                    this.drawToolbar.activate(Draw.POINT);
+                    break;
+                  case "esriGeometryPolyline":
+                    this.drawToolbar.activate(Draw.FREEHAND_POLYLINE);
+                    break;
+                  case "esriGeometryPolygon":
+                    this.drawToolbar.activate(Draw.FREEHAND_POLYGON);
+                    break;
+                }
+                break;
+            }
+
           }
 
-        }
+          else if (this.drawToolbar) {
 
-        else {
+            this.drawToolbar.deactivate();
+          }
+        }
+        else if (this.drawToolbar) {
 
           this.drawToolbar.deactivate();
         }
@@ -1391,12 +1396,17 @@ define([
       },
 
       _onMapClick: function (evt) {
-        if (this._byPass === true) {
+        if (this._byPass && this._byPass === true) {
           this._byPass = false;
           return;
         }
-        if (!this._attrInspIsCurrentlyDisplayed && evt.graphic &&
-          this.templatePicker && !this.templatePicker.getSelected()) {
+        var hasTemplate = false;
+        if (this.templatePicker) {
+          hasTemplate = this.templatePicker.getSelected() ? true : false;
+        }
+        if (!this._attrInspIsCurrentlyDisplayed &&
+          evt.graphic &&
+          hasTemplate === false) {
           this._processOnMapClick(evt);
         }
       },
@@ -1945,18 +1955,20 @@ define([
         // hide the attr inspector and show the main template picker div
         query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
         query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "block";
-        this.templatePicker.clearSelection();
+        if (this.templatePicker) {
+          this.templatePicker.clearSelection();
+        }
         this._resetEditingVariables();
 
         if (this.currentFeature && this.currentFeature.getLayer()) {
           this.currentFeature.getLayer().clearSelection().refresh();
           this.currentFeature.getLayer().clear();
         }
-
-        array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
-          feature.getLayer().clearSelection().refresh();
-        }));
-
+        if (this.updateFeatures) {
+          array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
+            feature.getLayer().clearSelection().refresh();
+          }));
+        }
         this.currentFeature = null;
         this.currentLayerInfo = null;
         this.updateFeatures = [];

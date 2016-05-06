@@ -297,3 +297,7 @@
     margin-top: 2px;
     color: red;
 }
+
+.jimu-widget-smartEditor .presetFieldsTableDiv {
+    display:none;
+}

@@ -24,7 +24,9 @@ define({
         allowUpdateOnly: "Update Only",
         allowUpdateOnlyTip: "Option to allow only the modication of existing feature, checked on my default and disabled if the layer does not support creating new features",
         fields: "Fields",
-        fieldsTip: "Modify the fields to be edited and define Smart Attributes"
+        fieldsTip: "Modify the fields to be edited and define Smart Attributes",
+        description: "Description",
+        descriptionTip:"Optionally enter text you want to display on top of the attribute page."
       }
     },
     editDescriptionPage: {
@@ -43,7 +45,8 @@ define({
         canPresetValueTip: "Option to show the field in the preset field list, allow the user to set the value prior to editing",
         actions: "Actions",
         actionsTip: "Change the order of the fields or set up Smart Attributes",
-      }
+      },
+      smartAttSupport: "Smart Attributes not supported on required database fields"
     },
     actionPage: {
       title: "Configure the Smart Attribute actions for <b>${fieldname}</b>",
@@ -63,34 +66,5 @@ define({
       noFilterTip: "Using the tools below, define the statement for when the action is active.",
 
     }
-  }),
-  "ar": 1,
-  "cs": 1,
-  "da": 1,
-  "de": 1,
-  "el": 1,
-  "es": 1,
-  "et": 1,
-  "fi": 1,
-  "fr": 1,
-  "he": 1,
-  "it": 1,
-  "ja": 1,
-  "ko": 1,
-  "lt": 1,
-  "lv": 1,
-  "nb": 1,
-  "nl": 1,
-  "pl": 1,
-  "pt-br": 1,
-  "pt-pt": 1,
-  "ro": 1,
-  "ru": 1,
-  "sv": 1,
-  "th": 1,
-  "tr": 1,
-  "vi": 1,
-  "zh-cn": 1,
-  "zh-hk": 1,
-  "zh-tw": 1
+  })
 });

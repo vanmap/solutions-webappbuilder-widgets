@@ -58,7 +58,9 @@ define([
     "jimu/dijit/Popup",
     "./AttachmentUploader",
     "esri/lang",
-     "dojox/html/entities"
+    "dojox/html/entities",
+    'jimu/utils',
+    'jimu/dijit/LoadingShelter'
 ],
   function (
     dojo,
@@ -104,7 +106,8 @@ define([
     Popup,
     AttachmentUploader,
     esriLang,
-    entities) {
+    entities,
+    utils, LoadingShelter) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
       name: 'SmartEditor',
       baseClass: 'jimu-widget-smartEditor',
@@ -113,7 +116,7 @@ define([
       _jimuLayerInfos: null,
       _configEditor: null,
       _mapClick: null,
-      _presetFieldsTable: null,
+
       settings: null,
       templatePicker: null,
       attrInspector: null,
@@ -134,10 +137,13 @@ define([
       postCreate: function () {
         this.inherited(arguments);
         this._init();
+        this._setTheme();
       },
 
       startup: function () {
         this.inherited(arguments);
+        this._gdbRequired = [];
+        this._configNotEditable = [];
         if (this.config.editor.editDescription === undefined || this.config.editor.editDescription === null) {
           this.config.editor.editDescription = '';
           this.templateTitle.innerHTML = this.config.editor.editDescription;
@@ -146,13 +152,43 @@ define([
         else {
           this.templateTitle.innerHTML = entities.decode(this.config.editor.editDescription);
         }
-
+        this._orignls = esriBundle.widgets.attachmentEditor.NLS_attachments;
         //this.nls = lang.mixin(this.nls, window.jimuNls.common);
-        LayerInfos.getInstance(this.map, this.map.itemInfo)
-        .then(lang.hitch(this, function (operLayerInfos) {
-          this._jimuLayerInfos = operLayerInfos;
-          this._createEditor();
-        }));
+        this.loading = new LoadingShelter({
+          hidden: true
+        });
+        this.loading.placeAt(this.domNode);
+
+        this.editToolbar = new Edit(this.map);
+
+        this.drawToolbar = new Draw(this.map);
+
+        // edit events
+        this.own(on(this.editToolbar,
+          "graphic-move-stop, rotate-stop, scale-stop, vertex-move-stop, vertex-click",
+          lang.hitch(this, function () {
+
+            this._enableAttrInspectorSaveButton(this._validateAttributes());
+            //this._enableAttrInspectorSaveButton(true);
+            this._isDirty = true;
+          })));
+
+        // draw event
+        this.own(on(this.drawToolbar, "draw-end", lang.hitch(this, function (evt) {
+          this.drawToolbar.deactivate();
+          this._isDirty = true; //?
+          this._addGraphicToLocalLayer(evt);
+        })));
+
+      },
+      /*jshint unused:true */
+      _setTheme: function () {
+        //if (this.appConfig.theme.name === "BoxTheme" ||
+        //    this.appConfig.theme.name === "DartTheme" ||
+        //    this.appConfig.theme.name === "LaunchpadTheme") {
+        if (this.appConfig.theme.name === "DartTheme") {
+          utils.loadStyleLink('dartOverrideCSS', this.folderUrl + "/css/dartTheme.css", null);
+        }
       },
       _mapClickHandler: function (create) {
 
@@ -190,11 +226,6 @@ define([
           this.templatePicker.destroy();
         }
         this.templatePicker = null;
-
-        if (this._presetFieldsTable) {
-          this._presetFieldsTable.destroy();
-        }
-        this._presetFieldsTable = null;
       },
 
       _init: function () {
@@ -205,6 +236,9 @@ define([
       onActive: function () {
         if (this.map) {
           this._mapClickHandler(true);
+          //if (this.templatePicker && this.templatePicker !== null) {
+          //  this.templatePicker.update();
+          //}
         }
 
       },
@@ -216,8 +250,35 @@ define([
       },
 
       onOpen: function () {
+
+        LayerInfos.getInstance(this.map, this.map.itemInfo)
+       .then(lang.hitch(this, function (operLayerInfos) {
+         var timeoutValue;
+         if (this.appConfig.theme.name === "BoxTheme") {
+           timeoutValue = 1050;
+           this.loading.show();
+         } else {
+           timeoutValue = 1;
+         }
+         setTimeout(lang.hitch(this, function () {
+           if (!this.loading.hidden) {
+             this.loading.hide();
+           }
+           this._jimuLayerInfos = operLayerInfos;
+           this.settings = this._getSettingsParam();
+
+           this._workBeforeCreate();
+           this._createEditor();
+           this.widgetManager.activateWidget(this);
+
+
+         }), timeoutValue);
+       }));
         this._update();
         if (this.map) {
+          //if (this.templatePicker && this.templatePicker !== null) {
+          //  this.templatePicker.update();
+          //}
           this._mapClickHandler(true);
         }
       },
@@ -245,18 +306,9 @@ define([
         if (!this.templatePicker.getSelected()) { return; }
         var selectedTemp = this.templatePicker.getSelected();
 
-        var newAttributes = lang.clone(selectedTemp.template.prototype.attributes);
-        if (this._usePresetValues) {
-          this._modifyAttributesWithPresetValues(newAttributes);
-        }
-
-        var newGraphic = new Graphic(evt.geometry, null, newAttributes);
-
-        // store original attrs for later use
-        newGraphic.preEditAttrs = JSON.parse(JSON.stringify(newGraphic.attributes));
-
         var myLayer;
-
+        var newTempLayerInfos;
+        var localLayerInfo = null;
         if (this._newAttrInspectorNeeded()) {
           // remove the previous local layer
           this._removeLocalLayers();
@@ -265,15 +317,27 @@ define([
           myLayer = this._cloneLayer(this.templatePicker.getSelected().featureLayer);
           myLayer.setSelectionSymbol(this._getSelectionSymbol(myLayer.geometryType, true));
 
-          var localLayerInfo = this._getLayerInfoForLocalLayer(myLayer);
+          localLayerInfo = this._getLayerInfoForLocalLayer(myLayer);
 
-          var newTempLayerInfos = this._converConfiguredLayerInfos([localLayerInfo]);
+          newTempLayerInfos = this._converConfiguredLayerInfos([localLayerInfo]);
 
           this.attrInspector = this._createAttributeInspector(newTempLayerInfos);
         } else {
+
           myLayer = this.attrInspector.layerInfos[0].featureLayer;
+          localLayerInfo = this._getLayerInfoForLocalLayer(myLayer);
+          newTempLayerInfos = this.attrInspector.layerInfos;
+
+        }
+        var newAttributes = lang.clone(selectedTemp.template.prototype.attributes);
+        if (this._usePresetValues) {
+          this._modifyAttributesWithPresetValues(newAttributes, newTempLayerInfos[0]);
         }
 
+        var newGraphic = new Graphic(evt.geometry, null, newAttributes);
+
+        // store original attrs for later use
+        newGraphic.preEditAttrs = JSON.parse(JSON.stringify(newGraphic.attributes));
         myLayer.applyEdits([newGraphic], null, null, lang.hitch(this, function (e) {
           this._isDirty = true;
           var query = new Query();
@@ -290,7 +354,7 @@ define([
           this._enableAttrInspectorSaveButton(this._validateAttributes());
         }));
 
-        this._showTemplate(false);
+        this._showTemplate(false, false);
       },
 
       // cancel editing of the current feature
@@ -299,7 +363,7 @@ define([
 
         if (showTemplatePicker) {
 
-          this._showTemplate(true);
+          this._showTemplate(true, false);
         } else { // show attr inspector
 
           // restore attributes & geometry
@@ -462,8 +526,28 @@ define([
           this._postFeatureSave(evt);
 
         }
-      },
+        if (this.editDescription.style.display === "block") {
+          if (this.updateFeatures.length > 1) {
+            dojo.style(this.editDescription, "padding-top", "20px");
+          } else {
+            dojo.style(this.editDescription, "padding-top", "0");
+          }
+        } else {
+          if (this.updateFeatures.length > 1) {
+            dojo.style(query(".attributeInspectorDiv")[0], "padding-top", "20px");
+          } else {
+            dojo.style(query(".attributeInspectorDiv")[0], "padding-top", "8px");
+          }
 
+        }
+        //editDescription
+      },
+      //_sytleFields: function (attrInspector) {
+      //query("td.atiLabel", attrInspector.domNode).style({
+      //  "color": "#FFFF00"
+      //});
+
+      //},
       _createAttributeInspector: function (layerInfos) {
 
         var attrInspector = new AttributeInspector({
@@ -476,10 +560,7 @@ define([
         }));
         attrInspector.placeAt(this.attributeInspectorNode);
         attrInspector.startup();
-
-
-        //domConstruct.place(domConstruct.create("div", { "class": "spacer" }),
-        // attrInspector.deleteBtn.domNode, "before");
+        domConstruct.place(attrInspector.navMessage, attrInspector.nextFeatureButton.domNode, "before");
 
         this.editSwitchDiv = domConstruct.create("div");
         this.editSwitchDiv.appendChild(domConstruct.create("div", { "class": "spacer" }));
@@ -511,7 +592,7 @@ define([
           innerHTML: this.nls.save,
           "class": "saveButton jimu-btn jimu-state-disabled"
         }, cancelButton, "after");
-        var processInd = domConstruct.create("div", {
+        domConstruct.create("div", {
           "class": "processing-indicator"
         }, saveButton, "before");
 
@@ -583,7 +664,15 @@ define([
         this.own(on(attrInspector, "next", lang.hitch(this, function (evt) {
 
           this._attributeInspectorChangeRecord(evt);
+          if (query(".attwarning").length === 0) {
+            var txt = domConstruct.create("div", { 'class': 'attwarning' });
+            txt.innerHTML = this.nls.attachmentSaveDeleteWarning;
+            if (this.attrInspector._attachmentEditor !== undefined &&
+               this.attrInspector._attachmentEditor !== null) {
+              this.attrInspector._attachmentEditor.domNode.appendChild(txt);
+            }
 
+          }
         })));
         if (this._attachmentUploader && this._attachmentUploader !== null) {
           this._attachmentUploader.destroy();
@@ -613,21 +702,58 @@ define([
 
       },
       _activateTemplateToolbar: function () {
+        var selectedTemplate = this.templatePicker.getSelected();
+        if (selectedTemplate && selectedTemplate !== null) {
 
-        if (this.templatePicker.getSelected()) {
+          switch (selectedTemplate.template.drawingTool) {
+            case "esriFeatureEditToolNone":
+              switch (selectedTemplate.featureLayer.geometryType) {
+                case "esriGeometryPoint":
+                  this.drawToolbar.activate(Draw.POINT);
+                  break;
+                case "esriGeometryPolyline":
 
-          //domClass.add(this.selectedTemplate, "selectedItem");
-          switch (this.templatePicker.getSelected().featureLayer.geometryType) {
-            case "esriGeometryPoint":
+                  this.drawToolbar.activate(Draw.POLYLINE);
+                  break;
+                case "esriGeometryPolygon":
+                  this.drawToolbar.activate(Draw.POLYGON);
+                  break;
+              }
+              break;
+            case "esriFeatureEditToolPoint":
               this.drawToolbar.activate(Draw.POINT);
               break;
-            case "esriGeometryPolyline":
+            case "esriFeatureEditToolLine":
               this.drawToolbar.activate(Draw.POLYLINE);
               break;
-            case "esriGeometryPolygon":
+            case "esriFeatureEditToolAutoCompletePolygon":
+            case "esriFeatureEditToolPolygon":
               this.drawToolbar.activate(Draw.POLYGON);
               break;
+            case "esriFeatureEditToolCircle":
+              this.drawToolbar.activate(Draw.CIRCLE);
+              break;
+            case "esriFeatureEditToolEllipse":
+              this.drawToolbar.activate(Draw.ELLIPSE);
+              break;
+            case "esriFeatureEditToolRectangle":
+              this.drawToolbar.activate(Draw.RECTANGLE);
+              break;
+            case "esriFeatureEditToolFreehand":
+              switch (selectedTemplate.featureLayer.geometryType) {
+                case "esriGeometryPoint":
+                  this.drawToolbar.activate(Draw.POINT);
+                  break;
+                case "esriGeometryPolyline":
+                  this.drawToolbar.activate(Draw.FREEHAND_POLYLINE);
+                  break;
+                case "esriGeometryPolygon":
+                  this.drawToolbar.activate(Draw.FREEHAND_POLYGON);
+                  break;
+              }
+              break;
           }
+
         }
 
         else {
@@ -635,52 +761,81 @@ define([
           this.drawToolbar.deactivate();
         }
       },
-
+      _templatePickerNeedsToBeCreated: function (layers) {
+        if (this.templatePicker === undefined || this.templatePicker === null) {
+          return true;
+        }
+        if (this.templatePicker.featureLayers.length !== layers.length) {
+          return true;
+        }
+        var recreate = array.some(layers, function (layer) {
+          var layerMatches = array.some(this.templatePicker.featureLayers, function (tpLayer) {
+            return tpLayer.id === layer.id;
+          });
+          if (layerMatches === false) {
+            return true;
+          }
+          return false;
+        }, this);
+        return recreate;
+      },
       _createEditor: function () {
-        this.settings = this._getSettingsParam();
-
         var layers = this._getEditableLayers(this.settings.layerInfos, false);
+        if (layers.length < 1) {
+          this._creationDisabledOnAll = true;
+        }
+        else if (this._templatePickerNeedsToBeCreated(layers)) {
 
-        this._workBeforeCreate();
+          if (this._attrInspIsCurrentlyDisplayed && this._attrInspIsCurrentlyDisplayed === true) {
+            this._recreateOnNextShow = true;
+            return;
 
-        this.editToolbar = new Edit(this.map);
+          }
 
+          if (this.templatePicker &&
+            this.templatePicker !== null) {
 
-        //create template picker
-        this.templatePicker = new TemplatePicker({
-          featureLayers: layers,
-          'class': 'esriTemplatePicker',
-          grouping: true,
-          maxLabelLength: "25",
-          showTooltip: false,
-          columns: "auto",
-          rows: "auto"
-        }, this.templatePickerNode);
-        this.templatePicker.startup();
+            this._select_change_event.remove();
+            this.templatePicker.destroy();
+            this._resetEditingVariables();
+            if (this.drawToolbar) {
+              this.drawToolbar.deactivate();
+            }
+          }
+          else {
+            this._createPresetTable(layers);
 
-        this.drawToolbar = new Draw(this.map);
+          }
 
-        // wire up events
-        this.own(on(this.templatePicker, "selection-change",
-          lang.hitch(this, this._activateTemplateToolbar)));
+          //create template picker
+          this.templatePickerNode = domConstruct.create("div",
+            { 'class': "eeTemplatePicker" }
+            );
 
-        // edit events
-        this.own(on(this.editToolbar,
-          "graphic-move-stop, rotate-stop, scale-stop, vertex-move-stop, vertex-click",
-          lang.hitch(this, function () {
+          this.templatePickerDiv.appendChild(this.templatePickerNode);
+          this.templatePicker = new TemplatePicker({
+            featureLayers: layers,
+            'class': 'esriTemplatePicker',
+            grouping: true,
+            maxLabelLength: "25",
+            showTooltip: false,
+            columns: "auto",
+            rows: "auto"
+          }, this.templatePickerNode);
+          this.templatePicker.startup();
+          //this.templatePickerNode.appendChild(this.templatePicker.domNode);
 
-            this._enableAttrInspectorSaveButton(this._validateAttributes());
-            //this._enableAttrInspectorSaveButton(true);
-            this._isDirty = true;
-          })));
+          // wire up events
+          this._select_change_event = on(this.templatePicker, "selection-change",
+            lang.hitch(this, this._activateTemplateToolbar));
+          this.own(this._select_change_event);
 
-        // draw event
-        this.own(on(this.drawToolbar, "draw-end", lang.hitch(this, function (evt) {
-          this.drawToolbar.deactivate();
-          this._isDirty = true; //?
-          this._addGraphicToLocalLayer(evt);
-        })));
-
+          if (layers.length < 1) {
+            this._creationDisabledOnAll = true;
+          }
+        }
+      },
+      _createPresetTable: function (layers) {
         // set preset values table
         if (layers.length > 0 && this._hasPresetValueFields()) {
           this._initPresetFieldsTable();
@@ -690,13 +845,8 @@ define([
           query(".presetFieldsTableDiv")[0].style.display = "none";
         }
 
-        if (layers.length < 1) {
-          this._creationDisabledOnAll = true;
-        }
 
-        this._showTemplate(true);
       },
-
       _createPresetFieldContentNode: function (fieldInfo) {
         var nodes = [];
         var node;
@@ -732,23 +882,30 @@ define([
 
           }
 
-          nodes.push(node.domNode);
+          nodes.push(node);
 
         } else {
           switch (fieldInfo.type) {
             case "esriFieldTypeDate":
               node = new DateTextBox({
                 "class": "ee-inputField",
+
                 name: fieldInfo.fieldName
               }, domConstruct.create("div"));
+              //value: new Date(),
+              nodes.push(node);
 
-              nodes.push(node.domNode);
+              if (fieldInfo.format) {
+                if (fieldInfo.format.time && fieldInfo.format.time === true) {
+                  var timeNode = new TimeTextBox({
+                    "class": "ee-inputField",
+                    "style": "margin-top:2px;"
 
-              //
-              var timeNode = new TimeTextBox({
-                "class": "ee-inputField"
-              }, domConstruct.create("div"));
-              nodes.push(timeNode.domNode);
+                  }, domConstruct.create("div"));
+                  nodes.push(timeNode);
+                  //value: new Date()
+                }
+              }
 
               break;
             case "esriFieldTypeString":
@@ -757,7 +914,7 @@ define([
                 name: fieldInfo.fieldName
               }, domConstruct.create("div"));
 
-              nodes.push(node.domNode);
+              nodes.push(node);
 
               break;
               // todo: check for more types
@@ -770,7 +927,7 @@ define([
                 name: fieldInfo.fieldName
               }, domConstruct.create("div"));
 
-              nodes.push(node.domNode);
+              nodes.push(node);
 
               break;
             default:
@@ -780,15 +937,18 @@ define([
                 value: "N/A",
                 readOnly: true
               }, domConstruct.create("div"));
-
-              nodes.push(node.domNode);
-
+              nodes.push(node);
               break;
           }
         }
+        array.forEach(nodes, function (node) {
+          this.own(on(node, 'change', lang.hitch(this, this._presetChange)));
+        }, this);
         return nodes;
       },
-
+      _presetChange: function () {
+        this._toggleUsePresetValues(true);
+      },
       _deleteFeature: function () {
         if (!this.currentFeature) { return; }
 
@@ -928,6 +1088,9 @@ define([
                       });
                       break;
                     }
+                    else {
+                      presetFieldInfos[i].format = fieldInfo.format;
+                    }
                   } //
                 }
 
@@ -945,55 +1108,51 @@ define([
             }, this);
           }
         });
-
+        var presetValueTable = query("#eePresetValueBody")[0];
         // fill the table
         array.forEach(presetFieldInfos, lang.hitch(this, function (presetFieldInfo) {
           var row = domConstruct.create("tr");
+          var label = domConstruct.create("td", { "class": "ee-atiLabel" });
+          label.innerHTML = lang.replace('{fieldAlias}',
+            {
+              fieldAlias: presetFieldInfo.label
+            });
 
-          domConstruct.place(lang.replace(
-            "<td class='atiLabel'>{fieldAlias}</td>",
-            { fieldAlias: presetFieldInfo.label }), row);
+          domConstruct.place(label, row);
 
           var valueColumnNode = domConstruct.create("td",
             { "class": "preset-value-editable" }, row);
 
           var presetValueNodes = this._createPresetFieldContentNode(presetFieldInfo);
-
+          var dateWidget = null;
+          var timeWidget = null;
           array.forEach(presetValueNodes, function (presetValueNode) {
-            domConstruct.place(presetValueNode, valueColumnNode, "last");
-          });
-
-          query("#eePresetValueBody")[0].appendChild(row);
+            if (presetValueNode.declaredClass === "dijit.form.DateTextBox") {
+              dateWidget = presetValueNode;
+            }
+            if (presetValueNode.declaredClass === "dijit.form.TimeTextBox") {
+              timeWidget = presetValueNode;
+            }
+            domConstruct.place(presetValueNode.domNode, valueColumnNode, "last");
+          }, this);
+          if (dateWidget !== null) {
+            this.own(on(label, 'click', lang.hitch(this, this._dateClick(dateWidget, timeWidget))));
+          }
+          presetValueTable.appendChild(row);
         }));
       },
 
-      //_formatErrorFields: function (errObject) {
-      //  var list = this.attrInspector.attributeTable.getElementsByTagName("tr");
-      //  var firstErrorFieldIndex = -1;
-      //  for (var prop in errObject) {
-      //    if (errObject.hasOwnProperty(prop)) {
-      //      // loop throug each row in the attrInspector
-      //      for (var i = 0; i < list.length; i++) {
-      //        //if (list[i].firstChild.innerText.toUpperCase() === prop.toUpperCase()) {
-      //        if (list[i].firstChild.innerText.indexOf(prop) === 0) {
-      //          list[i].lastChild.getElementsByClassName("dijitReset dijitInputInner")[0].focus();
-      //          // store for later use
-      //          if (firstErrorFieldIndex === -1) {
-      //            firstErrorFieldIndex = i;
-      //          }
-      //          break;
-      //        }
-      //      }
-      //    }
-      //  }
-      //  if (Object.keys(errObject).length > 1) {
-      //    list[firstErrorFieldIndex].lastChild
-      //      .getElementsByClassName("dijitReset dijitInputInner")[0].focus();
-      //  } else {
-      //    list[0].lastChild.getElementsByClassName("dijitReset dijitInputInner")[0].focus();
-      //  }
-      //},
+      _dateClick: function (dateWidget, timeWidget) {
+        return function () {
+          if (dateWidget !== undefined && dateWidget !== null) {
+            dateWidget.set('value', new Date());
+          }
+          if (timeWidget !== undefined && timeWidget !== null) {
+            timeWidget.set('value', new Date());
+          }
+        };
 
+      },
       _getEditableLayers: function (layerInfos, allLayers) {
         var layers = [];
         array.forEach(layerInfos, function (layerInfo) {
@@ -1079,9 +1238,14 @@ define([
       _hasPresetValueFields: function () {
         return this.settings.layerInfos.some(function (layerInfo) {
           if (layerInfo.allowUpdateOnly === false) {
-            return layerInfo.fieldInfos.some(function (fi) {
-              return fi.canPresetValue === true;
-            });
+            if (layerInfo.fieldInfos) {
+              return layerInfo.fieldInfos.some(function (fi) {
+                return fi.canPresetValue === true;
+              });
+            }
+            else {
+              return false;
+            }
           }
           else {
             return false;
@@ -1091,28 +1255,10 @@ define([
       },
 
       _initPresetFieldsTable: function () {
-        var presetValueTableNode = domConstruct.create("div", { "class": "ee-presetValueTableDiv" },
+        var presetValueTableNode = domConstruct.create("div", { "class": "ee-presetValueTableDiv templatePicker" },
           this.presetFieldsTableNode);
 
-        var headerDiv = domConstruct.create("div", { "class": "headerDiv" }, presetValueTableNode);
         var bodyDiv = domConstruct.create("div", { "class": "bodyDiv" }, presetValueTableNode);
-
-        var headerTable = domConstruct.create("table",
-          { "class": "ee-presetValueHeaderTable" }, headerDiv, "first");
-
-        var header = domConstruct.create("thead", { "class": "ee-presetValueHeader" },
-          headerTable, "first");
-
-        var headerRow = domConstruct.place("<tr></tr>", header);
-
-        domConstruct.place(lang.replace(
-          "<th title='Field Alias' class='ee-presetValue-label-header-field'>{replace}</th>",
-          { replace: this.nls.presetFieldAlias }), headerRow);
-
-        domConstruct.place(lang.replace(
-          "<th title='Preset Value' class='ee-presetValue-value-header-field'>{replace}</th>",
-          { replace: this.nls.presetValue }), headerRow);
-
         var bodyTable = domConstruct.create("table",
           { "class": "ee-presetValueBodyTable" }, bodyDiv);
 
@@ -1120,9 +1266,15 @@ define([
           bodyTable, "first");
       },
 
-      _modifyAttributesWithPresetValues: function (attributes) {
+      _modifyAttributesWithPresetValues: function (attributes, newTempLayerInfos) {
         var presetValueTable = query("#eePresetValueBody")[0];
+        var presetFieldInfos = array.filter(newTempLayerInfos.fieldInfos, function (fieldInfo) {
+          return (fieldInfo.canPresetValue === true);
 
+        });
+        var presetFields = array.map(presetFieldInfos, function (presetFieldInfo) {
+          return presetFieldInfo.fieldName;
+        });
         if (presetValueTable) {
           var inputElements = query(".preset-value-editable .ee-inputField");
           array.forEach(inputElements, lang.hitch(this, function (ele) {
@@ -1142,15 +1294,23 @@ define([
                 // get the sibling time component node
                 var timeElement = query(".dijitTimeTextBox", ele.parentNode)[0];
                 // retrieve the value
-                var timeStr = query("input[type='hidden']", timeElement)[0].value;
-                dateTime = dojoStamp.fromISOString(
-                  element[0].value + timeStr);
+                if (timeElement !== undefined && timeElement !== null) {
+                  var timeStr = query("input[type='hidden']", timeElement)[0].value;
+                  dateTime = dojoStamp.fromISOString(
+                    element[0].value + timeStr);
+                } else {
+                  dateTime = dojoStamp.fromISOString(
+                   element[0].value);
+
+                }
               }
 
               // set the attribute value
               if (element[0].value) {
                 for (var attribute in attributes) {
-                  if (attributes.hasOwnProperty(attribute) && attribute === element[0].name) {
+                  if (attributes.hasOwnProperty(attribute) &&
+                    attribute === element[0].name &&
+                    presetFields.indexOf(element[0].name) >= 0) {
                     if (isDateTime) {
                       attributes[attribute] = dateTime;
                     } else {
@@ -1168,8 +1328,7 @@ define([
       // to add (*) to the label of required fields
       // also add field type and domain to use in the preset values
       _modifyFieldInfosForEE: function (layerInfo) {
-        this._gdbRequired = [];
-        this._configNotEditable = [];
+
         if (!layerInfo) { return; }
         //layerInfo = lang.clone(layerInfo);
         var layerObject = this.map.getLayer(layerInfo.featureLayer.id);
@@ -1177,7 +1336,8 @@ define([
           return field.nullable === false && field.editable === true;
         })), lang.hitch(this, function (f) {
           array.forEach(layerInfo.fieldInfos, function (finfo) {
-            if (finfo.fieldName === f.name) {
+            if (finfo.fieldName === f.name &&
+              finfo.label.indexOf('<a class="asteriskIndicator">') < 0) {
               this._gdbRequired.push(finfo.label);
               finfo.label = finfo.label +
                 '<a class="asteriskIndicator"> *</a>';
@@ -1187,7 +1347,9 @@ define([
         }));
         // add the type for layer use, by the way
         array.forEach(layerInfo.fieldInfos, function (finfo) {
-          if (finfo.isEditable === false || finfo.isEditableSettingInWebmap === false) {
+          if ((finfo.isEditable === false ||
+              finfo.isEditableSettingInWebmap === false) &&
+              this._configNotEditable.indexOf(finfo.label) < 0) {
             this._configNotEditable.push(finfo.label);
           }
 
@@ -1233,13 +1395,6 @@ define([
           this._byPass = false;
           return;
         }
-        var loc = null;
-        //if (evt.graphic !== undefined){
-        //  loc =evt.graphic;
-        //}
-        //else if (evt.mapPoint) {
-        //  loc = evt.mapPoint;
-        //}
         if (!this._attrInspIsCurrentlyDisplayed && evt.graphic &&
           this.templatePicker && !this.templatePicker.getSelected()) {
           this._processOnMapClick(evt);
@@ -1454,15 +1609,12 @@ define([
           all(deferreds).then(lang.hitch(this, function () {
             this.updateFeatures = updateFeatures;
             if (this.updateFeatures.length > 0) {
-              ;
               this._showTemplate(false);
-              //return;
             }
             else {
               this._byPass = true;
               this.map.popupManager._showPopup(evt);
             }
-            //this._showTemplate(false);
           }));
         }
       },
@@ -1485,6 +1637,7 @@ define([
           this._enableAttrInspectorSaveButton(false);
           this._toggleDeleteButton(this.currentLayerInfo.allowDelete);
           this._toggleEditGeoSwitch(this.currentLayerInfo.disableGeometryUpdate);
+          //this._sytleFields(this.attrInspector);
           this.currentFeature.setSymbol(
             this._getSelectionSymbol(evt.feature.getLayer().geometryType, true));
           if (this.currentLayerInfo.editDescription && this.currentLayerInfo.editDescription !== null) {
@@ -1572,26 +1725,6 @@ define([
           })
         });
 
-
-
-        //var deferred = new Deferred();
-        //var confirmDialog = new ConfirmDialog({
-        //  title: this.nls.savePromptTitle,
-        //  content: this.nls.savePrompt,
-        //  style: "width: 400px",
-        //  onExecute: lang.hitch(this, function () {
-        //    this._saveEdit(this.currentFeature, switchToTemplate).then(function () {
-        //      deferred.resolve();
-        //    });
-        //  }),
-        //  onCancel: lang.hitch(this, function () { // not saving
-        //    this._cancelEditingFeature(switchToTemplate);
-        //    deferred.resolve();
-        //  })
-        //});
-        //confirmDialog.show();
-
-        //return deferred.promise;
       },
 
       _removeLocalLayers: function () {
@@ -1599,10 +1732,10 @@ define([
         if (mymap) {
           var filteredID = mymap.graphicsLayerIds.filter(function (e) {
             return e.lastIndexOf("_lfl") > 0;
-          })
+          });
           var mappedArr = array.map(filteredID, function (e) {
             return mymap.getLayer(e);
-          })
+          });
           array.forEach(mappedArr, function (e) {
             mymap.removeLayer(e);
           });
@@ -1630,8 +1763,9 @@ define([
       _resetEditingVariables: function () {
         this._isDirty = false;
         this._editingEnabled = false;
-        this.editToolbar.deactivate();
-
+        if (this.editToolbar) {
+          this.editToolbar.deactivate();
+        }
         //this._turnEditGeometryToggleOff();
       },
 
@@ -1641,11 +1775,6 @@ define([
         var deferred = new Deferred();
         // disable the save button even if the saving is done
         this._enableAttrInspectorSaveButton(false);
-
-        //var errorObj = this._validateRequiredFields();
-
-        // all required fields are good, proceed with posting changes
-        //if (editUtils.isObjectEmpty(errorObj)) {
         if (this._validateAttributes()) {
           var processIndicators = query(".processing-indicator");
           var processIndicatorsPanel = query(".processing-indicator-panel");
@@ -1731,8 +1860,9 @@ define([
           this._mapClickHandler(true);
           this._showTemplatePicker();
 
-
+          // esriBundle.widgets.attachmentEditor.NLS_attachments = this._orignls;
         } else {
+          //esriBundle.widgets.attachmentEditor.NLS_attachments = this._orignls + " " + this.nls.attachmentSaveDeleteWarning;
           this._mapClickHandler(false);
           //show attribute inspector
           query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "none";
@@ -1747,6 +1877,7 @@ define([
               this.attrInspector.first();
             }
             this.attrInspector.refresh();
+            //this._sytleFields(this.attrInspector);
             if (this.currentFeature.getLayer().originalLayerId) {
               this._enableAttrInspectorSaveButton(this._validateAttributes());
             } else {
@@ -1762,6 +1893,7 @@ define([
             this._toggleEditGeoSwitch(this.currentLayerInfo.disableGeometryUpdate);
 
           }
+
         }
 
 
@@ -1813,20 +1945,7 @@ define([
         // hide the attr inspector and show the main template picker div
         query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "none";
         query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "block";
-
-        if (this._creationDisabledOnAll) {
-          dojo.style(this.templatePicker.domNode, "display", "none");
-
-
-        } else {
-          //
-          dojo.style(this.templatePicker.domNode, "display", "block");
-
-        }
-
         this.templatePicker.clearSelection();
-
-        // reset
         this._resetEditingVariables();
 
         if (this.currentFeature && this.currentFeature.getLayer()) {
@@ -1841,17 +1960,33 @@ define([
         this.currentFeature = null;
         this.currentLayerInfo = null;
         this.updateFeatures = [];
+        if (this._recreateOnNextShow === true) {
+          this._recreateOnNextShow = false;
+          this._createEditor();
+        }
+        if (this._creationDisabledOnAll) {
+          dojo.style(this.templatePicker.domNode, "display", "none");
 
+
+        } else {
+          //
+          dojo.style(this.templatePicker.domNode, "display", "block");
+
+        }
 
         this._activateTemplateToolbar();
-
+        //this.templatePicker.update();
       },
 
-      _toggleUsePresetValues: function () {
+      _setPresetValue: function () {
         var sw = registry.byId("savePresetValueSwitch");
         this._usePresetValues = sw.checked;
       },
-
+      _toggleUsePresetValues: function (checked) {
+        var sw = registry.byId("savePresetValueSwitch");
+        sw.set('checked', checked === null ? !sw.checked : checked);
+        this._usePresetValues = sw.checked;
+      },
       _turnEditGeometryToggleOff: function () {
 
         if (this._editGeomSwitch && this._editGeomSwitch.checked) {
@@ -1879,7 +2014,11 @@ define([
         array.forEach(filteredFields, lang.hitch(this, function (f) {
           if (this.currentFeature.attributes[f.name] === "undefined") {
             errorObj[f.alias] = "undefined";
-          } else {
+          }
+          else if (this.currentFeature.attributes[f.name] === null) {
+            errorObj[f.alias] = "null";
+          }
+          else {
             switch (f.type) {
               case "esriFieldTypeString":
                 if (this.currentFeature.attributes[f.name] === "" ||
@@ -2017,14 +2156,14 @@ define([
           if (webmapFieldInfos) {
             for (var i = 0; i < webmapFieldInfos.length; i++) {
               if (fieldInfo.fieldName === webmapFieldInfos[i].fieldName) {
-                webmapFieldInfos[i].label = fieldInfo.label;
+                webmapFieldInfos[i].label = fieldInfo.label === undefined ?
+                  webmapFieldInfos[i].label : fieldInfo.label;
                 webmapFieldInfos[i].isEditableSettingInWebmap = webmapFieldInfos[i].isEditable;
-                webmapFieldInfos[i].isEditable = fieldInfo.isEditable;
-                webmapFieldInfos[i].canPresetValue = fieldInfo.canPresetValue;
+                webmapFieldInfos[i].isEditable = fieldInfo.isEditablelabel === undefined ?
+                  webmapFieldInfos[i].isEditable : fieldInfo.isEditable;
+                webmapFieldInfos[i].canPresetValue = fieldInfo.canPresetValue === undefined ?
+                  false : fieldInfo.canPresetValue;
                 resultFieldInfo = webmapFieldInfos[i];
-                // resultFieldInfo.label = fieldInfo.label;
-                // resultFieldInfo.isEditableSettingInWebmap = webmapFieldInfos[i].isEditable;
-                // resultFieldInfo.isEditable = fieldInfo.isEditable;
                 break;
               }
             }

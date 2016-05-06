@@ -11,8 +11,8 @@ define(
     'jimu/BaseWidgetSetting',
     'jimu/dijit/SimpleTable',
     "jimu/dijit/Popup",
-    'jimu/dijit/Filter',
-    'esri/lang'
+    'esri/lang',
+    "./FilterPage"
   ],
   function (
     declare,
@@ -27,8 +27,8 @@ define(
     BaseWidgetSetting,
     Table,
     Popup,
-    Filter,
-    esriLang
+    esriLang,
+    FilterPage
     ) {
     return declare([BaseWidgetSetting, _TemplatedMixin], {
       baseClass: "jimu-widget-smartEditor-rule-table",
@@ -41,23 +41,39 @@ define(
         this.inherited(arguments);
         this._initActionsTable();
 
-        this._setActionsTable(['Hide', 'Required', 'Disabled']);
+        this._setActionsTable();
 
       },
       getSettings: function () {
         return this._fieldValidations;
+      },
+      _getConfigActionOrder: function () {
+        var result = [];
+        if (this._fieldValidations !== undefined &&
+        this._fieldValidations !== null) {
+          if (this._fieldValidations.hasOwnProperty(this._fieldName)) {
+            array.forEach(this._fieldValidations[this._fieldName], function (action) {
+              result.push(action.actionName);
+            });
+            if (result === null || result.length === 0) {
+              return ['Hide', 'Required', 'Disabled'];
+            } else {
+              return result;
+            }
+          }
+        }
+        return ['Hide', 'Required', 'Disabled'];
       },
       _getConfigAction: function (actionName) {
         var result = null;
         if (this._fieldValidations !== undefined &&
           this._fieldValidations !== null) {
           if (this._fieldValidations.hasOwnProperty(this._fieldName)) {
-          
-              array.some(this._fieldValidations[this._fieldName],function (action) {
-                return action.actionName === actionName ? (result = action, true) : false;
-              });
-              return result;
-            }
+            array.some(this._fieldValidations[this._fieldName], function (action) {
+              return action.actionName === actionName ? (result = action, true) : false;
+            });
+            return result;
+          }
         }
         return result;
       },
@@ -85,23 +101,25 @@ define(
               this._fieldValidations[this._fieldName] = [];
               array.forEach(rows, function (row) {
                 var rowData = this._validationTable.getRowData(row);
+
+                var newAction = {};
+
+                newAction.actionName = rowData.label;
                 if (rowData.expression !== undefined && rowData.expression !== null &&
                   rowData.expression !== '') {
                   if (rowData.filter !== '') {
                     var filter = JSON.parse(entities.decode(rowData.filter));
-                    this._fieldValidations[this._fieldName].push( 
-                        {
-                          'actionName':rowData.label,
-                          'expression': filter.expr,
-                          'filter': filter
-                        });
+                    newAction.expression = filter.expr;
+                    newAction.filter = filter;
+
                   }
 
                 }
+                this._fieldValidations[this._fieldName].push(newAction);
               }, this);
 
               fieldsPopup.close();
-              return this._fieldValidations;
+
             })
           }, {
             label: this.nls.cancel,
@@ -109,7 +127,7 @@ define(
             onClick: lang.hitch(this, function () {
 
               fieldsPopup.close();
-              return null;
+
             })
           }],
           onClose: lang.hitch(this, function () {
@@ -162,7 +180,7 @@ define(
             case this.nls.actionPage.actionsSettingsTable.expression:
               node.title = this.nls.actionPage.actionsSettingsTable.expressionTip;
               break;
-          
+
             case this.nls.actionPage.actionsSettingsTable.actions:
               node.title = this.nls.actionPage.actionsSettingsTable.actionsTip;
               break;
@@ -190,8 +208,8 @@ define(
 
       },
 
-      _setActionsTable: function (actions) {
-
+      _setActionsTable: function () {
+        var actions = this._getConfigActionOrder();
         array.forEach(actions, function (action) {
           var configAction = this._getConfigAction(action);
           var settings = {
@@ -219,71 +237,13 @@ define(
                     });
       },
       _showFilter: function (tr) {
-        var rowData = this._validationTable.getRowData(tr);
-        if (rowData) {
-          var origNLS = window.jimuNls.filterBuilder.matchMsg;
-
-          window.jimuNls.filterBuilder.matchMsg = this.nls.filterPage.filterBuilder;
-
-          var filter = new Filter({
-            style: "width:100%;margin-top:22px;",
-            noFilterTip: this.nls.filterPage.noFilterTip
-          });
-
-          var filterPopup = new Popup({
-
-            titleLabel: esriLang.substitute(
-              {
-                action: rowData.label
-              },
-              this.nls.filterPage.title),
-            width: 680,
-            height: 485,
-            content: filter,
-            rowData: rowData,
-            buttons: [{
-              label: this.nls.ok,
-              onClick: lang.hitch(this, function () {
-                var partsObj = filter.toJson();
-                if (partsObj && partsObj.expr) {
-                  if (partsObj.expr === '1=1') {
-                    this._validationTable.editRow(tr,
-                     {
-                       'expression': '',
-                       'filter': null
-                     });
-                  } else {
-                    this._validationTable.editRow(tr,
-                      {
-                        'expression': partsObj.expr,
-                        'filter': JSON.stringify(partsObj)
-                      });
-                  }
-
-                  filterPopup.close();
-                  filterPopup = null;
-                }
-              })
-            }, {
-              label: this.nls.cancel,
-              classNames: ['jimu-btn jimu-btn-vacation']
-            }]
-          });
-
-          if (rowData.filter === undefined ||
-              rowData.filter === null ||
-            rowData.filter === '') {
-            filter.buildByExpr(this._url, null, this._resourceInfo);
-          }
-          else {
-
-            filter.buildByExpr(this._url, entities.decode(rowData.expression), this._resourceInfo);
-         
-          }
-
-          window.jimuNls.filterBuilder.matchMsg = origNLS;
-
-        }
+        this._filterPage = new FilterPage({
+          nls: this.nls,
+          _resourceInfo: this._resourceInfo,
+          _url: this._url,
+          _validationTable: this._validationTable
+        });
+        this._filterPage.popup(tr);
       }
 
     });

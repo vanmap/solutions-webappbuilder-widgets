@@ -7,6 +7,32 @@
     "layerInfos": [
       {
         "featureLayer": {
+          "id": "WaterMapNotes_6779",
+          "layerAllowsCreate": true,
+          "layerAllowsUpdate": true,
+          "layerAllowsDelete": true,
+          "layerAllowGeometryUpdates": true
+        },
+        "disableGeometryUpdate": false,
+        "allowUpdateOnly": false,
+        "allowDelete": false,
+        "fieldInfos": [
+          {
+            "fieldName": "NOTETYPE",
+            "isEditable": true
+          },
+          {
+            "fieldName": "SEVERITY",
+            "isEditable": true
+          },
+          {
+            "fieldName": "NOTES",
+            "isEditable": true
+          }
+        ]
+      },
+      {
+        "featureLayer": {
           "id": "StormwaterInspection_6752",
           "layerAllowsCreate": true,
           "layerAllowsUpdate": true,
@@ -19,55 +45,45 @@
         "fieldInfos": [
           {
             "fieldName": "INSPECTOR",
-            "label": "Inspector",
-            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "INSPECTDATE",
-            "label": "Inspection Date",
-            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "FACILITYID",
-            "label": "Facility ID",
-            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "EVISHEDFLOW",
-            "label": "A: When in the field, does the channel have apparent evidence of watershed flow? This would indicate a more significant flow, more erodible soil, and higher chance of impacting the impaired water.",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "SEDERR",
-            "label": "B: Is there sediment embedded within the facility from upstream sources (filling 1/3 or more of the facility)? Large amounts means there is a higher risk of transport to the impaired water.",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "SOURCEERR",
-            "label": "C. Look at the surrounding fill and cut slopes (roadway related only), does there appear to be a significant contributing source of erosion to the facility or the channel?",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "FLOWROAD",
-            "label": "D. Is flow from the roadway able to get to the facility or channel at all?",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "NOTES",
-            "label": "Notes and Visual Observations",
-            "canPresetValue": false,
             "isEditable": true
           }
         ],
         "fieldValidations": {
           "INSPECTOR": [
+            {
+              "actionName": "Hide"
+            },
+            {
+              "actionName": "Required"
+            },
             {
               "actionName": "Disabled",
               "expression": "INSPECTOR IS NOT NULL",
@@ -98,6 +114,12 @@
           ],
           "INSPECTDATE": [
             {
+              "actionName": "Hide"
+            },
+            {
+              "actionName": "Required"
+            },
+            {
               "actionName": "Disabled",
               "expression": "INSPECTDATE IS NOT NULL",
               "filter": {
@@ -126,6 +148,12 @@
             }
           ],
           "FACILITYID": [
+            {
+              "actionName": "Hide"
+            },
+            {
+              "actionName": "Required"
+            },
             {
               "actionName": "Disabled",
               "expression": "FACILITYID IS NOT NULL",
@@ -171,127 +199,93 @@
         "fieldInfos": [
           {
             "fieldName": "INSPECTOR",
-            "label": "Inspector",
-            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "INSPECTDATE",
-            "label": "Inspection Date",
-            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "FACILITYID",
-            "label": "Facility ID",
-            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "WEATHER",
-            "label": "Weather Conditions:",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "WATERWAY",
-            "label": "Waterway Name (if known):",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "LOCATION",
-            "label": "Location (District, route, county, milepost, city/town)",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "DUMPCONT",
-            "label": "1: Is there evidence of dumped containers that have the ability to hold liquid?",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "DUMPCONTLQ",
-            "label": "1a: Do they appear to have liquid in them or is liquid coming out of them?",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "PIPES",
-            "label": "2: Are there any pipes running through the facility or discharging into or around the facility that do not appear to be part of the storm water network? (e.g. utilities, farmer irrigation, etc.)",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "HYDRAULIC",
-            "label": "3: Are any of the hydraulic facilities meant for storm water running water when they should not be? (e.g. no storm events, known groundwater, etc.)",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "WATERRUNNING",
-            "label": "4: If there is water running out from the facility?",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "FOAMING",
-            "label": "4a: Is it foaming?",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "DISCOLOR",
-            "label": "4b: Is there significant water discoloration?",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "SMELL",
-            "label": "4c: Is there a horrible smell?",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "GARBAGE",
-            "label": "4d: Does there appear to be a lot of garbage?",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "OIL",
-            "label": "4e: Does there appear to be a lot of oil?",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "OTHER",
-            "label": "4f: Does there appear to be a lot of other chemicals?",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "CAUSEEVENT",
-            "label": "5: If there is water running out from the facility, is there any possibility that current weather events could be contributing rain or snow water to it?",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "CAUSEEVENTSRC",
-            "label": "5a: Possible source",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "REDFLAGS",
-            "label": "6: Overall, does there appear to be any environmental red flags that impact to or around this facility?",
-            "canPresetValue": false,
             "isEditable": true
           }
         ],
         "fieldValidations": {
           "INSPECTOR": [
+            {
+              "actionName": "Hide"
+            },
+            {
+              "actionName": "Required"
+            },
             {
               "actionName": "Disabled",
               "expression": "INSPECTOR IS NOT NULL",
@@ -322,6 +316,12 @@
           ],
           "INSPECTDATE": [
             {
+              "actionName": "Hide"
+            },
+            {
+              "actionName": "Required"
+            },
+            {
               "actionName": "Disabled",
               "expression": "INSPECTDATE IS NOT NULL",
               "filter": {
@@ -350,6 +350,12 @@
             }
           ],
           "FACILITYID": [
+            {
+              "actionName": "Hide"
+            },
+            {
+              "actionName": "Required"
+            },
             {
               "actionName": "Disabled",
               "expression": "FACILITYID IS NOT NULL",
@@ -432,6 +438,9 @@
                 ],
                 "expr": "DUMPCONT = 'Yes'"
               }
+            },
+            {
+              "actionName": "Disabled"
             }
           ],
           "FOAMING": [
@@ -488,6 +497,9 @@
                 ],
                 "expr": "WATERRUNNING = 'Yes'"
               }
+            },
+            {
+              "actionName": "Disabled"
             }
           ],
           "DISCOLOR": [
@@ -544,6 +556,9 @@
                 ],
                 "expr": "WATERRUNNING = 'Yes'"
               }
+            },
+            {
+              "actionName": "Disabled"
             }
           ],
           "SMELL": [
@@ -600,6 +615,9 @@
                 ],
                 "expr": "WATERRUNNING = 'Yes'"
               }
+            },
+            {
+              "actionName": "Disabled"
             }
           ],
           "GARBAGE": [
@@ -656,6 +674,9 @@
                 ],
                 "expr": "WATERRUNNING = 'Yes'"
               }
+            },
+            {
+              "actionName": "Disabled"
             }
           ],
           "OIL": [
@@ -712,6 +733,9 @@
                 ],
                 "expr": "WATERRUNNING = 'Yes'"
               }
+            },
+            {
+              "actionName": "Disabled"
             }
           ],
           "OTHER": [
@@ -768,6 +792,9 @@
                 ],
                 "expr": "WATERRUNNING = 'Yes'"
               }
+            },
+            {
+              "actionName": "Disabled"
             }
           ],
           "CAUSEEVENTSRC": [
@@ -824,10 +851,13 @@
                 ],
                 "expr": "CAUSEEVENT = 'Yes'"
               }
+            },
+            {
+              "actionName": "Disabled"
             }
           ]
         },
-        "editDescription": "<div><b><font color=\"#4169e1\">Overview</font></b></div><div>The intent of this assessment is to quickly identify in the field any illicit discharges into or around the hydraulic facilities.</div><div><br></div><div><b><font color=\"#4169e1\">Checklist</font></b></div><div>Please do a quick analysis and complete the following checklist. If anything is a ‚ÄúYes‚Äù, then describe briefly in the note section and take many photos from multiple angles to allow for further review in the office.</div>"
+        "editDescription": "<div><b><font color=\"#4169e1\">Overview</font></b></div><div>The intent of this assessment is to quickly identify in the field any illicit discharges into or around the hydraulic facilities.</div><div><br></div><div><b><font color=\"#4169e1\">Checklist</font></b></div><div>Please do a quick analysis and complete the following checklist. If anything is a ìYesî, then describe briefly in the note section and take many photos from multiple angles to allow for further review in the office.</div>"
       },
       {
         "featureLayer": {
@@ -843,97 +873,73 @@
         "fieldInfos": [
           {
             "fieldName": "INSPECTOR",
-            "label": "Inspector",
-            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "INSPECTDATE",
-            "label": "Inspection Date",
-            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "FACILITYID",
-            "label": "Facility ID",
-            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "CUTFAIL",
-            "label": "1: Is there bank cut or failure of the channel around the inlet of the facility?",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "SCOURHOLE",
-            "label": "2: Is there a scour hole at the outlet? Is there bank cut or failure of the channel around the outlet of the facility?",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "SCOURHOLEDIMW",
-            "label": "2a: What are its width?",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "SCOURHOLEDIML",
-            "label": "2b: What are its length?",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "SCOURHOLEDIMD",
-            "label": "2c: What are its depth?",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "COMPENT",
-            "label": "3: Look inside the pipe, does it look competent? (not rusted through, joints separated, pipe broke, etc.)",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "PERBMPIN",
-            "label": "4: Are there current engineered permanent BMPs in place at the facility inlet? (riprap, energy dissipater, etc)?",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "PERBMPINSC",
-            "label": "4a: How well does it appear to be holding together? (scale of 1 to 5, 5 holds together real well)",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "PERBMPOUT",
-            "label": "5: Are there current engineered permanent BMPs in place at the facility outlet? (riprap, energy dissipater, etc)?",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "PERBMPOUTSC",
-            "label": "5a: How well does it appear to be holding together? (scale of 1 to 5, 5 holds together real well)",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "ROADSOURCE",
-            "label": "6: Overall, does it appear that the roadway is a source for sediment in the storm water runoff?",
-            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "NOTES",
-            "label": "Notes and Visual Observations",
-            "canPresetValue": false,
             "isEditable": true
           }
         ],
         "fieldValidations": {
           "INSPECTOR": [
+            {
+              "actionName": "Hide"
+            },
+            {
+              "actionName": "Required"
+            },
             {
               "actionName": "Disabled",
               "expression": "INSPECTOR IS NOT NULL",
@@ -964,6 +970,12 @@
           ],
           "INSPECTDATE": [
             {
+              "actionName": "Hide"
+            },
+            {
+              "actionName": "Required"
+            },
+            {
               "actionName": "Disabled",
               "expression": "INSPECTDATE IS NOT NULL",
               "filter": {
@@ -993,6 +1005,12 @@
           ],
           "FACILITYID": [
             {
+              "actionName": "Hide"
+            },
+            {
+              "actionName": "Required"
+            },
+            {
               "actionName": "Disabled",
               "expression": "FACILITYID IS NOT NULL",
               "filter": {
@@ -1021,6 +1039,9 @@
             }
           ],
           "SCOURHOLEDIMW": [
+            {
+              "actionName": "Disabled"
+            },
             {
               "actionName": "Hide",
               "expression": "SCOURHOLE <> 'Yes'",
@@ -1078,6 +1099,9 @@
           ],
           "SCOURHOLEDIML": [
             {
+              "actionName": "Disabled"
+            },
+            {
               "actionName": "Hide",
               "expression": "SCOURHOLE <> 'Yes'",
               "filter": {
@@ -1133,6 +1157,9 @@
             }
           ],
           "SCOURHOLEDIMD": [
+            {
+              "actionName": "Disabled"
+            },
             {
               "actionName": "Hide",
               "expression": "SCOURHOLE <> 'Yes'",
@@ -1190,6 +1217,9 @@
           ],
           "PERBMPINSC": [
             {
+              "actionName": "Disabled"
+            },
+            {
               "actionName": "Hide",
               "expression": "PERBMPIN <> 'Yes'",
               "filter": {
@@ -1245,6 +1275,9 @@
             }
           ],
           "PERBMPOUTSC": [
+            {
+              "actionName": "Disabled"
+            },
             {
               "actionName": "Hide",
               "expression": "PERBMPOUT <> 'Yes'",

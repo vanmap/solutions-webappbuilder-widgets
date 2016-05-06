@@ -10,7 +10,9 @@ define(
     'jimu/BaseWidgetSetting',
     'jimu/dijit/SimpleTable',
     "jimu/dijit/Popup",
-    'esri/lang'
+    'esri/lang',
+    'dijit/registry',
+    'jimu/dijit/Message'
   ],
   function (
     declare,
@@ -24,14 +26,14 @@ define(
     BaseWidgetSetting,
     Table,
     Popup,
-    esriLang) {
+    esriLang, registry, Message) {
     return declare([BaseWidgetSetting, _TemplatedMixin], {
       baseClass: "jimu-widget-smartEditor-setting-fields",
       templateString: template,
       _layerInfo: null,
       _fieldValid: null,
       _fieldValidations: null,
-      __layerName:null,
+      __layerName: null,
       postCreate: function () {
         this.inherited(arguments);
         this._initFieldsTable();
@@ -43,7 +45,7 @@ define(
       popupEditPage: function () {
         var fieldsPopup = new Popup({
           titleLabel: esriLang.substitute(
-            { layername: this._layerName},
+            { layername: this._layerName },
             this.nls.fieldsPage.title),
           width: 720,
           maxHeight: 700,
@@ -54,20 +56,7 @@ define(
             onClick: lang.hitch(this, function () {
               if (this._validateTable()) {
                 this._resetFieldInfos();
-
                 this._layerInfo.fieldValidations = this._fieldValidations;
-                //if (this._fieldValid !== undefined && this._fieldValid !== null) {
-                //var savedSettings = this._fieldValid.getSettings();
-                //if (savedSettings !== undefined && savedSettings !== null) {
-                //  this._layerInfo.fieldValidations = {};
-                //  for (var k in savedSettings) {
-                //    if (savedSettings.hasOwnProperty(k)) {
-                //      this._layerInfo.fieldValidations[k] =this._fieldValidations 
-                //    }
-                //  }
-                //}
-                //}
-
                 fieldsPopup.close();
               }
             })
@@ -142,7 +131,7 @@ define(
             case this.nls.fieldsPage.fieldsSettingsTable.actions:
               node.title = this.nls.fieldsPage.fieldsSettingsTable.actionsTip;
               break;
-           
+
 
           }
 
@@ -165,26 +154,45 @@ define(
       _onEditFieldInfoClick: function (tr) {
         var rowData = this._fieldsTable.getRowData(tr);
         if (rowData && rowData.isEditable) {
+          var layerDefinition = {};
+          //layerDefinition['fields'] = lang.clone(this._fieldValidations.fields);
+          layerDefinition.fields = array.filter(this._layerInfo.mapLayer.resourceInfo.fields, function (field) {
+            return (field.name !== rowData.fieldName);
+          });
           this._fieldValid = new FieldValidation({
             nls: this.nls,
-            _resourceInfo: this._layerInfo.mapLayer.resourceInfo,
+            _resourceInfo: layerDefinition,//this._layerInfo.mapLayer.resourceInfo,
             _url: this._layerInfo.mapLayer.url,
             _fieldValidations: this._fieldValidations,
             _fieldName: rowData.fieldName,
             _fieldAlias: rowData.label
           });
           this._fieldValid.popupActionsPage();
-         
+
+        }
+        else {
+          new Message({
+            message: this.nls.fieldsPage.smartAttSupport
+          });
         }
       },
       _setFiedsTable: function (fieldInfos) {
         array.forEach(fieldInfos, function (fieldInfo) {
-          this._fieldsTable.addRow({
+
+
+          var addRowResult = this._fieldsTable.addRow({
             fieldName: fieldInfo.fieldName,
             isEditable: fieldInfo.isEditable,
             canPresetValue: fieldInfo.canPresetValue,
             label: fieldInfo.label
           });
+          if (fieldInfo.hasOwnProperty('nullable') && fieldInfo.nullable === false) {
+            var nl = query(".editable", addRowResult.tr);
+            nl.forEach(function (node) {
+              var widget = registry.getEnclosingWidget(node.childNodes[0]);
+              widget.setStatus(false);
+            });
+          }
         }, this);
       },
 
@@ -196,7 +204,7 @@ define(
             "fieldName": fieldData.fieldName,
             "label": fieldData.label,
             "canPresetValue": fieldData.canPresetValue,
-            "isEditable": fieldData.isEditable
+            "isEditable": fieldData.isEditable === null ? true : fieldData.isEditable
           });
         });
 

@@ -78,8 +78,6 @@ define([
       array.forEach(this._fieldInfo, function (finfo) {
         if (finfo.isEditable === false || finfo.isEditableSettingInWebmap === false) {
           this._notEditableFields.push(finfo.label);
-
-          //this._fieldNameToAlias[finfo.fieldName] = finfo.label; 
         }
         if (this._fieldValidation) {
           if (this._fieldValidation.hasOwnProperty(finfo.fieldName)) {
@@ -109,7 +107,7 @@ define([
       var results;
       array.forEach(fields, lang.hitch(this, function (field) {
         actionType = null;
-        // hasRule, actionType, fieldValid 
+        // hasRule, actionType, fieldValid
         results = this.validateField(field.name);
         actionType = results[1];
         if (results[2] === false) {
@@ -134,8 +132,8 @@ define([
         else {
           var result = [false, null, null];
           array.some(this._fieldValidation[fieldName], function (actionDetails) {
-            filter = actionDetails.filter;
-            if (filter !== undefined && filter !== null) {
+            if (actionDetails.filter !== undefined && actionDetails.filter !== null) {
+              filter = actionDetails.filter;
               result = [true, null, null];
               if (this.processFilter(filter, this._feature)) {
                 //if (fieldValidation[fieldName][actionDetails].action === 'Required') {
@@ -358,19 +356,15 @@ define([
             return false;
           }
           return false;
-          
         case this.OPERATORS.stringOperatorIsBlank:
-          return (field === null || field === undefined);
-          
+          return ( field === undefined  || field === null || field === "");
         case this.OPERATORS.stringOperatorIsNotBlank:
-          return (field !== null && field !== undefined);
-
+          return (field !== undefined && field !== null && field !== "");
         case this.OPERATORS.numberOperatorIs:
           if (this._isNumeric(field)) {
             return String(field) === String(value1);
           }
           return false;
-          
         case this.OPERATORS.numberOperatorIsNot:
           if (this._isNumeric(field)) {
             return (String(field) !== String(value1));
@@ -381,7 +375,6 @@ define([
             return field >= value1;
           }
           return false;
-          
         case this.OPERATORS.numberOperatorIsLessThan:
           if (this._isNumeric(field) && this._isNumeric(value1)) {
             return field < value1;
@@ -551,11 +544,15 @@ define([
     },
     _getRowInfo: function (row) {
       var valueCell = row.parentNode.childNodes[1].childNodes[0];
+      var valueCell2 = null;
+      if (row.parentNode.childNodes[1].childNodes.length > 1) {
+        valueCell2 = row.parentNode.childNodes[1].childNodes[1];
+      }
       var label = row.childNodes[0].data;
       var parent = row.parentNode;
       var widget = registry.getEnclosingWidget(valueCell);
 
-      return [valueCell, parent, widget, label];
+      return [valueCell, parent, widget, label, valueCell2];
     },
     _removeRequireFieldMarkings: function (fieldName, valueCell, parent, widget) {
       var nl = null;
@@ -612,9 +609,26 @@ define([
           if (domClass.contains(valueCell, "dijitError")) {
             domClass.remove(valueCell, "dijitError");
           }
-         
         }
         else if (widget.declaredClass === 'dijit.form.DateTextBox') {
+          if (domClass.contains(valueCell, "dijitTextBoxError")) {
+            domClass.remove(valueCell, "dijitTextBoxError");
+          }
+          if (domClass.contains(valueCell, "dijitValidationTextBox")) {
+            domClass.remove(valueCell, "dijitValidationTextBox");
+          }
+          if (domClass.contains(valueCell, "dijitValidationTextBoxError")) {
+            domClass.remove(valueCell, "dijitValidationTextBoxError");
+          }
+          if (domClass.contains(valueCell, "dijitError")) {
+            domClass.remove(valueCell, "dijitError");
+          }
+          nl = query(".dijitValidationContainer", parent);
+          array.forEach(nl, function (node) {
+            node.parentNode.removeChild(node);
+          });
+        }
+        else if (widget.declaredClass === 'dijit.form.TimeTextBox') {
           if (domClass.contains(valueCell, "dijitTextBoxError")) {
             domClass.remove(valueCell, "dijitTextBoxError");
           }
@@ -733,6 +747,7 @@ define([
             var rowInfo = this._getRowInfo(row[0]);
 
             var valueCell = rowInfo[0];
+            var valueCell2 = rowInfo[4];
             var parent = rowInfo[1];
             var widget = rowInfo[2];
             if (widget === undefined || widget === null) {
@@ -744,40 +759,25 @@ define([
                   this._removeRequireFieldMarkings(fieldName, valueCell, parent, widget);
                   this._removeRedAst(row[0], fieldName);
                   this._removeDisableRule(fieldName, valueCell);
-                  //this._removeHideRule(parent);
                   domClass.add(parent, "hideField");
-
                   break;
                 case 'Disabled':
-                  this._removeRequireFieldMarkings(fieldName, valueCell, parent, widget);
                   this._removeRedAst(row[0], fieldName);
-                  //this._removeDisableRule(fieldName,valueCell);
                   this._removeHideRule(parent);
-
+                  this._removeRequireFieldMarkings(fieldName, valueCell, parent, widget);
                   domClass.add(valueCell, ["dijitValidationTextBox", "dijitTextBoxDisabled",
+                    "dijitComboBoxDisabled", "dijitValidationTextBoxDisabled", "dijitDisabled"]);
+                  this._processChildNodes(valueCell, true);
+
+                  if (valueCell2 !== null) {
+                    this._removeRequireFieldMarkings(fieldName, valueCell2, parent, widget);
+                    domClass.add(valueCell2, ["dijitValidationTextBox", "dijitTextBoxDisabled",
                    "dijitComboBoxDisabled", "dijitValidationTextBoxDisabled", "dijitDisabled"]);
 
-                   this._processChildNodes(valueCell, true);
-                  //if (valueCell.childNodes.length === 2) {
-                  //  var disable = false;
-                  //  array.forEach(valueCell.childNodes, function (node) {
-                  //    if (node.innerText === '') {
-
-                  //    }
-                  //  });
-                  //  this.remove(row, fieldName, valueCell, parent, widget);
-
-                  //} else {
-                  //  domClass.add(valueCell, ["dijitValidationTextBox", "dijitTextBoxDisabled",
-                  // "dijitComboBoxDisabled", "dijitValidationTextBoxDisabled", "dijitDisabled"]);
-
-                  //  this._processChildNodes(valueCell, true);
-                  //}
-                 
+                    this._processChildNodes(valueCell2, true);
+                  }
                   break;
                 case 'Required':
-                  //this._removeRequireFieldMarkings(row[0], fieldName,valueCell, parent, widget);
-                  //this._removeRedAst(row[0]);
                   this._removeDisableRule(fieldName, valueCell);
                   this._removeHideRule(parent);
                   if (fieldHasValidValue === true) {
@@ -791,7 +791,8 @@ define([
                         var newDiv = document.createElement('div');
                         newDiv.setAttribute('class', "dijitReset dijitValidationContainer");
                         var newIn = document.createElement('input');
-                        newIn.setAttribute('class', "dijitReset dijitInputField dijitValidationIcon dijitValidationInner");
+                        newIn.setAttribute('class', "dijitReset dijitInputField dijitValidationIcon " +
+                          "dijitValidationInner");
                         newIn.setAttribute('value', "x");
                         newIn.setAttribute('type', 'text');
                         newIn.setAttribute('tabindex', '-1');
@@ -804,22 +805,15 @@ define([
                       domClass.add(valueCell, ["dijitTextBoxError", "dijitValidationTextBox",
                         "dijitValidationTextBoxError", "dijitError"]);
                     } else if (widget.declaredClass === 'dijit.form.ValidationTextBox') {
-
                       nl = query(".dijitValidationContainer", parent);
-                    
-
                       domClass.add(valueCell, ["dijitTextBoxError", "dijitValidationTextBox",
                         "dijitValidationTextBoxError", "dijitError"]);
                     } else if (widget.declaredClass === 'dijit.form.FilteringSelect') {
-                        
                       domClass.add(valueCell, ["dijitTextBoxError", "dijitComboBoxError",
                         "dijitError", "dijitValidationTextBoxError"]);
-
                     }
                     else {
-
                       domClass.add(valueCell, ["dijitTextBoxError", "dijitError"]);
-
                     }
                   }
 

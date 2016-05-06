@@ -408,6 +408,9 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
 
     setFilterLayerDef: function() {
       var createQuery = function(isNum, field, op, value, junc) {
+          // escape all single quotes
+          // decode sanitized input
+          value = dojox.html.entities.decode(value.replace(/'/g, "''"))
           // special case of empty value
           if (value == '') {
               if(op == '<>' || op == 'NOT LIKE') {

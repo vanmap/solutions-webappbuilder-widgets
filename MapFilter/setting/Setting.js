@@ -46,6 +46,8 @@ define([
       groupLayerContainer: [],
       groupLayerName: [],
       groupLayerDesc: [],
+      groupLayerOperator: [],
+      groupLayerDefault: [],      
       layerCounter: 0,
       layerList: null,
 
@@ -63,6 +65,8 @@ define([
         this.groupLayerContainer = [];
         this.groupLayerName = [];
         this.groupLayerDesc = [];
+        this.groupLayerOperator = [];
+        this.groupLayerDefault = [];        
         this.chkSimpleMode.set('checked', this.config.simpleMode);
         this.chkOptionsMode.set('checked', this.config.optionsMode);          
         this.createMapLayerList();
@@ -84,6 +88,8 @@ define([
                   var groupObj = {};
                   groupObj.name = utils.sanitizeHTML(groupName.value);
                   groupObj.desc = utils.sanitizeHTML(this.groupLayerDesc[i].value);
+                  groupObj.operator = utils.sanitizeHTML(this.groupLayerOperator[i].value);
+                  groupObj.defaultVal = utils.sanitizeHTML(this.groupLayerDefault[i].value);
                   groupObj.layers = [];
   
                   var result = array.forEach(this.groupLayerContainer[i].getRows(), lang.hitch(this, function(row) {
@@ -125,7 +131,6 @@ define([
       createMapLayerList: function() {
         LayerInfos.getInstance(this.map, this.map.itemInfo)
           .then(lang.hitch(this, function(operLayerInfos) {
-            //console.log(operLayerInfos);
             if(operLayerInfos._layerInfos && operLayerInfos._layerInfos.length > 0) {
               //this.layerList = operLayerInfos._layerInfos;
 
@@ -163,28 +168,65 @@ define([
         });
         domConstruct.place(dsNode, this.layerMappingBlock);
 
-        var addNameLabelNode = domConstruct.create("a",{
-          id: 'addGroupNameLabel_' + this.groupCounter,
-          'class': 'group-block-add-layer',
-          innerHTML: 'Group Name:'
+        var groupSettingTable = domConstruct.create("table",{
+          'class': 'group-setting-table',
         });
-        domConstruct.place(addNameLabelNode, dom.byId('grpDiv_' + this.groupCounter));
+        domConstruct.place(groupSettingTable, dsNode);
+        
+        var rowName = groupSettingTable.insertRow(-1);
+        var cellNameLabel = rowName.insertCell(0);
+        var cellNameInput = rowName.insertCell(1);
+        var cellDescLabel = rowName.insertCell(2); 
+        var cellDescInput = rowName.insertCell(3);
+        var cellDelete = rowName.insertCell(4);       
 
-        var addNameNode = domConstruct.create("div",{
-          id: 'addGroupName_' + this.groupCounter
-        });
-        domConstruct.place(addNameNode, dom.byId('addGroupNameLabel_' + this.groupCounter));
+        var rowPreset = groupSettingTable.insertRow(-1);
+        var cellOperatorLabel = rowPreset.insertCell(0);
+        var cellOperatorInput = rowPreset.insertCell(1);
+        var cellDefaultLabel = rowPreset.insertCell(2); 
+        var cellDefaultInput = rowPreset.insertCell(3);
+        var cellSpacer = rowPreset.insertCell(4); 
 
-        var addDescLabelNode = domConstruct.create("a",{
-          id: 'addGroupNameLabel_' + this.groupCounter,
-          innerHTML: 'Description:'
-        });
-        domConstruct.place(addDescLabelNode, dom.byId('addGroupNameLabel_' + this.groupCounter));
+        cellNameLabel.innerHTML = this.nls.labels.groupName;
+        cellDescLabel.innerHTML = this.nls.labels.groupDesc;
+        cellOperatorLabel.innerHTML = this.nls.labels.groupOperator;
+        cellDefaultLabel.innerHTML = this.nls.labels.groupDefault;        
 
-        var addNameNode = domConstruct.create("div",{
-          id: 'addGroupDesc_' + this.groupCounter
-        });
-        domConstruct.place(addNameNode, dom.byId('addGroupNameLabel_' + this.groupCounter));
+        var groupName = '';
+        var groupDesc = '';
+        var groupOper = '';
+        var groupDef = '';
+        if(typeof(pParam.group) !== 'undefined' && pParam.group !== null) {
+          groupName = pParam.group.name;
+          groupDesc = pParam.group.desc;
+          groupOper = pParam.group.operator;
+          groupDef = pParam.group.defaultVal;
+        }
+
+        var txtGroupName = new ValidationTextBox({
+            name: "txtGroupName",
+            value: groupName,
+            'class': 'groupName-textbox',
+            placeHolder: this.nls.inputs.groupName,
+            required: "true"
+        }, cellNameInput);
+        this.groupLayerName.push(txtGroupName);
+
+        var txtGroupDesc = new TextBox({
+            name: "txtGroupDesc",
+            value: groupDesc,
+            'class': 'groupName-Desctextbox',
+            placeHolder: this.nls.inputs.groupDesc
+        }, cellDescInput);
+        this.groupLayerDesc.push(txtGroupDesc);
+
+        var txtGroupDefault = new TextBox({
+            name: "txtGroupDefault",
+            value: groupDef,
+            'class': 'groupName-Desctextbox',
+            placeHolder: this.nls.inputs.groupDefault
+        }, cellDefaultInput);
+        this.groupLayerDefault.push(txtGroupDefault);
 
         var deleteNameNode = domConstruct.create("div",{
           id: 'addGroupDelete_' + this.groupCounter,
@@ -194,32 +236,9 @@ define([
           deleteAction.remove();
           this.removeGroup(deleteNameNode.id);
         }));
-        domConstruct.place(deleteNameNode, dom.byId('grpDiv_' + this.groupCounter));
-        dom.byId('addGroupDelete_' + this.groupCounter).innerHTML = "delete";
+        domConstruct.place(deleteNameNode, cellDelete);
 
-        var groupName = '';
-        var groupDesc = '';
-        if(typeof(pParam.group) !== 'undefined' && pParam.group !== null) {
-          groupName = pParam.group.name;
-          groupDesc = pParam.group.desc;
-        }
-
-        var txtGroupName = new ValidationTextBox({
-            name: "txtGroupName",
-            value: groupName,
-            'class': 'groupName-textbox',
-            placeHolder: this.nls.inputs.groupName,
-            required: "true"
-        }, dom.byId('addGroupName_' + this.groupCounter));
-        this.groupLayerName.push(txtGroupName);
-
-        var txtGroupDesc = new TextBox({
-            name: "txtGroupDesc",
-            value: groupDesc,
-            'class': 'groupName-Desctextbox',
-            placeHolder: this.nls.inputs.groupDesc
-        }, dom.byId('addGroupDesc_' + this.groupCounter));
-        this.groupLayerDesc.push(txtGroupDesc);
+        this.createOperatorSelection({cell:cellOperatorInput, value:groupOper});
 
         this.createTableObject(pParam);
 
@@ -234,6 +253,30 @@ define([
         dom.byId('addLyrDiv_' + this.groupCounter).innerHTML = this.nls.buttons.addLayer;
 
       },
+
+      createOperatorSelection: function(params) {
+        var ObjList = [
+          {'value': '', 'label': this.nls.inputs.optionNONE},
+          {'value': '=', 'label': this.nls.inputs.optionEQUAL},
+          {'value': '<>', 'label': this.nls.inputs.optionNOTEQUAL},
+          {'value': '>', 'label': this.nls.inputs.optionGREATERTHAN},
+          {'value': '>=', 'label': this.nls.inputs.optionGREATERTHANEQUAL},
+          {'value': '<', 'label': this.nls.inputs.optionLESSTHAN},
+          {'value': '<=', 'label': this.nls.inputs.optionLESSTHANEQUAL},
+          {'value': 'START', 'label': this.nls.inputs.optionSTART},
+          {'value': 'END', 'label': this.nls.inputs.optionEND},
+          {'value': 'LIKE', 'label': this.nls.inputs.optionLIKE},
+          {'value': 'NOT LIKE', 'label': this.nls.inputs.optionNOTLIKE}
+        ];
+        var opSelect = new Select({
+          options: ObjList,
+          "class": "operator-select"
+        }).placeAt(params.cell);
+        opSelect.startup();
+        opSelect.set('value', params.value);
+        this.groupLayerOperator.push(opSelect);
+      },
+
 
       createTableObject: function(pParam) {
         var fields = null;
@@ -425,10 +468,8 @@ define([
 
       domainRadio: function(pParam) {
         array.forEach(this.layerList, lang.hitch(this, function(layer) {
-          //console.log(layer);
           if(layer.id === pParam.layer) {
             array.forEach(layer.layer.fields, lang.hitch(this, function(field) {
-              console.log(field);
               if(field.name === pParam.field) {
                 if(typeof(field.domain) !== 'undefined') {
                   if(field.domain.type === 'codedValue' || field.domain.type === 'range') {
@@ -539,8 +580,10 @@ define([
         this.groupLayerContainer[numPart-1] = null;
         this.groupLayerName[numPart-1] = null;
         this.groupLayerDesc[numPart-1] = null;
-        dijit.byId('addGroupName_' + numPart).destroyRecursive(true);
-        dijit.byId('addGroupDesc_' + numPart).destroyRecursive(true);
+        this.groupLayerOperator[numPart-1] = null;
+        this.groupLayerDefault[numPart-1] = null;        
+        //dijit.byId('addGroupName_' + numPart).destroyRecursive(true);
+        //dijit.byId('addGroupDesc_' + numPart).destroyRecursive(true);
         domConstruct.destroy(dom.byId('addGroupDelete_' + numPart));
         domConstruct.destroy(dom.byId('addLyrDiv_' + numPart));
         domConstruct.destroy(dom.byId('grpDiv_' + numPart));

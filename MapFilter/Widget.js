@@ -65,7 +65,6 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         .then(lang.hitch(this, function(operLayerInfos) {
           if(operLayerInfos._layerInfos && operLayerInfos._layerInfos.length > 0) {
             this.layerList = operLayerInfos._layerInfos;
-            console.log(this.layerList);
 
                 array.forEach(this.layerList, lang.hitch(this, function(layer) {
                   if(layer.originOperLayer.layerType !== "ArcGISTiledMapServiceLayer" && typeof(layer.originOperLayer.featureCollection) === 'undefined') {
@@ -86,9 +85,8 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
                   }
 
                 }));
-                console.log(this.defaultDef);
                 this.createGroupSelection();
-                this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
+                //this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
                 this.resize();
           }
         }));
@@ -225,7 +223,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         }));
 
         this.grpSelect = new Select({
-          options: ObjList,
+          options: ObjList
         }).placeAt(this.groupPicker);
 
         this.grpSelect.startup();
@@ -245,6 +243,16 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           descLabel = this.config.groups[0].desc;
           this.groupDesc.innerHTML = descLabel;
         }
+        
+        var defaultOp = "=";
+        var defaultVal = "";
+        if(this.config.groups[0].defaultVal !== "") {
+          defaultVal = this.config.groups[0].defaultVal; 
+        }
+        if(this.config.groups[0].operator !== "") {
+          defaultOp = this.config.groups[0].operator; 
+        }        
+        this.createNewRow({operator:defaultOp, value:defaultVal, conjunc:"OR", state:"new"});
     },
 
     createOperatorSelection: function(pCell, pValue) {

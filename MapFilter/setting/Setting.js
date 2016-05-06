@@ -33,7 +33,8 @@ define([
   'jimu/utils',
   'jimu/LayerInfos/LayerInfos',
   'jimu/dijit/Message',
-  '../LayersHandler'
+  '../LayersHandler',
+  'dijit/form/CheckBox'
 ],
   function(declare, BaseWidgetSetting, _WidgetsInTemplateMixin, SimpleTable, dom, domConstruct, on, query, lang, array, Select, TextBox, ValidationTextBox, RadioButton, registry, utils, LayerInfos, Message, LayersHandler) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
@@ -62,53 +63,63 @@ define([
         this.groupLayerContainer = [];
         this.groupLayerName = [];
         this.groupLayerDesc = [];
+        this.chkSimpleMode.set('checked', this.config.simpleMode);
+        this.chkOptionsMode.set('checked', this.config.optionsMode);          
         this.createMapLayerList();
       },
 
       getConfig: function() {
-        var validGroups = this.validateNoGroups();
-        var validGroupsNames = this.validateNoGroupsName();
-        var validTables = this.validateTableRows();
-
-        if(validGroups && validGroupsNames && validTables) {
-          this.config.groups = [];
-          array.forEach(this.groupLayerName, lang.hitch(this, function(groupName, i) {
-            if(groupName !== null) {
-              if(this.groupLayerContainer[i] !== null) {
-                var groupObj = {};
-                groupObj.name = utils.sanitizeHTML(groupName.value);
-                groupObj.desc = utils.sanitizeHTML(this.groupLayerDesc[i].value);
-                groupObj.layers = [];
-
-                var result = array.forEach(this.groupLayerContainer[i].getRows(), lang.hitch(this, function(row) {
-                  var layerStruct = {};
-                  if(typeof(row.domainCol) !== 'undefined') {
-                    layerStruct.layer = row.layerCol.value;
-                    layerStruct.field = row.fieldCol.value;
-                    layerStruct.dataType = row.dataTypeCol.attr('displayedValue');
-                    if(row.domainCol.checked) {
-                      layerStruct.useDomain = row.domainCol.value;
+        if(this.layerList.length > 0 || this.layerList === null) {       
+          var validGroups = this.validateNoGroups();
+          var validGroupsNames = this.validateNoGroupsName();
+          var validTables = this.validateTableRows();
+  
+          if(validGroups && validGroupsNames && validTables) {
+            this.config.simpleMode = this.chkSimpleMode.checked;
+            this.config.optionsMode = this.chkOptionsMode.checked;
+            this.config.groups = [];
+            array.forEach(this.groupLayerName, lang.hitch(this, function(groupName, i) {
+              if(groupName !== null) {
+                if(this.groupLayerContainer[i] !== null) {
+                  var groupObj = {};
+                  groupObj.name = utils.sanitizeHTML(groupName.value);
+                  groupObj.desc = utils.sanitizeHTML(this.groupLayerDesc[i].value);
+                  groupObj.layers = [];
+  
+                  var result = array.forEach(this.groupLayerContainer[i].getRows(), lang.hitch(this, function(row) {
+                    var layerStruct = {};
+                    if(typeof(row.domainCol) !== 'undefined') {
+                      layerStruct.layer = row.layerCol.value;
+                      layerStruct.field = row.fieldCol.value;
+                      layerStruct.dataType = row.dataTypeCol.attr('displayedValue');
+                      if(row.domainCol.checked) {
+                        layerStruct.useDomain = row.domainCol.value;
+                      } else {
+                        layerStruct.useDomain = '';
+                      }
                     } else {
+                      layerStruct.layer = row.layerCol.value;
+                      layerStruct.field = row.fieldCol.value;
+                      layerStruct.dataType = row.dataTypeCol.attr('displayedValue');
                       layerStruct.useDomain = '';
                     }
-                  } else {
-                    layerStruct.layer = row.layerCol.value;
-                    layerStruct.field = row.fieldCol.value;
-                    layerStruct.dataType = row.dataTypeCol.attr('displayedValue');
-                    layerStruct.useDomain = '';
-                  }
-
-                  groupObj.layers.push(layerStruct);
-                }));
-                this.config.groups.push(groupObj);
+  
+                    groupObj.layers.push(layerStruct);
+                  }));
+                  this.config.groups.push(groupObj);
+                }
               }
-            }
-          }));
-          return this.config;
+            }));
+            return this.config;
+          } else {
+            return false;
+          }
         } else {
+          new Message({
+            message : this.nls.errors.noLayers
+          });          
           return false;
         }
-
       },
 
       createMapLayerList: function() {

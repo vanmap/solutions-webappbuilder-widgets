@@ -16,7 +16,7 @@ define({
 		  groupDesc: "Description for your group",
 		  groupDefault: "Enter a predefined value",
 		  simpleMode: "Start in simple view",
-		  optionsMode: "Show icon to display options",
+		  optionsMode: "Hide widget options",
       optionOR: "OR",
       optionAND: "AND",
       optionEQUAL: "EQUAL",

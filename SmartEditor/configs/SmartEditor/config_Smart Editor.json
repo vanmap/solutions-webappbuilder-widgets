@@ -19,14 +19,17 @@
         "fieldInfos": [
           {
             "fieldName": "NOTETYPE",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "SEVERITY",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "NOTES",
+            "canPresetValue": false,
             "isEditable": true
           }
         ]
@@ -45,34 +48,42 @@
         "fieldInfos": [
           {
             "fieldName": "INSPECTOR",
+            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "INSPECTDATE",
+            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "FACILITYID",
+            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "EVISHEDFLOW",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "SEDERR",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "SOURCEERR",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "FLOWROAD",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "NOTES",
+            "canPresetValue": false,
             "isEditable": true
           }
         ],
@@ -199,82 +210,102 @@
         "fieldInfos": [
           {
             "fieldName": "INSPECTOR",
+            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "INSPECTDATE",
+            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "FACILITYID",
+            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "WEATHER",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "WATERWAY",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "LOCATION",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "DUMPCONT",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "DUMPCONTLQ",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "PIPES",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "HYDRAULIC",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "WATERRUNNING",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "FOAMING",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "DISCOLOR",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "SMELL",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "GARBAGE",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "OIL",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "OTHER",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "CAUSEEVENT",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "CAUSEEVENTSRC",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "REDFLAGS",
+            "canPresetValue": false,
             "isEditable": true
           }
         ],
@@ -857,7 +888,7 @@
             }
           ]
         },
-        "editDescription": "<div><b><font color=\"#4169e1\">Overview</font></b></div><div>The intent of this assessment is to quickly identify in the field any illicit discharges into or around the hydraulic facilities.</div><div><br></div><div><b><font color=\"#4169e1\">Checklist</font></b></div><div>Please do a quick analysis and complete the following checklist. If anything is a “Yes”, then describe briefly in the note section and take many photos from multiple angles to allow for further review in the office.</div>"
+        "editDescription": "<div><b><font color=\"#4169e1\">Overview</font></b></div><div>The intent of this assessment is to quickly identify in the field any illicit discharges into or around the hydraulic facilities.</div><div><br></div><div><b><font color=\"#4169e1\">Checklist</font></b></div><div>Please do a quick analysis and complete the following checklist. If anything is a ï¿½Yesï¿½, then describe briefly in the note section and take many photos from multiple angles to allow for further review in the office.</div>"
       },
       {
         "featureLayer": {
@@ -873,62 +904,77 @@
         "fieldInfos": [
           {
             "fieldName": "INSPECTOR",
+            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "INSPECTDATE",
+            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "FACILITYID",
+            "canPresetValue": true,
             "isEditable": true
           },
           {
             "fieldName": "CUTFAIL",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "SCOURHOLE",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "SCOURHOLEDIMW",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "SCOURHOLEDIML",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "SCOURHOLEDIMD",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "COMPENT",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "PERBMPIN",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "PERBMPINSC",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "PERBMPOUT",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "PERBMPOUTSC",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "ROADSOURCE",
+            "canPresetValue": false,
             "isEditable": true
           },
           {
             "fieldName": "NOTES",
+            "canPresetValue": false,
             "isEditable": true
           }
         ],

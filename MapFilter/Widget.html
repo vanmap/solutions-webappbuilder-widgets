@@ -4,11 +4,13 @@
 			<table width="100%">
 				<tr>
 					<td class="groupHeader">${nls.labels.selectGroup}</td>
-					<td><div data-dojo-attach-point="groupPicker" id="groupPicker"></div></td>
-					<td class="saveTD" id="saveTD" data-dojo-attach-event="click:toggleSaveFilter"></td>
+					<td class="saveTD" data-dojo-attach-point="optionsIcon" id="saveTD" data-dojo-attach-event="click:toggleSaveFilter"></td>
 				</tr>
 				<tr>
-					<td colspan="3" id="groupDesc" data-dojo-attach-point="groupDesc"></td>
+					<td colspan="2"><div data-dojo-attach-point="groupPicker" id="groupPicker"></div></td>
+				</tr>				
+				<tr>
+					<td colspan="2" id="groupDesc" data-dojo-attach-point="groupDesc"></td>
 				</tr>
 			</table>
 		</div>

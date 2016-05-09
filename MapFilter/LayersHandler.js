@@ -52,6 +52,7 @@ function(Evented,
       var promises = [];
       var deferred = new Deferred();
       var dataItem;
+      this.layerStore = [];
       array.forEach(this.layers, lang.hitch(this, function(layer) {
         if(!layer.featureCollection) {
           if ((typeof (layer.originOperLayer) !== 'undefined') &&

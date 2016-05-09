@@ -19,6 +19,11 @@
 	margin-bottom: 5px;
 }
 
+.jimu-widget-map-filter .group-setting-table {
+	width: 100%;
+	margin-left: 10px;	
+}
+
 .jimu-widget-map-filter .group-block-item {
 	position: relative;
 	width: 90%;
@@ -91,3 +96,6 @@
 	margin-left: 10px;
 }
 
+.jimu-widget-map-filter .operator-select {
+	font-size: 8pt;	
+}

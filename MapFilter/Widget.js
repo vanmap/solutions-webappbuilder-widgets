@@ -22,9 +22,10 @@ define([
   './SaveJSON',
   './ReadJSON',
   './LayersHandler',
+  'dojox/html/entities',
   'dijit/form/CheckBox'
 ],
-function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domConstruct, domClass, on, query, string, lang, array, locale, Select, TextBox, DateTextBox, NumberTextBox, registry, LayerInfos, utils, saveJson, readJson, LayersHandler) {
+function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domConstruct, domClass, on, query, string, lang, array, locale, Select, TextBox, DateTextBox, NumberTextBox, registry, LayerInfos, utils, saveJson, readJson, LayersHandler, entities) {
   //To create a widget, you need to derive from BaseWidget.
   return declare([BaseWidget, _WidgetsInTemplateMixin], {
 
@@ -47,6 +48,9 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       this.inherited(arguments);
       //this.mapIdNode.innerHTML = 'map id:' + this.map.id;
       //this.createDivsForFilter();
+      if(this.config.optionsMode) {
+        domClass.add(this.optionsIcon, "hide-items"); 
+      }      
       this.createMapLayerList();
       //this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
 
@@ -61,7 +65,6 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         .then(lang.hitch(this, function(operLayerInfos) {
           if(operLayerInfos._layerInfos && operLayerInfos._layerInfos.length > 0) {
             this.layerList = operLayerInfos._layerInfos;
-            console.log(this.layerList);
 
                 array.forEach(this.layerList, lang.hitch(this, function(layer) {
                   if(layer.originOperLayer.layerType !== "ArcGISTiledMapServiceLayer" && typeof(layer.originOperLayer.featureCollection) === 'undefined') {
@@ -82,9 +85,8 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
                   }
 
                 }));
-                console.log(this.defaultDef);
                 this.createGroupSelection();
-                this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
+                //this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
                 this.resize();
           }
         }));
@@ -186,6 +188,13 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       }
 
       this.resize();
+      
+      //check simple mode
+      if(this.config.simpleMode) {
+        domClass.add(this.btnCriteria, "hide-items");
+        domClass.add(rowOperator, "hide-items"); 
+        query(".container").style("borderTop", "0px"); 
+      }
 
     },
 
@@ -214,7 +223,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         }));
 
         this.grpSelect = new Select({
-          options: ObjList,
+          options: ObjList
         }).placeAt(this.groupPicker);
 
         this.grpSelect.startup();
@@ -234,6 +243,16 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           descLabel = this.config.groups[0].desc;
           this.groupDesc.innerHTML = descLabel;
         }
+        
+        var defaultOp = "=";
+        var defaultVal = "";
+        if(this.config.groups[0].defaultVal !== "") {
+          defaultVal = this.config.groups[0].defaultVal; 
+        }
+        if(this.config.groups[0].operator !== "") {
+          defaultOp = this.config.groups[0].operator; 
+        }        
+        this.createNewRow({operator:defaultOp, value:defaultVal, conjunc:"OR", state:"new"});
     },
 
     createOperatorSelection: function(pCell, pValue) {
@@ -408,6 +427,9 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
 
     setFilterLayerDef: function() {
       var createQuery = function(isNum, field, op, value, junc) {
+          // escape all single quotes
+          // decode sanitized input
+          value = entities.decode(value.replace(/'/g, "''"));
           // special case of empty value
           if (value == '') {
               if(op == '<>' || op == 'NOT LIKE') {

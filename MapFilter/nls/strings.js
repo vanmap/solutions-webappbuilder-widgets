@@ -20,7 +20,7 @@ define({
     inputs: {
       optionOR: "OR",
       optionAND: "AND",
-      optionEQUAL: "EQUAL",
+      optionEQUAL: "EQUALS",
       optionNOTEQUAL: "NOT EQUAL",
       optionGREATERTHAN: "GREATER THAN",
       optionGREATERTHANEQUAL: "GREATER THAN OR EQUAL",

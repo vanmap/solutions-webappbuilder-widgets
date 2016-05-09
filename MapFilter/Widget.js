@@ -3,9 +3,11 @@ define([
   'dijit/_WidgetsInTemplateMixin',
   'jimu/BaseWidget',
   'jimu/dijit/SimpleTable',
+  'jimu/dijit/FilterParameters',
   'dojo/dom',
   'dojo/dom-construct',
   'dojo/dom-class',
+  'dojo/dom-attr',
   'dojo/on',
   'dojo/query',
   'dojo/string',
@@ -25,7 +27,7 @@ define([
   'dojox/html/entities',
   'dijit/form/CheckBox'
 ],
-function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domConstruct, domClass, on, query, string, lang, array, locale, Select, TextBox, DateTextBox, NumberTextBox, registry, LayerInfos, utils, saveJson, readJson, LayersHandler, entities) {
+function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParameters, dom, domConstruct, domClass, domAttr, on, query, string, lang, array, locale, Select, TextBox, DateTextBox, NumberTextBox, registry, LayerInfos, utils, saveJson, readJson, LayersHandler, entities) {
   //To create a widget, you need to derive from BaseWidget.
   return declare([BaseWidget, _WidgetsInTemplateMixin], {
 
@@ -38,6 +40,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
     runTimeConfig: null,
     useDomain: null,
     useDate: null,
+    useValue: null,
 
     postCreate: function() {
       this.inherited(arguments);
@@ -49,10 +52,14 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       //this.mapIdNode.innerHTML = 'map id:' + this.map.id;
       //this.createDivsForFilter();
       if(this.config.optionsMode) {
-        domClass.add(this.optionsIcon, "hide-items"); 
-      }      
+        domClass.add(this.optionsIcon, "hide-items");
+      }
       this.createMapLayerList();
       //this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
+
+      if(this.config.groups[0].defaultVal !== "") {
+        this.setFilterLayerDef();
+      }
 
     },
 
@@ -94,6 +101,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
 
     checkDomainUse: function(pParam) {
       this.useDomain = null;
+      this.useValue = null;
       array.forEach(this.config.groups, lang.hitch(this, function(group) {
         if(group.name === pParam.group) {
           array.forEach(group.layers, lang.hitch(this, function(grpLayer) {
@@ -102,6 +110,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
                 array.forEach(layer.layerObject.fields, lang.hitch(this, function(field) {
                   if(field.name === grpLayer.field) {
                     if(grpLayer.useDomain !== "") {
+                      this.useValue = grpLayer.useDomain;
                       if(typeof(field.domain) !== 'undefined') {
                         this.useDomain = field.domain;
                       }
@@ -188,12 +197,12 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
       }
 
       this.resize();
-      
+
       //check simple mode
       if(this.config.simpleMode) {
         domClass.add(this.btnCriteria, "hide-items");
-        domClass.add(rowOperator, "hide-items"); 
-        query(".container").style("borderTop", "0px"); 
+        domClass.add(rowOperator, "hide-items");
+        query(".container").style("borderTop", "0px");
       }
 
     },
@@ -243,15 +252,15 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           descLabel = this.config.groups[0].desc;
           this.groupDesc.innerHTML = descLabel;
         }
-        
+
         var defaultOp = "=";
         var defaultVal = "";
         if(this.config.groups[0].defaultVal !== "") {
-          defaultVal = this.config.groups[0].defaultVal; 
+          defaultVal = this.config.groups[0].defaultVal;
         }
         if(this.config.groups[0].operator !== "") {
-          defaultOp = this.config.groups[0].operator; 
-        }        
+          defaultOp = this.config.groups[0].operator;
+        }
         this.createNewRow({operator:defaultOp, value:defaultVal, conjunc:"OR", state:"new"});
     },
 
@@ -325,6 +334,12 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           "class": "userInputNormal"
         }).placeAt(pCell);
         txtDate.startup();
+      } else if(this.useValue === true) {
+        var paramsDijit = new FilterParameters();
+        paramsDijit.placeAt(pCell);
+        paramsDijit.startup();
+        this.createValueList(pValue, paramsDijit);
+       // this.paramsDijit.build(layerUrl, currentAttrs.layerInfo, partsObj);
       } else {
         var txtFilterParam = new TextBox({
           value: pValue.value /* no or empty value! */,
@@ -333,6 +348,48 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
         }).placeAt(pCell);
         txtFilterParam.startup();
       }
+    },
+
+    createValueList: function(pValue, pDijit) {
+      var filter = {};
+      var parts = [];
+      array.forEach(this.config.groups, lang.hitch(this, function(group) {
+        if(group.name === this.grpSelect.value) {
+          array.forEach(group.layers, lang.hitch(this, function(grpLayer) {
+            array.forEach(this.layerList, lang.hitch(this, function(layer) {
+              if(grpLayer.layer === layer.id) {
+                if(grpLayer.useDomain === true) {
+                  var partsObj = {};
+                  partsObj.fieldObj = {};
+                  partsObj.fieldObj.name = grpLayer.field;
+                  partsObj.fieldObj.label = grpLayer.field;
+                  partsObj.fieldObj.shortType = ((grpLayer.dataType).replace("esriFieldType", "")).toLowerCase();
+                  partsObj.fieldObj.type = grpLayer.dataType;
+                  partsObj.operator = "stringOperatorIs";
+                  partsObj.valueObj = {};
+                  partsObj.valueObj.isValid = true;
+                  partsObj.valueObj.type = "unique";
+                  partsObj.valueObj.value = pValue.value;
+                  partsObj.interactiveObj = {};
+                  partsObj.interactiveObj.prompt = "";
+                  partsObj.interactiveObj.hint = "";
+                  partsObj.caseSensitive = false;
+                  parts.push(partsObj);
+                  filter.logicalOperator = "OR";
+                  filter.expr = "";
+                  filter.parts = parts;
+                  pDijit.build(layer.layerObject.url, layer.layerObject, filter);
+
+                  var node = query(".jimu-single-filter-parameter");
+                  var hintNode = query("colgroup", node[0]);
+                  domAttr.set(hintNode[0].childNodes[1], "width", "0px");
+
+                }
+              }
+            }));
+          }));
+        }
+      }));
     },
 
     createConditionSelection: function(pCell, pValue) {
@@ -413,9 +470,17 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, dom, domCons
           } else {
             cell_conjunc.value = '';
           }
+          var userInput = "";
+          if(cell_value.value) {
+            userInput = cell_value.value;
+          } else {
+            if(cell_value.getFilterExpr() !== null) {
+              userInput = cell_value.partsObj.parts[0].valueObj.value;
+            }
+          }
           sqlParams.push({
             operator: cell_operator.value,
-            userValue: cell_value.value,
+            userValue: userInput,
             conjunc: cell_conjunc.value
           });
         }

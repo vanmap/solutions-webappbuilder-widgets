@@ -19,7 +19,7 @@ define({
 		  optionsMode: "Hide widget options",
       optionOR: "OR",
       optionAND: "AND",
-      optionEQUAL: "EQUAL",
+      optionEQUAL: "EQUALS",
       optionNOTEQUAL: "NOT EQUAL",
       optionGREATERTHAN: "GREATER THAN",
       optionGREATERTHANEQUAL: "GREATER THAN OR EQUAL",

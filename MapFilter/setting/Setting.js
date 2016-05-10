@@ -33,10 +33,12 @@ define([
   'jimu/utils',
   'jimu/LayerInfos/LayerInfos',
   'jimu/dijit/Message',
+  'jimu/dijit/Popup',
   '../LayersHandler',
+  './presetValuePicker',
   'dijit/form/CheckBox'
 ],
-  function(declare, BaseWidgetSetting, _WidgetsInTemplateMixin, SimpleTable, dom, domConstruct, on, query, lang, array, Select, TextBox, ValidationTextBox, RadioButton, registry, utils, LayerInfos, Message, LayersHandler) {
+  function(declare, BaseWidgetSetting, _WidgetsInTemplateMixin, SimpleTable, dom, domConstruct, on, query, lang, array, Select, TextBox, ValidationTextBox, RadioButton, registry, utils, LayerInfos, Message, Popup, LayersHandler, presetValuePicker) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
 
       //these two properties is defined in the BaseWidget
@@ -78,7 +80,7 @@ define([
           var validGroupsNames = this.validateNoGroupsName();
           var validDuplicates = this.validateDuplicateGroupsName();
           var validTables = this.validateTableRows();
-          
+
 
           if(validGroups && validGroupsNames && validDuplicates && validTables) {
             this.config.simpleMode = this.chkSimpleMode.checked;
@@ -165,7 +167,7 @@ define([
         domConstruct.place(dsNode, this.layerMappingBlock);
 
         var groupSettingTable = domConstruct.create("table",{
-          'class': 'group-setting-table',
+          'class': 'group-setting-table'
         });
         domConstruct.place(groupSettingTable, dsNode);
 
@@ -219,10 +221,18 @@ define([
         var txtGroupDefault = new TextBox({
             name: "txtGroupDefault",
             value: groupDef,
-            'class': 'groupName-Desctextbox',
+            'class': 'groupName-Defaulttextbox',
             placeHolder: this.nls.inputs.groupDefault
         }, cellDefaultInput);
         this.groupLayerDefault.push(txtGroupDefault);
+
+        var pickerNode = domConstruct.create("div",{
+          'class': 'groupName-defaultPicker'
+        });
+        domConstruct.place(pickerNode, cellSpacer);
+        var pickerAction = on(pickerNode, "click", lang.hitch(this, function(evt) {
+          this.presetPickerPopup();
+        }));
 
         var deleteNameNode = domConstruct.create("div",{
           id: 'addGroupDelete_' + this.groupCounter,
@@ -438,7 +448,7 @@ define([
           pTR.dataTypeCol = dataTypeSelect;
 
           this.own(on(fieldSelect, "change", lang.hitch(this, function(val) {
-            this.domainRadio({layer: pLayer, field: val, row: pTR, param: pParam, counter: pCounter});
+            this.resetRadio({layer: pLayer, field: val, row: pTR, param: pParam, counter: pCounter});
             this.dataTypeSync({layer: pLayer, field: val, row: pTR, param: pParam, select: dataTypeSelect});
           })));
 
@@ -454,7 +464,7 @@ define([
         dtSelection.set('value', pParam.field);
       },
 
-      domainRadio: function(pParam) {
+      resetRadio: function(pParam) {
         var row = pParam.row;
         var valueRadio = row.cells[2].childNodes[0];
         valueRadio.checked = false;
@@ -496,19 +506,19 @@ define([
         }
         return validForm;
       },
-      
+
       validateDuplicateGroupsName: function(){
         var validForm = true;
         var message = this.nls.errors.noDuplicates;
         var names = [];
         array.forEach(this.groupLayerName, lang.hitch(this, function(groupName) {
           if(groupName !== null) {
-              if(groupName.get('value')) {               
+              if(groupName.get('value')) {
                 names.push(groupName.get('value'));
-              }          
+              }
           }
         }));
-        // determine if the array contains duplicate values        
+        // determine if the array contains duplicate values
         if(names.length > 1 && names.sort().filter(function(v,i,o){return v!==o[i-1];}).length !== names.length) {
             validForm = false;
         }
@@ -536,6 +546,31 @@ define([
         }
         return validForm;
       },
+
+      presetPickerPopup: function() {
+        var valuePicker = new presetValuePicker({
+          map: this.map,
+          nls: this.nls,
+          layerList: this.layerList
+        });
+        var filterPopup = new Popup({
+          titleLabel : this.nls.popup.label,
+          width : 680,
+          height : 485,
+          content : valuePicker,
+          buttons : [{
+            label : window.jimuNls.common.ok,
+            onClick : lang.hitch(this, function() {
+              filterPopup.close();
+              filterPopup = null;
+            })
+          }, {
+            label : window.jimuNls.common.cancel,
+            classNames: ['jimu-btn-vacation']
+          }]
+        });
+      },
+
 
       removeGroup: function(pBlock) {
         var numPart = pBlock.substring(pBlock.indexOf('_')+1);

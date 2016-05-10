@@ -21,7 +21,7 @@
 
 .jimu-widget-map-filter .group-setting-table {
 	width: 100%;
-	margin-left: 10px;	
+	margin-left: 10px;
 }
 
 .jimu-widget-map-filter .group-block-item {
@@ -30,27 +30,24 @@
 }
 
 .jimu-widget-map-filter .group-block-delete{
-	position: absolute;
-	top: 5px;
-	right: 5px;
+	padding-left: 10px;
+	padding-right: 10px;
 	cursor: pointer;
 	cursor: hand;
     content: url("../../images/delete.png");
 }
 
 .jimu-widget-map-filter .group-block-delete:after{
-	position: absolute;
-	top: 5px;
-	right: 5px;
+	padding-left: 10px;
+	padding-right: 10px;
 	cursor: pointer;
 	cursor: hand;
     content: url("../../images/delete.png");
 }
 
 .jimu-widget-map-filter .group-block-delete:hover{
-	position: absolute;
-	top: 5px;
-	right: 5px;
+	padding-left: 10px;
+	padding-right: 10px;
 	cursor: pointer;
 	cursor: hand;
     content: url("../../images/delete_hover.png");
@@ -86,7 +83,23 @@
 	margin-bottom: 5px;
 	margin-left: 10px;
 	margin-right: 10px;
-	width: 450px;
+	width: 400px;
+}
+
+.jimu-widget-map-filter .groupName-Defaulttextbox {
+	margin-top: 5px;
+	margin-bottom: 5px;
+	margin-left: 10px;
+	margin-right: 10px;
+	width: 400px;
+}
+
+.jimu-widget-map-filter .groupName-defaultPicker {
+	padding-left: 10px;
+	padding-right: 10px;
+	content: url("../../images/setting_disabled.png");
+    cursor: hand;
+    cursor: pointer;
 }
 
 .jimu-widget-map-filter .layer-tables {
@@ -97,5 +110,6 @@
 }
 
 .jimu-widget-map-filter .operator-select {
-	font-size: 8pt;	
+	font-size: 8pt;
 }
+

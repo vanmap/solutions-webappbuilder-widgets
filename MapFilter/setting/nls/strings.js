@@ -37,10 +37,13 @@ define({
 		  value: "Use Value",
 		  action: "Delete"
 		},
+		popup: {
+		  label: "Pick a Value"
+		},
 		errors: {
 		  noGroups: "You need at least one group.",
 		  noGroupName: "One or more Group Names are missing.",
-          noDuplicates: "One or more Group Names are duplicated.",
+      noDuplicates: "One or more Group Names are duplicated.",
 		  noRows: "You need at least one row in the table.",
 		  noLayers: "You have no layers in your map."
 		}

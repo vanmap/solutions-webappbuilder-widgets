@@ -436,7 +436,7 @@ define([
           pTR.dataTypeCol = dataTypeSelect;
 
           this.own(on(fieldSelect, "change", lang.hitch(this, function(val) {
-            this.domainRadio({layer: pLayer, field: val, row: pTR, param: pParam, counter: pCounter});
+            //this.domainRadio({layer: pLayer, field: val, row: pTR, param: pParam, counter: pCounter});
             this.dataTypeSync({layer: pLayer, field: val, row: pTR, param: pParam, select: dataTypeSelect});
           })));
 
@@ -445,6 +445,7 @@ define([
             dataTypeSelect.set('value', pParam.field);
           }
         }
+        /*
         this.domainRadio({
           layer: pLayer,
           field: fieldSelect.value,
@@ -452,7 +453,7 @@ define([
           param: pParam,
           counter: pCounter
         });
-
+        */
       },
 
       dataTypeSync: function(pParam) {

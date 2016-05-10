@@ -41,25 +41,23 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
     useDomain: null,
     useDate: null,
     useValue: null,
+    runInitial: false,
 
     postCreate: function() {
       this.inherited(arguments);
-
     },
 
     startup: function() {
       this.inherited(arguments);
-      //this.mapIdNode.innerHTML = 'map id:' + this.map.id;
-      //this.createDivsForFilter();
       if(this.config.optionsMode) {
         domClass.add(this.optionsIcon, "hide-items");
       }
-      this.createMapLayerList();
-      //this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
 
-      if(this.config.groups[0].defaultVal !== "") {
-        this.setFilterLayerDef();
+      if(this.config.groups[0].defaultVal !== "" && this.config.groups[0].operator !== "") {
+        this.runInitial = true;
       }
+
+      this.createMapLayerList();
 
     },
 
@@ -93,8 +91,6 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
 
                 }));
                 this.createGroupSelection();
-                //this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
-                this.resize();
           }
         }));
     },
@@ -145,6 +141,44 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
       }));
     },
 
+    createGroupSelection: function() {
+        var ObjList = [];
+        var descLabel = '';
+        array.forEach(this.config.groups, lang.hitch(this, function(group) {
+          var grpObj = {};
+          grpObj.value = group.name;
+          grpObj.label = group.name;
+          grpObj.selected = false;
+          ObjList.push(grpObj);
+        }));
+
+        this.grpSelect = new Select({
+          options: ObjList
+        }).placeAt(this.groupPicker);
+
+        this.grpSelect.startup();
+        this.own(on(this.grpSelect, "change", lang.hitch(this, function(val) {
+          this.resetLayerDef();
+          this.removeAllRows();
+          this.checkDomainUse({group: val});
+          this.checkDateUse({group: val});
+          this.reconstructRows(val);
+          this.updateGroupDesc(val);
+          setTimeout(lang.hitch(this,this.setFilterLayerDef),500);
+        })));
+        this.checkDomainUse({group: this.grpSelect.value});
+        this.checkDateUse({group: this.grpSelect.value});
+
+        if(typeof(this.config.groups[0]) !== 'undefined') {
+          descLabel = this.config.groups[0].desc;
+          this.groupDesc.innerHTML = descLabel;
+        }
+
+        var defaultVal = this.checkDefaultValue(this.config.groups[0]);
+        var defaultOp = this.checkDefaultOperator(this.config.groups[0]);
+        this.createNewRow({operator:defaultOp, value:defaultVal, conjunc:"OR", state:"new"});
+    },
+
     createNewRow: function(pValue) {
       var table = dom.byId("tblPredicates");
 
@@ -153,9 +187,6 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
           var prevRowConjunTable = table.rows[(table.rows.length-1)].cells[0].firstChild;
           var prevRowConjunCell = prevRowConjunTable.rows[2].cells[0];
           this.createConditionSelection(prevRowConjunCell, pValue);
-
-          //var prevRowConjunCell = table.rows[(table.rows.length-1)].cells[0];
-          //this.createConditionSelection(prevRowConjunCell, pValue);
         } else {
           if(table.rows.length === 1) {
             var prevRowConjunTable = table.rows[(table.rows.length-1)].cells[0].firstChild;
@@ -185,16 +216,8 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
       this.colorRows();
 
       this.createOperatorSelection(cell_operator,pValue);
-      this.createInputFilter(cell_value,pValue);
       this.removeTableRow(deleteNode,row,table.rows.length);
-
-      if(pValue.state === "reload") {
-        if(pValue.conjunc !== "") {
-          var prevRowConjunTable = table.rows[(table.rows.length-1)].cells[0].firstChild;
-          var prevRowConjunCell = prevRowConjunTable.rows[2].cells[0];
-          this.createConditionSelection(prevRowConjunCell, pValue);
-        }
-      }
+      this.createInputFilter(cell_value,pValue);
 
       this.resize();
 
@@ -203,6 +226,19 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
         domClass.add(this.btnCriteria, "hide-items");
         domClass.add(rowOperator, "hide-items");
         query(".container").style("borderTop", "0px");
+      }
+
+      if(pValue.state === "reload") {
+        if(pValue.conjunc !== "") {
+          var prevRowConjunTable = table.rows[(table.rows.length-1)].cells[0].firstChild;
+          var prevRowConjunCell = prevRowConjunTable.rows[2].cells[0];
+          this.createConditionSelection(prevRowConjunCell, pValue);
+        }
+      } else {
+        if(this.runInitial) {
+          this.runInitial = false;
+          setTimeout(lang.hitch(this,this.setFilterLayerDef),500);
+        }
       }
 
     },
@@ -218,50 +254,6 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
           domClass.add(row, "tableRow");
         }
       });
-    },
-
-    createGroupSelection: function() {
-        var ObjList = [];
-        var descLabel = '';
-        array.forEach(this.config.groups, lang.hitch(this, function(group) {
-          var grpObj = {};
-          grpObj.value = group.name;
-          grpObj.label = group.name;
-          grpObj.selected = false;
-          ObjList.push(grpObj);
-        }));
-
-        this.grpSelect = new Select({
-          options: ObjList
-        }).placeAt(this.groupPicker);
-
-        this.grpSelect.startup();
-        this.own(on(this.grpSelect, "change", lang.hitch(this, function(val) {
-          this.resetLayerDef();
-          this.removeAllRows();
-          this.checkDomainUse({group: val});
-          this.checkDateUse({group: val});
-          this.reconstructRows(val);
-          this.updateGroupDesc(val);
-          this.setFilterLayerDef();
-        })));
-        this.checkDomainUse({group: this.grpSelect.value});
-        this.checkDateUse({group: this.grpSelect.value});
-
-        if(typeof(this.config.groups[0]) !== 'undefined') {
-          descLabel = this.config.groups[0].desc;
-          this.groupDesc.innerHTML = descLabel;
-        }
-
-        var defaultOp = "=";
-        var defaultVal = "";
-        if(this.config.groups[0].defaultVal !== "") {
-          defaultVal = this.config.groups[0].defaultVal;
-        }
-        if(this.config.groups[0].operator !== "") {
-          defaultOp = this.config.groups[0].operator;
-        }
-        this.createNewRow({operator:defaultOp, value:defaultVal, conjunc:"OR", state:"new"});
     },
 
     createOperatorSelection: function(pCell, pValue) {
@@ -339,7 +331,6 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
         paramsDijit.placeAt(pCell);
         paramsDijit.startup();
         this.createValueList(pValue, paramsDijit);
-       // this.paramsDijit.build(layerUrl, currentAttrs.layerInfo, partsObj);
       } else {
         var txtFilterParam = new TextBox({
           value: pValue.value /* no or empty value! */,
@@ -383,7 +374,6 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
                   var node = query(".jimu-single-filter-parameter");
                   var hintNode = query("colgroup", node[0]);
                   domAttr.set(hintNode[0].childNodes[1], "width", "0px");
-
                 }
               }
             }));
@@ -444,16 +434,38 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
                   this.createNewRow({value: def.value, operator: def.operator, conjunc: def.conjunc, state:"reload"});
                 }));
               } else {
-                this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
+                var defaultVal = this.checkDefaultValue(group);
+                var defaultOp = this.checkDefaultOperator(group);
+
+                this.createNewRow({operator:defaultOp,value:defaultVal,conjunc:"OR",state:"new"});
               }
             } else {
-              this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
+              var defaultVal = this.checkDefaultValue(group);
+              var defaultOp = this.checkDefaultOperator(group);
+
+              this.createNewRow({operator:defaultOp,value:defaultVal,conjunc:"OR",state:"new"});
             }
           }
         }));
       } else {
         this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
       }
+    },
+
+    checkDefaultValue: function(pGroup) {
+      var defaultVal = "";
+      if(pGroup.defaultVal !== "") {
+        defaultVal = pGroup.defaultVal;
+      }
+      return defaultVal;
+    },
+
+    checkDefaultOperator: function(pGroup) {
+      var defaultOp = "=";
+      if(pGroup.operator !== "") {
+        defaultOp = pGroup.operator;
+      }
+      return defaultOp;
     },
 
     parseTable: function() {
@@ -471,12 +483,13 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
             cell_conjunc.value = '';
           }
           var userInput = "";
-          if(cell_value.value) {
-            userInput = cell_value.value;
-          } else {
+          if(typeof cell_value.partsObj !== "undefined") {
             if(cell_value.getFilterExpr() !== null) {
               userInput = cell_value.partsObj.parts[0].valueObj.value;
             }
+          }
+          else {
+            userInput = cell_value.value;
           }
           sqlParams.push({
             operator: cell_operator.value,
@@ -496,23 +509,29 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
           // decode sanitized input
           value = entities.decode(value.replace(/'/g, "''"));
           // special case of empty value
-          if (value == '') {
-              if(op == '<>' || op == 'NOT LIKE') {
+          if (value === '') {
+              if(op === '<>' || op === 'NOT LIKE') {
                 return [field, "<> '' OR", field, "IS NOT NULL", junc].join(" ") + " ";
               } else {
                 return [field, "= '' OR", field, "IS NULL", junc].join(" ") + " ";
               }
           }
-          if (op == 'LIKE' || op == 'NOT LIKE') {
+          if (op === 'LIKE' || op === 'NOT LIKE') {
             value = "UPPER('%" + value + "%')";
-          } else if (op == 'START') {
+            field = "UPPER("+ field +")";
+          } else if (op === 'START') {
             op = 'LIKE';
             value = "UPPER('" + value + "%')";
-          } else if (op == 'END') {
+            field = "UPPER("+ field +")";
+          } else if (op === 'END') {
             op = 'LIKE';
             value = "UPPER('%" + value + "')";
-          } else if (isNum == false) { // wrap string fields if not already
-            value = "'" + value + "'";
+            field = "UPPER("+ field +")";
+          } else if (isNum === false) { // wrap string fields if not already
+            value = "UPPER('" + value + "')";
+            field = "UPPER("+ field +")";
+          } else {
+
           }
 
           return [field, op, value, junc].join(" ") + " ";
@@ -573,6 +592,10 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
                     }
                     group.def.push({value: utils.sanitizeHTML(p.userValue), operator: p.operator, conjunc: p.conjunc});
                   }
+                  else {
+                    expr = expr + createQuery(false, grpLayer.field, p.operator, utils.sanitizeHTML(p.userValue), p.conjunc);
+                    group.def.push({value: utils.sanitizeHTML(p.userValue), operator: p.operator, conjunc: p.conjunc});
+                  }
                 }));
                 if(expr !== "") {
                   msExpr[msSubs[1]] = expr.trim();
@@ -592,12 +615,14 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
                         layer.layerObject.setDefinitionExpression(compositeDef);
                       }
                     }));
-                  } else {
+                  }
+                  else {
                     layer.layerObject.setDefinitionExpression(expr.trim());
                   }
                   layer.layerObject.setVisibility(true);
                 }
               } else if(filterType === "MapService") {
+                console.log(msExpr);
                 if(msExpr.length > 0) {
                   if(this.chkAppendToDef.checked) {
                     array.forEach(this.defaultDef, lang.hitch(this, function(def) {
@@ -712,7 +737,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
           this.checkDateUse({group: this.grpSelect.value});
           this.reconstructRows(this.grpSelect.value);
           this.updateGroupDesc(this.grpSelect.value);
-          this.setFilterLayerDef();
+          setTimeout(lang.hitch(this,this.setFilterLayerDef),500);
           query(".loadProgressHeader").style("display", "none");
           query(".loadProgressShow").style("display", "none");
       }));
@@ -734,28 +759,13 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
     //END: W2W communication
 
     resize: function() {
-      /*
-      var widgetWidth = this.domNode.clientWidth;
-
-      var inputNodes = query(".userInputNormal");
-      console.log(inputNodes);
-      if(inputNodes.length > 0) {
-        inputNodes.style("width", "95%");
+      var node = query(".jimu-single-filter-parameter");
+      if(node.length > 0) {
+        array.forEach(node, lang.hitch(this, function(domEl) {
+          var hintNode = query("colgroup", domEl);
+          domAttr.set(hintNode[0].childNodes[1], "width", "0px");
+        }));
       }
-
-
-      var operNode = query(".tdOperatorHide");
-      if(operNode.length > 0) {
-        operNode.style("display", "none");
-        operNode.style("width", "50px");
-      }
-
-      var inputNodes = query(".tdValue");
-      if(inputNodes.length > 0) {
-        inputNodes.style("width", (widgetWidth - 135) + "px");
-      }
-      */
-
     },
 
     onOpen: function(){

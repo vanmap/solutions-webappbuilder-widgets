@@ -40,6 +40,7 @@ define({
 		errors: {
 		  noGroups: "You need at least one group.",
 		  noGroupName: "One or more Group Names are missing.",
+          noDuplicates: "One or more Group Names are duplicated.",
 		  noRows: "You need at least one row in the table.",
 		  noLayers: "You have no layers in your map."
 		}

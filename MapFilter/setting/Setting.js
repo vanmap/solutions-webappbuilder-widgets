@@ -76,9 +76,11 @@ define([
         if(this.layerList.length > 0 || this.layerList === null) {
           var validGroups = this.validateNoGroups();
           var validGroupsNames = this.validateNoGroupsName();
+          var validDuplicates = this.validateDuplicateGroupsName();
           var validTables = this.validateTableRows();
+          
 
-          if(validGroups && validGroupsNames && validTables) {
+          if(validGroups && validGroupsNames && validDuplicates && validTables) {
             this.config.simpleMode = this.chkSimpleMode.checked;
             this.config.optionsMode = this.chkOptionsMode.checked;
             this.config.groups = [];
@@ -487,6 +489,29 @@ define([
             }
           }
         }));
+        if(validForm === false) {
+          new Message({
+            message : message
+          });
+        }
+        return validForm;
+      },
+      
+      validateDuplicateGroupsName: function(){
+        var validForm = true;
+        var message = this.nls.errors.noDuplicates;
+        var names = [];
+        array.forEach(this.groupLayerName, lang.hitch(this, function(groupName) {
+          if(groupName !== null) {
+              if(groupName.get('value')) {               
+                names.push(groupName.get('value'));
+              }          
+          }
+        }));
+        // determine if the array contains duplicate values        
+        if(names.length > 1 && names.sort().filter(function(v,i,o){return v!==o[i-1];}).length !== names.length) {
+            validForm = false;
+        }
         if(validForm === false) {
           new Message({
             message : message

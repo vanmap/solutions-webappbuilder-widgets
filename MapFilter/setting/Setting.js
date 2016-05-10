@@ -47,7 +47,7 @@ define([
       groupLayerName: [],
       groupLayerDesc: [],
       groupLayerOperator: [],
-      groupLayerDefault: [],      
+      groupLayerDefault: [],
       layerCounter: 0,
       layerList: null,
 
@@ -66,18 +66,18 @@ define([
         this.groupLayerName = [];
         this.groupLayerDesc = [];
         this.groupLayerOperator = [];
-        this.groupLayerDefault = [];        
+        this.groupLayerDefault = [];
         this.chkSimpleMode.set('checked', this.config.simpleMode);
-        this.chkOptionsMode.set('checked', this.config.optionsMode);          
+        this.chkOptionsMode.set('checked', this.config.optionsMode);
         this.createMapLayerList();
       },
 
       getConfig: function() {
-        if(this.layerList.length > 0 || this.layerList === null) {       
+        if(this.layerList.length > 0 || this.layerList === null) {
           var validGroups = this.validateNoGroups();
           var validGroupsNames = this.validateNoGroupsName();
           var validTables = this.validateTableRows();
-  
+
           if(validGroups && validGroupsNames && validTables) {
             this.config.simpleMode = this.chkSimpleMode.checked;
             this.config.optionsMode = this.chkOptionsMode.checked;
@@ -91,25 +91,19 @@ define([
                   groupObj.operator = utils.sanitizeHTML(this.groupLayerOperator[i].value);
                   groupObj.defaultVal = utils.sanitizeHTML(this.groupLayerDefault[i].value);
                   groupObj.layers = [];
-  
+
                   var result = array.forEach(this.groupLayerContainer[i].getRows(), lang.hitch(this, function(row) {
                     var layerStruct = {};
-                    if(typeof(row.domainCol) !== 'undefined') {
-                      layerStruct.layer = row.layerCol.value;
-                      layerStruct.field = row.fieldCol.value;
-                      layerStruct.dataType = row.dataTypeCol.attr('displayedValue');
-                      if(row.domainCol.checked) {
-                        layerStruct.useDomain = row.domainCol.value;
-                      } else {
-                        layerStruct.useDomain = '';
-                      }
+                    var valueRadio = row.cells[2].childNodes[0];
+                    layerStruct.layer = row.layerCol.value;
+                    layerStruct.field = row.fieldCol.value;
+                    layerStruct.dataType = row.dataTypeCol.attr('displayedValue');
+                    if(valueRadio.checked) {
+                      layerStruct.useDomain = valueRadio.checked;
                     } else {
-                      layerStruct.layer = row.layerCol.value;
-                      layerStruct.field = row.fieldCol.value;
-                      layerStruct.dataType = row.dataTypeCol.attr('displayedValue');
                       layerStruct.useDomain = '';
                     }
-  
+
                     groupObj.layers.push(layerStruct);
                   }));
                   this.config.groups.push(groupObj);
@@ -123,7 +117,7 @@ define([
         } else {
           new Message({
             message : this.nls.errors.noLayers
-          });          
+          });
           return false;
         }
       },
@@ -172,25 +166,25 @@ define([
           'class': 'group-setting-table',
         });
         domConstruct.place(groupSettingTable, dsNode);
-        
+
         var rowName = groupSettingTable.insertRow(-1);
         var cellNameLabel = rowName.insertCell(0);
         var cellNameInput = rowName.insertCell(1);
-        var cellDescLabel = rowName.insertCell(2); 
+        var cellDescLabel = rowName.insertCell(2);
         var cellDescInput = rowName.insertCell(3);
-        var cellDelete = rowName.insertCell(4);       
+        var cellDelete = rowName.insertCell(4);
 
         var rowPreset = groupSettingTable.insertRow(-1);
         var cellOperatorLabel = rowPreset.insertCell(0);
         var cellOperatorInput = rowPreset.insertCell(1);
-        var cellDefaultLabel = rowPreset.insertCell(2); 
+        var cellDefaultLabel = rowPreset.insertCell(2);
         var cellDefaultInput = rowPreset.insertCell(3);
-        var cellSpacer = rowPreset.insertCell(4); 
+        var cellSpacer = rowPreset.insertCell(4);
 
         cellNameLabel.innerHTML = this.nls.labels.groupName;
         cellDescLabel.innerHTML = this.nls.labels.groupDesc;
         cellOperatorLabel.innerHTML = this.nls.labels.groupOperator;
-        cellDefaultLabel.innerHTML = this.nls.labels.groupDefault;        
+        cellDefaultLabel.innerHTML = this.nls.labels.groupDefault;
 
         var groupName = '';
         var groupDesc = '';
@@ -292,11 +286,11 @@ define([
           type: "empty"
         }, {
           name: "domainCol",
-          title: this.nls.tables.domain,
+          title: this.nls.tables.value,
           "class": "label",
-          type: "empty",
+          type: "radio",
           width: "150px"
-        }, {
+        },{
           name: "actions",
           title: this.nls.tables.action,
           type: "actions",
@@ -581,7 +575,7 @@ define([
         this.groupLayerName[numPart-1] = null;
         this.groupLayerDesc[numPart-1] = null;
         this.groupLayerOperator[numPart-1] = null;
-        this.groupLayerDefault[numPart-1] = null;        
+        this.groupLayerDefault[numPart-1] = null;
         //dijit.byId('addGroupName_' + numPart).destroyRecursive(true);
         //dijit.byId('addGroupDesc_' + numPart).destroyRecursive(true);
         domConstruct.destroy(dom.byId('addGroupDelete_' + numPart));

@@ -5,7 +5,7 @@ define({
       groupName: "Filter set name:",
       groupDesc: "Description:",
       groupOperator: "Preset Operator:",
-      groupDefault: "Preset Value:" 
+      groupDefault: "Preset Value:"
 		},
 		buttons: {
 		  addNewGroup: "Add a New Group",
@@ -29,12 +29,12 @@ define({
       optionEND: "ENDS WITH",
       optionLIKE: "CONTAINS",
       optionNOTLIKE: "DOES NOT CONTAIN",
-      optionNONE: "NONE"	  
+      optionNONE: "NONE"
 		},
 		tables: {
 		  layer: "Layers",
 		  field: "Fields",
-		  domain: "Use Domain",
+		  value: "Use Value",
 		  action: "Delete"
 		},
 		errors: {

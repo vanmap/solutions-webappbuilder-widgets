@@ -436,7 +436,7 @@ define([
           pTR.dataTypeCol = dataTypeSelect;
 
           this.own(on(fieldSelect, "change", lang.hitch(this, function(val) {
-            //this.domainRadio({layer: pLayer, field: val, row: pTR, param: pParam, counter: pCounter});
+            this.domainRadio({layer: pLayer, field: val, row: pTR, param: pParam, counter: pCounter});
             this.dataTypeSync({layer: pLayer, field: val, row: pTR, param: pParam, select: dataTypeSelect});
           })));
 
@@ -445,15 +445,6 @@ define([
             dataTypeSelect.set('value', pParam.field);
           }
         }
-        /*
-        this.domainRadio({
-          layer: pLayer,
-          field: fieldSelect.value,
-          row: pTR,
-          param: pParam,
-          counter: pCounter
-        });
-        */
       },
 
       dataTypeSync: function(pParam) {
@@ -462,58 +453,9 @@ define([
       },
 
       domainRadio: function(pParam) {
-        array.forEach(this.layerList, lang.hitch(this, function(layer) {
-          if(layer.id === pParam.layer) {
-            array.forEach(layer.layer.fields, lang.hitch(this, function(field) {
-              if(field.name === pParam.field) {
-                if(typeof(field.domain) !== 'undefined') {
-                  if(field.domain.type === 'codedValue' || field.domain.type === 'range') {
-                    var td = query('.simple-table-cell', pParam.row)[2];
-                    if (td) {
-                      var content = query('.dijit', td)[0];
-                      if(content){
-                        existRadio = registry.byNode(content);
-                        dijit.byId(existRadio.id).destroyRecursive();
-                      }
-                      domConstruct.empty(td);
-                      var domainRadio = new RadioButton({
-                        name: 'useDomain' + pParam.counter
-                      }).placeAt(td);
-
-                      domainRadio.startup();
-                      pParam.row.domainCol = domainRadio;
-
-                      if(typeof(pParam) !== 'undefined') {
-                        if(typeof(pParam.param) !== 'undefined') {
-                          if(pParam.param.useDomain !== '') {
-                            domainRadio.set('value', pParam.param.useDomain);
-                          }
-                        }
-                      }
-                    }
-                  }
-                } else {
-                  var row = pParam.row;
-                  if(typeof(row.domainCol) !== 'undefined') {
-                    row.domainCol.value = '';
-                  }
-                  var td = query('.simple-table-cell', pParam.row)[2];
-                  if (td) {
-                    var content = query('.dijit', td)[0];
-                    if(content){
-                      existRadio = registry.byNode(content);
-                      dijit.byId(existRadio.id).destroyRecursive();
-                    }
-                  }
-                  //domConstruct.empty(td);
-
-
-                }
-              }
-            }));
-          }
-        }));
-
+        var row = pParam.row;
+        var valueRadio = row.cells[2].childNodes[0];
+        valueRadio.checked = false;
       },
 
 

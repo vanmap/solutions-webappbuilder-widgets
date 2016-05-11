@@ -33,19 +33,35 @@
     }
 
     .jimu-widget-smartEditor-setting .update {
-        width: 155px;
+        width: 125px;
     }
 
     .jimu-widget-smartEditor-setting .disable {
-        width: 250px;
+        width: 200px;
     }
 
     .jimu-widget-smartEditor-setting .actions {
+        width: 50px;
+        padding-right: 0 !important;
+    }
+
+    .jimu-widget-smartEditor-setting .description {
         width: 100px;
     }
 /*CSS for fields config tables*/
+.jimu-widget-smartEditor-setting-fields .required {
+    width: 7px;
+    color: red;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
 .jimu-widget-smartEditor-setting-fields .editable {
-    width: 100px;
+    width: 90px;
+}
+
+.jimu-widget-smartEditor-setting-fields .visible {
+    width: 90px;
 }
 
 .jimu-widget-smartEditor-setting-fields .preset {
@@ -53,6 +69,7 @@
 }
 
 .jimu-widget-smartEditor-setting-fields .fieldName {
+      width: 120px;
 }
 
 .jimu-widget-smartEditor-setting-fields .fieldLabel {
@@ -63,7 +80,14 @@
     font-size: 14px;
 }
 
+.jimu-widget-smartEditor-setting-fields .settingsNotes {
+    padding-top: 10px;
+    font-size: 14px;
+}
+
 .jimu-widget-smartEditor-setting-fields .actions {
+    width: 80px;
+    padding-right: 2px !important;
 }
 /*CSS for fields rule tables*/
 .jimu-widget-smartEditor-rule-table .rule {
@@ -173,7 +197,6 @@ jimu-widget-smartEditor-edit-description .editor-container .uploaderInsideNode e
 }
 
 .jimu-widget-smartEditor-setting .attDescrip {
-    
     width: 20px;
     height: 20px;
     text-align: center;
@@ -183,4 +206,10 @@ jimu-widget-smartEditor-edit-description .editor-container .uploaderInsideNode e
     background-position: center center;
     background-image: url(../images/desc.png);
     background-repeat: no-repeat;
+}
+
+
+.jimu-widget-smartEditor-filter-page .submithide {
+    padding-left:4px;
+    font-size:12px;
 }

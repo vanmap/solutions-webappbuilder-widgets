@@ -11,8 +11,7 @@ define(
     'jimu/dijit/SimpleTable',
     "jimu/dijit/Popup",
     'esri/lang',
-    'dijit/registry',
-    'jimu/dijit/Message'
+    'dijit/registry'
   ],
   function (
     declare,
@@ -26,7 +25,9 @@ define(
     BaseWidgetSetting,
     Table,
     Popup,
-    esriLang, registry, Message) {
+    esriLang,
+    registry
+    ) {
     return declare([BaseWidgetSetting, _TemplatedMixin], {
       baseClass: "jimu-widget-smartEditor-setting-fields",
       templateString: template,
@@ -73,34 +74,47 @@ define(
       },
 
       _initFieldsTable: function () {
-        var fields2 = [{
-          name: 'isEditable',
-          title: this.nls.fieldsPage.fieldsSettingsTable.edit,
-          type: 'checkbox',
-          'class': 'editable'
-        }, {
-          name: 'canPresetValue',
-          title: this.nls.fieldsPage.fieldsSettingsTable.canPresetValue,
-          type: 'checkbox',
-          'class': 'preset'
-        }, {
-          name: 'fieldName',
-          title: this.nls.fieldsPage.fieldsSettingsTable.fieldName,
-          type: 'text',
-          'class': 'fieldName'
-        }, {
-          name: 'label',
-          title: this.nls.fieldsPage.fieldsSettingsTable.fieldAlias,
-          type: 'text',
-          editable: true,
-          'class': 'fieldLabel'
-        }, {
-          name: 'actions',
-          title: this.nls.fieldsPage.fieldsSettingsTable.actions,
-          type: 'actions',
-          actions: ['up', 'down', 'edit'],
-          'class': 'action'
-        }];
+        var fields2 = [
+          {
+            name: 'required',
+            title: "",
+            type: 'text',
+            'class': 'required'
+          },
+          {
+            name: 'visible',
+            title: this.nls.fieldsPage.fieldsSettingsTable.display,
+            type: 'checkbox',
+            'class': 'visible'
+          },
+          {
+            name: 'isEditable',
+            title: this.nls.fieldsPage.fieldsSettingsTable.edit,
+            type: 'checkbox',
+            'class': 'editable'
+          }, {
+            name: 'canPresetValue',
+            title: this.nls.fieldsPage.fieldsSettingsTable.canPresetValue,
+            type: 'checkbox',
+            'class': 'preset'
+          }, {
+            name: 'fieldName',
+            title: this.nls.fieldsPage.fieldsSettingsTable.fieldName,
+            type: 'text',
+            'class': 'fieldName'
+          }, {
+            name: 'label',
+            title: this.nls.fieldsPage.fieldsSettingsTable.fieldAlias,
+            type: 'text',
+            editable: false,
+            'class': 'fieldLabel'
+          }, {
+            name: 'actions',
+            title: this.nls.fieldsPage.fieldsSettingsTable.actions,
+            type: 'actions',
+            actions: ['up', 'down', 'edit'],
+            'class': 'actions'
+          }];
 
         var args2 = {
           fields: fields2,
@@ -116,6 +130,9 @@ define(
         var nl = query("th.simple-table-field", this._fieldsTable.domNode);
         nl.forEach(function (node) {
           switch (node.innerText) {
+            case this.nls.fieldsPage.fieldsSettingsTable.display:
+              node.title = this.nls.fieldsPage.fieldsSettingsTable.displayTip;
+              break;
             case this.nls.fieldsPage.fieldsSettingsTable.edit:
               node.title = this.nls.fieldsPage.fieldsSettingsTable.editTip;
               break;
@@ -153,44 +170,64 @@ define(
       },
       _onEditFieldInfoClick: function (tr) {
         var rowData = this._fieldsTable.getRowData(tr);
-        if (rowData && rowData.isEditable) {
-          var layerDefinition = {};
-          //layerDefinition['fields'] = lang.clone(this._fieldValidations.fields);
-          layerDefinition.fields = array.filter(this._layerInfo.mapLayer.resourceInfo.fields, function (field) {
-            return (field.name !== rowData.fieldName);
-          });
-          this._fieldValid = new FieldValidation({
-            nls: this.nls,
-            _resourceInfo: layerDefinition,//this._layerInfo.mapLayer.resourceInfo,
-            _url: this._layerInfo.mapLayer.url,
-            _fieldValidations: this._fieldValidations,
-            _fieldName: rowData.fieldName,
-            _fieldAlias: rowData.label
-          });
-          this._fieldValid.popupActionsPage();
 
-        }
-        else {
-          new Message({
-            message: this.nls.fieldsPage.smartAttSupport
-          });
-        }
+        //below code disables smart action on GDB required fields
+
+        //if (rowData && rowData.isEditable !== null) {
+        ////move code below here if wish to disable smart actions on gDB fields
+        //}
+        //else {
+        //'jimu/dijit/Message'Message
+        //  new Message({
+        //    message: this.nls.fieldsPage.smartAttSupport
+        //  });
+        //}
+        var layerDefinition = {};
+        layerDefinition.fields = this._layerInfo.mapLayer.resourceInfo.fields;
+
+        //below code removes the field from the smart action
+        //layerDefinition.fields = array.filter(this._layerInfo.mapLayer.resourceInfo.fields, function (field) {
+        //  return (field.name !== rowData.fieldName);
+        //});
+
+        this._fieldValid = new FieldValidation({
+          nls: this.nls,
+          _resourceInfo: layerDefinition,
+          _url: this._layerInfo.mapLayer.url,
+          _fieldValidations: this._fieldValidations,
+          _fieldName: rowData.fieldName,
+          _fieldAlias: rowData.label
+
+        });
+        this._fieldValid.popupActionsPage();
+
+
+
       },
       _setFiedsTable: function (fieldInfos) {
         array.forEach(fieldInfos, function (fieldInfo) {
 
-
-          var addRowResult = this._fieldsTable.addRow({
+          var newRow = {
             fieldName: fieldInfo.fieldName,
             isEditable: fieldInfo.isEditable,
             canPresetValue: fieldInfo.canPresetValue,
-            label: fieldInfo.label
-          });
+            label: fieldInfo.label,
+            visible: fieldInfo.visible
+          };
+          if (fieldInfo.hasOwnProperty('nullable') && fieldInfo.nullable === false) {
+            newRow.required = "*";
+          }
+          else {
+            newRow.required = "";
+          }
+          var addRowResult = this._fieldsTable.addRow(newRow);
           if (fieldInfo.hasOwnProperty('nullable') && fieldInfo.nullable === false) {
             var nl = query(".editable", addRowResult.tr);
             nl.forEach(function (node) {
+
               var widget = registry.getEnclosingWidget(node.childNodes[0]);
               widget.setStatus(false);
+
             });
           }
         }, this);
@@ -204,7 +241,8 @@ define(
             "fieldName": fieldData.fieldName,
             "label": fieldData.label,
             "canPresetValue": fieldData.canPresetValue,
-            "isEditable": fieldData.isEditable === null ? true : fieldData.isEditable
+            "isEditable": fieldData.isEditable === null ? true : fieldData.isEditable,
+            "visible": fieldData.visible === null ? true : fieldData.visible
           });
         });
 

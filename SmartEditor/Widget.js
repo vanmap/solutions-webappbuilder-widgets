@@ -136,6 +136,8 @@ define([
       _editGeomSwitch: null,
       postCreate: function () {
         this.inherited(arguments);
+        this.nls = lang.mixin(this.nls, window.jimuNls.common);
+
         this._init();
         this._setTheme();
       },
@@ -1474,7 +1476,7 @@ define([
             for (var k in feature.attributes) {
               if (feature.attributes.hasOwnProperty(k) === true) {
                 ruleInfo = this._smartAttributes.validateField(k);
-                if (ruleInfo[1] === 'Hide') {
+                if (ruleInfo[1] === 'Hide' && ruleInfo[3] !== true) {
                   delete feature.attributes[k];
                 }
               }
@@ -2144,9 +2146,7 @@ define([
                fieldInfo.fieldName !== "objectid") {
               var webmapFieldInfo = getFieldInfoFromWebmapFieldInfos(webmapFieldInfos, fieldInfo);
               if (webmapFieldInfo) {
-                if (webmapFieldInfo.isEditable ||
-                    webmapFieldInfo.isEditableSettingInWebmap ||
-                    webmapFieldInfo.visible) {
+                if (webmapFieldInfo.visible === true) {
                   newFieldInfos.push(webmapFieldInfo);
                 }
               } else {
@@ -2170,8 +2170,10 @@ define([
               if (fieldInfo.fieldName === webmapFieldInfos[i].fieldName) {
                 webmapFieldInfos[i].label = fieldInfo.label === undefined ?
                   webmapFieldInfos[i].label : fieldInfo.label;
+                webmapFieldInfos[i].visible = fieldInfo.visible === undefined ?
+                 webmapFieldInfos[i].visible : fieldInfo.visible;
                 webmapFieldInfos[i].isEditableSettingInWebmap = webmapFieldInfos[i].isEditable;
-                webmapFieldInfos[i].isEditable = fieldInfo.isEditablelabel === undefined ?
+                webmapFieldInfos[i].isEditable = fieldInfo.isEditable === undefined ?
                   webmapFieldInfos[i].isEditable : fieldInfo.isEditable;
                 webmapFieldInfos[i].canPresetValue = fieldInfo.canPresetValue === undefined ?
                   false : fieldInfo.canPresetValue;

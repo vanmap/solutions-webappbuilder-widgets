@@ -152,7 +152,7 @@ define([
                   }
                 }
                 else {
-                  return (result = [true, actionDetails.actionName, null], true);
+                  return (result = [true, actionDetails.actionName, null, actionDetails.submitWhenHidden], true);
                 }
 
 

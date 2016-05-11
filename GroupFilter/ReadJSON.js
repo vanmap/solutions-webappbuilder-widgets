@@ -100,7 +100,9 @@ return declare([Evented], {
     var swf = null;
     if (document.all) {
       try{
+        /* jshint ignore:start */
         swf = new ActiveXObject('ShockwaveFlash.ShockwaveFlash');
+        /* jshint ignore:end */
       }catch(e) {
         swf = null;
       }

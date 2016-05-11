@@ -46,6 +46,12 @@ define({
       noDuplicates : "One or more Group Names are duplicated.",
       noRows : "You need at least one row in the table.",
       noLayers : "You have no layers in your map."
+    },
+    picker : {
+      description: "Use this form to find a preset value for this group.",
+      layer: "Select a layer",
+      field: "Select a field",
+      value: "Select a value"
     }
   })
 });

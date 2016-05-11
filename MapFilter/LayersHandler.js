@@ -100,7 +100,7 @@ function(Evented,
                 children : this.childList,
                 layer: layer.layerObject
               };
-            this.layerStore.push(dataItem);
+              this.layerStore.push(dataItem);
             }
           } else if (layer.originOperLayer.layerType === 'ArcGISMapServiceLayer') {
             this.childList = [];

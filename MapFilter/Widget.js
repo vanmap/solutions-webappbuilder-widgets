@@ -27,7 +27,10 @@ define([
   'dojox/html/entities',
   'dijit/form/CheckBox'
 ],
-function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParameters, dom, domConstruct, domClass, domAttr, on, query, string, lang, array, locale, Select, TextBox, DateTextBox, NumberTextBox, registry, LayerInfos, utils, saveJson, readJson, LayersHandler, entities) {
+function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParameters, dom,
+  domConstruct, domClass, domAttr, on, query, string, lang, array, locale, Select, TextBox,
+  DateTextBox, NumberTextBox, registry, LayerInfos, utils, saveJson, readJson, LayersHandler,
+  entities) {
   //To create a widget, you need to derive from BaseWidget.
   return declare([BaseWidget, _WidgetsInTemplateMixin], {
 
@@ -62,7 +65,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
     },
 
     btnNewRowAction: function() {
-      this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
+      this.createNewRow({operator:"=", value:"", conjunc:"OR", state:"new"});
     },
 
     createMapLayerList: function() {
@@ -71,26 +74,39 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
           if(operLayerInfos._layerInfos && operLayerInfos._layerInfos.length > 0) {
             this.layerList = operLayerInfos._layerInfos;
 
-                array.forEach(this.layerList, lang.hitch(this, function(layer) {
-                  if(layer.originOperLayer.layerType !== "ArcGISTiledMapServiceLayer" && typeof(layer.originOperLayer.featureCollection) === 'undefined') {
+            array.forEach(this.layerList, lang.hitch(this, function(layer) {
+              if(layer.originOperLayer.layerType !== "ArcGISTiledMapServiceLayer" &&
+                typeof(layer.originOperLayer.featureCollection) === 'undefined') {
 
-                    if(typeof(layer.layerObject._defnExpr) !== 'undefined') {
-                      this.defaultDef.push({layer: layer.id, definition: layer.layerObject._defnExpr, visible: layer.layerObject.visible});
-                    }
-                    else if(typeof(layer.layerObject.defaultDefinitionExpression) !== 'undefined' &&
-                      typeof(layer.layerObject.getDefinitionExpression()) === 'function' ) {
-                      this.defaultDef.push({layer: layer.id, definition: layer.layerObject.getDefinitionExpression(), visible: layer.layerObject.visible});
-                    }
-                    else if(typeof(layer.layerObject.layerDefinitions) !== 'undefined') {
-                      this.defaultDef.push({layer: layer.id, definition: layer.layerObject.layerDefinitions, visible: layer._visible});
-                    }
-                    else {
-                      this.defaultDef.push({layer: layer.id, definition: "1=1", visible: layer.layerObject.visible});
-                    }
-                  }
+                if(typeof(layer.layerObject._defnExpr) !== 'undefined') {
+                  this.defaultDef.push({
+                    layer: layer.id,
+                    definition: layer.layerObject._defnExpr,
+                    visible: layer.layerObject.visible
+                  });
+                }
+                else if(typeof(layer.layerObject.defaultDefinitionExpression) !== 'undefined' &&
+                  typeof(layer.layerObject.getDefinitionExpression()) === 'function' ) {
+                  this.defaultDef.push({
+                    layer: layer.id,
+                    definition: layer.layerObject.getDefinitionExpression(),
+                    visible: layer.layerObject.visible
+                  });
+                }
+                else if(typeof(layer.layerObject.layerDefinitions) !== 'undefined') {
+                  this.defaultDef.push({
+                    layer: layer.id,
+                    definition: layer.layerObject.layerDefinitions,
+                    visible: layer._visible
+                  });
+                }
+                else {
+                  this.defaultDef.push({layer: layer.id, definition: "1=1", visible: layer.layerObject.visible});
+                }
+              }
 
-                }));
-                this.createGroupSelection();
+            }));
+            this.createGroupSelection();
           }
         }));
     },
@@ -142,41 +158,41 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
     },
 
     createGroupSelection: function() {
-        var ObjList = [];
-        var descLabel = '';
-        array.forEach(this.config.groups, lang.hitch(this, function(group) {
-          var grpObj = {};
-          grpObj.value = group.name;
-          grpObj.label = group.name;
-          grpObj.selected = false;
-          ObjList.push(grpObj);
-        }));
+      var ObjList = [];
+      var descLabel = '';
+      array.forEach(this.config.groups, lang.hitch(this, function(group) {
+        var grpObj = {};
+        grpObj.value = group.name;
+        grpObj.label = group.name;
+        grpObj.selected = false;
+        ObjList.push(grpObj);
+      }));
 
-        this.grpSelect = new Select({
-          options: ObjList
-        }).placeAt(this.groupPicker);
+      this.grpSelect = new Select({
+        options: ObjList
+      }).placeAt(this.groupPicker);
 
-        this.grpSelect.startup();
-        this.own(on(this.grpSelect, "change", lang.hitch(this, function(val) {
-          this.resetLayerDef();
-          this.removeAllRows();
-          this.checkDomainUse({group: val});
-          this.checkDateUse({group: val});
-          this.reconstructRows(val);
-          this.updateGroupDesc(val);
-          setTimeout(lang.hitch(this,this.setFilterLayerDef),500);
-        })));
-        this.checkDomainUse({group: this.grpSelect.value});
-        this.checkDateUse({group: this.grpSelect.value});
+      this.grpSelect.startup();
+      this.own(on(this.grpSelect, "change", lang.hitch(this, function(val) {
+        this.resetLayerDef();
+        this.removeAllRows();
+        this.checkDomainUse({group: val});
+        this.checkDateUse({group: val});
+        this.reconstructRows(val);
+        this.updateGroupDesc(val);
+        setTimeout(lang.hitch(this, this.setFilterLayerDef), 500);
+      })));
+      this.checkDomainUse({group: this.grpSelect.value});
+      this.checkDateUse({group: this.grpSelect.value});
 
-        if(typeof(this.config.groups[0]) !== 'undefined') {
-          descLabel = this.config.groups[0].desc;
-          this.groupDesc.innerHTML = descLabel;
-        }
+      if(typeof(this.config.groups[0]) !== 'undefined') {
+        descLabel = this.config.groups[0].desc;
+        this.groupDesc.innerHTML = descLabel;
+      }
 
-        var defaultVal = this.checkDefaultValue(this.config.groups[0]);
-        var defaultOp = this.checkDefaultOperator(this.config.groups[0]);
-        this.createNewRow({operator:defaultOp, value:defaultVal, conjunc:"OR", state:"new"});
+      var defaultVal = this.checkDefaultValue(this.config.groups[0]);
+      var defaultOp = this.checkDefaultOperator(this.config.groups[0]);
+      this.createNewRow({operator:defaultOp, value:defaultVal, conjunc:"OR", state:"new"});
     },
 
     createNewRow: function(pValue) {
@@ -184,12 +200,12 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
 
       if(pValue.state === "new") {
         if(table.rows.length > 1) {
-          var prevRowConjunTable = table.rows[(table.rows.length-1)].cells[0].firstChild;
+          var prevRowConjunTable = table.rows[(table.rows.length - 1)].cells[0].firstChild;
           var prevRowConjunCell = prevRowConjunTable.rows[2].cells[0];
           this.createConditionSelection(prevRowConjunCell, pValue);
         } else {
           if(table.rows.length === 1) {
-            var prevRowConjunTable = table.rows[(table.rows.length-1)].cells[0].firstChild;
+            var prevRowConjunTable = table.rows[(table.rows.length - 1)].cells[0].firstChild;
             var prevRowConjunCell = prevRowConjunTable.rows[2].cells[0];
             this.createConditionSelection(prevRowConjunCell, pValue);
           }
@@ -202,7 +218,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
       domClass.add(subTableNode, "criteriaCellSize");
       domClass.add(deleteNode, "deleteCellSize");
 
-      var subTable = domConstruct.create("table",{border: "0", width: "100%"}, subTableNode);
+      var subTable = domConstruct.create("table", {border: "0", width: "100%"}, subTableNode);
 
       var rowOperator = subTable.insertRow(-1);
       var cell_operator = rowOperator.insertCell(0);
@@ -215,9 +231,9 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
 
       this.colorRows();
 
-      this.createOperatorSelection(cell_operator,pValue);
-      this.removeTableRow(deleteNode,row,table.rows.length);
-      this.createInputFilter(cell_value,pValue);
+      this.createOperatorSelection(cell_operator, pValue);
+      this.removeTableRow(deleteNode, row, table.rows.length);
+      this.createInputFilter(cell_value, pValue);
 
       this.resize();
 
@@ -230,14 +246,14 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
 
       if(pValue.state === "reload") {
         if(pValue.conjunc !== "") {
-          var prevRowConjunTable = table.rows[(table.rows.length-1)].cells[0].firstChild;
+          var prevRowConjunTable = table.rows[(table.rows.length - 1)].cells[0].firstChild;
           var prevRowConjunCell = prevRowConjunTable.rows[2].cells[0];
           this.createConditionSelection(prevRowConjunCell, pValue);
         }
       } else {
         if(this.runInitial) {
           this.runInitial = false;
-          setTimeout(lang.hitch(this,this.setFilterLayerDef),500);
+          setTimeout(lang.hitch(this, this.setFilterLayerDef), 500);
         }
       }
 
@@ -310,13 +326,13 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
               1 : this.useDomain.maxValue
             }),
             "class": "userInputNormal",
-            constraints: {min:this.useDomain.minValue,max:this.useDomain.maxValue}
+            constraints: {min:this.useDomain.minValue, max:this.useDomain.maxValue}
           }).placeAt(pCell);
           txtRange.startup();
         }
       } else if(this.useDate === true) {
         var d = new Date();
-        var defaultDate = (d.getMonth()+1)  + "-" + d.getDate() + "-" + d.getFullYear();
+        var defaultDate = (d.getMonth() + 1)  + "-" + d.getDate() + "-" + d.getFullYear();
         if(pValue.value !== "") {
           defaultDate = pValue.value;
         }
@@ -384,29 +400,29 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
 
     createConditionSelection: function(pCell, pValue) {
       domConstruct.empty(pCell);
-        var ObjList = [
-          {'value': 'OR', 'label': this.nls.inputs.optionOR},
-          {'value': 'AND', 'label': this.nls.inputs.optionAND}
-        ];
-        var grpSelect = new Select({
-          options: ObjList,
-          "class": "conjuncSelect"
-        }).placeAt(pCell);
-        grpSelect.startup();
-        grpSelect.set('value', pValue.conjunc);
+      var ObjList = [
+        {'value': 'OR', 'label': this.nls.inputs.optionOR},
+        {'value': 'AND', 'label': this.nls.inputs.optionAND}
+      ];
+      var grpSelect = new Select({
+        options: ObjList,
+        "class": "conjuncSelect"
+      }).placeAt(pCell);
+      grpSelect.startup();
+      grpSelect.set('value', pValue.conjunc);
     },
 
-    removeTableRow: function(pCell,pRow,pCount) {
+    removeTableRow: function(pCell, pRow, pCount) {
       if(pCount > 1) {
-        var dsNode = domConstruct.create("div",{
+        var dsNode = domConstruct.create("div", {
           'class': 'deleteCell',
           innerHTML: ''
         });
-        on(dsNode,'click',lang.hitch(this, function() {
+        on(dsNode, 'click', lang.hitch(this, function() {
           domConstruct.destroy(pRow);
           var table = dom.byId("tblPredicates");
           if(table.rows.length >= 1) {
-            var prevRowConjunTable = table.rows[(table.rows.length-1)].cells[0].firstChild;
+            var prevRowConjunTable = table.rows[(table.rows.length - 1)].cells[0].firstChild;
             var prevRowConjunCell = prevRowConjunTable.rows[2].cells[0];
             domConstruct.empty(prevRowConjunCell);
           }
@@ -419,8 +435,8 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
     removeAllRows: function() {
       var table = dom.byId("tblPredicates");
       if(table.rows.length >= 1) {
-          domConstruct.destroy(table.rows[0]);
-          this.removeAllRows();
+        domConstruct.destroy(table.rows[0]);
+        this.removeAllRows();
       }
     },
 
@@ -437,18 +453,18 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
                 var defaultVal = this.checkDefaultValue(group);
                 var defaultOp = this.checkDefaultOperator(group);
 
-                this.createNewRow({operator:defaultOp,value:defaultVal,conjunc:"OR",state:"new"});
+                this.createNewRow({operator:defaultOp, value:defaultVal, conjunc:"OR", state:"new"});
               }
             } else {
               var defaultVal = this.checkDefaultValue(group);
               var defaultOp = this.checkDefaultOperator(group);
 
-              this.createNewRow({operator:defaultOp,value:defaultVal,conjunc:"OR",state:"new"});
+              this.createNewRow({operator:defaultOp, value:defaultVal, conjunc:"OR", state:"new"});
             }
           }
         }));
       } else {
-        this.createNewRow({operator:"=",value:"",conjunc:"OR",state:"new"});
+        this.createNewRow({operator:"=", value:"", conjunc:"OR", state:"new"});
       }
     },
 
@@ -505,36 +521,36 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
 
     setFilterLayerDef: function() {
       var createQuery = function(isNum, field, op, value, junc) {
-          // escape all single quotes
-          // decode sanitized input
-          value = entities.decode(value.replace(/'/g, "''"));
-          // special case of empty value
-          if (value === '') {
-              if(op === '<>' || op === 'NOT LIKE') {
-                return [field, "<> '' OR", field, "IS NOT NULL", junc].join(" ") + " ";
-              } else {
-                return [field, "= '' OR", field, "IS NULL", junc].join(" ") + " ";
-              }
-          }
-          if (op === 'LIKE' || op === 'NOT LIKE') {
-            value = "UPPER('%" + value + "%')";
-            field = "UPPER("+ field +")";
-          } else if (op === 'START') {
-            op = 'LIKE';
-            value = "UPPER('" + value + "%')";
-            field = "UPPER("+ field +")";
-          } else if (op === 'END') {
-            op = 'LIKE';
-            value = "UPPER('%" + value + "')";
-            field = "UPPER("+ field +")";
-          } else if (isNum === false) { // wrap string fields if not already
-            value = "UPPER('" + value + "')";
-            field = "UPPER("+ field +")";
+        // escape all single quotes
+        // decode sanitized input
+        value = entities.decode(value.replace(/'/g, "''"));
+        // special case of empty value
+        if (value === '') {
+          if(op === '<>' || op === 'NOT LIKE') {
+            return [field, "<> '' OR", field, "IS NOT NULL", junc].join(" ") + " ";
           } else {
-
+            return [field, "= '' OR", field, "IS NULL", junc].join(" ") + " ";
           }
+        }
+        if (op === 'LIKE' || op === 'NOT LIKE') {
+          value = "UPPER('%" + value + "%')";
+          field = "UPPER(" + field + ")";
+        } else if (op === 'START') {
+          op = 'LIKE';
+          value = "UPPER('" + value + "%')";
+          field = "UPPER(" + field + ")";
+        } else if (op === 'END') {
+          op = 'LIKE';
+          value = "UPPER('%" + value + "')";
+          field = "UPPER(" + field + ")";
+        } else if (isNum === false) { // wrap string fields if not already
+          value = "UPPER('" + value + "')";
+          field = "UPPER(" + field + ")";
+        } else {
 
-          return [field, op, value, junc].join(" ") + " ";
+        }
+
+        return [field, op, value, junc].join(" ") + " ";
       };
       var sqlParams = this.parseTable();
       array.forEach(this.layerList, lang.hitch(this, function(layer) {
@@ -548,26 +564,53 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
                 group.def = [];
                 filterType = "FeatureLayer";
                 array.forEach(sqlParams, lang.hitch(this, function(p) {
-                    array.forEach(layer.layerObject.fields, lang.hitch(this, function(field) {
-                      if(field.name === grpLayer.field) {
-                        if(((field.type).indexOf("Integer") > -1) || (field.type).indexOf("Double") > -1) {
-                          expr = expr + createQuery(true, grpLayer.field, p.operator, utils.sanitizeHTML(p.userValue), p.conjunc);
-                        }
-                        else if ((field.type).indexOf("Date") > -1) {
-                          if(p.userValue !== "") {
-                            var newDate = new Date(utils.sanitizeHTML(p.userValue));
-                            expr = expr + createQuery(false, grpLayer.field, p.operator, locale.format(newDate,{datePattern: "MMMM d, yyyy", selector: "date"}), p.conjunc);
-                          }
-                          else {
-                            expr = expr + createQuery(false, grpLayer.field, p.operator, utils.sanitizeHTML(p.userValue), p.conjunc);
-                          }
+                  array.forEach(layer.layerObject.fields, lang.hitch(this, function(field) {
+                    if(field.name === grpLayer.field) {
+                      if(((field.type).indexOf("Integer") > -1) || (field.type).indexOf("Double") > -1) {
+                        expr = expr + createQuery(
+                          true,
+                          grpLayer.field,
+                          p.operator,
+                          utils.sanitizeHTML(p.userValue),
+                          p.conjunc
+                        );
+                      }
+                      else if ((field.type).indexOf("Date") > -1) {
+                        if(p.userValue !== "") {
+                          var newDate = new Date(utils.sanitizeHTML(p.userValue));
+                          expr = expr + createQuery(
+                            false,
+                            grpLayer.field,
+                            p.operator,
+                            locale.format(newDate, {datePattern: "MMMM d, yyyy", selector: "date"}),
+                            p.conjunc
+                          );
                         }
                         else {
-                          expr = expr + createQuery(false, grpLayer.field, p.operator, utils.sanitizeHTML(p.userValue), p.conjunc);
+                          expr = expr + createQuery(
+                            false,
+                            grpLayer.field, p.operator,
+                            utils.sanitizeHTML(p.userValue),
+                            p.conjunc
+                          );
                         }
-                        group.def.push({value: utils.sanitizeHTML(p.userValue), operator: p.operator, conjunc: p.conjunc});
                       }
-                    }));
+                      else {
+                        expr = expr + createQuery(
+                          false,
+                          grpLayer.field,
+                          p.operator,
+                          utils.sanitizeHTML(p.userValue),
+                          p.conjunc
+                        );
+                      }
+                      group.def.push({
+                        value: utils.sanitizeHTML(p.userValue),
+                        operator: p.operator,
+                        conjunc: p.conjunc
+                      });
+                    }
+                  }));
                 }));
               }
               else if(grpLayer.layer.indexOf(layer.id) >= 0) {  //if it's a map service, sublayers .x is appended. so check if the root layerID is there
@@ -577,23 +620,53 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
                 array.forEach(sqlParams, lang.hitch(this, function(p) {
                   if(p.userValue !== "") {
                     if(((grpLayer.dataType).indexOf("Integer") > -1) || (grpLayer.dataType).indexOf("Double") > -1) {
-                      expr = expr + createQuery(true, grpLayer.field, p.operator, utils.sanitizeHTML(p.userValue), p.conjunc);
+                      expr = expr + createQuery(
+                        true,
+                        grpLayer.field,
+                        p.operator,
+                        utils.sanitizeHTML(p.userValue),
+                        p.conjunc
+                      );
                     }
                     else if ((grpLayer.dataType).indexOf("Date") > -1) {
                       if(p.userValue !== "") {
                         var newDate = new Date(utils.sanitizeHTML(p.userValue));
-                        expr = expr + createQuery(false, grpLayer.field, p.operator, locale.format(newDate,{datePattern: "MMMM d, yyyy", selector: "date"}), p.conjunc);
+                        expr = expr + createQuery(
+                          false,
+                          grpLayer.field,
+                          p.operator,
+                          locale.format(newDate, {datePattern: "MMMM d, yyyy", selector: "date"}),
+                          p.conjunc
+                        );
                       } else {
-                        expr = expr + createQuery(false, grpLayer.field, p.operator, utils.sanitizeHTML(p.userValue), p.conjunc);
+                        expr = expr + createQuery(
+                          false,
+                          grpLayer.field,
+                          p.operator,
+                          utils.sanitizeHTML(p.userValue),
+                          p.conjunc
+                        );
                       }
                     }
                     else {
-                      expr = expr + createQuery(false, grpLayer.field, p.operator, utils.sanitizeHTML(p.userValue), p.conjunc);
+                      expr = expr + createQuery(
+                        false,
+                        grpLayer.field,
+                        p.operator,
+                        utils.sanitizeHTML(p.userValue),
+                        p.conjunc
+                      );
                     }
                     group.def.push({value: utils.sanitizeHTML(p.userValue), operator: p.operator, conjunc: p.conjunc});
                   }
                   else {
-                    expr = expr + createQuery(false, grpLayer.field, p.operator, utils.sanitizeHTML(p.userValue), p.conjunc);
+                    expr = expr + createQuery(
+                      false,
+                      grpLayer.field,
+                      p.operator,
+                      utils.sanitizeHTML(p.userValue),
+                      p.conjunc
+                    );
                     group.def.push({value: utils.sanitizeHTML(p.userValue), operator: p.operator, conjunc: p.conjunc});
                   }
                 }));
@@ -630,8 +703,9 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
                         array.forEach(msExpr, lang.hitch(this, function(expr, i) {
                           for(var key in def.definition) {
                             if(def.definition[key] !== 'undefined') {
-                              if(msExpr[eval('"'+i+'"')]) {
-                                msExpr[eval('"'+i+'"')] = def.definition[key] + " "  + this.slAppendChoice.value +  " " + expr;
+                              if(msExpr[eval('"' + i + '"')]) {
+                                msExpr[eval('"' + i + '"')] = def.definition[key] + " "  +
+                                this.slAppendChoice.value +  " " + expr;
                                 console.log(expr);
                               }
                             }
@@ -650,7 +724,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
                 //do nothing, not a valid service
               }
             }));
-          this._publishData(group);
+            this._publishData(group);
           }
         }));
       }));
@@ -731,20 +805,20 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
       });
       on(readDef, "complete", lang.hitch(this, function(results) {
         this.config = JSON.parse(results.UserSettings);
-          this.resetLayerDef();
-          this.removeAllRows();
-          this.checkDomainUse({group: this.grpSelect.value});
-          this.checkDateUse({group: this.grpSelect.value});
-          this.reconstructRows(this.grpSelect.value);
-          this.updateGroupDesc(this.grpSelect.value);
-          setTimeout(lang.hitch(this,this.setFilterLayerDef),500);
-          query(".loadProgressHeader").style("display", "none");
-          query(".loadProgressShow").style("display", "none");
+        this.resetLayerDef();
+        this.removeAllRows();
+        this.checkDomainUse({group: this.grpSelect.value});
+        this.checkDateUse({group: this.grpSelect.value});
+        this.reconstructRows(this.grpSelect.value);
+        this.updateGroupDesc(this.grpSelect.value);
+        setTimeout(lang.hitch(this, this.setFilterLayerDef), 500);
+        query(".loadProgressHeader").style("display", "none");
+        query(".loadProgressShow").style("display", "none");
       }));
       on(readDef, "error", lang.hitch(this, function(results) {
-          this.jsonFileInput.value = null;
-          query(".loadProgressHeader").style("display", "none");
-          query(".loadProgressShow").style("display", "none");
+        this.jsonFileInput.value = null;
+        query(".loadProgressHeader").style("display", "none");
+        query(".loadProgressShow").style("display", "none");
       }));
       readDef.checkFileReader();
     },
@@ -777,7 +851,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
         this.resetLayerDef();
         this.removeAllRows();
         this.reconstructRows("");
-       }
+      }
     },
 
     onMinimize: function(){

@@ -38,7 +38,10 @@ define([
   './presetValuePicker',
   'dijit/form/CheckBox'
 ],
-  function(declare, BaseWidgetSetting, _WidgetsInTemplateMixin, SimpleTable, dom, domConstruct, on, query, lang, array, Select, TextBox, ValidationTextBox, RadioButton, registry, utils, LayerInfos, Message, Popup, LayersHandler, presetValuePicker) {
+  function(declare, BaseWidgetSetting, _WidgetsInTemplateMixin, SimpleTable, dom,
+    domConstruct, on, query, lang, array, Select, TextBox, ValidationTextBox,
+    RadioButton, registry, utils, LayerInfos, Message, Popup, LayersHandler,
+    presetValuePicker) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
 
       //these two properties is defined in the BaseWidget
@@ -160,13 +163,13 @@ define([
       createGroupBlock: function(pParam) {
         this.groupCounter++;
 
-        var dsNode = domConstruct.create("div",{
+        var dsNode = domConstruct.create("div", {
           id: 'grpDiv_' + this.groupCounter,
           'class': 'group-block'
         });
         domConstruct.place(dsNode, this.layerMappingBlock);
 
-        var groupSettingTable = domConstruct.create("table",{
+        var groupSettingTable = domConstruct.create("table", {
           'class': 'group-setting-table'
         });
         domConstruct.place(groupSettingTable, dsNode);
@@ -202,31 +205,31 @@ define([
         }
 
         var txtGroupName = new ValidationTextBox({
-            name: "txtGroupName",
-            value: groupName,
-            'class': 'groupName-textbox',
-            placeHolder: this.nls.inputs.groupName,
-            required: "true"
+          name: "txtGroupName",
+          value: groupName,
+          'class': 'groupName-textbox',
+          placeHolder: this.nls.inputs.groupName,
+          required: "true"
         }, cellNameInput);
         this.groupLayerName.push(txtGroupName);
 
         var txtGroupDesc = new TextBox({
-            name: "txtGroupDesc",
-            value: groupDesc,
-            'class': 'groupName-Desctextbox',
-            placeHolder: this.nls.inputs.groupDesc
+          name: "txtGroupDesc",
+          value: groupDesc,
+          'class': 'groupName-Desctextbox',
+          placeHolder: this.nls.inputs.groupDesc
         }, cellDescInput);
         this.groupLayerDesc.push(txtGroupDesc);
 
         var txtGroupDefault = new TextBox({
-            name: "txtGroupDefault",
-            value: groupDef,
-            'class': 'groupName-Defaulttextbox',
-            placeHolder: this.nls.inputs.groupDefault
+          name: "txtGroupDefault",
+          value: groupDef,
+          'class': 'groupName-Defaulttextbox',
+          placeHolder: this.nls.inputs.groupDefault
         }, cellDefaultInput);
         this.groupLayerDefault.push(txtGroupDefault);
 
-        var pickerNode = domConstruct.create("div",{
+        var pickerNode = domConstruct.create("div", {
           'class': 'groupName-defaultPicker'
         });
         domConstruct.place(pickerNode, cellSpacer);
@@ -234,7 +237,7 @@ define([
           this.presetPickerPopup();
         }));
 
-        var deleteNameNode = domConstruct.create("div",{
+        var deleteNameNode = domConstruct.create("div", {
           id: 'addGroupDelete_' + this.groupCounter,
           'class': 'group-block-delete'
         });
@@ -248,7 +251,7 @@ define([
 
         this.createTableObject(pParam);
 
-        var addLayerNode = domConstruct.create("div",{
+        var addLayerNode = domConstruct.create("div", {
           id: 'addLyrDiv_' + this.groupCounter,
           'class': 'jimu-btn group-block-add-layer'
         });
@@ -302,7 +305,7 @@ define([
           "class": "label",
           type: "radio",
           width: "150px"
-        },{
+        }, {
           name: "actions",
           title: this.nls.tables.action,
           type: "actions",
@@ -335,8 +338,8 @@ define([
       },
 
       addLayerRow: function(pBlock, pParam) {
-        var numPart = pBlock.substring(pBlock.indexOf('_')+1);
-        var result = this.groupLayerContainer[numPart-1].addRow({});
+        var numPart = pBlock.substring(pBlock.indexOf('_') + 1);
+        var result = this.groupLayerContainer[numPart - 1].addRow({});
         if (result.success && result.tr) {
           var tr = result.tr;
           this.createLayerSelection(tr, pParam, numPart);
@@ -513,14 +516,14 @@ define([
         var names = [];
         array.forEach(this.groupLayerName, lang.hitch(this, function(groupName) {
           if(groupName !== null) {
-              if(groupName.get('value')) {
-                names.push(groupName.get('value'));
-              }
+            if(groupName.get('value')) {
+              names.push(groupName.get('value'));
+            }
           }
         }));
         // determine if the array contains duplicate values
-        if(names.length > 1 && names.sort().filter(function(v,i,o){return v!==o[i-1];}).length !== names.length) {
-            validForm = false;
+        if(names.length > 1 && names.sort().filter(function(v, i, o){return v !== o[i - 1];}).length !== names.length) {
+          validForm = false;
         }
         if(validForm === false) {
           new Message({
@@ -533,11 +536,11 @@ define([
       validateTableRows: function() {
         var validForm = true;
         array.forEach(this.groupLayerContainer, lang.hitch(this, function(group) {
-        if(group !== null) {
-          if((group.getRows()).length <= 0) {
-            validForm = false;
+          if(group !== null) {
+            if((group.getRows()).length <= 0) {
+              validForm = false;
+            }
           }
-        }
         }));
         if(validForm === false) {
           new Message({
@@ -573,12 +576,12 @@ define([
 
 
       removeGroup: function(pBlock) {
-        var numPart = pBlock.substring(pBlock.indexOf('_')+1);
-        this.groupLayerContainer[numPart-1] = null;
-        this.groupLayerName[numPart-1] = null;
-        this.groupLayerDesc[numPart-1] = null;
-        this.groupLayerOperator[numPart-1] = null;
-        this.groupLayerDefault[numPart-1] = null;
+        var numPart = pBlock.substring(pBlock.indexOf('_') + 1);
+        this.groupLayerContainer[numPart - 1] = null;
+        this.groupLayerName[numPart - 1] = null;
+        this.groupLayerDesc[numPart - 1] = null;
+        this.groupLayerOperator[numPart - 1] = null;
+        this.groupLayerDefault[numPart - 1] = null;
         //dijit.byId('addGroupName_' + numPart).destroyRecursive(true);
         //dijit.byId('addGroupDesc_' + numPart).destroyRecursive(true);
         domConstruct.destroy(dom.byId('addGroupDelete_' + numPart));

@@ -29,7 +29,8 @@ define([
   '../LayersHandler',
   'dojo/text!./presetValuePicker.html'
 ],
-  function(declare, BaseWidgetSetting, _WidgetsInTemplateMixin, dom, domConstruct, on, lang, array, Select, utils, LayerInfos, LayersHandler, template) {
+  function(declare, BaseWidgetSetting, _WidgetsInTemplateMixin, dom, domConstruct,
+    on, lang, array, Select, utils, LayerInfos, LayersHandler, template) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
 
       //these two properties is defined in the BaseWidget

@@ -1,0 +1,10 @@
+{
+  "splash": {
+    "splashContent": "<div style=\"text-align: center;\"><p style=\"box-sizing: border-box; margin-top: 0px; margin-bottom: 16px; color: rgb(51, 51, 51); font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'; font-size: 16px; line-height: 25.6px; text-align: start;\">The Smart Editor is a new widget that extends the core editing widget with the following features:</p><ul style=\"box-sizing: border-box; padding-left: 2em; margin-top: 0px; margin-bottom: 16px; color: rgb(51, 51, 51); font-family: 'Helvetica Neue', Helvetica, 'Segoe UI', Arial, freesans, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol'; font-size: 16px; line-height: 25.6px; text-align: start;\"><li style=\"box-sizing: border-box;\">Smart attributes, attributes can be hidden, required, or disabled based on the values of other fields</li><li style=\"box-sizing: border-box;\">Edits not saved until user clicks save and records are validated</li><li style=\"box-sizing: border-box;\">Ability to view pop ups from other data while in “edit session”</li><li style=\"box-sizing: border-box;\">Ability to preset field values across many fields on many layers and apply them to every new feature</li><li style=\"box-sizing: border-box;\">Ability to edit a series of features</li><li style=\"box-sizing: border-box;\">Option to move or modify existing geometry</li><li style=\"box-sizing: border-box;\">Only changed records are submitted to service, not the entire record</li><li style=\"box-sizing: border-box;\">Option to update a feature attribute only</li><li style=\"box-sizing: border-box;\">Configurable descriptions on both the widget and per each layer</li></ul></div>",
+    "requireConfirm": false,
+    "confirmText": "",
+    "showOption": true,
+    "confirmEverytime": true,
+    "backgroundColor": "#ffffff"
+  }
+}

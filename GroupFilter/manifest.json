@@ -1,20 +1,20 @@
 {
-  "name": "MapFilter",
-  "label": "Map Filter",
+  "name": "GroupFilter",
+  "label": "Group Filter",
   "2D": true,
-  "3D": true,
+  "3D": false,
   "platform": "HTML",
-  "version": "1.4",
-  "wabVersion": 1.4,
+  "version": "2.1",
+  "wabVersion": 2.1,
   "author": "Esri, Inc",
-  "description": "Map Filter",
+  "description": "Group Filter",
   "copyright": "Copyright 2015 Esri, Inc.",
   "license": "http://www.apache.org/licenses/LICENSE-2.0",
   "properties": {
       "inPanel": true,
       "hasConfig": true,
       "hasUIFile": true,
-      "supportMultiInstance": true,
+      "supportMultiInstance": false,
       "keepConfigAfterMapSwithched": false
     }
 }

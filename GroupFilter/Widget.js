@@ -2,7 +2,6 @@ define([
   'dojo/_base/declare',
   'dijit/_WidgetsInTemplateMixin',
   'jimu/BaseWidget',
-  'jimu/dijit/SimpleTable',
   'jimu/dijit/FilterParameters',
   'dojo/dom',
   'dojo/dom-construct',
@@ -23,14 +22,12 @@ define([
   'jimu/utils',
   './SaveJSON',
   './ReadJSON',
-  './LayersHandler',
   'dojox/html/entities',
   'dijit/form/CheckBox'
 ],
-function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParameters, dom,
+function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
   domConstruct, domClass, domAttr, on, query, string, lang, array, locale, Select, TextBox,
-  DateTextBox, NumberTextBox, registry, LayerInfos, utils, saveJson, readJson, LayersHandler,
-  entities) {
+  DateTextBox, NumberTextBox, registry, LayerInfos, utils, saveJson, readJson, entities) {
   //To create a widget, you need to derive from BaseWidget.
   return declare([BaseWidget, _WidgetsInTemplateMixin], {
 
@@ -198,15 +195,18 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
     createNewRow: function(pValue) {
       var table = dom.byId("tblPredicates");
 
+      var prevRowConjunTable;
+      var prevRowConjunCell;
+
       if(pValue.state === "new") {
         if(table.rows.length > 1) {
-          var prevRowConjunTable = table.rows[(table.rows.length - 1)].cells[0].firstChild;
-          var prevRowConjunCell = prevRowConjunTable.rows[2].cells[0];
+          prevRowConjunTable = table.rows[(table.rows.length - 1)].cells[0].firstChild;
+          prevRowConjunCell = prevRowConjunTable.rows[2].cells[0];
           this.createConditionSelection(prevRowConjunCell, pValue);
         } else {
           if(table.rows.length === 1) {
-            var prevRowConjunTable = table.rows[(table.rows.length - 1)].cells[0].firstChild;
-            var prevRowConjunCell = prevRowConjunTable.rows[2].cells[0];
+            prevRowConjunTable = table.rows[(table.rows.length - 1)].cells[0].firstChild;
+            prevRowConjunCell = prevRowConjunTable.rows[2].cells[0];
             this.createConditionSelection(prevRowConjunCell, pValue);
           }
         }
@@ -227,7 +227,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
       var cell_value = rowValue.insertCell(0);
 
       var rowConjunc = subTable.insertRow(-1);
-      var cell_conjunc = rowConjunc.insertCell(0);
+      rowConjunc.insertCell(0);
 
       this.colorRows();
 
@@ -246,8 +246,8 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
 
       if(pValue.state === "reload") {
         if(pValue.conjunc !== "") {
-          var prevRowConjunTable = table.rows[(table.rows.length - 1)].cells[0].firstChild;
-          var prevRowConjunCell = prevRowConjunTable.rows[2].cells[0];
+          prevRowConjunTable = table.rows[(table.rows.length - 1)].cells[0].firstChild;
+          prevRowConjunCell = prevRowConjunTable.rows[2].cells[0];
           this.createConditionSelection(prevRowConjunCell, pValue);
         }
       } else {
@@ -444,20 +444,22 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
       if(pValue !== "") {
         array.forEach(this.config.groups, lang.hitch(this, function(group) {
           if (group.name === pValue) {
+            var defaultVal = "";
+            var defaultOp = "=";
             if(typeof(group.def) !== 'undefined') {
               if(group.def.length > 0) {
                 array.forEach(group.def, lang.hitch(this, function(def) {
                   this.createNewRow({value: def.value, operator: def.operator, conjunc: def.conjunc, state:"reload"});
                 }));
               } else {
-                var defaultVal = this.checkDefaultValue(group);
-                var defaultOp = this.checkDefaultOperator(group);
+                defaultVal = this.checkDefaultValue(group);
+                defaultOp = this.checkDefaultOperator(group);
 
                 this.createNewRow({operator:defaultOp, value:defaultVal, conjunc:"OR", state:"new"});
               }
             } else {
-              var defaultVal = this.checkDefaultValue(group);
-              var defaultOp = this.checkDefaultOperator(group);
+              defaultVal = this.checkDefaultValue(group);
+              defaultOp = this.checkDefaultOperator(group);
 
               this.createNewRow({operator:defaultOp, value:defaultVal, conjunc:"OR", state:"new"});
             }
@@ -763,9 +765,10 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
 
     //START: saving/reading functions
     toggleSaveFilter: function() {
+      var containerNode;
       var saveNode = query(".saveTD");
       if(saveNode.length > 0) {
-        var containerNode = query(".container");
+        containerNode = query(".container");
         if(containerNode.length > 0) {
           domClass.replace(dom.byId("saveTD"), "saveTDClose", "saveTD");
           containerNode.style("display", "none");
@@ -775,7 +778,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
         var basicNode = query(".saveTDClose");
         if(basicNode.length > 0) {
           domClass.replace(basicNode[0], "saveTD", "saveTDClose");
-          var containerNode = query(".container");
+          containerNode = query(".container");
           if(containerNode.length > 0) {
             domClass.replace(dom.byId("saveTD"), "saveTD", "saveTDClose");
             containerNode.style("display", "block");
@@ -786,7 +789,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
     },
 
     saveJsonToFile: function() {
-      saveDef = new saveJson({
+      var saveDef = new saveJson({
         "config" : this.config
       });
       on(saveDef, "complete", lang.hitch(this, function() {
@@ -799,7 +802,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
       query(".loadProgressHeader").style("display", "block");
       query(".loadProgressShow").style("display", "block");
 
-      readDef =  new readJson({
+      var readDef =  new readJson({
         "config": this.config,
         "jsonFile": this.jsonFileInput.files
       });
@@ -815,7 +818,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, SimpleTable, FilterParame
         query(".loadProgressHeader").style("display", "none");
         query(".loadProgressShow").style("display", "none");
       }));
-      on(readDef, "error", lang.hitch(this, function(results) {
+      on(readDef, "error", lang.hitch(this, function() {
         this.jsonFileInput.value = null;
         query(".loadProgressHeader").style("display", "none");
         query(".loadProgressShow").style("display", "none");

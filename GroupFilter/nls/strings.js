@@ -1,7 +1,7 @@
 define({
   root: ({
-    _widgetLabel: "Map Filter",
-    label1: "Map filtering widget",
+    _widgetLabel: "Group Filter",
+    label1: "Group filtering widget",
     labels: {
       selectGroup: "Select a group to filter",
       criteriaHeading: "Filter Criteria",

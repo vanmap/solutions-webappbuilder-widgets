@@ -28,8 +28,6 @@ define([
   'dijit/form/Select',
   'dijit/form/TextBox',
   'dijit/form/ValidationTextBox',
-  'dijit/form/RadioButton',
-  'dijit/registry',
   'jimu/utils',
   'jimu/LayerInfos/LayerInfos',
   'jimu/dijit/Message',
@@ -40,8 +38,7 @@ define([
 ],
   function(declare, BaseWidgetSetting, _WidgetsInTemplateMixin, SimpleTable, dom,
     domConstruct, on, query, lang, array, Select, TextBox, ValidationTextBox,
-    RadioButton, registry, utils, LayerInfos, Message, Popup, LayersHandler,
-    presetValuePicker) {
+    utils, LayerInfos, Message, Popup, LayersHandler, presetValuePicker) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
 
       //these two properties is defined in the BaseWidget
@@ -99,7 +96,7 @@ define([
                   groupObj.defaultVal = utils.sanitizeHTML(this.groupLayerDefault[i].value);
                   groupObj.layers = [];
 
-                  var result = array.forEach(this.groupLayerContainer[i].getRows(), lang.hitch(this, function(row) {
+                  array.forEach(this.groupLayerContainer[i].getRows(), lang.hitch(this, function(row) {
                     var layerStruct = {};
                     var valueRadio = row.cells[2].childNodes[0];
                     layerStruct.layer = row.layerCol.value;
@@ -136,7 +133,7 @@ define([
               //this.layerList = operLayerInfos._layerInfos;
 
 
-              layerHandle =  new LayersHandler({
+              var layerHandle =  new LayersHandler({
                 "layers": operLayerInfos._layerInfos
               });
               this.own(on(layerHandle, "complete", lang.hitch(this, function(results) {
@@ -149,7 +146,7 @@ define([
                   this.createGroupBlock({group: null});
                 }
               })));
-              this.own(on(layerHandle, "error", lang.hitch(this, function(results) {
+              this.own(on(layerHandle, "error", lang.hitch(this, function() {
                 console.log("error");
               })));
               layerHandle.getAllMapLayers();
@@ -233,18 +230,18 @@ define([
           'class': 'groupName-defaultPicker'
         });
         domConstruct.place(pickerNode, cellSpacer);
-        var pickerAction = on(pickerNode, "click", lang.hitch(this, function(evt) {
+        this.own(on(pickerNode, "click", lang.hitch(this, function() {
           this.presetPickerPopup();
-        }));
+        })));
 
         var deleteNameNode = domConstruct.create("div", {
           id: 'addGroupDelete_' + this.groupCounter,
           'class': 'group-block-delete'
         });
-        var deleteAction = on(deleteNameNode, "click", lang.hitch(this, function(evt) {
+        var deleteAction = this.own(on(deleteNameNode, "click", lang.hitch(this, function() {
           deleteAction.remove();
           this.removeGroup(deleteNameNode.id);
-        }));
+        })));
         domConstruct.place(deleteNameNode, cellDelete);
 
         this.createOperatorSelection({cell:cellOperatorInput, value:groupOper});
@@ -255,7 +252,7 @@ define([
           id: 'addLyrDiv_' + this.groupCounter,
           'class': 'jimu-btn group-block-add-layer'
         });
-        this.own(on(addLayerNode, "click", lang.hitch(this, function(evt) {
+        this.own(on(addLayerNode, "click", lang.hitch(this, function() {
           this.addLayerRow(addLayerNode.id);
         })));
         domConstruct.place(addLayerNode, dom.byId('grpDiv_' + this.groupCounter));
@@ -372,7 +369,7 @@ define([
         var td = query('.simple-table-cell', tr)[0];
         if (td) {
           var lyrSelect = new Select({
-            options: ctlLayerList,
+            options: ctlLayerList
           }).placeAt(td);
 
           lyrSelect.startup();

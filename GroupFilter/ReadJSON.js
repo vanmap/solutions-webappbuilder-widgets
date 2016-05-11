@@ -1,14 +1,12 @@
 define([
   'dojo/Evented',
   'dojo/_base/declare',
-  'dojo/Deferred',
-  'dojo/_base/html',
   'dojo/has',
   'dojo/_base/lang',
   'jimu/utils',
   'jimu/dijit/Message'
 ],
-function (Evented, declare, Deferred, html, has, lang, utils, Message) {
+function (Evented, declare, has, lang, utils, Message) {
 return declare([Evented], {
   declaredClass : 'readJSON',
   config : null,
@@ -41,20 +39,11 @@ return declare([Evented], {
       if (file.name.indexOf('.json') !== -1) {
         if (file) {
           this.handleJson(file);
-        } else {
-          /*
-          Message({
-            message : this.nls.error.fileIssue
-          });
-          domClass.remove(this.showFileDialogBtn, 'jimu-state-disabled');
-          this.clearCSVResults();
-          */
         }
       } else {
         new Message({
           message : 'Not a json file'
         });
-        context.errorPrompt('error');
       }
     }
   },
@@ -64,7 +53,7 @@ return declare([Evented], {
     if (this.supportHTML5()) {
       var reader = new FileReader();
       reader.onload = (function(context) {
-        return function(e) {
+        return function() {
           if(reader.result.indexOf("groups") > -1) {
             context.completePrompt(reader.result);
           } else {
@@ -127,7 +116,7 @@ return declare([Evented], {
     this.emit("complete", {'UserSettings':pSettings});
   },
 
-  errorPrompt: function(pSettings) {
+  errorPrompt: function() {
     this.emit("error", {'UserSettings':'error'});
   }
 

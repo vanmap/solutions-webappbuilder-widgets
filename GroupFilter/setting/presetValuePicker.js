@@ -18,19 +18,14 @@ define([
   'dojo/_base/declare',
   'jimu/BaseWidgetSetting',
   'dijit/_WidgetsInTemplateMixin',
-  'dojo/dom',
-  'dojo/dom-construct',
   'dojo/on',
   'dojo/_base/lang',
   'dojo/_base/array',
   'dijit/form/Select',
-  'jimu/utils',
-  'jimu/LayerInfos/LayerInfos',
-  '../LayersHandler',
   'dojo/text!./presetValuePicker.html'
 ],
-  function(declare, BaseWidgetSetting, _WidgetsInTemplateMixin, dom, domConstruct,
-    on, lang, array, Select, utils, LayerInfos, LayersHandler, template) {
+  function(declare, BaseWidgetSetting, _WidgetsInTemplateMixin,
+    on, lang, array, Select, template) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
 
       //these two properties is defined in the BaseWidget
@@ -72,7 +67,7 @@ define([
         }));
 
         var lyrSelect = new Select({
-          options: ctlLayerList,
+          options: ctlLayerList
         }).placeAt(this.layerLevel);
         lyrSelect.startup();
 
@@ -119,7 +114,7 @@ define([
         fieldSelect.startup();
 
         this.own(on(fieldSelect, "change", lang.hitch(this, function(val) {
-          //
+
         })));
       }
 

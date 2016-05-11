@@ -25,7 +25,7 @@ return declare([Evented], {
   },
 
   exportsJson: function(filename, json) {
-    jsonText = JSON.stringify(json);
+    var jsonText = JSON.stringify(json);
     var def = new Deferred();
     try {
       if (has('ie') && has('ie') < 10) {

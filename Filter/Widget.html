@@ -1,0 +1,36 @@
+<div>
+  <div class="jimu-widget-normal query-widget-content">
+    <div data-dojo-attach-point="queryList" class="query-step query-list">
+      <div data-dojo-attach-point="queriesNode" class="queries">
+        <div class="execute-tip">
+          ${nls.executeQueryTip}
+        </div>
+        <div class="queries-table-container">
+          <table cellpadding="0" cellspacing="0" class="queries-table" onselectstart="return false;">
+            <colgroup>
+              <col width="14px"></col>
+              <col width="auto"></col>
+              <col width="30px"></col>
+            </colgroup>
+            <tbody data-dojo-attach-point="queriesTbody">
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div data-dojo-attach-point="invalidConfigNode" class="invalid-config">
+        <div class="error">
+          ${nls.invalidConfig}
+        </div>
+      </div>
+      <div data-dojo-attach-point="noQueryTipSection" class="no-query-tip">
+        ${nls.noneQueryTip}
+      </div>
+    </div>
+  </div>
+
+  <div class="btn-section">
+    <div data-dojo-attach-point="btnClearAll" data-dojo-attach-event="onclick:_onBtnClearAllClicked"
+    class="jimu-btn jimu-priority-secondary btn-clear-all" title="${nls.clearResults}" >${nls.clearResults}</div>
+  </div>
+
+</div>

@@ -75,7 +75,11 @@ define([
       },
 
       getConfig: function() {
-        if(this.layerList.length > 0 || this.layerList === null) {
+        if(this.layerList === null) {
+            new Message({message : this.nls.errors.noLayers});
+            return false;
+        }
+        else if(this.layerList.length > 0) {
           var validGroups = this.validateNoGroups();
           var validGroupsNames = this.validateNoGroupsName();
           var validDuplicates = this.validateDuplicateGroupsName();

@@ -367,8 +367,9 @@ define([
         }));
 
         var td = query('.simple-table-cell', tr)[0];
+        var lyrSelect;
         if (td) {
-          var lyrSelect = new Select({
+          lyrSelect = new Select({
             options: ctlLayerList
           }).placeAt(td);
 

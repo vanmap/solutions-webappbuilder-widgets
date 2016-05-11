@@ -75,9 +75,12 @@ define([
       _layersTable: null,
       _editableLayerInfos: null,
       _editFields: null,
+      postCreate: function () {
+        this.nls = lang.mixin(this.nls, window.jimuNls.common);
+
+      },
       startup: function () {
         this.inherited(arguments);
-        this.nls = lang.mixin(this.nls, window.jimuNls.common);
         LayerInfos.getInstance(this.map, this.map.itemInfo)
           .then(lang.hitch(this, function (operLayerInfos) {
             this._jimuLayerInfos = operLayerInfos;
@@ -136,6 +139,22 @@ define([
           'class': 'disable'
         },
         {
+          name: 'specialType',
+          type: "extension",
+          title: this.nls.layersPage.layerSettingsTable.description,
+          create: lang.hitch(this, this._createSpecialType),
+          setValue: lang.hitch(this, this._setValue4SpecialType),
+          getValue: lang.hitch(this, this._getValueOfSpecialType),
+          'class': 'description'
+        },
+        {
+          name: 'actions',
+          title: this.nls.layersPage.layerSettingsTable.fields,
+          type: 'actions',
+          'class': 'actions',
+          actions: ['edit']
+        },
+        {
           name: 'allowUpdateOnlyHidden',
           type: 'checkbox',
           hidden: true
@@ -149,13 +168,6 @@ define([
           name: 'disableGeometryUpdateHidden',
           type: 'checkbox',
           hidden: true
-        },
-        {
-          name: 'actions',
-          title: this.nls.layersPage.layerSettingsTable.fields,
-          type: 'actions',
-          'class': 'actions',
-          actions: ['edit']
         }];
         var args = {
           fields: fields,
@@ -183,6 +195,9 @@ define([
             case this.nls.layersPage.layerSettingsTable.update:
               node.title = this.nls.layersPage.layerSettingsTable.updateTip;
               break;
+            case this.nls.layersPage.layerSettingsTable.description:
+              node.title = this.nls.layersPage.layerSettingsTable.descriptionTip;
+              break;
             case this.nls.layersPage.layerSettingsTable.fields:
               node.title = this.nls.layersPage.layerSettingsTable.fieldsTip;
               break;
@@ -199,7 +214,22 @@ define([
           lang.hitch(this, this._onRowDoubleClick)));
 
       },
+      _createSpecialType: function (td) {
+        var img = html.create('div', { 'class': 'attDescrip' }, td);
+        this.own(on(img, 'click', lang.hitch(this, function () {
+          this._onRowDoubleClick(td.parentNode);
+        })));
+      },
 
+      _setValue4SpecialType: function () {
+        //var select = query('select', td)[0];
+        //select.value = value;
+      },
+
+      _getValueOfSpecialType: function () {
+        //var select = query('select', td)[0];
+        //return select.value;
+      },
       _initSettings: function () {
         //this.showDeleteButton.set('checked', this.config.editor.showDeleteButton);
         this.displayPromptOnSave.set('checked', this.config.editor.displayPromptOnSave);
@@ -629,20 +659,8 @@ define([
           fldInfo.fieldName = fieldInfo.fieldName === undefined ? '' : fieldInfo.fieldName;
           fldInfo.canPresetValue = fieldInfo.canPresetValue === undefined ? false : fieldInfo.canPresetValue;
           fldInfo.isEditable = fieldInfo.isEditable === undefined ? true : fieldInfo.isEditable;
+          fldInfo.visible = fieldInfo.visible === undefined ? true : fieldInfo.visible;
           return fldInfo;
-
-          //for (var k in fieldInfo) {
-          //  if (k !== "fieldName" &&
-          //    k !== "canPresetValue" &&
-          //    k !== "isEditable") {
-          //    delete fieldInfo[k];
-          //  }
-
-          //}
-          //if (fieldInfo.hasOwnProperty('canPresetValue') === false) {
-          //  fieldInfo.canPresetValue == false;
-          //}
-
         });
       }
     });

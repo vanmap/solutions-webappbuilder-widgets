@@ -132,8 +132,8 @@ define([
         else {
           var result = [false, null, null];
           array.some(this._fieldValidation[fieldName], function (actionDetails) {
-            filter = actionDetails.filter;
-            if (filter !== undefined && filter !== null) {
+            if (actionDetails.filter !== undefined && actionDetails.filter !== null) {
+              filter = actionDetails.filter;
               result = [true, null, null];
               if (this.processFilter(filter, this._feature)) {
                 //if (fieldValidation[fieldName][actionDetails].action === 'Required') {
@@ -152,7 +152,7 @@ define([
                   }
                 }
                 else {
-                  return (result = [true, actionDetails.actionName, null], true);
+                  return (result = [true, actionDetails.actionName, null, actionDetails.submitWhenHidden], true);
                 }
 
 

@@ -1,5 +1,16 @@
 define({
   root: ({
+    ok: "OK",
+    cancel: "Cancel",
+    yes: "Yes",
+    no: "No",
+    next: "Next",
+    back: "Back",
+    save: "Save",
+    close: "Close",
+    deleteText: "Delete",
+    map: "Map",
+    scene: "Scene",
     layersPage: {
       title: "Select a template to create features",
       generalSettings: "General Settings",
@@ -14,7 +25,7 @@ define({
       removeOnSaveTip: "Option to remove the feature from the selection set when the record is saved.  If it is the only selected record, the panel is switched back to the template page.",
       layerSettingsTable: {
         allowDelete: "Allow Delete",
-        allowDeleteTip: "Option to allow the user to delete a feature, disabled if the layer does not support delete",
+        allowDeleteTip: "Option to allow the user to delete a feature; disabled if the layer does not support delete",
         edit: "Editable",
         editTip: "Option to include the layer in the widget",
         label: "Layer",
@@ -22,17 +33,23 @@ define({
         update: "Disable Geometry Editing",
         updateTip: "Option to disable the ability to move the geometry once placed or move the geometry on an existing feature",
         allowUpdateOnly: "Update Only",
-        allowUpdateOnlyTip: "Option to allow only the modication of existing feature, checked on my default and disabled if the layer does not support creating new features",
+        allowUpdateOnlyTip: "Option to allow only the modication of existing features, checked on by default and disabled if the layer does not support creating new features",
         fields: "Fields",
-        fieldsTip: "Modify the fields to be edited and define Smart Attributes"
+        fieldsTip: "Modify the fields to be edited and define Smart Attributes",
+        description: "Description",
+        descriptionTip:"Optionally enter text you want to display on top of the attribute page."
       }
     },
     editDescriptionPage: {
-      title: "Define attribute overview text for <b>${layername}</b> "},
+      title: "Define attribute overview text for <b>${layername}</b> "
+    },
     fieldsPage: {
       title: "Configure fields for <b>${layername}</b>",
-      description:"Set the fields that will be editable in the Smart Editor.  Use the Preset column to allow the user to enter a value prior to creating a new feature.  These values can be apply to every new feature that contains these fields.  If the same field is present in more than one layer, they are combined in the Preset field list.  The preset fields are only applied to new features.  Use the Action edit button to activate Smart Attributes on a layer.  The Smart Attributes can require, hide or disable a field based on values in other fields.",
+      description: "Use the Preset column to allow the user to enter a value prior to creating a new feature. Use the Actions edit button to activate Smart Attributes on a layer. The Smart Attributes can require, hide or disable a field based on values in other fields.",
+      fieldsNotes: "* is a required field.  If you uncheck Display for this field, and the edit template does not populate that field value, you will not be able to save a new record.",
       fieldsSettingsTable: {
+        display: "Display",
+        displayTip: "Determine whether the field is not visible",
         edit: "Editable",
         editTip: "Check on if the field is present in the attribute form",
         fieldName: "Name",
@@ -40,11 +57,11 @@ define({
         fieldAlias: "Alias",
         fieldAliasTip: "Name of the field defined in the map",
         canPresetValue: "Preset",
-        canPresetValueTip: "Option to show the field in the preset field list, allow the user to set the value prior to editing",
+        canPresetValueTip: "Option to show the field in the preset field list and allow the user to set the value prior to editing",
         actions: "Actions",
-        actionsTip: "Change the order of the fields or set up Smart Attributes",
+        actionsTip: "Change the order of the fields or set up Smart Attributes"
       },
-      smartAttSupport: "Smart Attributes not supported on required database fields"
+      smartAttSupport: "Smart Attributes are not supported on required database fields"
     },
     actionPage: {
       title: "Configure the Smart Attribute actions for <b>${fieldname}</b>",
@@ -55,43 +72,14 @@ define({
         expression: "Expression",
         expressionTip: "The resulting expression in SQL format from the defined criteria",
         actions: "Criteria",
-        actionsTip: "Change the order of the rule and define the criteria when it is triggered",
-      },
+        actionsTip: "Change the order of the rule and define the criteria when it is triggered"
+      }
     },
     filterPage: {
+      submitHidden: "Submit attribute data for this field even when hidden?",
       title: "Configure clause for the ${action} rule",
       filterBuilder: "Set action on field when record matches ${any_or_all} of the following expressions",
-      noFilterTip: "Using the tools below, define the statement for when the action is active.",
-
+      noFilterTip: "Using the tools below, define the statement for when the action is active."
     }
-  }),
-  "ar": 1,
-  "cs": 1,
-  "da": 1,
-  "de": 1,
-  "el": 1,
-  "es": 1,
-  "et": 1,
-  "fi": 1,
-  "fr": 1,
-  "he": 1,
-  "it": 1,
-  "ja": 1,
-  "ko": 1,
-  "lt": 1,
-  "lv": 1,
-  "nb": 1,
-  "nl": 1,
-  "pl": 1,
-  "pt-br": 1,
-  "pt-pt": 1,
-  "ro": 1,
-  "ru": 1,
-  "sv": 1,
-  "th": 1,
-  "tr": 1,
-  "vi": 1,
-  "zh-cn": 1,
-  "zh-hk": 1,
-  "zh-tw": 1
+  })
 });

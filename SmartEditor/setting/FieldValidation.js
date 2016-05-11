@@ -82,7 +82,7 @@ define(
 
         var fieldsPopup = new Popup({
           titleLabel: esriLang.substitute(
-            { fieldname: this._fieldAlias },
+            { fieldname: this._fieldName },
             this.nls.actionPage.title),
           width: 720,
           maxHeight: 600,
@@ -105,15 +105,14 @@ define(
                 var newAction = {};
 
                 newAction.actionName = rowData.label;
+                newAction.submitWhenHidden = rowData.submitWhenHidden;
                 if (rowData.expression !== undefined && rowData.expression !== null &&
                   rowData.expression !== '') {
                   if (rowData.filter !== '') {
                     var filter = JSON.parse(entities.decode(rowData.filter));
                     newAction.expression = filter.expr;
                     newAction.filter = filter;
-
                   }
-
                 }
                 this._fieldValidations[this._fieldName].push(newAction);
               }, this);
@@ -146,6 +145,12 @@ define(
           title: this.nls.actionPage.actionsSettingsTable.expression,
           type: 'text',
           'class': 'expression'
+        },
+        {
+          name: 'submitWhenHidden',
+          title: 'submitWhenHidden',
+          type: 'checkbox',
+          hidden: true
         },
          {
            name: 'filter',
@@ -221,6 +226,7 @@ define(
               configAction.expression !== null && configAction.expression !== '') {
 
               settings.expression = configAction.expression;
+              settings.submitWhenHidden = configAction.submitWhenHidden;
               settings.filter = JSON.stringify(configAction.filter);
             }
           }
@@ -233,10 +239,15 @@ define(
         this._validationTable.editRow(tr,
                     {
                       'expression': '',
-                      'filter': null
+                      'filter': null,
+                      'submitWhenHidden': false
                     });
       },
       _showFilter: function (tr) {
+        if (this._filterPage) {
+          this._filterPage.destroy();
+        }
+
         this._filterPage = new FilterPage({
           nls: this.nls,
           _resourceInfo: this._resourceInfo,

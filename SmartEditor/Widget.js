@@ -144,6 +144,7 @@ define([
 
       startup: function () {
         this.inherited(arguments);
+        //this.fetchDataByName('GroupFilter');
         this._gdbRequired = [];
         this._configNotEditable = [];
         if (this.config.editor.editDescription === undefined || this.config.editor.editDescription === null) {
@@ -182,6 +183,32 @@ define([
         })));
 
       },
+
+      //onReceiveData: function (name, widgetId, data, historyData) {
+      //  //filter out messages
+      //  if (name !== 'GroupFilter') {
+      //    return;
+      //  }
+
+      //  //var msg = '<div style="margin:10px;">' +
+      //  //  '<b>Receive data from</b>:' + name +
+      //  //  '<br><b>widgetId:</b>' + widgetId +
+      //  //  '<br><b>data:</b>' + data.message;
+
+      //  ////handle history data
+      //  //if(historyData === true){
+      //  //  //want to fetch history data.
+      //  //  msg += '<br><b>historyData:</b>' + historyData + '. Fetch again.</div>';
+      //  //  this.messageNode.innerHTML = this.messageNode.innerHTML + msg;
+      //  //  this.fetchDataByName('WidgetA');
+      //  //}else{
+      //  //  msg += '<br><b>historyData:</b><br>' +
+      //  //    array.map(historyData, function(data, i){
+      //  //      return i + ':' + data.message;
+      //  //    }).join('<br>') + '</div>';
+      //  //  this.messageNode.innerHTML = this.messageNode.innerHTML + msg;
+      //  //}
+      //},
       /*jshint unused:true */
       _setTheme: function () {
         //if (this.appConfig.theme.name === "BoxTheme" ||
@@ -322,7 +349,7 @@ define([
 
           newTempLayerInfos = this._converConfiguredLayerInfos([localLayerInfo]);
 
-          this.attrInspector = this._createAttributeInspector(newTempLayerInfos);
+          this._createAttributeInspector(newTempLayerInfos);
         } else {
 
           myLayer = this.attrInspector.layerInfos[0].featureLayer;
@@ -549,9 +576,23 @@ define([
       //});
 
       //},
-      _createAttributeInspector: function (layerInfos) {
+      _addWarning: function () {
+        if (query(".attwarning").length === 0) {
+          var txt = domConstruct.create("div", { 'class': 'attwarning' });
+          txt.innerHTML = this.nls.attachmentSaveDeleteWarning;
+          if (this.attrInspector._attachmentEditor !== undefined &&
+             this.attrInspector._attachmentEditor !== null) {
+            this.attrInspector._attachmentEditor.domNode.appendChild(txt);
+          }
 
-        var attrInspector = new AttributeInspector({
+        }
+      },
+      _createAttributeInspector: function (layerInfos) {
+        if (this.attrInspector) {
+          this.attrInspector.destroy();
+          this.attrInspector = null;
+        }
+        this.attrInspector = new AttributeInspector({
           layerInfos: layerInfos
         }, html.create("div", {
           style: {
@@ -559,9 +600,9 @@ define([
             height: "100%"
           }
         }));
-        attrInspector.placeAt(this.attributeInspectorNode);
-        attrInspector.startup();
-        domConstruct.place(attrInspector.navMessage, attrInspector.nextFeatureButton.domNode, "before");
+        this.attrInspector.placeAt(this.attributeInspectorNode);
+        this.attrInspector.startup();
+        domConstruct.place(this.attrInspector.navMessage, this.attrInspector.nextFeatureButton.domNode, "before");
 
         this.editSwitchDiv = domConstruct.create("div");
         this.editSwitchDiv.appendChild(domConstruct.create("div", { "class": "spacer" }));
@@ -577,7 +618,7 @@ define([
          "<label for='editGeometrySwitch'>{replace}</label></br></br>",
          { replace: this.nls.editGeometry }), this._editGeomSwitch.domNode, "after");
 
-        domConstruct.place(this.editSwitchDiv, attrInspector.deleteBtn.domNode, "before");
+        domConstruct.place(this.editSwitchDiv, this.attrInspector.deleteBtn.domNode, "before");
 
         this.own(on(this._editGeomSwitch, 'Change', lang.hitch(this, this._editGeometry)));
 
@@ -586,7 +627,7 @@ define([
         var cancelButton = domConstruct.create("div", {
           innerHTML: this.nls.close,
           "class": "cancelButton jimu-btn"
-        }, attrInspector.deleteBtn.domNode, "after");
+        }, this.attrInspector.deleteBtn.domNode, "after");
 
         // save button
         var saveButton = domConstruct.create("div", {
@@ -650,7 +691,7 @@ define([
         // edit geometry checkbox event
 
         // attribute inspector events
-        this.own(on(attrInspector, "attribute-change", lang.hitch(this, function (evt) {
+        this.own(on(this.attrInspector, "attribute-change", lang.hitch(this, function (evt) {
           if (this.currentFeature) {
 
 
@@ -662,18 +703,10 @@ define([
         })));
 
 
-        this.own(on(attrInspector, "next", lang.hitch(this, function (evt) {
+        this.own(on(this.attrInspector, "next", lang.hitch(this, function (evt) {
 
           this._attributeInspectorChangeRecord(evt);
-          if (query(".attwarning").length === 0) {
-            var txt = domConstruct.create("div", { 'class': 'attwarning' });
-            txt.innerHTML = this.nls.attachmentSaveDeleteWarning;
-            if (this.attrInspector._attachmentEditor !== undefined &&
-               this.attrInspector._attachmentEditor !== null) {
-              this.attrInspector._attachmentEditor.domNode.appendChild(txt);
-            }
-
-          }
+          this._addWarning();
         })));
         if (this._attachmentUploader && this._attachmentUploader !== null) {
           this._attachmentUploader.destroy();
@@ -683,15 +716,13 @@ define([
             var result = this._getLayerInfoByID(layerInfos[0].featureLayer.originalLayerId);
             if (result.featureLayer.hasAttachments === true) {
               this.attachNode = domConstruct.create("div");
-              domConstruct.place(this.attachNode, attrInspector.attributeTable, "after");
-
+              domConstruct.place(this.attachNode, this.attrInspector.attributeTable, "after");
               this._attachmentUploader = new AttachmentUploader({ 'class': 'atiAttachmentEditor' },
                 this.attachNode);
               this._attachmentUploader.startup();
             }
           }
         }
-        return attrInspector;
       },
       _toggleDeleteButton: function (show) {
         if (show === true) {
@@ -699,8 +730,6 @@ define([
         } else {
           this._deleteButton.style.display = "none";
         }
-
-
       },
       _activateTemplateToolbar: function () {
         if (this.templatePicker) {
@@ -1394,6 +1423,11 @@ define([
           this.attrInspector.destroy();
           this.attrInspector = null;
         }
+        else {
+          if (this._attachmentUploader && this._attachmentUploader !== null) {
+            this._attachmentUploader.clear();
+          }
+        }
         return yes;
       },
 
@@ -1458,13 +1492,11 @@ define([
 
       },
       _completePost: function (featureLayer, oid, deferred) {
-        this.attrInspector.destroy();
-        this.attrInspector = null;
-
-        this.attrInspector = this._createAttributeInspector([this.currentLayerInfo]);
+        this._createAttributeInspector([this.currentLayerInfo]);
         var query = new Query();
         query.objectIds = [oid];
         featureLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
+        this._showTemplate(false);
         deferred.resolve("success");
       },
       // posts the currentFeature's changes
@@ -1568,18 +1600,14 @@ define([
           this.map.infoWindow.hide();
           // recreate the attr inspector if needed
           if (!this.attrInspector) {
-            this.attrInspector = this._createAttributeInspector(this.settings.layerInfos);
-
+            this._createAttributeInspector(this.settings.layerInfos);
           } else {
             // if previously the atts inspector is created for an add activity, recreate it
             if (this.attrInspector.layerInfos.length === 1 &&
                 this.attrInspector.layerInfos[0].featureLayer.id.lastIndexOf("_lfl") > 0) {
-              this.attrInspector.destroy();
-              this.attrInspector = null;
-              this.attrInspector = this._createAttributeInspector(this.settings.layerInfos);
+              this._createAttributeInspector(this.settings.layerInfos);
             }
           }
-
           var layers = this.map.getLayersVisibleAtScale().filter(lang.hitch(this, function (lyr) {
             if (lyr.type && lyr.type === "Feature Layer" && lyr.url) {
               return this.settings.layerInfos.some(function (lyrinfo) {
@@ -1880,8 +1908,6 @@ define([
           query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "none";
           query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "block";
 
-
-          this._mapClickHandler(false);
           if (this.attrInspector) {
             this._createSmartAttributes();
             this._swizzleAttrbuteTable();
@@ -1903,7 +1929,7 @@ define([
               this.editDescription.style.display = "none";
             }
             this._toggleEditGeoSwitch(this.currentLayerInfo.disableGeometryUpdate);
-
+            this._addWarning();
           }
 
         }

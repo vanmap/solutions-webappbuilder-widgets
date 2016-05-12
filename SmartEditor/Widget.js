@@ -542,17 +542,7 @@ define([
         }
 
       },
-
-      _attributeInspectorChangeRecord: function (evt) {
-        if (this._isDirty && this.currentFeature) {
-          // do not show templatePicker after saving
-          this._promptToResolvePendingEdit(false, evt, false);
-
-        } else {
-
-          this._postFeatureSave(evt);
-
-        }
+      _recordLoadeAttInspector: function () {
         if (this.editDescription.style.display === "block") {
           if (this.updateFeatures.length > 1) {
             dojo.style(this.editDescription, "padding-top", "20px");
@@ -567,6 +557,18 @@ define([
           }
 
         }
+      },
+      _attributeInspectorChangeRecord: function (evt) {
+        if (this._isDirty && this.currentFeature) {
+          // do not show templatePicker after saving
+          this._promptToResolvePendingEdit(false, evt, false);
+
+        } else {
+
+          this._postFeatureSave(evt);
+
+        }
+        this._recordLoadeAttInspector();
         //editDescription
       },
       //_sytleFields: function (attrInspector) {
@@ -1669,9 +1671,7 @@ define([
         if (evt && evt.feature) {
           this.currentFeature = evt.feature;
           this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
-
           this._createSmartAttributes();
-          this._swizzleAttrbuteTable();
           this._validateAttributes();
           this._enableAttrInspectorSaveButton(false);
           this._toggleDeleteButton(this.currentLayerInfo.allowDelete);
@@ -1913,7 +1913,6 @@ define([
 
           if (this.attrInspector) {
             this._createSmartAttributes();
-            this._swizzleAttrbuteTable();
             if (!this.currentFeature) {
               this.attrInspector.first();
             }
@@ -1934,26 +1933,12 @@ define([
             this._toggleEditGeoSwitch(this.currentLayerInfo.disableGeometryUpdate);
             this._addWarning();
           }
-
+          this._recordLoadeAttInspector();
         }
 
 
       },
-      _swizzleAttrbuteTable: function () {
 
-        //var attTable = query("tr", this.attrInspector.domNode);
-        //if (attTable === undefined || attTable === null) {
-        //  return;
-        //}
-        //if (attTable.length > 0) {
-        //  array.forEach(attTable, function (row) {
-        //    row.innerHTML = row.innerHTML.replace('<td>', '<div>').replace('</td>', '</div>').replace('<td ', '<div ');
-
-        //  }, this);
-        //}
-
-
-      },
       _createSmartAttributes: function () {
         if (this.currentFeature === undefined || this.currentFeature === null) {
           return;

@@ -1,4 +1,4 @@
-﻿/*
+/*
 Copyright ©2014 Esri. All rights reserved.
 
 TRADE SECRETS: ESRI PROPRIETARY AND CONFIDENTIAL
@@ -738,7 +738,7 @@ define([
       }
 
       if (this._attTable.length > 0) {
-        var row = this._attTable.filter(lang.hitch(this, function (row) {
+        var row = dojo.filter(this._attTable,lang.hitch(this, function (row) {
           if (row.childNodes) {
             if (row.childNodes.length > 0) {
               if (row.childNodes[0].data) {

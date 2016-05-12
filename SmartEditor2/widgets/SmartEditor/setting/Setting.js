@@ -34,6 +34,7 @@ define([
     'dojo/sniff',
     'jimu/utils',
     'dojo/_base/html',
+    'jimu/dijit/Message',
     'dijit/_editor/plugins/LinkDialog',
     'dijit/_editor/plugins/ViewSource',
     'dijit/_editor/plugins/FontChoice',
@@ -66,7 +67,8 @@ define([
     domStyle,
     has,
     utils,
-    html
+    html,
+    Message
     ) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
       //these two properties is defined in the BaseWidget
@@ -152,7 +154,7 @@ define([
           title: this.nls.layersPage.layerSettingsTable.fields,
           type: 'actions',
           'class': 'actions',
-          actions: ['edit']
+          actions: ['edit']//'up','down',
         },
         {
           name: 'allowUpdateOnlyHidden',
@@ -209,15 +211,11 @@ define([
         this.own(on(this._layersTable,
           'actions-edit',
           lang.hitch(this, this._onEditFieldInfoClick)));
-        this.own(on(this._layersTable,
-          'row-dblclick',
-          lang.hitch(this, this._onRowDoubleClick)));
-
       },
       _createSpecialType: function (td) {
-        var img = html.create('div', { 'class': 'attDescrip' }, td);
+        var img = html.create('a', { 'class': 'attDescrip' }, td);
         this.own(on(img, 'click', lang.hitch(this, function () {
-          this._onRowDoubleClick(td.parentNode);
+          this._onDescriptionClick(td.parentNode);
         })));
       },
 
@@ -232,6 +230,7 @@ define([
       },
       _initSettings: function () {
         //this.showDeleteButton.set('checked', this.config.editor.showDeleteButton);
+        this.useFilterEditor.set('checked', this.config.editor.useFilterEditor);
         this.displayPromptOnSave.set('checked', this.config.editor.displayPromptOnSave);
         this.displayPromptOnDelete.set('checked', this.config.editor.displayPromptOnDelete);
         this.removeOnSave.set('checked', this.config.editor.removeOnSave);
@@ -512,7 +511,7 @@ define([
         }
         return simpleFieldInfos;
       },
-      _onRowDoubleClick: function (tr) {
+      _onDescriptionClick: function (tr) {
         var rowData = this._layersTable.getRowData(tr);
         if (rowData && rowData.edit) {
           this._editDescriptions = new EditDescription({
@@ -532,6 +531,11 @@ define([
             _layerName: rowData.label
           });
           this._editFields.popupEditPage();
+        }
+        else {
+          new Message({
+            message: this.nls.layersPage.editFieldError
+          });
         }
       },
 
@@ -617,7 +621,9 @@ define([
         this.config.editor.removeOnSave =
           this.removeOnSave.checked === undefined ?
           false : this.removeOnSave.checked;
-
+        this.config.editor.useFilterEditor =
+          this.useFilterEditor.checked === undefined ?
+          false : this.useFilterEditor.checked;
       },
 
       getConfig: function () {

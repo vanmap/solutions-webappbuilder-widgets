@@ -124,52 +124,52 @@ define([
       assert.strictEqual(cm, null);
     });
 
-    bdd.it('tests _getColumnStats method', function() {
-      var fieldName = "POP2000";
-      var table = new _FeatureTable({
-        nls: nls
-      });
-      table._getLayerFilterExpression = function() {
-        return "1=1";
-      };
-      table.layerInfo = {};
-      table.layerInfo.getUrl = function() {
-        return "http://services2.arcgis.com/K1Xet5rYYN1SOWtq/ArcGIS/rest/services/USA_hostingFS/FeatureServer/0";
-      };
+    // bdd.it('tests _getColumnStats method', function() {
+    //   var fieldName = "POP2000";
+    //   var table = new _FeatureTable({
+    //     nls: nls
+    //   });
+    //   table._getLayerFilterExpression = function() {
+    //     return "1=1";
+    //   };
+    //   table.layerInfo = {};
+    //   table.layerInfo.getUrl = function() {
+    //     return "http://services2.arcgis.com/K1Xet5rYYN1SOWtq/ArcGIS/rest/services/USA_hostingFS/FeatureServer/0";
+    //   };
 
-      return table._getColumnStats(fieldName).then(function(attributes) {
-        assert.strictEqual(attributes !== null, true);
-        assert.strictEqual(isFinite(attributes.avgField), true);
-        assert.strictEqual(isFinite(attributes.countField), true);
-        assert.strictEqual(isFinite(attributes.maxField), true);
-        assert.strictEqual(isFinite(attributes.minField), true);
-        assert.strictEqual(isFinite(attributes.stddevField), true);
-        assert.strictEqual(isFinite(attributes.sumField), true);
-      });
-    });
+    //   return table._getColumnStats(fieldName).then(function(attributes) {
+    //     assert.strictEqual(attributes !== null, true);
+    //     assert.strictEqual(isFinite(attributes.avgField), true);
+    //     assert.strictEqual(isFinite(attributes.countField), true);
+    //     assert.strictEqual(isFinite(attributes.maxField), true);
+    //     assert.strictEqual(isFinite(attributes.minField), true);
+    //     assert.strictEqual(isFinite(attributes.stddevField), true);
+    //     assert.strictEqual(isFinite(attributes.sumField), true);
+    //   });
+    // });
 
-    bdd.it('tests _showStatisticsPopup method', function() {
-      var fieldName = "POP2000";
-      var table = new _FeatureTable({
-        nls: nls
-      });
-      // table.nls = nls;
-      table._getLayerFilterExpression = function() {
-        return "1=1";
-      };
-      table.layerInfo = {};
-      table.layerInfo.getUrl = function() {
-        return "http://services2.arcgis.com/K1Xet5rYYN1SOWtq/ArcGIS/rest/services/USA_hostingFS/FeatureServer/0";
-      };
+    // bdd.it('tests _showStatisticsPopup method', function() {
+    //   var fieldName = "POP2000";
+    //   var table = new _FeatureTable({
+    //     nls: nls
+    //   });
+    //   // table.nls = nls;
+    //   table._getLayerFilterExpression = function() {
+    //     return "1=1";
+    //   };
+    //   table.layerInfo = {};
+    //   table.layerInfo.getUrl = function() {
+    //     return "http://services2.arcgis.com/K1Xet5rYYN1SOWtq/ArcGIS/rest/services/USA_hostingFS/FeatureServer/0";
+    //   };
 
-      return table._getColumnStats(fieldName).then(function(attributes) {
-        table._showStatisticsPopup(fieldName, attributes);
-        var popup = table._statisticsPopup;
-        var hasClass = html.hasClass(popup.domNode, 'esri-feature-table-dialog');
+    //   return table._getColumnStats(fieldName).then(function(attributes) {
+    //     table._showStatisticsPopup(fieldName, attributes);
+    //     var popup = table._statisticsPopup;
+    //     var hasClass = html.hasClass(popup.domNode, 'esri-feature-table-dialog');
 
-        assert.strictEqual(hasClass, true);
-      });
-    });
+    //     assert.strictEqual(hasClass, true);
+    //   });
+    // });
 
     bdd.it('tests startQuery', function() {
       var table = new _FeatureTable({

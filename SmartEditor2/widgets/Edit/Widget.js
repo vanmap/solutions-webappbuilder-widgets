@@ -54,6 +54,7 @@ define([
       _layerObjectsParaForTempaltePicker: null,
       _createOverDef: null,
       _releaseEventAfterActiveArray: null,
+      _canCreateLayersAreAllInvisibleFlag: null,
 
       startup: function() {
         this.inherited(arguments);
@@ -76,6 +77,7 @@ define([
         this._layerObjectsParaForTempaltePicker = [];
         this._configEditor = lang.clone(this.config.editor);
         this._releaseEventAfterActiveArray = [];
+        this._canCreateLayersAreAllInvisibleFlag = false;
         this._createOverDef = new Deferred();
       },
 
@@ -337,6 +339,17 @@ define([
             layerInfo.featureLayer = layerObject;
             resultLayerInfosParam.push(layerInfo);
           }
+
+          // update this._canCreateLayersAreAllInvisibleFlag
+          if(!this._canCreateLayersAreAllInvisibleFlag &&
+             layerObject &&
+             layerObject.isEditable &&
+             layerObject.isEditable() &&
+             layerObject.getEditCapabilities &&
+             layerObject.getEditCapabilities() &&
+             !layerObject.visible) {
+            this._canCreateLayersAreAllInvisibleFlag = true;
+          }
         }, this);
         return resultLayerInfosParam;
       },
@@ -351,6 +364,14 @@ define([
             this._layerObjectsParaForTempaltePicker.push(layerInfo.featureLayer);
           }
         }, this);
+
+        // change string of templatePicker is empty
+        this._defaultTempaltePickerEmpeyStr =
+            esriBundle.widgets.templatePicker.creationDisabled;
+        if(this._canCreateLayersAreAllInvisibleFlag) {
+          esriBundle.widgets.templatePicker.creationDisabled =
+            this.nls.noCanCreateLayerAreCurrentlyVisible;
+        }
 
         var bottomStyle = this._configEditor.toolbarVisible ? "" : "bottom: 0px";
         var topStyle = this._configEditor.useFilterEdit ? "top: 115px" : "top: 18px";
@@ -487,6 +508,8 @@ define([
       _worksAfterClose: function() {
         esriBundle.toolbars.draw.start = this._defaultStartStr;
         esriBundle.toolbars.draw.addPoint = this._defaultAddPointStr;
+        esriBundle.widgets.templatePicker.creationDisabled =
+          this._defaultTempaltePickerEmpeyStr;
 
         // show lable layer.
         var labelLayer = this.map.getLayer("labels");

@@ -6,12 +6,14 @@ define({
       layerSettings:"Layer Settings",
       editDescription: "Provide display text for the edit panel",
       editDescriptionTip: "This text is displayed above the Template picker, leave blank for no text.",
-      promptOnSave: "Prompt to save unsaved edits when form is close or switched to the next record?",
+      promptOnSave: "Prompt to save unsaved edits when form is closed or switched to the next record.",
       promptOnSaveTip: "Display a prompt when the user clicks close or navigates to the next editable record when the current feature has unsaved edits.",
-      promptOnDelete: "Require confirmation when deleting a record?",
+      promptOnDelete: "Require confirmation when deleting a record.",
       promptOnDeleteTip: "Display a prompt when the user clicks delete to confirm the aciton.",
-      removeOnSave: "Remove Feature from Selection on Save",
+      removeOnSave: "Remove feature from selection on save.",
       removeOnSaveTip: "Option to remove the feature from the selection set when the record is saved.  If it is the only selected record, the panel is switched back to the template page.",
+      useFilterEditor: "Use feature template filter",
+      useFilterEditorTip: "Option to use the Filter Template picker which provides the ability to view one layers templates or search for templates by name.",
       layerSettingsTable: {
         allowDelete: "Allow Delete",
         allowDeleteTip: "Option to allow the user to delete a feature; disabled if the layer does not support delete",
@@ -27,7 +29,8 @@ define({
         fieldsTip: "Modify the fields to be edited and define Smart Attributes",
         description: "Description",
         descriptionTip:"Optionally enter text you want to display on top of the attribute page."
-      }
+      },
+      editFieldError:"Field modifications and Smart attributes are not available to layers that are not editable"
     },
     editDescriptionPage: {
       title: "Define attribute overview text for <b>${layername}</b> "

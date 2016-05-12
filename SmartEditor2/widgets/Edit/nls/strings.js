@@ -8,7 +8,9 @@ define({
     close: "Close",
     featureLayers: "Feature Layers",
     searchTemplates: "Search Templates",
-    noAvailableTempaltes: "No available templates"
+    noAvailableTempaltes: "No available templates",
+    noCanCreateLayerAreCurrentlyVisible:"No creatable layers are currently visible."
+    
   }),
   "ar": 1,
   "cs": 1,

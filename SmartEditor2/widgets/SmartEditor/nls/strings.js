@@ -15,6 +15,11 @@ define({
     deletePromptTitle: "Delete feature",
     deletePrompt: "Are you sure you want to delete the selected feature?",
     attachmentLoadingError: "Error uploading attachments",
-    attachmentSaveDeleteWarning: "Warning, adding or deleting an attachment is saved immediately"
+    attachmentSaveDeleteWarning: "Warning: Changes to attachments are saved automatically",
+    filterEditor:{
+      all: "All",
+      noAvailableTempaltes: "No available templates",
+      searchTemplates: "Search Templates"
+    }
   })
 });

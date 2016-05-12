@@ -60,7 +60,8 @@ define([
     "esri/lang",
     "dojox/html/entities",
     'jimu/utils',
-    'jimu/dijit/LoadingShelter'
+    'jimu/dijit/LoadingShelter',
+    './FilterEditor'
 ],
   function (
     dojo,
@@ -107,7 +108,9 @@ define([
     AttachmentUploader,
     esriLang,
     entities,
-    utils, LoadingShelter) {
+    utils,
+    LoadingShelter,
+    FilterEditor) {
     return declare([BaseWidget, _WidgetsInTemplateMixin], {
       name: 'SmartEditor',
       baseClass: 'jimu-widget-smartEditor',
@@ -144,7 +147,7 @@ define([
 
       startup: function () {
         this.inherited(arguments);
-        this.fetchDataByName('GroupFilter');
+        //this.fetchDataByName('GroupFilter');
         this._gdbRequired = [];
         this._configNotEditable = [];
         if (this.config.editor.editDescription === undefined || this.config.editor.editDescription === null) {
@@ -184,31 +187,31 @@ define([
 
       },
 
-      onReceiveData: function(name, widgetId, data, historyData) {
-        //filter out messages
-        if(name !== 'GroupFilter'){
-          return;
-        }
+      //onReceiveData: function (name, widgetId, data, historyData) {
+      //  //filter out messages
+      //  if (name !== 'GroupFilter') {
+      //    return;
+      //  }
 
-        //var msg = '<div style="margin:10px;">' +
-        //  '<b>Receive data from</b>:' + name +
-        //  '<br><b>widgetId:</b>' + widgetId +
-        //  '<br><b>data:</b>' + data.message;
+      //  //var msg = '<div style="margin:10px;">' +
+      //  //  '<b>Receive data from</b>:' + name +
+      //  //  '<br><b>widgetId:</b>' + widgetId +
+      //  //  '<br><b>data:</b>' + data.message;
 
-        ////handle history data
-        //if(historyData === true){
-        //  //want to fetch history data.
-        //  msg += '<br><b>historyData:</b>' + historyData + '. Fetch again.</div>';
-        //  this.messageNode.innerHTML = this.messageNode.innerHTML + msg;
-        //  this.fetchDataByName('WidgetA');
-        //}else{
-        //  msg += '<br><b>historyData:</b><br>' +
-        //    array.map(historyData, function(data, i){
-        //      return i + ':' + data.message;
-        //    }).join('<br>') + '</div>';
-        //  this.messageNode.innerHTML = this.messageNode.innerHTML + msg;
-        //}
-      },
+      //  ////handle history data
+      //  //if(historyData === true){
+      //  //  //want to fetch history data.
+      //  //  msg += '<br><b>historyData:</b>' + historyData + '. Fetch again.</div>';
+      //  //  this.messageNode.innerHTML = this.messageNode.innerHTML + msg;
+      //  //  this.fetchDataByName('WidgetA');
+      //  //}else{
+      //  //  msg += '<br><b>historyData:</b><br>' +
+      //  //    array.map(historyData, function(data, i){
+      //  //      return i + ':' + data.message;
+      //  //    }).join('<br>') + '</div>';
+      //  //  this.messageNode.innerHTML = this.messageNode.innerHTML + msg;
+      //  //}
+      //},
       /*jshint unused:true */
       _setTheme: function () {
         //if (this.appConfig.theme.name === "BoxTheme" ||
@@ -219,19 +222,18 @@ define([
         }
       },
       _mapClickHandler: function (create) {
-
         if (create === true && this._attrInspIsCurrentlyDisplayed === false) {
           this.map.setInfoWindowOnClick(false);
-          this._mapClick = on(this.map, "click", lang.hitch(this, this._onMapClick));
-
+          if (this._mapClick === undefined || this._mapClick === null) {
+            this._mapClick = on(this.map, "click", lang.hitch(this, this._onMapClick));
+          }
         }
         else if (create === true && this._attrInspIsCurrentlyDisplayed === true) {
-          this.map.setInfoWindowOnClick(true);
           if (this._mapClick) {
-
             this._mapClick.remove();
             this._mapClick = null;
           }
+          this.map.setInfoWindowOnClick(true);
         }
         else {
           if (this._mapClick) {
@@ -310,7 +312,19 @@ define([
           this._mapClickHandler(true);
         }
       },
-
+      _addFilterEditor: function (layers) {
+        if (this.settings.useFilterEditor === true) {
+          this._filterEditorNode = domConstruct.create("div", {});
+          this.templatePickerDiv.insertBefore(this._filterEditorNode,
+            this.templatePicker.domNode);
+          this._filterEditor = new FilterEditor({
+            _templatePicker: this.templatePicker,
+            _layers: layers,
+            map: this.map,
+            nls: this.nls
+          }, this._filterEditorNode);
+        }
+      },
       _activateEditToolbar: function (feature) {
         var layer = feature.getLayer();
         switch (layer.geometryType) {
@@ -349,7 +363,7 @@ define([
 
           newTempLayerInfos = this._converConfiguredLayerInfos([localLayerInfo]);
 
-          this.attrInspector = this._createAttributeInspector(newTempLayerInfos);
+          this._createAttributeInspector(newTempLayerInfos);
         } else {
 
           myLayer = this.attrInspector.layerInfos[0].featureLayer;
@@ -373,6 +387,7 @@ define([
           myLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
 
           this.currentFeature = this.updateFeatures[0] = newGraphic;
+          this._attachLayerHandler();
           this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
           this._toggleDeleteButton(this.currentLayerInfo.allowDelete);
           this._toggleEditGeoSwitch(this.currentLayerInfo.disableGeometryUpdate);
@@ -543,17 +558,7 @@ define([
         }
 
       },
-
-      _attributeInspectorChangeRecord: function (evt) {
-        if (this._isDirty && this.currentFeature) {
-          // do not show templatePicker after saving
-          this._promptToResolvePendingEdit(false, evt);
-
-        } else {
-
-          this._postFeatureSave(evt);
-
-        }
+      _recordLoadeAttInspector: function () {
         if (this.editDescription.style.display === "block") {
           if (this.updateFeatures.length > 1) {
             dojo.style(this.editDescription, "padding-top", "20px");
@@ -568,6 +573,18 @@ define([
           }
 
         }
+      },
+      _attributeInspectorChangeRecord: function (evt) {
+        if (this._isDirty && this.currentFeature) {
+          // do not show templatePicker after saving
+          this._promptToResolvePendingEdit(false, evt, false);
+
+        } else {
+
+          this._postFeatureSave(evt);
+
+        }
+        this._recordLoadeAttInspector();
         //editDescription
       },
       //_sytleFields: function (attrInspector) {
@@ -576,9 +593,23 @@ define([
       //});
 
       //},
-      _createAttributeInspector: function (layerInfos) {
+      _addWarning: function () {
+        if (query(".attwarning").length === 0) {
+          var txt = domConstruct.create("div", { 'class': 'attwarning' });
+          txt.innerHTML = this.nls.attachmentSaveDeleteWarning;
+          if (this.attrInspector._attachmentEditor !== undefined &&
+             this.attrInspector._attachmentEditor !== null) {
+            this.attrInspector._attachmentEditor.domNode.appendChild(txt);
+          }
 
-        var attrInspector = new AttributeInspector({
+        }
+      },
+      _createAttributeInspector: function (layerInfos) {
+        if (this.attrInspector) {
+          this.attrInspector.destroy();
+          this.attrInspector = null;
+        }
+        this.attrInspector = new AttributeInspector({
           layerInfos: layerInfos
         }, html.create("div", {
           style: {
@@ -586,9 +617,9 @@ define([
             height: "100%"
           }
         }));
-        attrInspector.placeAt(this.attributeInspectorNode);
-        attrInspector.startup();
-        domConstruct.place(attrInspector.navMessage, attrInspector.nextFeatureButton.domNode, "before");
+        this.attrInspector.placeAt(this.attributeInspectorNode);
+        this.attrInspector.startup();
+        domConstruct.place(this.attrInspector.navMessage, this.attrInspector.nextFeatureButton.domNode, "before");
 
         this.editSwitchDiv = domConstruct.create("div");
         this.editSwitchDiv.appendChild(domConstruct.create("div", { "class": "spacer" }));
@@ -604,16 +635,16 @@ define([
          "<label for='editGeometrySwitch'>{replace}</label></br></br>",
          { replace: this.nls.editGeometry }), this._editGeomSwitch.domNode, "after");
 
-        domConstruct.place(this.editSwitchDiv, attrInspector.deleteBtn.domNode, "before");
+        domConstruct.place(this.editSwitchDiv, this.attrInspector.deleteBtn.domNode, "before");
 
         this.own(on(this._editGeomSwitch, 'Change', lang.hitch(this, this._editGeometry)));
 
 
         //add close/cancel/switch to template button
         var cancelButton = domConstruct.create("div", {
-          innerHTML: this.nls.close,
+          innerHTML: this.nls.back,
           "class": "cancelButton jimu-btn"
-        }, attrInspector.deleteBtn.domNode, "after");
+        }, this.attrInspector.deleteBtn.domNode, "after");
 
         // save button
         var saveButton = domConstruct.create("div", {
@@ -654,7 +685,7 @@ define([
           }
 
           if (this._configEditor.displayPromptOnSave && this._isDirty) {
-            this._promptToResolvePendingEdit(true, null);
+            this._promptToResolvePendingEdit(true, null, true);
           } else {
             this._cancelEditingFeature(true);
           }
@@ -677,7 +708,7 @@ define([
         // edit geometry checkbox event
 
         // attribute inspector events
-        this.own(on(attrInspector, "attribute-change", lang.hitch(this, function (evt) {
+        this.own(on(this.attrInspector, "attribute-change", lang.hitch(this, function (evt) {
           if (this.currentFeature) {
 
 
@@ -687,20 +718,10 @@ define([
             this._enableAttrInspectorSaveButton(this._validateAttributes());
           }
         })));
-
-
-        this.own(on(attrInspector, "next", lang.hitch(this, function (evt) {
+        this.own(on(this.attrInspector, "next", lang.hitch(this, function (evt) {
 
           this._attributeInspectorChangeRecord(evt);
-          if (query(".attwarning").length === 0) {
-            var txt = domConstruct.create("div", { 'class': 'attwarning' });
-            txt.innerHTML = this.nls.attachmentSaveDeleteWarning;
-            if (this.attrInspector._attachmentEditor !== undefined &&
-               this.attrInspector._attachmentEditor !== null) {
-              this.attrInspector._attachmentEditor.domNode.appendChild(txt);
-            }
-
-          }
+          this._addWarning();
         })));
         if (this._attachmentUploader && this._attachmentUploader !== null) {
           this._attachmentUploader.destroy();
@@ -710,15 +731,13 @@ define([
             var result = this._getLayerInfoByID(layerInfos[0].featureLayer.originalLayerId);
             if (result.featureLayer.hasAttachments === true) {
               this.attachNode = domConstruct.create("div");
-              domConstruct.place(this.attachNode, attrInspector.attributeTable, "after");
-
+              domConstruct.place(this.attachNode, this.attrInspector.attributeTable, "after");
               this._attachmentUploader = new AttachmentUploader({ 'class': 'atiAttachmentEditor' },
                 this.attachNode);
               this._attachmentUploader.startup();
             }
           }
         }
-        return attrInspector;
       },
       _toggleDeleteButton: function (show) {
         if (show === true) {
@@ -726,8 +745,6 @@ define([
         } else {
           this._deleteButton.style.display = "none";
         }
-
-
       },
       _activateTemplateToolbar: function () {
         if (this.templatePicker) {
@@ -802,6 +819,7 @@ define([
         if (this.templatePicker.featureLayers.length !== layers.length) {
           return true;
         }
+
         var recreate = array.some(layers, function (layer) {
           var layerMatches = array.some(this.templatePicker.featureLayers, function (tpLayer) {
             return tpLayer.id === layer.id;
@@ -813,8 +831,19 @@ define([
         }, this);
         return recreate;
       },
+      _layerChangeOutside: function () {
+        if (this._attrInspIsCurrentlyDisplayed && this._attrInspIsCurrentlyDisplayed === true) {
+          if (this.attrInspector) {
+            if (this.attrInspector._numFeatures === 0) {
+              this._showTemplate(true);
+
+            }
+          }
+        }
+      },
       _createEditor: function () {
         var layers = this._getEditableLayers(this.settings.layerInfos, false);
+        this._layerChangeOutside();
         if (layers.length < 1) {
           this._creationDisabledOnAll = true;
         }
@@ -823,9 +852,7 @@ define([
           if (this._attrInspIsCurrentlyDisplayed && this._attrInspIsCurrentlyDisplayed === true) {
             this._recreateOnNextShow = true;
             return;
-
           }
-
           if (this.templatePicker &&
             this.templatePicker !== null) {
 
@@ -858,7 +885,7 @@ define([
           }, this.templatePickerNode);
           this.templatePicker.startup();
           //this.templatePickerNode.appendChild(this.templatePicker.domNode);
-
+          this._addFilterEditor(layers);
           // wire up events
           this._select_change_event = on(this.templatePicker, "selection-change",
             lang.hitch(this, this._activateTemplateToolbar));
@@ -1421,6 +1448,11 @@ define([
           this.attrInspector.destroy();
           this.attrInspector = null;
         }
+        else {
+          if (this._attachmentUploader && this._attachmentUploader !== null) {
+            this._attachmentUploader.clear();
+          }
+        }
         return yes;
       },
 
@@ -1469,7 +1501,7 @@ define([
               autoHeight: true,
               content: errorMsg,
               buttons: [{
-                label: this.nls.close,
+                label: this.nls.back,
                 classNames: ['jimu-btn'],
                 onClick: lang.hitch(this, function () {
                   dialog.close();
@@ -1485,13 +1517,11 @@ define([
 
       },
       _completePost: function (featureLayer, oid, deferred) {
-        this.attrInspector.destroy();
-        this.attrInspector = null;
-
-        this.attrInspector = this._createAttributeInspector([this.currentLayerInfo]);
+        this._createAttributeInspector([this.currentLayerInfo]);
         var query = new Query();
         query.objectIds = [oid];
         featureLayer.selectFeatures(query, FeatureLayer.SELECTION_NEW);
+        this._showTemplate(false);
         deferred.resolve("success");
       },
       // posts the currentFeature's changes
@@ -1509,13 +1539,14 @@ define([
               }
             }
           }
+          var featureLayer = null;
           if (feature.getLayer().originalLayerId) {
-
             // added feature
-            var featureLayer = this.map.getLayer(feature.getLayer().originalLayerId);
+            featureLayer = this.map.getLayer(feature.getLayer().originalLayerId);
             if (featureLayer) {
               // modify some attributes before calling applyEdits
-              feature.attributes.OBJECTID = null;
+              //feature.attributes[featureLayer.objectIdField] = null;
+              delete feature.attributes[featureLayer.objectIdField];
               feature.symbol = null;
 
               featureLayer.applyEdits([feature], null, null, lang.hitch(this, function (e) {
@@ -1539,8 +1570,9 @@ define([
           } else {
             // update existing feature
             // only get the updated attributes
+            featureLayer = feature.getLayer();
             var newAttrs = editUtils.filterOnlyUpdatedAttributes(
-              feature.attributes, feature.preEditAttrs);
+              feature.attributes, feature.preEditAttrs, featureLayer);
 
             // Since the new requirement is that: after a save,
             // continue to show attributeInspector,
@@ -1553,10 +1585,6 @@ define([
             } else {
               feature.attributes = []; // ?
             }
-            //todo: for now, save the change anyway in case geometry also being edited
-
-            // modify some important attributes before calling applyEdits
-            feature.attributes.OBJECTID = feature.preEditAttrs.OBJECTID;
             feature.symbol = null;
 
             feature.getLayer().applyEdits(null, [feature], null,
@@ -1590,88 +1618,80 @@ define([
         // viewing/editing existing features
         // The logic of adding new feature to local layer is handled
         // in the draw end event of the draw tool
-        //if (!this.selectedTemplate) {
-        if (true) {
-          this.map.infoWindow.hide();
-          // recreate the attr inspector if needed
-          if (!this.attrInspector) {
-            this.attrInspector = this._createAttributeInspector(this.settings.layerInfos);
 
-          } else {
-            // if previously the atts inspector is created for an add activity, recreate it
-            if (this.attrInspector.layerInfos.length === 1 &&
-                this.attrInspector.layerInfos[0].featureLayer.id.lastIndexOf("_lfl") > 0) {
-              this.attrInspector.destroy();
-              this.attrInspector = null;
-              this.attrInspector = this._createAttributeInspector(this.settings.layerInfos);
-            }
+        this.map.infoWindow.hide();
+        // recreate the attr inspector if needed
+        this._createAttributeInspector(this.settings.layerInfos);
+
+        var layers = this.map.getLayersVisibleAtScale().filter(lang.hitch(this, function (lyr) {
+          if (lyr.type && lyr.type === "Feature Layer" && lyr.url) {
+            return this.settings.layerInfos.some(function (lyrinfo) {
+              if (lyrinfo.layerId === lyr.id) {
+                return true;
+              }
+              else {
+                return false;
+              }
+            });
           }
+          else {
+            return false;
+          }
+        }));
 
-          var layers = this.map.getLayersVisibleAtScale().filter(lang.hitch(this, function (lyr) {
-            if (lyr.type && lyr.type === "Feature Layer" && lyr.url) {
-              return this.settings.layerInfos.some(function (lyrinfo) {
-                if (lyrinfo.layerId === lyr.id) {
-                  return true;
-                }
-                else {
-                  return false;
-                }
+        var updateFeatures = [];
+        var deferreds = [];
+        this.currentFeature = null;
+        this.currentLayerInfo = null;
+        array.forEach(layers, lang.hitch(this, function (layer) {
+          // set selection symbol
+          layer.setSelectionSymbol(this._getSelectionSymbol(layer.geometryType, false));
+
+          var selectQuery = new Query();
+          selectQuery.geometry = editUtils.pointToExtent(this.map, evt.mapPoint, 20);
+
+          var deferred = layer.selectFeatures(selectQuery,
+            FeatureLayer.SELECTION_NEW,
+            function (features) {
+              features.forEach(function (q) {
+                q.preEditAttrs = JSON.parse(JSON.stringify(q.attributes));
               });
-            }
-            else {
-              return false;
-            }
-          }));
+              updateFeatures = updateFeatures.concat(features);
+            });
+          deferreds.push(deferred);
+        }));
 
-          var updateFeatures = [];
-          var deferreds = [];
-          this.currentFeature = null;
-          this.currentLayerInfo = null;
-          array.forEach(layers, lang.hitch(this, function (layer) {
-            // set selection symbol
-            layer.setSelectionSymbol(this._getSelectionSymbol(layer.geometryType, false));
-
-            var selectQuery = new Query();
-            selectQuery.geometry = editUtils.pointToExtent(this.map, evt.mapPoint, 20);
-
-            var deferred = layer.selectFeatures(selectQuery,
-              FeatureLayer.SELECTION_NEW,
-              function (features) {
-                features.forEach(function (q) {
-                  q.preEditAttrs = JSON.parse(JSON.stringify(q.attributes));
-                });
-                updateFeatures = updateFeatures.concat(features);
-              });
-            deferreds.push(deferred);
-          }));
-
-          all(deferreds).then(lang.hitch(this, function () {
-            this.updateFeatures = updateFeatures;
-            if (this.updateFeatures.length > 0) {
-              this._showTemplate(false);
-            }
-            else {
-              this._byPass = true;
-              this.map.popupManager._showPopup(evt);
-            }
-          }));
-        }
+        all(deferreds).then(lang.hitch(this, function () {
+          this.updateFeatures = updateFeatures;
+          if (this.updateFeatures.length > 0) {
+            this._showTemplate(false);
+          }
+          else {
+            this._byPass = true;
+            this.map.popupManager._showPopup(evt);
+          }
+        }));
       },
+      _attachLayerHandler: function () {
 
+        if (this.layerHandle) {
+          this.layerHandle.remove();
+        }
+        this.layerHandle = on(this.currentFeature._layer, 'selection-clear',
+          lang.hitch(this, this._layerChangeOutside));
+        this.own(this.layerHandle);
+      },
       _postFeatureSave: function (evt) {
-
         if (this.updateFeatures && this.updateFeatures.length > 1) {
           array.forEach(this.updateFeatures, lang.hitch(this, function (feature) {
             feature.setSymbol(this._getSelectionSymbol(feature.getLayer().geometryType, false));
           }));
         }
-
         if (evt && evt.feature) {
           this.currentFeature = evt.feature;
+          this._attachLayerHandler();
           this.currentLayerInfo = this._getLayerInfoByID(this.currentFeature._layer.id);
-
           this._createSmartAttributes();
-          this._swizzleAttrbuteTable();
           this._validateAttributes();
           this._enableAttrInspectorSaveButton(false);
           this._toggleDeleteButton(this.currentLayerInfo.allowDelete);
@@ -1723,42 +1743,46 @@ define([
           })
         });
       },
-      _promptToResolvePendingEdit: function (switchToTemplate, evt) {
+      _promptToResolvePendingEdit: function (switchToTemplate, evt, showClose) {
         var disable = !this._validateAttributes();
+        var buttons = [{
+          label: this.nls.yes,
+          classNames: ['jimu-btn'],
+          disable: disable,
+          onClick: lang.hitch(this, function () {
+            this._saveEdit(this.currentFeature, switchToTemplate).then(function () {
+            });
+            this._postFeatureSave(evt);
+            dialog.close();
+
+          })
+        }, {
+          label: this.nls.no,
+          classNames: ['jimu-btn'],
+
+          onClick: lang.hitch(this, function () {
+            this._cancelEditingFeature(switchToTemplate);
+            this._postFeatureSave(evt);
+            dialog.close();
+
+          })
+        }];
+        if (showClose && showClose === true) {
+          buttons.push({
+            label: this.nls.back,
+            classNames: ['jimu-btn'],
+            onClick: lang.hitch(this, function () {
+              dialog.close();
+            })
+          });
+        }
         var dialog = new Popup({
           titleLabel: this.nls.savePromptTitle,
           width: 300,
           maxHeight: 200,
           autoHeight: true,
           content: this.nls.savePrompt,
-          buttons: [{
-            label: this.nls.yes,
-            classNames: ['jimu-btn'],
-            disable: disable,
-            onClick: lang.hitch(this, function () {
-              this._saveEdit(this.currentFeature, switchToTemplate).then(function () {
-              });
-              this._postFeatureSave(evt);
-              dialog.close();
-
-            })
-          }, {
-            label: this.nls.no,
-            classNames: ['jimu-btn'],
-
-            onClick: lang.hitch(this, function () {
-              this._cancelEditingFeature(switchToTemplate);
-              this._postFeatureSave(evt);
-              dialog.close();
-
-            })
-          }, {
-            label: this.nls.close,
-            classNames: ['jimu-btn'],
-            onClick: lang.hitch(this, function () {
-              dialog.close();
-            })
-          }],
+          buttons: buttons,
           onClose: lang.hitch(this, function () {
 
           })
@@ -1850,10 +1874,11 @@ define([
               this.map.setInfoWindowOnClick(true);
 
               if (this._configEditor.removeOnSave) {
+                this._turnEditGeometryToggleOff();
                 var layer = feature.getLayer();
                 // perform a new query
                 var query = new Query();
-                query.objectIds = [feature.attributes.OBJECTID];
+                query.objectIds = [feature.attributes[FeatureLayer.objectIdField]];
                 layer.selectFeatures(query, FeatureLayer.SELECTION_SUBTRACT,
                   lang.hitch(this, function () {
                     this.updateFeatures.splice(this.updateFeatures.indexOf(feature), 1);
@@ -1907,11 +1932,8 @@ define([
           query(".jimu-widget-smartEditor .templatePickerMainDiv")[0].style.display = "none";
           query(".jimu-widget-smartEditor .attributeInspectorMainDiv")[0].style.display = "block";
 
-
-          this._mapClickHandler(false);
           if (this.attrInspector) {
             this._createSmartAttributes();
-            this._swizzleAttrbuteTable();
             if (!this.currentFeature) {
               this.attrInspector.first();
             }
@@ -1930,28 +1952,14 @@ define([
               this.editDescription.style.display = "none";
             }
             this._toggleEditGeoSwitch(this.currentLayerInfo.disableGeometryUpdate);
-
+            this._addWarning();
           }
-
+          this._recordLoadeAttInspector();
         }
 
 
       },
-      _swizzleAttrbuteTable: function () {
 
-        //var attTable = query("tr", this.attrInspector.domNode);
-        //if (attTable === undefined || attTable === null) {
-        //  return;
-        //}
-        //if (attTable.length > 0) {
-        //  array.forEach(attTable, function (row) {
-        //    row.innerHTML = row.innerHTML.replace('<td>', '<div>').replace('</td>', '</div>').replace('<td ', '<div ');
-
-        //  }, this);
-        //}
-
-
-      },
       _createSmartAttributes: function () {
         if (this.currentFeature === undefined || this.currentFeature === null) {
           return;

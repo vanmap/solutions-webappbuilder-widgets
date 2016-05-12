@@ -44,7 +44,6 @@ define([
   "esri/tasks/RelationshipQuery",
   "esri/layers/GraphicsLayer",
   "esri/layers/FeatureLayer",
-  "esri/tasks/StatisticDefinition",
   "esri/tasks/QueryTask",
   "esri/tasks/query",
   "esri/tasks/ProjectParameters",
@@ -62,6 +61,7 @@ define([
   "dojo/aspect",
   "dojo/_base/array",
   'jimu/dijit/LoadingIndicator',
+  'jimu/dijit/FieldStatistics',
   'jimu/CSVUtils',
   'jimu/utils',
   './utils',
@@ -97,7 +97,6 @@ define([
   RelationshipQuery,
   GraphicsLayer,
   FeatureLayer,
-  StatisticDefinition,
   QueryTask,
   Query,
   ProjectParameters,
@@ -115,6 +114,7 @@ define([
   aspect,
   array,
   LoadingIndicator,
+  FieldStatistics,
   CSVUtils,
   jimuUtils,
   tableUtils,
@@ -194,6 +194,8 @@ define([
       this.createToolbar();
       this.loading = new LoadingIndicator();
       this.loading.placeAt(this.domNode);
+      this.fieldStatistics = new FieldStatistics();
+      this.fieldStatistics.placeAt(this.domNode);
 
       html.setAttr(this.domNode, 'data-layerinfoid', lang.getObject('layerInfo.id', false, this));
 
@@ -1908,12 +1910,11 @@ define([
           iconClass: "iconTableStatistics",
           baseClass: "menuItem",
           onClick: lang.hitch(this, function() {
-            this._getColumnStats(column.field)
-              .then(lang.hitch(this, function(attributes) {
-                this._showStatisticsPopup(column.field, attributes);
-              }), lang.hitch(this, function(err) {
-                console.error(err);
-              }));
+            this.fieldStatistics.statistics(this.layer, column.field,
+              this._getLayerFilterExpression());
+            on.once(this.FieldStatistics, 'statistics', lang.hitch(this, function(evt) {
+              this.emit('show-statistics', evt);
+            }));
           })
         });
         cm.addChild(menuItem);
@@ -1943,225 +1944,6 @@ define([
       }
     },
 
-    _getColumnStats: function(fieldName) {
-      var ids = [],
-        definitions = ["count", "sum", "min", "max", "avg", "stddev"],
-        definitionNames = ["countField", "sumField", "minField",
-          "maxField", "avgField", "stddevField"
-        ],
-        query,
-        queryTask;
-
-      query = new Query();
-      query.outFields = [fieldName];
-      query.outStatistics = [];
-      query.where = "1=1";
-
-      array.forEach(definitions, function(d, idx) {
-        var def = new StatisticDefinition();
-        def.statisticType = d;
-        def.displayFeildName = fieldName;
-        def.onStatisticField = fieldName;
-        def.outStatisticFieldName = definitionNames[idx];
-        query.outStatistics.push(def);
-      });
-
-      ids = null;
-      var expr = this._getLayerFilterExpression();
-      query.where = expr; // + ids ?
-
-      queryTask = new QueryTask(this.layerInfo.getUrl());
-
-      return queryTask.execute(query).then(lang.hitch(this, function(result) {
-        if (!this.domNode) {
-          return;
-        }
-        if (result && result.features && result.features.length > 0) {
-          return result.features[0] && result.features[0].attributes;
-        } else {
-          return null;
-        }
-      }));
-    },
-
-    _showStatisticsPopup: function(fieldName, attributes) {
-      if (!fieldName || !esriLang.isDefined(attributes)) {
-        return;
-      }
-      var lowerCase = {},
-        definitionTitles = [
-          "Number of Values",
-          "Sum of Values",
-          "Minimum",
-          "Maximum",
-          "Average",
-          "Standard Deviation"
-        ],
-        wrapper, table, tbody, tr,
-        avg, count, max, min, stddev, sum,
-        key;
-
-      if (this._statisticsPopup && this._statisticsPopup.domNode) {
-        this._statisticsPopup.close();
-      }
-      this._statisticsPopup = null;
-
-      // Content Container for Dialog
-      wrapper = html.create("div", {
-        className: "esriAGOTableStatistics",
-        innerHTML: ""
-      });
-
-      // Set Dialog Title
-      html.create("div", {
-        className: "header",
-        innerHTML: "Field: " + fieldName
-      }, wrapper);
-
-      // Create a Horizontal break line
-      html.create("div", {
-        className: "hzLine",
-        innerHTML: ""
-      }, wrapper);
-
-      // Create the Table Node
-      table = html.create("table", {
-        className: "attrTable",
-        innerHTML: "",
-        style: {
-          cellpadding: 0,
-          cellspacing: 0
-        }
-      }, wrapper);
-
-      for (key in attributes) {
-        if (attributes.hasOwnProperty(key)) {
-          lowerCase[key.toLowerCase()] = attributes[key];
-        }
-      }
-
-      count = esriLang.isDefined(lowerCase.countfield) ?
-        jimuUtils.localizeNumber(lowerCase.countfield, {
-          places: 2
-        }) : "";
-      sum = esriLang.isDefined(lowerCase.sumfield) ?
-        jimuUtils.localizeNumber(lowerCase.sumfield, {
-          places: 2
-        }) : "";
-      min = esriLang.isDefined(lowerCase.minfield) ?
-        jimuUtils.localizeNumber(lowerCase.minfield, {
-          places: 2
-        }) : "";
-      max = esriLang.isDefined(lowerCase.maxfield) ?
-        jimuUtils.localizeNumber(lowerCase.maxfield, {
-          places: 2
-        }) : "";
-      avg = esriLang.isDefined(lowerCase.avgfield) ?
-        jimuUtils.localizeNumber(lowerCase.avgfield, {
-          places: 2
-        }) : "";
-      stddev = esriLang.isDefined(lowerCase.stddevfield) ?
-        jimuUtils.localizeNumber(lowerCase.stddevfield, {
-          places: 2
-        }) : "";
-
-      tbody = html.create("tbody", {}, table);
-
-      // This should really be done in a loop...
-      // ... likely refactor when implementing Calculate and Filter dialogs from AGOL
-      tr = html.create("tr", {
-        valign: "top"
-      }, tbody);
-      html.create("td", {
-        "class": "attrName",
-        innerHTML: definitionTitles[0]
-      }, tr);
-      html.create("td", {
-        "class": "attrValue",
-        innerHTML: count
-      }, tr);
-
-      tr = html.create("tr", {
-        valign: "top"
-      }, tbody);
-      html.create("td", {
-        "class": "attrName",
-        innerHTML: definitionTitles[1]
-      }, tr);
-      html.create("td", {
-        "class": "attrValue",
-        innerHTML: sum
-      }, tr);
-
-      tr = html.create("tr", {
-        valign: "top"
-      }, tbody);
-      html.create("td", {
-        "class": "attrName",
-        innerHTML: definitionTitles[2]
-      }, tr);
-      html.create("td", {
-        "class": "attrValue",
-        innerHTML: min
-      }, tr);
-
-      tr = html.create("tr", {
-        valign: "top"
-      }, tbody);
-      html.create("td", {
-        "class": "attrName",
-        innerHTML: definitionTitles[3]
-      }, tr);
-      html.create("td", {
-        "class": "attrValue",
-        innerHTML: max
-      }, tr);
-
-      tr = html.create("tr", {
-        valign: "top"
-      }, tbody);
-      html.create("td", {
-        "class": "attrName",
-        innerHTML: definitionTitles[4]
-      }, tr);
-      html.create("td", {
-        "class": "attrValue",
-        innerHTML: avg
-      }, tr);
-
-      tr = html.create("tr", {
-        valign: "top"
-      }, tbody);
-      html.create("td", {
-        "class": "attrName",
-        innerHTML: definitionTitles[5]
-      }, tr);
-      html.create("td", {
-        "class": "attrValue",
-        innerHTML: stddev
-      }, tr);
-
-      // Padding for Close Button
-      html.create("div", {
-        className: "break",
-        innerHTML: ""
-      }, wrapper);
-
-      this._statisticsPopup = new Popup({
-        titleLabel: this.nls.statistics,
-        content: wrapper,
-        width: 330,
-        height: 300,
-        buttons: [{
-          label: this.nls.ok
-        }]
-      });
-      html.addClass(this._statisticsPopup.domNode, "esri-feature-table-dialog");
-
-      this.emit('show-statistics', {
-        statistics: attributes
-      });
-    },
 
     _onRowClick: function() {
       var ids = this._getSelectedIds();

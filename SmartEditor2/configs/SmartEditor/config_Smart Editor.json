@@ -4,6 +4,7 @@
     "prompOnSave": false,
     "promptOnDelete": true,
     "removeOnSave": true,
+    "useFilterEditor": true,
     "layerInfos": [
       {
         "featureLayer": {
@@ -922,7 +923,7 @@
             }
           ]
         },
-        "editDescription": "<div><b><font color=\"#4169e1\">Overview</font></b></div><div>The intent of this assessment is to quickly identify in the field any illicit discharges into or around the hydraulic facilities.</div><div><br></div><div><b><font color=\"#4169e1\">Checklist</font></b></div><div>Please do a quick analysis and complete the following checklist. If anything is a ï¿½Yesï¿½, then describe briefly in the note section and take many photos from multiple angles to allow for further review in the office.</div>"
+        "editDescription": "<div><b><font color=\"#4169e1\">Overview</font></b></div><div>The intent of this assessment is to quickly identify in the field any illicit discharges into or around the hydraulic facilities.</div><div><br></div><div><b><font color=\"#4169e1\">Checklist</font></b></div><div>Please do a quick analysis and complete the following checklist. If anything is a �Yes�, then describe briefly in the note section and take many photos from multiple angles to allow for further review in the office.</div>"
       },
       {
         "featureLayer": {
@@ -1434,6 +1435,6 @@
     ],
     "displayPromptOnSave": false,
     "displayPromptOnDelete": false,
-    "editDescription": "Select a form template below and place the location of the inspection on the map. You may be required to place more than one form on the map to capture the full details of a site inspection.<div>&nbsp;&nbsp;<div>Additional Details on &lt;a href=\"http://esri.github.io/solutions-webappbuilder-widgets/SmartEditor/formImage1.png\" target=\"_blank\"&gt;BMP and Scour Assessment&lt;/a&gt;.</div></div>"
+    "editDescription": "Select a form template below and place the location of the inspection on the map. You may be required to place more than one form on the map to capture the full details of a site inspection.<div>&nbsp;&nbsp;<div>Additional Details on <a href=\"http://esri.github.io/solutions-webappbuilder-widgets/SmartEditor/formImage1.png\" _djrealurl=\"http://esri.github.io/solutions-webappbuilder-widgets/SmartEditor/formImage1.png\" target=\"_blank\">BMP and Scour Assessment</a>.</div></div>"
   }
 }

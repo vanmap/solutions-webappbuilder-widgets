@@ -23,9 +23,9 @@ define([
 
   var mo = {};
 
-  mo.checkIfFieldAliasAlreadyExists = function(origText, alias){
+  mo.checkIfFieldAliasAlreadyExists = function (origText, alias) {
     var strArray = origText.split(",");
-    return strArray.indexOf(alias) >= 0 ;
+    return strArray.indexOf(alias) >= 0;
   };
 
   mo.pointToExtent = function (map, point, toleranceInPixel) {
@@ -38,33 +38,30 @@ define([
                       map.spatialReference);
   };
 
-  mo.filterOnlyUpdatedAttributes = function (attributes, origAttributes) {
-    if (!attributes || Object.keys(attributes).length < 1 ||
-        !origAttributes || Object.keys(origAttributes).length < 1) {
-      return null;
-    }
+  mo.filterOnlyUpdatedAttributes = function (attributes, origAttributes, featureLayer) {
 
     var updatedAttrs = {};
     for (var prop in attributes) {
       if (attributes.hasOwnProperty(prop) &&
-        attributes[prop] !== origAttributes[prop]) {
+        (attributes[prop] !== origAttributes[prop] ||
+        (prop === featureLayer.objectIdField ||
+        prop === featureLayer.globalIdField))) {
         updatedAttrs[prop] = attributes[prop];
       }
     }
-
     return updatedAttrs;
   };
 
-  mo.getFieldInfosFromWebmap  = function(layerId, jimuLayerInfos) {
+  mo.getFieldInfosFromWebmap = function (layerId, jimuLayerInfos) {
     // summary:
     //   get fieldInfos from web map.
     // description:
     //   return null if fieldInfos has not been configured.
     var fieldInfos = null;
     var jimuLayerInfo = jimuLayerInfos.getLayerInfoByTopLayerId(layerId);
-    if(jimuLayerInfo) {
+    if (jimuLayerInfo) {
       var popupInfo = jimuLayerInfo.getPopupInfo();
-      if(popupInfo && popupInfo.fieldInfos) {
+      if (popupInfo && popupInfo.fieldInfos) {
         fieldInfos = lang.clone(popupInfo.fieldInfos);
       }
     }

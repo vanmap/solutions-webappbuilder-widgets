@@ -1,0 +1,350 @@
+{
+  "editor": {
+    "enableUndoRedo": true,
+    "toolbarVisible": true,
+    "toolbarOptions": {
+      "mergeVisible": false,
+      "cutVisible": false,
+      "reshapeVisible": false
+    },
+    "layerInfos": [
+      {
+        "featureLayer": {
+          "id": "WaterMapNotes_6779"
+        },
+        "disableGeometryUpdate": false,
+        "fieldInfos": [
+          {
+            "fieldName": "OBJECTID",
+            "label": "OBJECTID",
+            "isEditable": null,
+            "visible": true
+          },
+          {
+            "fieldName": "NOTETYPE",
+            "label": "Type of note:",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "SEVERITY",
+            "label": "Note severity:",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "NOTES",
+            "label": "Notes:",
+            "isEditable": true,
+            "visible": true
+          }
+        ]
+      },
+      {
+        "featureLayer": {
+          "id": "StormwaterInspection_6752"
+        },
+        "disableGeometryUpdate": false,
+        "fieldInfos": [
+          {
+            "fieldName": "OBJECTID",
+            "label": "OBJECTID",
+            "isEditable": null,
+            "visible": false
+          },
+          {
+            "fieldName": "INSPECTOR",
+            "label": "Inspector",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "INSPECTDATE",
+            "label": "Inspection Date",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "FACILITYID",
+            "label": "Facility ID",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "EVISHEDFLOW",
+            "label": "A: When in the field, does the channel have apparent evidence of watershed flow? This would indicate a more significant flow, more erodible soil, and higher chance of impacting the impaired water.",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "SEDERR",
+            "label": "B: Is there sediment embedded within the facility from upstream sources (filling 1/3 or more of the facility)? Large amounts means there is a higher risk of transport to the impaired water.",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "SOURCEERR",
+            "label": "C. Look at the surrounding fill and cut slopes (roadway related only), does there appear to be a significant contributing source of erosion to the facility or the channel?",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "FLOWROAD",
+            "label": "D. Is flow from the roadway able to get to the facility or channel at all?",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "NOTES",
+            "label": "Notes and Visual Observations",
+            "isEditable": true,
+            "visible": true
+          }
+        ]
+      },
+      {
+        "featureLayer": {
+          "id": "StormwaterInspection_2188"
+        },
+        "disableGeometryUpdate": false,
+        "fieldInfos": [
+          {
+            "fieldName": "OBJECTID",
+            "label": "OBJECTID",
+            "isEditable": null,
+            "visible": false
+          },
+          {
+            "fieldName": "INSPECTOR",
+            "label": "Inspector",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "INSPECTDATE",
+            "label": "Inspection Date",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "FACILITYID",
+            "label": "Facility ID",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "WEATHER",
+            "label": "Weather Conditions:",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "WATERWAY",
+            "label": "Waterway Name (if known):",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "LOCATION",
+            "label": "Location (District, route, county, milepost, city/town)",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "DUMPCONT",
+            "label": "1: Is there evidence of dumped containers that have the ability to hold liquid?",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "DUMPCONTLQ",
+            "label": "1a: Do they appear to have liquid in them or is liquid coming out of them?",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "PIPES",
+            "label": "2: Are there any pipes running through the facility or discharging into or around the facility that do not appear to be part of the storm water network? (e.g. utilities, farmer irrigation, etc.)",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "HYDRAULIC",
+            "label": "3: Are any of the hydraulic facilities meant for storm water running water when they should not be? (e.g. no storm events, known groundwater, etc.)",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "WATERRUNNING",
+            "label": "4: If there is water running out from the facility?",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "FOAMING",
+            "label": "4a: Is it foaming?",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "DISCOLOR",
+            "label": "4b: Is there significant water discoloration?",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "SMELL",
+            "label": "4c: Is there a horrible smell?",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "GARBAGE",
+            "label": "4d: Does there appear to be a lot of garbage?",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "OIL",
+            "label": "4e: Does there appear to be a lot of oil?",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "OTHER",
+            "label": "4f: Does there appear to be a lot of other chemicals?",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "CAUSEEVENT",
+            "label": "5: If there is water running out from the facility, is there any possibility that current weather events could be contributing rain or snow water to it?",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "CAUSEEVENTSRC",
+            "label": "5a: Possible source",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "REDFLAGS",
+            "label": "6: Overall, does there appear to be any environmental red flags that impact to or around this facility?",
+            "isEditable": true,
+            "visible": true
+          }
+        ]
+      },
+      {
+        "featureLayer": {
+          "id": "StormwaterInspection_4139"
+        },
+        "disableGeometryUpdate": false,
+        "fieldInfos": [
+          {
+            "fieldName": "OBJECTID",
+            "label": "OBJECTID",
+            "isEditable": null,
+            "visible": false
+          },
+          {
+            "fieldName": "INSPECTOR",
+            "label": "Inspector",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "INSPECTDATE",
+            "label": "Inspection Date",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "FACILITYID",
+            "label": "Facility ID",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "CUTFAIL",
+            "label": "1: Is there bank cut or failure of the channel around the inlet of the facility?",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "SCOURHOLE",
+            "label": "2: Is there a scour hole at the outlet? Is there bank cut or failure of the channel around the outlet of the facility?",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "SCOURHOLEDIMW",
+            "label": "2a: What are its width?",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "SCOURHOLEDIML",
+            "label": "2b: What are its length?",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "SCOURHOLEDIMD",
+            "label": "2c: What are its depth?",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "COMPENT",
+            "label": "3: Look inside the pipe, does it look competent? (not rusted through, joints separated, pipe broke, etc.)",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "PERBMPIN",
+            "label": "4: Are there current engineered permanent BMPs in place at the facility inlet? (riprap, energy dissipater, etc)?",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "PERBMPINSC",
+            "label": "4a: How well does it appear to be holding together? (scale of 1 to 5, 5 holds together real well)",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "PERBMPOUT",
+            "label": "5: Are there current engineered permanent BMPs in place at the facility outlet? (riprap, energy dissipater, etc)?",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "PERBMPOUTSC",
+            "label": "5a: How well does it appear to be holding together? (scale of 1 to 5, 5 holds together real well)",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "ROADSOURCE",
+            "label": "6: Overall, does it appear that the roadway is a source for sediment in the storm water runoff?",
+            "isEditable": true,
+            "visible": true
+          },
+          {
+            "fieldName": "NOTES",
+            "label": "Notes and Visual Observations",
+            "isEditable": true,
+            "visible": true
+          }
+        ]
+      }
+    ],
+    "useFilterEdit": false,
+    "autoApplyEditWhenGeometryIsMoved": false,
+    "snappingTolerance": 15,
+    "popupTolerance": 5,
+    "stickyMoveTolerance": 0
+  }
+}

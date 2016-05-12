@@ -18,12 +18,12 @@ define({
     editpageEditable: "Editable",
     noLayers: "No editable feature layers are available",
     configureFields: "Configure Layer Fields",
-    useFilterEdit: "Use Filter Edit",
+    useFilterEdit: "Use feature template filter",
     display: "Display",
     autoApplyEditWhenGeometryIsMoved: "Apply the edit automatically when the geometry is moved",
     snappingTolerance: "Set the snapping tolerance in pixels",
-    popupTolerance: "Set the popup tolerance in pixels",
-    stickyMoveTolerance: "Set the sticky move tolerance in piexels"
+    popupTolerance: "Set the tolerance of attribute editing popup in pixels",
+    stickyMoveTolerance: "Set the sticky move tolerance in pixels"
   }),
   "ar": 1,
   "cs": 1,

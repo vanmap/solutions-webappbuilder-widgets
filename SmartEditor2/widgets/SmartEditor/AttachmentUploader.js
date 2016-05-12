@@ -41,6 +41,12 @@
       }
 
     },
+    clear: function () {
+      while (this._attachmentList.firstChild) {
+        this._attachmentList.removeChild(this._attachmentList.firstChild);
+      }
+      this._addInput();
+    },
     _deleteAttachment: function (source) {
       source.srcElement.parentNode.parentNode.removeChild(source.srcElement.parentNode);
 
@@ -51,10 +57,12 @@
     },
     _addInput: function () {
       for (var i = 0; i < this._attachmentList.childNodes.length; i++) {
-        if (this._attachmentList.childNodes[i].childNodes[this._inputIndex].hasOwnProperty('value')) {
+        if (this._attachmentList.childNodes[i].childNodes[this._inputIndex].value) {
           if (this._attachmentList.childNodes[i].childNodes[this._inputIndex].value.length === 0) {
             return;
           }
+        } else {
+          return;
         }
       }
       var newDelete = domConstruct.create("div", {

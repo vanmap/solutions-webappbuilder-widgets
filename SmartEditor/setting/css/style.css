@@ -8,7 +8,7 @@
     .jimu-widget-smartEditor-setting .edit-description-box {
         width: 100%;
         position: relative;
-        height: 200px;
+       
         padding-top: 5px;
     }
 
@@ -196,18 +196,21 @@ jimu-widget-smartEditor-edit-description .editor-container .uploaderInsideNode e
     display: none;
 }
 
-.jimu-widget-smartEditor-setting .attDescrip {
+.jimu-widget-smartEditor-setting a.attDescrip {
     width: 20px;
-    height: 20px;
+    height: 20px    ;
+    display: block;
+    background: transparent url(../images/desc.png) center center no-repeat;
     text-align: center;
     vertical-align: middle;
     z-index: 9999;
-    background-size: contain;
-    background-position: center center;
-    background-image: url(../images/desc.png);
-    background-repeat: no-repeat;
+    
 }
+jimu-widget-smartEditor-setting a.attDescrip:hover {
 
+    background-image: url(../images/descHover.png);
+
+}
 
 .jimu-widget-smartEditor-filter-page .submithide {
     padding-left:4px;

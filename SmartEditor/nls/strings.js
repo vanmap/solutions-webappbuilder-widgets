@@ -1,7 +1,7 @@
 define({
   root: ({
     _widgetLabel: "Smart Editor",
-    ok: "OK",
+ ok: "OK",
     cancel: "Cancel",
     yes: "Yes",
     no: "No",
@@ -11,8 +11,7 @@ define({
     close: "Close",
     deleteText: "Delete",
     map: "Map",
-    scene: "Scene",
-    pressStr: "Press ",
+    scene: "Scene",    pressStr: "Press ",
     ctrlStr: " CTRL ",
     snapStr: " to enable snapping",
     noAvailableTempaltes: "No available templates",
@@ -26,6 +25,11 @@ define({
     deletePromptTitle: "Delete feature",
     deletePrompt: "Are you sure you want to delete the selected feature?",
     attachmentLoadingError: "Error uploading attachments",
-    attachmentSaveDeleteWarning: "Warning, adding or deleting an attachment is saved immediately"
+    attachmentSaveDeleteWarning: "Warning: Changes to attachments are saved automatically",
+    filterEditor:{
+      all: "All",
+      noAvailableTempaltes: "No available templates",
+      searchTemplates: "Search Templates"
+    }
   })
 });

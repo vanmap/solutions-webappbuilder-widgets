@@ -219,19 +219,18 @@ define([
         }
       },
       _mapClickHandler: function (create) {
-
         if (create === true && this._attrInspIsCurrentlyDisplayed === false) {
           this.map.setInfoWindowOnClick(false);
-          this._mapClick = on(this.map, "click", lang.hitch(this, this._onMapClick));
-
+          if (this._mapClick === undefined || this._mapClick === null) {
+            this._mapClick = on(this.map, "click", lang.hitch(this, this._onMapClick));
+          }
         }
         else if (create === true && this._attrInspIsCurrentlyDisplayed === true) {
-          this.map.setInfoWindowOnClick(true);
           if (this._mapClick) {
-
             this._mapClick.remove();
             this._mapClick = null;
           }
+          this.map.setInfoWindowOnClick(true);
         }
         else {
           if (this._mapClick) {
@@ -547,7 +546,7 @@ define([
       _attributeInspectorChangeRecord: function (evt) {
         if (this._isDirty && this.currentFeature) {
           // do not show templatePicker after saving
-          this._promptToResolvePendingEdit(false, evt);
+          this._promptToResolvePendingEdit(false, evt, false);
 
         } else {
 
@@ -668,7 +667,7 @@ define([
           }
 
           if (this._configEditor.displayPromptOnSave && this._isDirty) {
-            this._promptToResolvePendingEdit(true, null);
+            this._promptToResolvePendingEdit(true, null, true);
           } else {
             this._cancelEditingFeature(true);
           }
@@ -1724,42 +1723,46 @@ define([
           })
         });
       },
-      _promptToResolvePendingEdit: function (switchToTemplate, evt) {
+      _promptToResolvePendingEdit: function (switchToTemplate, evt, showClose) {
         var disable = !this._validateAttributes();
+        var buttons = [{
+          label: this.nls.yes,
+          classNames: ['jimu-btn'],
+          disable: disable,
+          onClick: lang.hitch(this, function () {
+            this._saveEdit(this.currentFeature, switchToTemplate).then(function () {
+            });
+            this._postFeatureSave(evt);
+            dialog.close();
+
+          })
+        }, {
+          label: this.nls.no,
+          classNames: ['jimu-btn'],
+
+          onClick: lang.hitch(this, function () {
+            this._cancelEditingFeature(switchToTemplate);
+            this._postFeatureSave(evt);
+            dialog.close();
+
+          })
+        }];
+        if (showClose && showClose === true) {
+          buttons.push({
+            label: this.nls.close,
+            classNames: ['jimu-btn'],
+            onClick: lang.hitch(this, function () {
+              dialog.close();
+            })
+          });
+        }
         var dialog = new Popup({
           titleLabel: this.nls.savePromptTitle,
           width: 300,
           maxHeight: 200,
           autoHeight: true,
           content: this.nls.savePrompt,
-          buttons: [{
-            label: this.nls.yes,
-            classNames: ['jimu-btn'],
-            disable: disable,
-            onClick: lang.hitch(this, function () {
-              this._saveEdit(this.currentFeature, switchToTemplate).then(function () {
-              });
-              this._postFeatureSave(evt);
-              dialog.close();
-
-            })
-          }, {
-            label: this.nls.no,
-            classNames: ['jimu-btn'],
-
-            onClick: lang.hitch(this, function () {
-              this._cancelEditingFeature(switchToTemplate);
-              this._postFeatureSave(evt);
-              dialog.close();
-
-            })
-          }, {
-            label: this.nls.close,
-            classNames: ['jimu-btn'],
-            onClick: lang.hitch(this, function () {
-              dialog.close();
-            })
-          }],
+          buttons: buttons,
           onClose: lang.hitch(this, function () {
 
           })

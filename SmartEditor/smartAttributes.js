@@ -739,7 +739,14 @@ define([
 
       if (this._attTable.length > 0) {
         var row = this._attTable.filter(lang.hitch(this, function (row) {
-          return row.childNodes[0].data === fieldName;
+          if (row.childNodes) {
+            if (row.childNodes.length > 0) {
+              if (row.childNodes[0].data > 0) {
+                return row.childNodes[0].data === fieldName;
+              }
+            }
+          }
+          return false;
         }));
         var nl = null;
         if (row !== null) {

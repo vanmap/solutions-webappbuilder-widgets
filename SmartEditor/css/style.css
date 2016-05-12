@@ -235,6 +235,7 @@
         border: none !important;
         -webkit-box-shadow: none !important;
         -moz-box-shadow: none !important;
+        box-shadow: none !important;
     }
 
     .jimu-widget-smartEditor .dijitButton .dijitButtonNode {
@@ -243,6 +244,7 @@
         border: none !important;
         -webkit-box-shadow: none !important;
         -moz-box-shadow: none !important;
+        box-shadow: none !important;
     }
 
     .jimu-widget-smartEditor .dijitButton {
@@ -251,6 +253,7 @@
         border: none !important;
         -webkit-box-shadow: none !important;
         -moz-box-shadow: none !important;
+        box-shadow: none !important;
     }
 
 

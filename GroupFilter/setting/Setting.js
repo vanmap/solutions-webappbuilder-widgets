@@ -244,10 +244,10 @@ define([
           id: 'addGroupDelete_' + this.groupCounter,
           'class': 'group-block-delete'
         });
-        var deleteAction = this.own(on(deleteNameNode, "click", lang.hitch(this, function() {
+        var deleteAction = on(deleteNameNode, "click", lang.hitch(this, function() {
           deleteAction.remove();
           this.removeGroup(deleteNameNode.id);
-        })));
+        }));
         domConstruct.place(deleteNameNode, cellDelete);
 
         this.createOperatorSelection({cell:cellOperatorInput, value:groupOper});

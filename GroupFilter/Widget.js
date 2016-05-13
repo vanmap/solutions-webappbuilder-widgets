@@ -372,8 +372,11 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
                   partsObj.fieldObj.name = grpLayer.field;
                   partsObj.fieldObj.label = grpLayer.field;
                   partsObj.fieldObj.shortType = ((grpLayer.dataType).replace("esriFieldType", "")).toLowerCase();
+                  if(partsObj.fieldObj.shortType !== "date" && partsObj.fieldObj.shortType !== "string") {
+                    partsObj.fieldObj.shortType = "number";
+                  }
                   partsObj.fieldObj.type = grpLayer.dataType;
-                  partsObj.operator = "stringOperatorIs";
+                  partsObj.operator = partsObj.fieldObj.shortType + "OperatorIs";
                   partsObj.valueObj = {};
                   partsObj.valueObj.isValid = true;
                   partsObj.valueObj.type = "unique";

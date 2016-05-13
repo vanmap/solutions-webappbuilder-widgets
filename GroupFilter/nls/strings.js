@@ -3,7 +3,7 @@ define({
     _widgetLabel: "Group Filter",
     label1: "Group filtering widget",
     labels: {
-      selectGroup: "Select a group to filter",
+      selectGroup: "Select a Group to Filter",
       criteriaHeading: "Filter Criteria",
       uploadHeading: "Upload a Saved File",
       saveHeading: "Save Current Settings",
@@ -31,7 +31,7 @@ define({
       optionLIKE: "CONTAINS",
       optionNOTLIKE: "DOES NOT CONTAIN",
       textboxNumber: "Between ${0} and ${1}",
-      textboxText: "Type in a value"
+      textboxText: "Type in a Value"
     },
     files: {
       jsonFile: "MapFilterSettings"

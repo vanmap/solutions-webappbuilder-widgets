@@ -159,7 +159,7 @@
       },
       {
         "uri": "widgets/Splash/Widget",
-        "visible": false,
+        "visible": true,
         "position": {
           "relativeTo": "browser"
         },

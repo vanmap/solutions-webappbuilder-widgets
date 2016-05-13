@@ -36,7 +36,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
     layerList: null,
     grpSelect: null,
     groupCounter: 0,
-    defaultDef: [],
+    defaultDef: null,
     runTimeConfig: null,
     useDomain: null,
     useDate: null,
@@ -45,6 +45,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
 
     postCreate: function() {
       this.inherited(arguments);
+      this.defaultDef = [];
     },
 
     startup: function() {
@@ -418,7 +419,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
           'class': 'deleteCell',
           innerHTML: ''
         });
-        on(dsNode, 'click', lang.hitch(this, function() {
+        this.own(on(dsNode, 'click', lang.hitch(this, function() {
           domConstruct.destroy(pRow);
           var table = dom.byId("tblPredicates");
           if(table.rows.length >= 1) {
@@ -427,7 +428,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
             domConstruct.empty(prevRowConjunCell);
           }
           this.colorRows();
-        }));
+        })));
         domConstruct.place(dsNode, pCell);
       }
     },
@@ -705,8 +706,8 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
                         array.forEach(msExpr, lang.hitch(this, function(expr, i) {
                           for(var key in def.definition) {
                             if(def.definition[key] !== 'undefined') {
-                              if(msExpr[eval('"' + i + '"')]) {
-                                msExpr[eval('"' + i + '"')] = def.definition[key] + " "  +
+                              if(msExpr[i.toString()]) {
+                                msExpr[i.toString()] = def.definition[key] + " "  +
                                 this.slAppendChoice.value +  " " + expr;
                                 console.log(expr);
                               }
@@ -792,9 +793,9 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
       var saveDef = new saveJson({
         "config" : this.config
       });
-      on(saveDef, "complete", lang.hitch(this, function() {
+      this.own(on(saveDef, "complete", lang.hitch(this, function() {
         console.log("save done");
-      }));
+      })));
       saveDef.exportsJson(this.nls.files.jsonFile + ".json", this.config);
     },
 
@@ -806,7 +807,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
         "config": this.config,
         "jsonFile": this.jsonFileInput.files
       });
-      on(readDef, "complete", lang.hitch(this, function(results) {
+      this.own(on(readDef, "complete", lang.hitch(this, function(results) {
         this.config = JSON.parse(results.UserSettings);
         this.resetLayerDef();
         this.removeAllRows();
@@ -817,12 +818,12 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
         setTimeout(lang.hitch(this, this.setFilterLayerDef), 500);
         query(".loadProgressHeader").style("display", "none");
         query(".loadProgressShow").style("display", "none");
-      }));
-      on(readDef, "error", lang.hitch(this, function() {
+      })));
+      this.own(on(readDef, "error", lang.hitch(this, function() {
         this.jsonFileInput.value = null;
         query(".loadProgressHeader").style("display", "none");
         query(".loadProgressShow").style("display", "none");
-      }));
+      })));
       readDef.checkFileReader();
     },
     //END: saving/reading functions

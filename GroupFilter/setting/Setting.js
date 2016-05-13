@@ -76,8 +76,10 @@ define([
 
       getConfig: function() {
         if(this.layerList === null) {
-            new Message({message : this.nls.errors.noLayers});
-            return false;
+          new Message({
+            message : this.nls.errors.noLayers
+          });
+          return false;
         }
         else if(this.layerList.length > 0) {
           var validGroups = this.validateNoGroups();
@@ -458,9 +460,11 @@ define([
           })));
 
           if(typeof(pParam) !== 'undefined') {
+            this.resetRadio({layer: pLayer, row: pTR, param: pParam, counter: pCounter});
             fieldSelect.set('value', pParam.field);
             dataTypeSelect.set('value', pParam.field);
           }
+
         }
       },
 
@@ -472,7 +476,13 @@ define([
       resetRadio: function(pParam) {
         var row = pParam.row;
         var valueRadio = row.cells[2].childNodes[0];
-        valueRadio.checked = false;
+        if(typeof(pParam) !== 'undefined') {
+          if(pParam.param.useDomain !== "") {
+            valueRadio.checked = true;
+          } else {
+            valueRadio.checked = false;
+          }
+        }
       },
 
 

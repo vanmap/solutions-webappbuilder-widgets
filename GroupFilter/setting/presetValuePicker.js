@@ -19,13 +19,14 @@ define([
   'jimu/BaseWidgetSetting',
   'dijit/_WidgetsInTemplateMixin',
   'dojo/on',
+  'dojo/dom-construct',
   'dojo/_base/lang',
   'dojo/_base/array',
   'dijit/form/Select',
   'dojo/text!./presetValuePicker.html'
 ],
   function(declare, BaseWidgetSetting, _WidgetsInTemplateMixin,
-    on, lang, array, Select, template) {
+    on, domConstruct, lang, array, Select, template) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
 
       //these two properties is defined in the BaseWidget
@@ -108,12 +109,13 @@ define([
 
         }));
 
+        domConstruct.empty(this.fieldLevel);
         var fieldSelect = new Select({
           options: ctlfieldList
         }).placeAt(this.fieldLevel);
         fieldSelect.startup();
 
-        this.own(on(fieldSelect, "change", lang.hitch(this, function(val) {
+        this.own(on(fieldSelect, "change", lang.hitch(this, function() {
 
         })));
       }

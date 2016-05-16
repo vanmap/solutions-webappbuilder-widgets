@@ -538,16 +538,27 @@ define([
               // Pushing object in an array to access it outside
               arraynumberTextboxValue.push(featureLengthAttr);
             }));
+
           // Looping for fieldmap to get number of feature length
           for (j = 0; j < this.config.overview.fieldMap.length; j++) {
             value = 0;
-            // Looping for array number text box to get matched value from the layer.
-            for (k = 0; k < arraynumberTextboxValue.length; k++) {
-              // Checking if param name is equal to the layers id
-              if (this.config.overview.fieldMap[j].paramName ===
-                arraynumberTextboxValue[k].id) {
-                value = arraynumberTextboxValue[k].value;
-                break;
+            if (this.config.overview.fieldMap[j].type === "count") {
+              // Looping for array number text box to get matched value from the layer.
+              for (k = 0; k < arraynumberTextboxValue.length; k++) {
+                // Checking if param name is equal to the layers id
+                if (this.config.overview.fieldMap[j].paramName ===
+                  arraynumberTextboxValue[k].id) {
+                  value = arraynumberTextboxValue[k].value;
+                  break;
+                }
+              }
+            }
+            else if (this.config.overview.fieldMap[j].type === "value") {
+              for (key in this.outputStrings) {
+                if (key === this.config.overview.fieldMap[j].paramName) {
+                  value = this.outputStrings[key];
+                  break;
+                }
               }
             }
             // Setting the attribute value
@@ -1611,6 +1622,7 @@ define([
     *@param{object} message: This is a object parameter which is coming from GP execution.
     **/
     _onSubmitJobComplete: function (message) {
+      this._jobID = message.jobInfo.jobId;
       if (message.jobInfo.jobStatus === "esriJobFailed") {
         this._showLoadingIcon(false);
         this._errorMessage(this.nls.GPExecutionFailed);
@@ -1622,12 +1634,26 @@ define([
         this.overExtent = null;
         this.resultsCnt = 0;
         this._inputGeomConvexHull = [];
+        this.outputStrings = {};
+        if (this.config.overview) {
+          if (this.config.overview.fieldMap) {
+            array.forEach(this.config.overview.fieldMap, function (
+              fieldMap) {
+              if (fieldMap.type === "value") {
+                if (this._verifyParams(message, fieldMap.paramName)) {
+                  this._processGPStringResults(message, fieldMap.paramName);
+                }
+              }
+            }, this);
+          }
+        }
         array.forEach(this.config.geoprocessing.outputs, function (
           output) {
           if (this._verifyParams(message, output.paramName)) {
             this._processGPResults(message, output.paramName);
           }
         }, this);
+
       } catch (ex) {
         this._showLoadingIcon(false);
         this._errorMessage(ex.message);
@@ -1688,10 +1714,11 @@ define([
     */
     _processGPResults: function (message, paramName) {
       var i, bufferGeometry, convexHullGeometry,
-        bufferGeometryGraphic;
+        bufferGeometryGraphic
       this.gp.getResultData(message.jobInfo.jobId, paramName).then(
         lang.hitch(this, function (result) {
           this._onGetResultDataComplete(result);
+
           this.resultsCnt++;
           if (result.value.features.length > 0) {
             for (i = 0; i < result.value.features.length; i++) {
@@ -1715,11 +1742,26 @@ define([
           if (this.resultsCnt === this.config.geoprocessing.outputs
             .length) {
             try {
-              convexHullGeometry = geometryEngine.convexHull(this
-                ._inputGeomConvexHull, true);
-              if (convexHullGeometry.length > 0) {
+              var buffDist;
+              if (true) {
+                convexHullGeometry = geometryEngine.convexHull(this
+               ._inputGeomConvexHull, true);
+                convexHullGeometry = convexHullGeometry[0];
+                buffDist = this.config.overview.BufferDistance;
+              }
+
+              else {
+                buffDist = [];
+                convexHullGeometry = this
+                 ._inputGeomConvexHull;
+                array.forEach(convexHullGeometry, function (geo) {
+                  buffDist.push(this.config.overview.BufferDistance)
+                },this);
+                
+              }
+              if (true) {
                 bufferGeometry = geometryEngine.buffer(
-                  convexHullGeometry[0], this.config.overview.BufferDistance,
+                  convexHullGeometry, buffDist,
                   this.config.overview.Unit, true);
                 if (bufferGeometry) {
                   domClass.remove(this.outageCheckBoxDiv,
@@ -1764,6 +1806,14 @@ define([
             this._showResultPanel(true);
             this._showAllResultLayers();
           }
+        }));
+    },
+
+    _processGPStringResults: function (message, paramName) {
+
+      this.gp.getResultData(message.jobInfo.jobId, paramName).then(
+        lang.hitch(this, function (result) {
+          this.outputStrings[paramName] = result.value;
         }));
     },
 

@@ -40,6 +40,7 @@ define([
       layerList: null,
       map: null,
       nls: null,
+      valueParam: null,
 
       postCreate: function() {
         this.inherited(arguments);
@@ -128,9 +129,9 @@ define([
 
       createValueList: function(pVal, pLayer) {
         domConstruct.empty(this.valueLevel);
-        var paramsDijit = new FilterParameters();
-        paramsDijit.placeAt(this.valueLevel);
-        paramsDijit.startup();
+        valueParam = new FilterParameters();
+        valueParam.placeAt(this.valueLevel);
+        valueParam.startup();
 
         array.forEach(this.layerList, lang.hitch(this, function(layer) {
           if(layer.children.length > 0) {
@@ -144,7 +145,7 @@ define([
                       this.own(on(newFL, "load", lang.hitch(this, function() {
                         var params = {name: field.name, label: field.label, type: field.fieldType};
                         var filterObj = this._makefilterObject(params);
-                        paramsDijit.build(child.url, newFL, filterObj);
+                        valueParam.build(child.url, newFL, filterObj);
                         var node = query(".jimu-single-filter-parameter");
                         var hintNode = query("colgroup", node[0]);
                         domAttr.set(hintNode[0].childNodes[1], "width", "0px");
@@ -160,7 +161,7 @@ define([
                 if(field.name === pVal) {
                   var params = {name: field.name, label: field.alias, type: field.type};
                   var filterObj = this._makefilterObject(params);
-                  paramsDijit.build(layer.layer.url, layer.layer, filterObj);
+                  valueParam.build(layer.layer.url, layer.layer, filterObj);
 
                   var node = query(".jimu-single-filter-parameter");
                   var hintNode = query("colgroup", node[0]);
@@ -179,7 +180,7 @@ define([
         var partsObj = {};
         partsObj.fieldObj = {};
         partsObj.fieldObj.name = fieldObj.name;
-        if(fieldObj.alias === 'undefined') {
+        if(typeof fieldObj.alias === 'undefined') {
           partsObj.fieldObj.label = fieldObj.name;
         } else {
           partsObj.fieldObj.label = fieldObj.alias;

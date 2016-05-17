@@ -15,20 +15,32 @@
 }
 
 .jimu-widget-map-filter .saveContainer {
-	border-color: #e1e1e1;
-	border-top: 3px solid;
 	width: 100%;
-	height: 60%;
-	position:relative;
+	height: 100%;
+	position:absolute;
+	top: 0px;
+	left: 0px;
+	z-index: 999;
 	overflow-y: auto;
 	overflow-x: auto;
 	display: none;
+	background-color: #ffffff;
 }
 
 .jimu-widget-map-filter .save-block {
 	position: absolute;
 	left: 5px;
 	top: 5px;
+}
+
+.jimu-widget-map-filter .close-save {
+	position:relative;
+	float: right;
+	content: url("../images/setting_default.png");
+	padding-right: 5px;
+	padding-bottom: 10px;
+    cursor: hand;
+    cursor: pointer;
 }
 
 .jimu-widget-map-filter .headerTable {
@@ -277,6 +289,6 @@
 }
 
 .jimu-widget-map-filter .hide-items {
-	display: none;		
+	display: none;
 }
 

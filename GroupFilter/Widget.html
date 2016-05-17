@@ -8,7 +8,7 @@
 				</tr>
 				<tr>
 					<td colspan="2"><div data-dojo-attach-point="groupPicker" id="groupPicker"></div></td>
-				</tr>				
+				</tr>
 				<tr>
 					<td colspan="2" id="groupDesc" data-dojo-attach-point="groupDesc"></td>
 				</tr>
@@ -24,6 +24,7 @@
 
 	<div class="saveContainer" data-dojo-attach-point="saveBlock" id="saveBlock">
 		<div class="save-block" data-dojo-attach-point="saveBlockInner" id="saveBlockInner">
+			<div class="close-save" data-dojo-attach-event="click:toggleSaveFilter"></div>
 			<table id="tblSave" class="tableFormat" border=0 cellspacing="0" cellpadding="0">
 				<tr class="rowHeader">
 					<td></td>

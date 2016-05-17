@@ -32,13 +32,14 @@ define([
   'jimu/LayerInfos/LayerInfos',
   'jimu/dijit/Message',
   'jimu/dijit/Popup',
+  'dojox/html/entities',
   '../LayersHandler',
   './presetValuePicker',
   'dijit/form/CheckBox'
 ],
   function(declare, BaseWidgetSetting, _WidgetsInTemplateMixin, SimpleTable, dom,
     domConstruct, on, query, lang, array, Select, TextBox, ValidationTextBox,
-    utils, LayerInfos, Message, Popup, LayersHandler, presetValuePicker) {
+    utils, LayerInfos, Message, Popup, entities, LayersHandler, presetValuePicker) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
 
       //these two properties is defined in the BaseWidget
@@ -237,7 +238,7 @@ define([
         });
         domConstruct.place(pickerNode, cellSpacer);
         this.own(on(pickerNode, "click", lang.hitch(this, function() {
-          this.presetPickerPopup();
+          this.presetPickerPopup(txtGroupDefault);
         })));
 
         var deleteNameNode = domConstruct.create("div", {
@@ -285,7 +286,7 @@ define([
           "class": "operator-select"
         }).placeAt(params.cell);
         opSelect.startup();
-        opSelect.set('value', params.value);
+        opSelect.set('value', entities.decode(params.value));
         this.groupLayerOperator.push(opSelect);
       },
 
@@ -562,7 +563,7 @@ define([
         return validForm;
       },
 
-      presetPickerPopup: function() {
+      presetPickerPopup: function(pInput) {
         var valuePicker = new presetValuePicker({
           map: this.map,
           nls: this.nls,
@@ -570,12 +571,18 @@ define([
         });
         var filterPopup = new Popup({
           titleLabel : this.nls.popup.label,
-          width : 680,
-          height : 485,
+          width : 500,
+          height : 400,
           content : valuePicker,
           buttons : [{
             label : window.jimuNls.common.ok,
             onClick : lang.hitch(this, function() {
+              if(typeof valueParam !== "undefined") {
+                if(valueParam.getFilterExpr() !== null) {
+                  var userInput = valueParam.partsObj.parts[0].valueObj.value;
+                  pInput.set("value", userInput);
+                }
+              }
               filterPopup.close();
               filterPopup = null;
             })

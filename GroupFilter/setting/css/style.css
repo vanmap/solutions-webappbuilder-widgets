@@ -97,7 +97,7 @@
 .jimu-widget-map-filter .groupName-defaultPicker {
 	padding-left: 10px;
 	padding-right: 10px;
-	content: url("../../images/setting_disabled.png");
+	content: url("../../images/find.png");
     cursor: hand;
     cursor: pointer;
 }

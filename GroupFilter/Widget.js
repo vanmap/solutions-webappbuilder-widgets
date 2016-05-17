@@ -291,7 +291,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
         "class": "operatorSelect"
       }).placeAt(pCell);
       opSelect.startup();
-      opSelect.set('value', pValue.operator);
+      opSelect.set('value', entities.decode(pValue.operator));
       this.own(on(opSelect, "click", lang.hitch(this, function() {
 
       })));
@@ -821,6 +821,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
         setTimeout(lang.hitch(this, this.setFilterLayerDef), 500);
         query(".loadProgressHeader").style("display", "none");
         query(".loadProgressShow").style("display", "none");
+        this.toggleSaveFilter();
       })));
       this.own(on(readDef, "error", lang.hitch(this, function() {
         this.jsonFileInput.value = null;

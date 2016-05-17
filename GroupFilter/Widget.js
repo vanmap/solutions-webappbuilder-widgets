@@ -821,6 +821,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
         setTimeout(lang.hitch(this, this.setFilterLayerDef), 500);
         query(".loadProgressHeader").style("display", "none");
         query(".loadProgressShow").style("display", "none");
+        this.jsonFileInput.value = null;
         this.toggleSaveFilter();
       })));
       this.own(on(readDef, "error", lang.hitch(this, function() {

@@ -1,0 +1,27 @@
+﻿<div>
+	<div class="select-layer-section">
+		<div class="layer-tip">${nls.relatedLayer}</div>
+		<div class="layers-select-div" data-dojo-attach-point="layerSelectDiv"></div>
+	</div>
+
+	<div class="item-options">
+		<div class="item-option selection-option">
+			<input type="radio" data-dojo-attach-point="selectionRadio" data-dojo-attach-event="change:_onRadioChanged" disabled />
+			<label data-dojo-attach-point="selectionLabel">${nls.selectedFeatures}</label>
+		</div>
+		<div class="item-option draw-option" data-dojo-attach-point="drawOptionDiv">
+			<input type="radio" data-dojo-attach-point="drawRadio" data-dojo-attach-event="change:_onRadioChanged" disabled />
+			<label data-dojo-attach-point="drawLabel">${nls.drawShapesTip}</label>
+			<!-- <div data-dojo-attach-point="drawBoxDiv"></div> -->
+			<!-- <div data-dojo-type="jimu/_FeatureSetChooserForSingleLayer" data-dojo-attach-point="featureSetChooserForSingleLayer" data-dojo-props='updateSelection:false' /> -->
+		</div>
+		<div class="item-option all-option">
+			<input type="radio" data-dojo-attach-point="allRadio" data-dojo-attach-event="change:_onRadioChanged" disabled />
+			<label data-dojo-attach-point="allLabel">${nls.allFeaturesTip}</label>
+		</div>
+	</div>
+
+	<div class="search-distance-div" data-dojo-attach-point="searchDistanceDiv"></div>
+
+	<div data-dojo-attach-point="loading" data-dojo-type="jimu/dijit/LoadingShelter" data-dojo-props='hidden:true'></div>
+</div>

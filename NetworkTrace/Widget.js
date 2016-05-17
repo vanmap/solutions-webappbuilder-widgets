@@ -1634,6 +1634,7 @@ define([
         this.overExtent = null;
         this.resultsCnt = 0;
         this._inputGeomConvexHull = [];
+        this._geoForOnlyBuffer = [];
         this.outputStrings = {};
         if (this.config.overview) {
           if (this.config.overview.fieldMap) {
@@ -1715,13 +1716,18 @@ define([
     _processGPResults: function (message, paramName) {
       var i, bufferGeometry, convexHullGeometry,
         bufferGeometryGraphic
+      
+
       this.gp.getResultData(message.jobInfo.jobId, paramName).then(
         lang.hitch(this, function (result) {
           this._onGetResultDataComplete(result);
 
           this.resultsCnt++;
           if (result.value.features.length > 0) {
+         
             for (i = 0; i < result.value.features.length; i++) {
+              this._geoForOnlyBuffer.push(result.value.features[i].geometry);
+
               if (result.value.geometryType ===
                 "esriGeometryPoint") {
                 this._inputGeomConvexHull.push(result.value.features[
@@ -1743,7 +1749,7 @@ define([
             .length) {
             try {
               var buffDist;
-              if (true) {
+              if (false) {
                 convexHullGeometry = geometryEngine.convexHull(this
                ._inputGeomConvexHull, true);
                 convexHullGeometry = convexHullGeometry[0];
@@ -1752,8 +1758,7 @@ define([
 
               else {
                 buffDist = [];
-                convexHullGeometry = this
-                 ._inputGeomConvexHull;
+                convexHullGeometry = this._geoForOnlyBuffer;
                 array.forEach(convexHullGeometry, function (geo) {
                   buffDist.push(this.config.overview.BufferDistance)
                 },this);
@@ -1763,7 +1768,9 @@ define([
                 bufferGeometry = geometryEngine.buffer(
                   convexHullGeometry, buffDist,
                   this.config.overview.Unit, true);
-                if (bufferGeometry) {
+                
+                if (bufferGeometry && bufferGeometry.length > 0) {
+                  bufferGeometry = bufferGeometry[0];
                   domClass.remove(this.outageCheckBoxDiv,
                     "esriCTHidden");
                   bufferGeometryGraphic = new Graphic(

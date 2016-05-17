@@ -350,6 +350,17 @@ define([
           // if (domClass.contains(this.btnOk, 'jimu-state-disabled')) {
           //   html.removeClass(this.btnOk, 'jimu-state-disabled');
           // }
+          var valueRadio = tr.cells[2].childNodes[0];
+          var radioState = valueRadio.checked;
+          this.own(on(valueRadio, "click", lang.hitch(this, function(val) {
+            if(radioState) {
+              valueRadio.checked = false;
+              radioState = false;
+            } else {
+              valueRadio.checked = true;
+              radioState = true;
+            }
+          })));
         }
       },
 

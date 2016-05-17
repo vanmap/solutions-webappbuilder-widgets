@@ -105,7 +105,11 @@ define([
               array.forEach(layer.layer.fields, lang.hitch(this, function(field) {
                 var fieldObject = {};
                 fieldObject.value = field.name;
-                fieldObject.label = field.alias;
+                if(field.alias === "") {
+                  fieldObject.label = field.name;
+                } else {
+                  fieldObject.label = field.alias;
+                }
                 fieldObject.selected = false;
                 ctlfieldList.push(fieldObject);
               }));
@@ -186,6 +190,9 @@ define([
           partsObj.fieldObj.label = fieldObj.alias;
         }
         partsObj.fieldObj.shortType = ((fieldObj.type).replace("esriFieldType", "")).toLowerCase();
+        if(partsObj.fieldObj.shortType !== "guid" || partsObj.fieldObj.shortType !== "globalid") {
+          partsObj.fieldObj.shortType = "string";
+        }
         if(partsObj.fieldObj.shortType !== "date" && partsObj.fieldObj.shortType !== "string") {
           partsObj.fieldObj.shortType = "number";
         }

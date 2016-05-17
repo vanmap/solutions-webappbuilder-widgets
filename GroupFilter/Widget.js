@@ -230,6 +230,9 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
       var rowConjunc = subTable.insertRow(-1);
       rowConjunc.insertCell(0);
 
+      domClass.add(rowOperator, "operator-class");
+      domClass.add(cell_value, "value-class");
+
       this.colorRows();
 
       this.createOperatorSelection(cell_operator, pValue);
@@ -372,6 +375,9 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
                   partsObj.fieldObj.name = grpLayer.field;
                   partsObj.fieldObj.label = grpLayer.field;
                   partsObj.fieldObj.shortType = ((grpLayer.dataType).replace("esriFieldType", "")).toLowerCase();
+                  if(partsObj.fieldObj.shortType !== "guid" || partsObj.fieldObj.shortType !== "globalid") {
+                    partsObj.fieldObj.shortType = "string";
+                  }
                   if(partsObj.fieldObj.shortType !== "date" && partsObj.fieldObj.shortType !== "string") {
                     partsObj.fieldObj.shortType = "number";
                   }
@@ -848,6 +854,20 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
           var hintNode = query("colgroup", domEl);
           domAttr.set(hintNode[0].childNodes[1], "width", "0px");
         }));
+      }
+      if(window.innerWidth <= 320) {
+        //if it's small form factor, auto switch to simple mode
+        domClass.add(this.btnCriteria, "hide-items");
+        query(".operator-class").style("display", "none");
+        query(".container").style("borderTop", "0px");
+        query(".value-class").style("paddingTop", "-10px");
+      } else {
+        if(!this.config.simpleMode) {
+          domClass.remove(this.btnCriteria, "hide-items");
+          query(".operator-class").style("display", "block");
+          query(".container").style("borderTop", "3px solid");
+          query(".value-class").style("paddingTop", "0px");
+        }
       }
     },
 

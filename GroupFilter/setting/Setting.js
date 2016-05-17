@@ -434,7 +434,11 @@ define([
               array.forEach(layer.layer.fields, lang.hitch(this, function(field) {
                 var fieldObject = {};
                 fieldObject.value = field.name;
-                fieldObject.label = field.alias;
+                if(field.alias === "") {
+                  fieldObject.label = field.name;
+                } else {
+                  fieldObject.label = field.alias;
+                }
                 fieldObject.selected = false;
                 ctlfieldList.push(fieldObject);
 

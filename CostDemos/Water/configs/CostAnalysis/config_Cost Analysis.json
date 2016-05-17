@@ -47,10 +47,10 @@
     "label": "Two Decimal Point"
   },
   "projectAreaType": {
-    "value": "CONVEX_HULL",
-    "label": "Convex Hull"
+    "value": "BUFFER",
+    "label": "Buffer"
   },
-  "cHullBufferDistance": "5",
+  "cHullBufferDistance": "100",
   "editor": {
     "toolbarVisible": true,
     "layerInfos": [

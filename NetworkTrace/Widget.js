@@ -1716,7 +1716,7 @@ define([
     _processGPResults: function (message, paramName) {
       var i, bufferGeometry, convexHullGeometry,
         bufferGeometryGraphic
-      
+
 
       this.gp.getResultData(message.jobInfo.jobId, paramName).then(
         lang.hitch(this, function (result) {
@@ -1724,7 +1724,7 @@ define([
 
           this.resultsCnt++;
           if (result.value.features.length > 0) {
-         
+
             for (i = 0; i < result.value.features.length; i++) {
               this._geoForOnlyBuffer.push(result.value.features[i].geometry);
 
@@ -1749,28 +1749,32 @@ define([
             .length) {
             try {
               var buffDist;
-              if (false) {
-                convexHullGeometry = geometryEngine.convexHull(this
-               ._inputGeomConvexHull, true);
-                convexHullGeometry = convexHullGeometry[0];
-                buffDist = this.config.overview.BufferDistance;
-              }
+              if (this.config.overview.BufferType && this.config.overview.BufferType === "Buffer") {
 
-              else {
                 buffDist = [];
                 convexHullGeometry = this._geoForOnlyBuffer;
                 array.forEach(convexHullGeometry, function (geo) {
                   buffDist.push(this.config.overview.BufferDistance)
-                },this);
-                
+                }, this);
+              }
+
+              else {
+                convexHullGeometry = geometryEngine.convexHull(this
+             ._inputGeomConvexHull, true);
+                convexHullGeometry = convexHullGeometry[0];
+                buffDist = this.config.overview.BufferDistance;
+
               }
               if (true) {
                 bufferGeometry = geometryEngine.buffer(
                   convexHullGeometry, buffDist,
                   this.config.overview.Unit, true);
-                
-                if (bufferGeometry && bufferGeometry.length > 0) {
-                  bufferGeometry = bufferGeometry[0];
+
+                if (bufferGeometry) {
+                  if (lang.isArray(bufferGeometry)) {
+                    bufferGeometry = bufferGeometry[0];
+                  }
+                  
                   domClass.remove(this.outageCheckBoxDiv,
                     "esriCTHidden");
                   bufferGeometryGraphic = new Graphic(

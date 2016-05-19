@@ -352,7 +352,7 @@ define([
           // }
           var valueRadio = tr.cells[2].childNodes[0];
           var radioState = valueRadio.checked;
-          this.own(on(valueRadio, "click", lang.hitch(this, function(val) {
+          this.own(on(valueRadio, "click", lang.hitch(this, function() {
             if(radioState) {
               valueRadio.checked = false;
               radioState = false;
@@ -587,14 +587,14 @@ define([
         var filterPopup = new Popup({
           titleLabel : this.nls.popup.label,
           width : 500,
-          height : 400,
+          height : 420,
           content : valuePicker,
           buttons : [{
             label : window.jimuNls.common.ok,
             onClick : lang.hitch(this, function() {
-              if(typeof valueParam !== "undefined") {
-                if(valueParam.getFilterExpr() !== null) {
-                  var userInput = valueParam.partsObj.parts[0].valueObj.value;
+              if(typeof valuePicker.valueParam !== "undefined") {
+                if(valuePicker.valueParam.getFilterExpr() !== null) {
+                  var userInput = valuePicker.valueParam.partsObj.parts[0].valueObj.value;
                   pInput.set("value", userInput);
                 }
               }

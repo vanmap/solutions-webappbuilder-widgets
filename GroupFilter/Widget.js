@@ -2,11 +2,13 @@ define([
   'dojo/_base/declare',
   'dijit/_WidgetsInTemplateMixin',
   'jimu/BaseWidget',
+  'dijit',
   'jimu/dijit/FilterParameters',
   'dojo/dom',
   'dojo/dom-construct',
   'dojo/dom-class',
   'dojo/dom-attr',
+  'dojo/dom-style',
   'dojo/on',
   'dojo/query',
   'dojo/string',
@@ -25,8 +27,8 @@ define([
   'dojox/html/entities',
   'dijit/form/CheckBox'
 ],
-function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
-  domConstruct, domClass, domAttr, on, query, string, lang, array, locale, Select, TextBox,
+function(declare, _WidgetsInTemplateMixin, BaseWidget, dijit, FilterParameters, dom,
+  domConstruct, domClass, domAttr, domStyle, on, query, string, lang, array, locale, Select, TextBox,
   DateTextBox, NumberTextBox, registry, LayerInfos, utils, saveJson, readJson, entities) {
   //To create a widget, you need to derive from BaseWidget.
   return declare([BaseWidget, _WidgetsInTemplateMixin], {
@@ -228,10 +230,10 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
       var cell_value = rowValue.insertCell(0);
 
       var rowConjunc = subTable.insertRow(-1);
-      rowConjunc.insertCell(0);
+      var cell_conjunc = rowConjunc.insertCell(0);
 
+      domStyle.set(cell_conjunc, {paddingLeft: "3px", paddingRight: "3px"});
       domClass.add(rowOperator, "operator-class");
-      domClass.add(cell_value, "value-class");
 
       this.colorRows();
 
@@ -246,6 +248,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
         domClass.add(this.btnCriteria, "hide-items");
         domClass.add(rowOperator, "hide-items");
         query(".container").style("borderTop", "0px");
+        domStyle.set(cell_value, {paddingLeft: "0px", paddingRight: "0px"});
       }
 
       if(pValue.state === "reload") {
@@ -305,9 +308,10 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
     },
 
     createInputFilter: function(pCell, pValue) {
+      domConstruct.empty(pCell);
       if(this.useDomain !== null) {
-        domConstruct.empty(pCell);
         if(typeof(this.useDomain.codedValues) !== 'undefined') {
+          /*
           var ObjList = [];
           array.forEach(this.useDomain.codedValues, lang.hitch(this, function(codedVal) {
             ObjList.push({'value': codedVal.code, 'label': codedVal.name});
@@ -318,6 +322,11 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
           }).placeAt(pCell);
           domainSelect.startup();
           domainSelect.set('value', pValue.value);
+          */
+          var domainSelect = new FilterParameters();
+          domainSelect.placeAt(pCell);
+          domainSelect.startup();
+          this.createValueList(pValue, domainSelect);
         } else {
           var defaultNum = "";
           if(pValue.value !== "") {
@@ -333,6 +342,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
             constraints: {min:this.useDomain.minValue, max:this.useDomain.maxValue}
           }).placeAt(pCell);
           txtRange.startup();
+          this.formatSpacing(pCell);
         }
       } else if(this.useDate === true) {
         var d = new Date();
@@ -346,6 +356,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
           "class": "userInputNormal"
         }).placeAt(pCell);
         txtDate.startup();
+        this.formatSpacing(pCell);
       } else if(this.useValue === true) {
         var paramsDijit = new FilterParameters();
         paramsDijit.placeAt(pCell);
@@ -358,6 +369,7 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
           "class": "userInputNormal"
         }).placeAt(pCell);
         txtFilterParam.startup();
+        this.formatSpacing(pCell);
       }
     },
 
@@ -397,15 +409,28 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
                   filter.parts = parts;
                   pDijit.build(layer.layerObject.url, layer.layerObject, filter);
 
-                  var node = query(".jimu-single-filter-parameter");
-                  var hintNode = query("colgroup", node[0]);
-                  domAttr.set(hintNode[0].childNodes[1], "width", "0px");
+                  var nodes = query(".jimu-single-filter-parameter");
+                  array.forEach(nodes, function(node) {
+                    var tableNode = query("table", node);
+                    array.forEach(tableNode, function(table) {
+                      domAttr.set(table, "cellpadding", "1");
+                      domAttr.set(table, "cellspacing", "1");
+                    });
+                    var hintNode = query("colgroup", node);
+                    if(hintNode.length > 0) {
+                      domAttr.set(hintNode[0].childNodes[1], "width", "0px");
+                    }
+                  });
                 }
               }
             }));
           }));
         }
       }));
+    },
+
+    formatSpacing: function(pCell) {
+      domStyle.set(pCell, {paddingLeft: "2px", paddingRight: "2px"});
     },
 
     createConditionSelection: function(pCell, pValue) {
@@ -445,6 +470,11 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
     removeAllRows: function() {
       var table = dom.byId("tblPredicates");
       if(table.rows.length >= 1) {
+        var subTable = table.rows[0].cells[0].firstChild;
+        var isDijit = registry.byNode(subTable.rows[1].cells[0].childNodes[0]);
+        if(typeof isDijit !== 'undefined') {
+          dijit.byId(isDijit.id).destroyRecursive(true);
+        }
         domConstruct.destroy(table.rows[0]);
         this.removeAllRows();
       }
@@ -852,7 +882,9 @@ function(declare, _WidgetsInTemplateMixin, BaseWidget, FilterParameters, dom,
       if(node.length > 0) {
         array.forEach(node, lang.hitch(this, function(domEl) {
           var hintNode = query("colgroup", domEl);
-          domAttr.set(hintNode[0].childNodes[1], "width", "0px");
+          if(hintNode.length > 0) {
+            domAttr.set(hintNode[0].childNodes[1], "width", "0px");
+          }
         }));
       }
       if(window.innerWidth <= 320) {

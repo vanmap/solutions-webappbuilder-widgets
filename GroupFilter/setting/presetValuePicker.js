@@ -133,9 +133,15 @@ define([
 
       createValueList: function(pVal, pLayer) {
         domConstruct.empty(this.valueLevel);
-        valueParam = new FilterParameters();
-        valueParam.placeAt(this.valueLevel);
-        valueParam.startup();
+        this.valueParam = new FilterParameters();
+        this.valueParam.placeAt(this.valueLevel);
+        this.valueParam.startup();
+
+        setTimeout(function() {
+          var node = query(".jimu-single-filter-parameter");
+          var hintNode = query("colgroup", node[0]);
+          domAttr.set(hintNode[0].childNodes[1], "width", "0px");
+        }, 200);
 
         array.forEach(this.layerList, lang.hitch(this, function(layer) {
           if(layer.children.length > 0) {
@@ -149,7 +155,7 @@ define([
                       this.own(on(newFL, "load", lang.hitch(this, function() {
                         var params = {name: field.name, label: field.label, type: field.fieldType};
                         var filterObj = this._makefilterObject(params);
-                        valueParam.build(child.url, newFL, filterObj);
+                        this.valueParam.build(child.url, newFL, filterObj);
                         var node = query(".jimu-single-filter-parameter");
                         var hintNode = query("colgroup", node[0]);
                         domAttr.set(hintNode[0].childNodes[1], "width", "0px");
@@ -165,7 +171,7 @@ define([
                 if(field.name === pVal) {
                   var params = {name: field.name, label: field.alias, type: field.type};
                   var filterObj = this._makefilterObject(params);
-                  valueParam.build(layer.layer.url, layer.layer, filterObj);
+                  this.valueParam.build(layer.layer.url, layer.layer, filterObj);
 
                   var node = query(".jimu-single-filter-parameter");
                   var hintNode = query("colgroup", node[0]);

@@ -73,8 +73,8 @@
 .jimu-widget-map-filter .groupName-textbox {
 	margin-top: 5px;
 	margin-bottom: 5px;
-	margin-left: 10px;
-	margin-right: 10px;
+	margin-left: 0px;
+	margin-right: 0px;
 	width: 175px;
 }
 
@@ -102,6 +102,14 @@
     cursor: pointer;
 }
 
+.jimu-widget-map-filter .groupName-defaultPicker:after {
+	padding-left: 10px;
+	padding-right: 10px;
+	content: url("../../images/find.png");
+    cursor: hand;
+    cursor: pointer;
+}
+
 .jimu-widget-map-filter .layer-tables {
 	margin-top: 5px;
 	margin-bottom: 5px;
@@ -115,5 +123,10 @@
 
 .jimu-widget-map-filter-preset .picker-cell {
 	padding-bottom: 15px;
+}
+
+.jimu-widget-map-filter-preset .value-level{
+	margin-left: -3px;
+	margin-right: -3px;
 }
 

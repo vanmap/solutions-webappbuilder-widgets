@@ -43,6 +43,16 @@
     cursor: pointer;
 }
 
+.jimu-widget-map-filter .close-save:after {
+	position:relative;
+	float: right;
+	content: url("../images/setting_default.png");
+	padding-right: 5px;
+	padding-bottom: 10px;
+    cursor: hand;
+    cursor: pointer;
+}
+
 .jimu-widget-map-filter .headerTable {
 	width: 100%;
 }
@@ -51,6 +61,7 @@
 	font-size: 10pt;
 	padding-left: 0px;
 	padding-bottom: 5px;
+	width: 100%;
 }
 
 .jimu-widget-map-filter .saveTD {
@@ -299,4 +310,5 @@
 .jimu-widget-map-filter .value-class {
 
 }
+
 

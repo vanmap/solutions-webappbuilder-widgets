@@ -313,7 +313,7 @@ define([
         }
       },
       _addFilterEditor: function (layers) {
-        if (this.settings.useFilterEditor === true) {
+        if (this.settings.useFilterEditor === true && this.templatePicker) {
           this._filterEditorNode = domConstruct.create("div", {});
           this.templatePickerDiv.insertBefore(this._filterEditorNode,
             this.templatePicker.domNode);
@@ -345,6 +345,8 @@ define([
 
       // this function also create a new attribute inspector for the local layer
       _addGraphicToLocalLayer: function (evt) {
+        if (this.templatePicker === undefined ||
+          this.templatePicker === null) { return; }
         if (!this.templatePicker.getSelected()) { return; }
         var selectedTemp = this.templatePicker.getSelected();
 
@@ -651,10 +653,11 @@ define([
           innerHTML: this.nls.save,
           "class": "saveButton jimu-btn jimu-state-disabled"
         }, cancelButton, "after");
-        domConstruct.create("div", {
-          "class": "processing-indicator"
-        }, saveButton, "before");
 
+        //add another process indicator
+        //domConstruct.create("div", {
+        //  "class": "processing-indicator"
+        //}, saveButton, "before");
         if (query(".jimu-widget-smartEditor .deleteButton").length < 1) {
           this._deleteButton = domConstruct.create("div", {
             innerHTML: this.nls.deleteText,
@@ -879,9 +882,7 @@ define([
             'class': 'esriTemplatePicker',
             grouping: true,
             maxLabelLength: "25",
-            showTooltip: false,
-            columns: "auto",
-            rows: "auto"
+            showTooltip: false
           }, this.templatePickerNode);
           this.templatePicker.startup();
           //this.templatePickerNode.appendChild(this.templatePicker.domNode);
@@ -2014,13 +2015,14 @@ define([
           this._createEditor();
         }
         if (this._creationDisabledOnAll) {
-          dojo.style(this.templatePicker.domNode, "display", "none");
-
+          if (this.templatePicker) {
+            dojo.style(this.templatePicker.domNode, "display", "none");
+          }
 
         } else {
-          //
-          dojo.style(this.templatePicker.domNode, "display", "block");
-
+          if (this.templatePicker) {
+            dojo.style(this.templatePicker.domNode, "display", "block");
+          }
         }
 
         this._activateTemplateToolbar();

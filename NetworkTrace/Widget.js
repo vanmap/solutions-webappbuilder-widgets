@@ -617,6 +617,21 @@ define([
       }
     },
 
+    _scrubBlankDateFields: function (fields, features) {
+      var dateFields = [];
+      array.forEach(fields, function (field) {
+        if (field.type === "esriFieldTypeDate")
+          dateFields.push(field.name);
+      });
+      array.forEach(features, function (feature) {
+        array.forEach(dateFields, function (dateField) {
+          if (feature.attributes.hasOwnProperty(dateField)) {
+            if (feature.attributes[dateField] === "")
+              delete feature.attributes[dateField];
+          }
+        });
+      });
+    },
     /**
     *This Function is used to save layer which type is result.
     **/
@@ -694,6 +709,8 @@ define([
             layerObj = this.map.getLayer(output.saveToLayer);
             if (layerObj) {
               this.savedLayers.push(output.paramName);
+              this._scrubBlankDateFields(layerObj.fields, output.results
+                .features);
               deferredArray.push(layerObj.applyEdits(output.results
                 .features, null, null, null, this._applyEditsErrorCallback
               ));
@@ -1774,7 +1791,7 @@ define([
                   if (lang.isArray(bufferGeometry)) {
                     bufferGeometry = bufferGeometry[0];
                   }
-                  
+
                   domClass.remove(this.outageCheckBoxDiv,
                     "esriCTHidden");
                   bufferGeometryGraphic = new Graphic(

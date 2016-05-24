@@ -7,7 +7,7 @@
   "portalUrl": "http://cltdefense.maps.arcgis.com",
   "appId": "",
   "authorizedCrossOriginDomains": [],
-  "title": "Minute Man Viewer",
+  "title": "Defense Solutions Widgets",
   "subtitle": "with Web AppBuilder for ArcGIS",
   "logo": "images/app-logo.png",
   "geometryService": "http://utility.arcgisonline.com/arcgis/rest/services/Geometry/GeometryServer",

@@ -27,8 +27,8 @@ This widget requires the developer edition of WebApp Builder. It supports versio
 ## Instructions
 In order to develop and test widgets you need to deploy the Elevation Profile widget directory to the /stemapp/widgets directory in your WebApp Builder installation. In order to add the Elevation Profile Table widget to your developer edition of Web App Builder, please follow these steps:
 
-1. Copy the Elevation Profile Table widget directory to <Web App Builder location>/client/stemapp/widgets
-2. Open <Web App Builder location>/client/stemapp/config.json and add an entry for the Elevation Profile Table widget:
+* Copy the Elevation Profile Table widget directory to <Web App Builder location>/client/stemapp/widgets
+* Open <Web App Builder location>/client/stemapp/config.json and add an entry for the Elevation Profile Table widget:
 ```
     {
         "uri": "widgets/ElevationProfiletable/Widget",
@@ -38,7 +38,7 @@ In order to develop and test widgets you need to deploy the Elevation Profile wi
         }
     }
 ```
-3. Open <Web App Builder location>/stemapp/predefined-apps/default/config.json and add an entry for the Elevation Profile Table widget:
+* Open <Web App Builder location>/stemapp/predefined-apps/default/config.json and add an entry for the Elevation Profile Table widget:
 ```
     {
         "uri": "widgets/ElevationProfiletable/Widget",
@@ -48,7 +48,7 @@ In order to develop and test widgets you need to deploy the Elevation Profile wi
         }
     }
 ```
-4. Open <Web App Builder location>/stemapp/themes/FoldableTheme/layouts/default/config.json and add an entry for the Elevation Profile Table widget:
+* Open <Web App Builder location>/stemapp/themes/FoldableTheme/layouts/default/config.json and add an entry for the Elevation Profile Table widget:
 ```
     {
         "uri": "widgets/ElevationProfiletable/Widget",
@@ -58,7 +58,7 @@ In order to develop and test widgets you need to deploy the Elevation Profile wi
         }
     }
 ```
-5. Add "ElevationProfileTable" entry to <Web App Builder location>/stemapp/widget/list.json.
+* Add "ElevationProfileTable" entry to <Web App Builder location>/stemapp/widget/list.json.
 
 The [LOS toolbox](https://github.com/Esri/solutions-webappbuilder-widgets/blob/master/ElevationProfileTable/scripts/LOS.tbx) and [los.py](https://github.com/Esri/solutions-webappbuilder-widgets/blob/master/ElevationProfileTable/scripts/los.py) script should be used as a general guide during the creation of line-of-sight Geoprocessing service. Please make the necessary changes to the script in order to consume your own Digital Elevation Model (DEM) (please look at line 8 of the [los.py](https://github.com/Esri/solutions-webappbuilder-widgets/blob/master/ElevationProfileTable/scripts/los.py) script).
 

@@ -19,7 +19,7 @@ The Emergency Response Guide (ERG) widget allows users to determine potential ha
 * Displays affected location, demography and facilities
 
 ## Requirements
-* Minimum requiremnet is ArcGIS WebApp Builder v.1.0. Widget has been updated to v.2.1.
+* Minimum requiremnet is ArcGIS WebApp Builder v.1.0. Widget has been updated to v.2.0.
 
 ## Instructions
 In order to develop and test widgets you need to deploy the ERG directory to the stemapp/widgets directory in your WebApp Builder installation. The widget relies on Geoprocessing and Map services, and SD files for those services can be found in the EmergencyOperations.zip file in the [services](https://github.com/Esri/solutions-webappbuilder-widgets/tree/master/ERG/services) folder. The zip file contains ERG.sd which is the Geoprocessing service along with teh EmergencyOperation.sd which is the accompanying map service. Please update the ERG config.json file once these SD files are published in ArcGIS Server.

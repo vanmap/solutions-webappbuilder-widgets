@@ -15,7 +15,6 @@ The ArcGIS Solutions Builder Widgets is a set of widgets for use with the Web Ap
 The Widget Repository currently includes:
 
 * [Bomb Threat Tool](./BombThreat/README.md) | WAB 1.2 | 1.0
-* [Coordinate Tool](./CoordinateTool/ReadMe.md) | WAB 1.2
 * [Filter Editor](./FilterEditor/README.md) | WAB 1.2 | 1.0
 * [Critical Infrastructure and Key Resources](./CI_KR_Chart/README.md) | WAB 1.2 | 1.0
 * [Elevation Profile Widget](./ElevationProfileTable/README.md) | WAB 1.2 | 1.0

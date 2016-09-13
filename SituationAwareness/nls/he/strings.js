@@ -1,5 +1,5 @@
 define({
-  "_widgetLabel": "מודעות למצב",
+  "_widgetLabel": "ערנות למצב",
   "locate_incident": "אתר מקרים",
   "clear_incidents": "נקה מקרים",
   "reverse_geocoded_address": "הכתובת הקרובה ביותר",

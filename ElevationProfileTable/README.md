@@ -3,6 +3,8 @@ Elevation Profile Widget
 
 Elevation Profile is a configurable widget that displays the elevation profile for a selected feature or a measured line along with a web map. This is very similar to the Elevation Profile Template ([View it live](http://www.arcgis.com/apps/Elevations/index.html?webmap=8dd583ea3de64e40b92ea5a261d0c6c8)), but with additional functionality. This widget is modeled after the Attribute Table; in that it is docked along the bottom edge of the browser. This widget requires the developer edition of WebApp Builder, version 2.0 or higher.
 
+The ElevationProfileTable widget is moving to Mature Support. For more information, visit the Esri Product Life Cycle page (http://support.esri.com/other-resources/product-life-cycle).
+
 ## Sections
 * [Features](#features)
 * [Requirements](#requirements)

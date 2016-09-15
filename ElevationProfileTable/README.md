@@ -3,12 +3,9 @@ Elevation Profile Widget
 
 Elevation Profile is a configurable widget that displays the elevation profile for a selected feature or a measured line along with a web map. This is very similar to the Elevation Profile Template ([View it live](http://www.arcgis.com/apps/Elevations/index.html?webmap=8dd583ea3de64e40b92ea5a261d0c6c8)), but with additional functionality. This widget is modeled after the Attribute Table; in that it is docked along the bottom edge of the browser. This widget requires the developer edition of WebApp Builder, version 2.0 or higher.
 
- [This tool is moving to Mature Support](#mature-support)
-
 ## Sections
 * [Features](#features)
 * [Requirements](#requirements)
-* [Mature Support](#mature-support)
 * [Instructions](#instructions)
 * [Resources](#resources)
 * [Issues](#issues)
@@ -26,9 +23,6 @@ This widget will allow:
 
 ## Requirements
 This widget requires the developer edition of WebApp Builder. It supports versions 2.0+.
-
-## Mature Support
-For information Esri support levels visit the [Esri Product Life Cycle](http://support.esri.com/other-resources/product-life-cycle) page. Toolboxes marked for Mature Support will be removed from this repository's *dev* and *master* branches in the future, but will still be availalbe from earlier [releases](https://github.com/Esri/solutions-geoprocessing-toolbox/releases).
 
 ## Instructions
 In order to develop and test widgets you need to deploy the Elevation Profile widget directory to the /stemapp/widgets directory in your WebApp Builder installation. In order to add the Elevation Profile Table widget to your developer edition of Web App Builder, please follow these steps:

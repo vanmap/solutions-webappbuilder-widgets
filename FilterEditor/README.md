@@ -16,6 +16,7 @@ of the feature layers.
 * [Instructions](#instructions)
 * [Resources](#resources)
 * [Issues](#issues)
+* [Mature Support](#mature-support)
 * [Contributing](#contributing)
 * [Licensing](#licensing)
 

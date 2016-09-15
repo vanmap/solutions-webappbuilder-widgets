@@ -1,4 +1,4 @@
-[This tool is moving to Mature Support](#mature-support)
+
 
 # Filter Editor
 Similar to the Edit widget, the Filter Editor widget allows users to edit multiple feature layer services.
@@ -6,6 +6,8 @@ This widget displays each feature layer in a drop down list which provides easie
 The ability to filter templates has also been added.  The filtering is done based on the selected feature layer
 in the drop down list.  If 'All' is selected, the TemplatePicker will display the filtered templates for all
 of the feature layers.
+
+[This tool is moving to Mature Support](#mature-support)
 
 ## Sections
 

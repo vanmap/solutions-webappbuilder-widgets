@@ -8,6 +8,7 @@ The ArcGIS Solutions Builder Widgets is a set of widgets for use with the Web Ap
 * [Instructions](#instructions)
 * [Resources](#resources)
 * [Issues](#issues)
+* [Mature Support](#mature-support)
 * [Contributing](#contributing)
 * [Licensing](#licensing)
 
@@ -47,6 +48,9 @@ For more resources on developing modifying widgets please visit
 ## Issues
 
 * Find a bug or want to request a new feature?  Please let us know by submitting an issue.
+
+## Mature Support
+For information Esri support levels visit the [Esri Product Life Cycle](http://support.esri.com/other-resources/product-life-cycle) page. Toolboxes marked for Mature Support will be removed from this repository's *dev* and *master* branches in the future, but will still be availalbe from earlier [releases](https://github.com/Esri/solutions-geoprocessing-toolbox/releases).
 
 ## Contributing
 

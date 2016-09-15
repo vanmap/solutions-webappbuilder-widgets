@@ -8,7 +8,7 @@ Elevation Profile is a configurable widget that displays the elevation profile f
 ## Sections
 * [Features](#features)
 * [Requirements](#requirements)
-* [Mature Support](#Mature-Support)
+* [Mature Support](#mature-support)
 * [Instructions](#instructions)
 * [Resources](#resources)
 * [Issues](#issues)

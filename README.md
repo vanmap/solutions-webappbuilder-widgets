@@ -16,9 +16,9 @@ The Widget Repository currently includes:
 
 * [Bomb Threat Tool](./BombThreat/README.md) | WAB 2.0 | 1.0
 * [ERG](./ERG/README.md) | WAB 2.0 | 1.0
-* [Filter Editor](./FilterEditor/README.md) | WAB 2.0 | 1.0
+* [Filter Editor](./FilterEditor/README.md) | WAB 2.0 | 1.0 [This tool is moving to Mature Support](#mature-support)
 * [Critical Infrastructure and Key Resources](./CI_KR_Chart/README.md) | WAB 1.2 | 1.0
-* [Elevation Profile Widget](./ElevationProfileTable/README.md) | WAB 1.2 | 1.0
+* [Elevation Profile Widget](./ElevationProfileTable/README.md) | WAB 1.2 | 1.0 [This tool is moving to Mature Support](#mature-support)
 * [Image Discovery](./ImageDiscovery/README.md) | WAB 1.2 | 1.0
 * [Network Trace](./NetworkTrace/README.md) | WAB 1.2 | 1.0
 * [Service Feasibility](./ServiceFeasibility/README.md) | WAB 1.2 | 1.0
@@ -37,7 +37,9 @@ For more resources on developing modifying widgets please visit
 ### General Help
 [New to Github? Get started here.](http://htmlpreview.github.com/?https://github.com/Esri/esri.github.com/blob/master/help/esri-getting-to-know-github.html)
 
-
+## Mature Support
+ For information Esri support levels visit the [Esri Product Life Cycle](http://support.esri.com/other-resources/product-life-cycle) page. Toolboxes marked for Mature Support will be removed from this repository's *dev* and *master* branches in the future, but will still be availalbe from earlier [releases](https://github.com/Esri/solutions-geoprocessing-toolbox/releases).
+ 
 ## Resources
 
 * Learn more about Esri's Solutions [Focused Maps and Apps for Your Organization](http://solutions.arcgis.com/).

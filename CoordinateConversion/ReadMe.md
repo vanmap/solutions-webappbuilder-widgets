@@ -18,6 +18,7 @@ The Coordinate Conversion is an Esri Widget for [Web AppBuilder for ArcGIS](http
 * [Issues](#issues)
 * [Contributing](#contributing)
 * [Licensing](#licensing)
+*
 
 ## Requirements
 

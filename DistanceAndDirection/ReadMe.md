@@ -19,6 +19,7 @@ This widget provides the ability to create geodesic features such as lines, circ
 * [Issues](#issues)
 * [Contributing](#contributing)
 * [Licensing](#licensing)
+*
 
 ## Requirements
 

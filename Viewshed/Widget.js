@@ -46,7 +46,10 @@ function(dom, on, declare, _WidgetsInTemplateMixin, lang, dojoDomClass, BaseWidg
 			  'draw': function(){updateValues(this.v,this.o.cursor)}
 		  });
 		  
-		gp = new Geoprocessor("https://airc2.esri.com/ags/rest/services/AirC2/Viewshed/GPServer/Viewshed");
+    var viewshedServiceURL = this.config.viewshedService.url ? 
+      this.config.viewshedService.url : 
+      "https://airc2.esri.com/ags/rest/services/AirC2/Viewshed/GPServer/Viewshed"
+		gp = new Geoprocessor(viewshedServiceURL);
 		gp.setOutputSpatialReference({wkid: 102100});
 		
 		var distanceSlider = dom.byId('distanceSlider');

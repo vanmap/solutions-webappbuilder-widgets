@@ -25,6 +25,7 @@ The Widget Repository currently includes:
 * [Service Feasibility](./ServiceFeasibility/README.md) | WAB 1.2 | 1.0
 * [Coordinate Conversion](./CoordinateConversion/ReadMe.md) | WAB 2.0 | 1.0
 * [Distance and Direction](./DistanceAndDirection/ReadMe.md) | WAB 2.0 | 1.0
+* [Grid Overlay](./GridOverlay/README.md) | WAB 2.0 | 1.0
 
 ## Requirements
 Requires Web AppBuilder for ArcGIS version 1.2 (minimum).

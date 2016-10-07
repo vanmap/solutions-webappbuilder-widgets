@@ -1,5 +1,5 @@
 # Grid Overlay
-* The Military Grid Reference System (MGRS) is a grid-based system used to represent locations on the universal transverse Mercator (UTM) and universal polar stereographic (UPS) grid systems, expressed as an alphanumeric string. An MGRS coordinate defines an area on the Earth's surface as opposed to a specific point. A fully qualified MGRS string is 15 characters long and consists of the following three components: grid zone designation, 100,000-meter square identifier, and easting/northing. The Grid Overlay widget is a client-side solution that renders MGRS grid on the web. 
+The Military Grid Reference System (MGRS) is a grid-based system used to represent locations on the universal transverse Mercator (UTM) and universal polar stereographic (UPS) grid systems, expressed as an alphanumeric string. An MGRS coordinate defines an area on the Earth's surface as opposed to a specific point. A fully qualified MGRS string is 15 characters long and consists of the following three components: grid zone designation, 100,000-meter square identifier, and easting/northing. The Grid Overlay widget is a client-side solution that renders MGRS grid on the web. 
 
 ## Sections
 

@@ -1,4 +1,4 @@
-# solutions-builder-widgets
+# Solutions Web AppBuilder Widgets
 The ArcGIS Solutions Builder Widgets is a set of widgets for use with the Web AppBuilder for ArcGIS. These widgets address specialized workflow created and managed by the Esri Solutions teams. These widgets are a component of many of the applications created by the solutions team.
 
 ## Sections
@@ -25,6 +25,7 @@ The Widget Repository currently includes:
 * [Service Feasibility](./ServiceFeasibility/README.md) | WAB 1.2 | 1.0
 * [Coordinate Conversion](./CoordinateConversion/ReadMe.md) | WAB 2.0 | 1.0
 * [Distance and Direction](./DistanceAndDirection/ReadMe.md) | WAB 2.0 | 1.0
+* [Grid Overlay](./GridOverlay/README.md) | WAB 2.0 | 1.0
 
 ## Requirements
 Requires Web AppBuilder for ArcGIS version 1.2 (minimum).

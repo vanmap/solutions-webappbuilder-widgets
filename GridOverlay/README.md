@@ -1,5 +1,5 @@
 # Grid Overlay
-* Client-side MGRS grid
+The Military Grid Reference System (MGRS) is a grid-based system used to represent locations on the universal transverse Mercator (UTM) and universal polar stereographic (UPS) grid systems, expressed as an alphanumeric string. An MGRS coordinate defines an area on the Earth's surface as opposed to a specific point. A fully qualified MGRS string is 15 characters long and consists of the following three components: grid zone designation, 100,000-meter square identifier, and easting/northing. The Grid Overlay widget is a client-side solution that renders MGRS grid on the web. 
 
 ## Sections
 
@@ -15,12 +15,22 @@
 * Client-side MGRS grid
 
 ## Requirements
-* Requires Web AppBuilder for ArcGIS version 1.2
+* Requires Web AppBuilder for ArcGIS version 1.2 (minimum)
 
 ## Instructions
 * Deploying Widgets.
 
-To use the widgets with you should copy any of the widgets to the stemapp/widget directory. This is located in %webappbuilder_install%/client directory.
+Setting Up Repository for Development
+In order to develop and test widgets you need to deploy the BatchEditor folder to the stemapp/widgets directory in your WebApp Builder installation. If you use Github for windows this can be accomplished using the following steps.
+
+1. Sync the repository to your local machine.
+2. Close Open the Repository in Windows Explorer
+3. Close Github for Windows
+4. Cut and paste the entire BatchEditor folder into the stemapp/widgets folder
+5. Launch Github for Windows and choose the option to locate the repository. This will change the location on disk to the new location.
+
+### General Help
+[New to Github? Get started here.](http://htmlpreview.github.io/?https://github.com/Esri/esri.github.com/blob/master/help/esri-getting-to-know-github.html)
 
 ## Resources
 

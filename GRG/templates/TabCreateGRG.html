@@ -1,0 +1,75 @@
+<div class="tabPanel" data-dojo-attach-point="createContainer">
+  
+  <div class="controls">
+
+    <div class="controlGroup">
+      <label>GRG Name</label>
+      <div class="controlItem">
+        <input id="addGRGName" class="jimu-input textInput" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="addGRGName" 
+           data-dojo-props='missingMessage:"You must enter a name for the GRG."' required="true"></input>
+      </div>
+    </div>
+    
+    <div class="controlGroup">
+      <label>Canvas Area</label>
+      <div class="controlItem">
+        <input class="jimu-input textInput" data-dojo-attach-point="canvasArea" disabled >
+        </input>
+        <div class="addExtentBtn" data-dojo-attach-point="addCanvasAreaBtn"></div>
+      </div>
+    </div>
+
+    <div class="controlGroup">
+      <label>Cell Width</label>
+      <div class="controlItem">
+        <input class="jimu-input dijitNumberTextBox" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:1,places:0},
+          invalidMessage:"The value entered is not valid.",
+          rangeMessage:"Value must be greater than 0."' data-dojo-attach-point="cellWidth" value="1000" ></input>
+        <div class="addExtentBtn" data-dojo-attach-point="addCellAreaBtn"></div>
+        <div class="rotateBtn jimu-state-hidden" data-dojo-attach-point="rotateCellBtn"></div>
+        <div class="deleteBtn jimu-state-hidden" data-dojo-attach-point="deleteCellBtn"></div>
+      </div>
+    </div>
+    
+    <div class="controlGroup">
+      <label>Cell Height</label>
+      <div class="controlItem">
+        <input class="jimu-input textInput" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:1,places:0},
+          invalidMessage:"The value entered is not valid.",
+          rangeMessage:"Value must be greater than 0."' data-dojo-attach-point="cellHeight" value="1000"></input>
+      </div>
+    </div>
+    
+    <div class="controlGroup">
+      <label>Cell Units</label>
+      <select class="controlSpace" data-dojo-type="dijit/form/Select" data-dojo-attach-point="cellUnits" >
+          <option selected="selected" value="meters">Meters</option>
+          <option value="feet">Feet</option>
+      </select>
+ 
+    </div>
+    
+    <div class="controlGroup">
+      <label>Labeling</label>
+      <div class="controlItem">
+        <select class="controlSpace" data-dojo-type="dijit/form/Select" data-dojo-attach-point="labelStartPosition" >
+          <option selected="selected" value="Lower-Left">Lower-Left</option>
+          <option value="Lower-Right">Lower-Right</option>
+          <option value="Upper-Left">Upper-Left</option>
+          <option value="Upper-Right">Upper-Right</option>
+        </select>
+        <select class="controlSpace" data-dojo-type="dijit/form/Select" data-dojo-attach-point="labelStyle" >
+          <option selected="selected" value="Alpha-Numeric">Alpha-Numeric</option>
+          <option value="Alpha-Alpha">Alpha-Alpha</option>
+          <option value="Numeric">Numeric</option>
+        </select>
+      </div>
+    </div>
+    
+    <div class="buttonContainer">
+      <div class='jimu-btn' data-dojo-attach-point='createGRGButton'>Create GRG</div>
+    </div>
+
+  </div>
+  
+</div>

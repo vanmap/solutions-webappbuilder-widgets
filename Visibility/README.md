@@ -1,5 +1,5 @@
-# Viewshed
-The Viewshed Widget for Web AppBuilder for ArcGIS calculates a viewshed from an observer point and field of view.
+# Visibility
+The Visibility Widget for Web AppBuilder for ArcGIS calculates visibility from an observer point and field of view.
 
 ## Sections
 
@@ -19,7 +19,7 @@ The Viewshed Widget for Web AppBuilder for ArcGIS calculates a viewshed from an 
 * Minimum requiremnet is ArcGIS WebApp Builder v.1.0. Widget has been updated to v.2.0. 
 
 ## Instructions
-In order to develop and test widgets you need to deploy the Viewshed directory to the stemapp/widgets directory in your WebApp Builder installation. 
+In order to develop and test widgets you need to deploy the Visibility directory to the stemapp/widgets directory in your WebApp Builder installation. 
 
 ## Issues
 * Find a bug or want to request a new feature?  Please let us know by submitting an issue.

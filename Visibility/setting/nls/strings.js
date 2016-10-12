@@ -1,6 +1,6 @@
 define({
   root: ({
-      viewshedURL: "Viewshed Service URL"    
+      viewshedURL: "Visibility Service URL"    
   }),
   "ar": 0,
   "cs": 0,

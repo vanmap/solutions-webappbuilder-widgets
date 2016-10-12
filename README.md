@@ -16,16 +16,17 @@ The ArcGIS Solutions Builder Widgets is a set of widgets for use with the Web Ap
 The Widget Repository currently includes:
 
 * [Bomb Threat Tool](./BombThreat/README.md) | WAB 2.0 | 1.0
+* [Coordinate Conversion](./CoordinateConversion/ReadMe.md) | WAB 2.0 | 1.0
+* [Critical Infrastructure and Key Resources](./CI_KR_Chart/README.md) | WAB 1.2 | 1.0
+* [Distance and Direction](./DistanceAndDirection/ReadMe.md) | WAB 2.0 | 1.0
+* [Elevation Profile Widget](./ElevationProfileTable/README.md) | WAB 1.2 | 1.0
 * [ERG](./ERG/README.md) | WAB 2.0 | 1.0
 * [Filter Editor](./FilterEditor/README.md) | WAB 2.0 | 1.0 [This widget is moving to Mature Support ](#mature-support)
-* [Critical Infrastructure and Key Resources](./CI_KR_Chart/README.md) | WAB 1.2 | 1.0
-* [Elevation Profile Widget](./ElevationProfileTable/README.md) | WAB 1.2 | 1.0
+* [Grid Overlay](./GridOverlay/README.md) | WAB 2.0 | 1.0
 * [Image Discovery](./ImageDiscovery/README.md) | WAB 1.2 | 1.0
 * [Network Trace](./NetworkTrace/README.md) | WAB 1.2 | 1.0
 * [Service Feasibility](./ServiceFeasibility/README.md) | WAB 1.2 | 1.0
-* [Coordinate Conversion](./CoordinateConversion/ReadMe.md) | WAB 2.0 | 1.0
-* [Distance and Direction](./DistanceAndDirection/ReadMe.md) | WAB 2.0 | 1.0
-* [Grid Overlay](./GridOverlay/README.md) | WAB 2.0 | 1.0
+* [Visibility](./Visibility/README.md) | WAB 2.0 | 1.0
 
 ## Requirements
 Requires Web AppBuilder for ArcGIS version 1.2 (minimum).

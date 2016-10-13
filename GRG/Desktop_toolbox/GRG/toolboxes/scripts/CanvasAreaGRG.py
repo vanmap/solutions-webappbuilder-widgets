@@ -245,6 +245,7 @@ def main():
               #Add grid name to feature    
               row[2] = grgName
               
+                            
               cursor.updateRow(row)
               number += 1
               secondLetterIndex += 1
@@ -257,8 +258,16 @@ def main():
             arcpy.AddMessage("Rotating the feature using angle: " + str(angleDrawn) + " Center Point: " + centerPoint)            
             RotateFeatureClass(tempSort, outputFeatureClass, angleDrawn, centerPoint)
         else:
-            arcpy.AddMessage("Appending feature")		
-            arcpy.Append_management([tempSort], outputFeatureClass)
+            arcpy.AddMessage("Adding Grid to feature Class")
+            insertCursor = arcpy.da.InsertCursor(outputFeatureClass, fields)
+            #arcpy.Append_management([tempSort], outputFeatureClass)
+            with arcpy.da.SearchCursor(tempSort, fields) as cursor:
+              for row in cursor:
+                insertCursor.insertRow((row[0],row[1],row[2]))
+    
+            # close write cursor (ensure buffer written)
+            del insertCursor
+            
         arcpy.Delete_management(tempSort)
 
 

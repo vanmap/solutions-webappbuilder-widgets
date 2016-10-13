@@ -27,7 +27,7 @@ define([
     'esri/tasks/Geoprocessor',
     'esri/tasks/query',
     'esri/tasks/QueryTask',
-    'dojo/text!./templates/TabDeleteGRG.html'
+    'dojo/text!../templates/TabDeleteGRG.html'
 ], function (
     dojoDeclare,
     dojoLang,

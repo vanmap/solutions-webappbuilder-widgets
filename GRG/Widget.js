@@ -17,18 +17,24 @@
 define([
   'dojo/_base/declare',
   'dojo/topic',
+  'dojo/aspect',
+  'dijit/registry',
   'dijit/_WidgetsInTemplateMixin',
   'jimu/BaseWidget',
   'jimu/dijit/TabContainer3',
-  './TabCreateGRG',
-  './TabDeleteGRG'
+  './views/TabCreateAreaGRG',
+  './views/TabCreatePointGRG',
+  './views/TabDeleteGRG'
 ], function (
   dojoDeclare,
   dojoTopic,
+  aspect,
+  registry,
   dijitWidgetsInTemplate,
   jimuBaseWidget,
   JimuTabContainer3,
-  TabCreateGRG,
+  TabCreateAreaGRG,
+  TabCreatePointGRG,
   TabDeleteGRG
 ) {
   'use strict';
@@ -40,7 +46,7 @@ define([
      **/
     postCreate: function () {
 
-      this.createGRGTab = new TabCreateGRG({
+      this.createAreaGRGTab = new TabCreateAreaGRG({
         map: this.map,
         canavasAreaFillSymbol: {
           type: 'esriSFS',
@@ -65,7 +71,36 @@ define([
           }
         }
         },
-        this.createTabNode
+        this.createTabAreaNode
+      );
+      
+      this.createPointGRGTab = new TabCreatePointGRG({
+        map: this.map,
+        pointSymbol: {
+          'color': [255, 0, 0, 255],
+          'size': 8,
+          'type': 'esriSMS',
+          'style': 'esriSMSCircle',
+          'outline': {
+              'color': [255, 0, 0, 255],
+              'width': 1,
+              'type': 'esriSLS',
+              'style': 'esriSLSSolid'
+          }
+        },
+        cellAreaFillSymbol: {
+          type: 'esriSFS',
+          style: 'esriSFSNull',
+          color: [0,255,0,0],
+          outline: {
+            color: [0, 255, 0, 255],
+            width: 1.25,
+            type: 'esriSLS',
+            style: 'esriSLSSolid'
+          }
+        }
+        },
+        this.createTabPointNode
       );
 
       this.removeGRGTab = new TabDeleteGRG({
@@ -77,15 +112,25 @@ define([
       this.tab = new JimuTabContainer3({
         tabs: [
           {
-            title: 'Create GRG',
-            content: this.createGRGTab
+            title: 'By Area',
+            content: this.createAreaGRGTab
           },
           {
-            title: 'Remove GRG',
+            title: 'By Point',
+            content: this.createPointGRGTab
+          },
+          {
+            title: 'Remove',
             content: this.removeGRGTab
           }
         ]
       }, this.tabContainer);
+      
+      var tabContainer1 = registry.byId('tabContainer');
+    
+      aspect.after(tabContainer1, "selectTab", function() {
+          dojoTopic.publish('TAB_SWITCHED');        
+      });
     },
 
     onClose: function () {

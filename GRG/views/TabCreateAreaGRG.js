@@ -37,7 +37,7 @@ define([
     'esri/tasks/query',
     'esri/tasks/QueryTask',
     'esri/tasks/FeatureSet',
-    'dojo/text!./templates/TabCreateGRG.html'
+    'dojo/text!../templates/TabCreateAreaGRG.html'
 ], function (
     dojo,
     dojoDeclare,
@@ -72,16 +72,16 @@ define([
         },
 
         postCreate: function () {
-          this.gpCreate = new Geoprocessor("https://hgis-ags10-4-1.gigzy.local/ags/rest/services/CreateAreaGRG/GPServer/Create%20Area%20GRG");
+          this.gpCreateAreaGRG = new Geoprocessor("https://hgis-ags10-4-1.gigzy.local/ags/rest/services/CreateAreaGRG/GPServer/Create%20Area%20GRG");
          
           // create graphics layer for grid extent and add to map
-          this._graphicsLayerGRG = new GraphicsLayer();
+          this._graphicsLayerGRGExtent = new GraphicsLayer();
           this._extentSym = new SimpleFillSymbol(this.canavasAreaFillSymbol);
           
-          this._cellAreaLayer = new GraphicsLayer();
+          this._graphicsLayerCellSize = new GraphicsLayer();
           this._cellSym = new SimpleFillSymbol(this.cellAreaFillSymbol);
           
-          this.map.addLayers([this._graphicsLayerGRG,this._cellAreaLayer]);
+          this.map.addLayers([this._graphicsLayerGRGExtent,this._graphicsLayerCellSize]);
 
           // add draw toolbar
           this.dt = new Draw(this.map);
@@ -102,17 +102,18 @@ define([
           
           dojoTopic.subscribe('DD_WIDGET_OPEN', dojoLang.hitch(this, this.setGraphicsShown));
           dojoTopic.subscribe('DD_WIDGET_CLOSE', dojoLang.hitch(this, this.setGraphicsHidden));
-
+          dojoTopic.subscribe('TAB_SWITCHED', dojoLang.hitch(this, this.tabSwitched));
+          
           this.own(
             this.dt.on(
               'draw-complete',
-              dojoLang.hitch(this, this.drawComplete)
+              dojoLang.hitch(this, this.drawCanvasComplete)
           ));
           
           this.own(
             this.dtCell.on(
               'draw-complete',
-              dojoLang.hitch(this, this.drawCellComplete)
+              dojoLang.hitch(this, this.drawPointAreaComplete)
           ));
 
           this.own(dojoOn(
@@ -145,7 +146,7 @@ define([
         },
 
         extentButtonClicked: function () {
-          this._graphicsLayerGRG.clear();
+          this._graphicsLayerGRGExtent.clear();
           this.map.disableMapNavigation();
           this.dtCell.deactivate();
           html.removeClass(this.addCellAreaBtn, 'jimu-state-active');
@@ -154,8 +155,8 @@ define([
         },
         
         rotateButtonClicked: function () {
-          if (this._cellAreaLayer.graphics[0]) {
-            this.editToolbar.activate(Edit.ROTATE,this._cellAreaLayer.graphics[0])
+          if (this._graphicsLayerCellSize.graphics[0]) {
+            this.editToolbar.activate(Edit.ROTATE,this._graphicsLayerCellSize.graphics[0])
           }
           else{
             var alertMessage = new Message({
@@ -170,11 +171,11 @@ define([
           html.addClass(this.deleteCellBtn, 'jimu-state-hidden');
           this.cellWidth.setAttribute('disabled',false);
           this.cellHeight.setAttribute('disabled',false);
-          this._cellAreaLayer.clear();          
+          this._graphicsLayerCellSize.clear();          
         },        
         
         cellAreaButtonClicked: function () {
-          this._cellAreaLayer.clear();
+          this._graphicsLayerCellSize.clear();
           this.map.disableMapNavigation();
           this.dt.deactivate();
           html.removeClass(this.addCanvasAreaBtn, 'jimu-state-active');
@@ -182,18 +183,18 @@ define([
           html.addClass(this.addCellAreaBtn, 'jimu-state-active');
         },
 
-        drawComplete: function (evt) {          
+        drawCanvasComplete: function (evt) {          
           var graphic = new Graphic(evt.geometry, this._extentSym);
-          this._graphicsLayerGRG.add(graphic);
-          this.canvasArea.value = evt.geometry.xmin + " " + evt.geometry.ymin + " " + evt.geometry.xmax + " " + evt.geometry.ymax;
+          this._graphicsLayerGRGExtent.add(graphic);
+          this.canvasArea.value = parseInt(evt.geometry.xmin) + " " + parseInt(evt.geometry.ymin) + " " + parseInt(evt.geometry.xmax) + " " + parseInt(evt.geometry.ymax);
           this.map.enableMapNavigation();
           this.dt.deactivate();
           html.removeClass(this.addCanvasAreaBtn, 'jimu-state-active');
         },
         
-        drawCellComplete: function (evt) {          
+        drawPointAreaComplete: function (evt) {          
           var graphic = new Graphic(evt.geometry, this._cellSym);
-          this._cellAreaLayer.add(graphic);
+          this._graphicsLayerCellSize.add(graphic);
           this.cellWidth.setValue(parseInt(evt.geometry.getExtent().xmax - evt.geometry.getExtent().xmin));
           this.cellHeight.setValue(parseInt(evt.geometry.getExtent().ymax - evt.geometry.getExtent().ymin));
           this.cellWidth.setAttribute('disabled',true);
@@ -240,9 +241,9 @@ define([
           else
           {
             // Do the post  
-            if (this.cellWidth.disabled == true && this._cellAreaLayer.graphics[0]) {
+            if (this.cellWidth.disabled == true && this._graphicsLayerCellSize.graphics[0]) {
               var features = [];
-              features.push(this._cellAreaLayer.graphics[0]);
+              features.push(this._graphicsLayerCellSize.graphics[0]);
               var featureSet = new FeatureSet();
               featureSet.features = features;
               
@@ -268,7 +269,7 @@ define([
               };              
             }
             this.map.setMapCursor("wait");
-            this.gpCreate.submitJob(params, dojoLang.hitch(this,this.gpComplete));            
+            this.gpCreateAreaGRG.submitJob(params, dojoLang.hitch(this,this.gpComplete));            
           }
         },
         
@@ -276,11 +277,11 @@ define([
           var a = dijit.byId('grgName');
           a.addOption([{value: this.addGRGName.value, label: this.addGRGName.value}]);
           
-          if (this._graphicsLayerGRG) {
-            this._graphicsLayerGRG.clear();
+          if (this._graphicsLayerGRGExtent) {
+            this._graphicsLayerGRGExtent.clear();
           }
-          if (this._cellAreaLayer) {
-            this._cellAreaLayer.clear();
+          if (this._graphicsLayerCellSize) {
+            this._graphicsLayerCellSize.clear();
           }
           
           //refresh each of the feature layers to up date grids after creation
@@ -294,20 +295,29 @@ define([
         },
         
         setGraphicsHidden: function () {
-          if (this._graphicsLayerGRG) {
-            this._graphicsLayerGRG.hide();
+          if (this._graphicsLayerGRGExtent) {
+            this._graphicsLayerGRGExtent.hide();
           }
-          if (this._cellAreaLayer) {
-            this._cellAreaLayer.hide();
+          if (this._graphicsLayerCellSize) {
+            this._graphicsLayerCellSize.hide();
           }
         },
         
         setGraphicsShown: function () {
-          if (this._graphicsLayerGRG) {
-            this._graphicsLayerGRG.show();
+          if (this._graphicsLayerGRGExtent) {
+            this._graphicsLayerGRGExtent.show();
           }
-          if (this._cellAreaLayer) {
-            this._cellAreaLayer.show();
+          if (this._graphicsLayerCellSize) {
+            this._graphicsLayerCellSize.show();
+          }
+        },
+        
+        tabSwitched: function () {
+          if (this._graphicsLayerGRGExtent) {
+            this._graphicsLayerGRGExtent.clear();
+          }
+          if (this._graphicsLayerCellSize) {
+            this._graphicsLayerCellSize.clear();
           }
         }
     });

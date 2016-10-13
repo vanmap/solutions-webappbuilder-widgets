@@ -15,6 +15,18 @@
     height: 32px;
 }
 
+.jimu-widget-GRG .dijitNumberTextBoxHalfLeft {
+    width: 100px !Important;
+    height: 32px;
+    margin-right: 9px;
+}
+
+.jimu-widget-GRG .dijitNumberTextBoxHalfRight {
+    width: 100px !Important;
+    height: 32px;
+    margin-left: 9px;
+}
+
 .jimu-widget-GRG .dijitNumberTextBox {
     width: 225px;
     height: 32px;

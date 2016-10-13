@@ -112,11 +112,11 @@ define([
       this.tab = new JimuTabContainer3({
         tabs: [
           {
-            title: 'By Area',
+            title: 'Area',
             content: this.createAreaGRGTab
           },
           {
-            title: 'By Point',
+            title: 'Point',
             content: this.createPointGRGTab
           },
           {

@@ -207,8 +207,8 @@ define([
           html.removeClass(this.deleteCellBtn, 'jimu-state-hidden');
         },
         
-        createGRG: function () {
-                 
+        createGRG: function () {                 
+          //check form inouts for validity
           if ( this.addGRGName.isValid() && this.cellWidth.isValid() && this.cellHeight.isValid() && this.canvasArea.value != "") {
             // Check if grid of same name exists
             var queryTask = new QueryTask("https://hgis-ags10-4-1.gigzy.local/ags/rest/services/GRG_Layer/FeatureServer/0");
@@ -241,24 +241,7 @@ define([
           else
           {
             // Do the post  
-            if (this.cellWidth.disabled == true && this._graphicsLayerCellSize.graphics[0]) {
-              var features = [];
-              features.push(this._graphicsLayerCellSize.graphics[0]);
-              var featureSet = new FeatureSet();
-              featureSet.features = features;
-              
-              var params = { 
-                "GRG_Name": this.addGRGName.value, 
-                "Canvas_Area": this.canvasArea.value,
-                "Cell_Width": 0,
-                "Cell_Height": 0,
-                "Cell_Units": this.cellUnits.value,
-                "Draw_Cell": featureSet,
-                "Labeling_Start_Position": this.labelStartPosition.value,
-                "Labeling_Style": this.labelStyle.value
-              };
-            } else {            
-              var params = { 
+            var params = { 
                 "GRG_Name": this.addGRGName.value, 
                 "Canvas_Area": this.canvasArea.value,
                 "Cell_Width": this.cellWidth.value,
@@ -266,7 +249,18 @@ define([
                 "Cell_Units": this.cellUnits.value,
                 "Labeling_Start_Position": this.labelStartPosition.value,
                 "Labeling_Style": this.labelStyle.value
-              };              
+              };
+            
+            if (this.cellWidth.disabled == true && this._graphicsLayerCellSize.graphics[0]) {
+              //if user has drawn grid size add to params
+              var features = [];
+              features.push(this._graphicsLayerCellSize.graphics[0]);
+              var featureSet = new FeatureSet();
+              featureSet.features = features;
+              
+              params.Draw_Cell = featureSet;
+              params.Cell_Width = 0;
+              params.Cell_Height = 0;
             }
             this.map.setMapCursor("wait");
             this.gpCreateAreaGRG.submitJob(params, dojoLang.hitch(this,this.gpComplete));            
@@ -274,23 +268,19 @@ define([
         },
         
         gpComplete: function () {          
-          var a = dijit.byId('grgName');
-          a.addOption([{value: this.addGRGName.value, label: this.addGRGName.value}]);
-          
-          if (this._graphicsLayerGRGExtent) {
-            this._graphicsLayerGRGExtent.clear();
-          }
-          if (this._graphicsLayerCellSize) {
-            this._graphicsLayerCellSize.clear();
-          }
+          //clear user drawn graphics using existing function          
+          this.tabSwitched();
           
           //refresh each of the feature layers to up date grids after creation
           for(var j = 0; j < this.map.graphicsLayerIds.length; j++) {
             this.map.getLayer(this.map.graphicsLayerIds[j]).refresh();
           }
           
+          //reset form value and mouse cursor
           this.canvasArea.value = "";
           this.map.setMapCursor("default");
+          
+          //reset the draw grid size buttons
           this.deleteCellButtonClicked();      
         },
         

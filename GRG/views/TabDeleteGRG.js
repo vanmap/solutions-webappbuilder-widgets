@@ -60,26 +60,16 @@ define([
           ));
           
           this.syncEvents();
-          
-          this.updateGridList();
         },
 
         syncEvents: function () {
           dojoTopic.subscribe('DD_WIDGET_OPEN', dojoLang.hitch(this, this.setGraphicsShown));
           dojoTopic.subscribe('DD_WIDGET_CLOSE', dojoLang.hitch(this, this.setGraphicsHidden));
-        },
-       
-        updateGridList: function () {          
-          var queryTask = new QueryTask("https://hgis-ags10-4-1.gigzy.local/ags/rest/services/GRG_Layer/FeatureServer/0");
-          var query = new Query();
-          query.returnGeometry = false;
-          query.outFields = ["grg_name"];
-          query.where = "1=1";
-          query.returnDistinctValues = true;
-          queryTask.execute(query,dojoLang.hitch(this,this.processResults));
-        },
-        
+          dojoTopic.subscribe('TAB_SWITCHED', dojoLang.hitch(this, this.tabSwitched));
+        },     
+
         processResults: function (results) {
+          this.grgName.removeOption(this.grgName.getOptions());
           array.forEach(results.features, dojoLang.hitch(this, function (feature) {            
             this.grgName.addOption([{value: feature.attributes.grg_name, label: feature.attributes.grg_name}]);
           }));
@@ -117,6 +107,16 @@ define([
           if (this._grahicsLayerGRG) {
             this._grahicsLayerGRG.show();
           }
+        },
+        
+        tabSwitched: function () {
+          var queryTask = new QueryTask("https://hgis-ags10-4-1.gigzy.local/ags/rest/services/GRG_Layer/FeatureServer/0");
+          var query = new Query();
+          query.returnGeometry = false;
+          query.outFields = ["grg_name"];
+          query.where = "1=1";
+          query.returnDistinctValues = true;
+          queryTask.execute(query,dojoLang.hitch(this,this.processResults));
         }
     });
 });

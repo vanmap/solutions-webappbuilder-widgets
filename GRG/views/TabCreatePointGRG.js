@@ -242,71 +242,54 @@ define([
           }
           else
           {
-            // Do the post  
-            if (this.pointCellWidth.disabled == true && this._graphicsLayerGridSize.graphics[0] && this._graphicsLayerPointOfOrigin.graphics[0]) {              
-              var pointOfOrigin = [];
-              pointOfOrigin.push(this._graphicsLayerPointOfOrigin.graphics[0]);
-              var pointOfOriginFeatureSet = new FeatureSet();
-              pointOfOriginFeatureSet.features = pointOfOrigin;
-              
-              
+            // Do the post
+            var pointOfOrigin = [];
+            pointOfOrigin.push(this._graphicsLayerPointOfOrigin.graphics[0]);
+            var pointOfOriginFeatureSet = new FeatureSet();
+            pointOfOriginFeatureSet.features = pointOfOrigin;
+            
+            var params = { 
+              "GRG_Name": this.addPointGRGName.value,
+              "Target_Point_of_Origin": pointOfOriginFeatureSet,
+              "Number_of_Horizontal_Cells": this.pointCellHorizontal.value,
+              "Number_of_Vertical_Cells": this.pointCellVertical.value,
+              "Cell_Width": this.pointCellWidth.value,
+              "Cell_Height": this.pointCellHeight.value,
+              "Cell_Units": this.pointCellUnits.value,
+              "Labeling_Start_Position": this.pointLabelStartPosition.value,
+              "Labeling_Style": this.pointLabelStyle.value
+            };
+            
+            if (this.pointCellWidth.disabled == true && this._graphicsLayerGridSize.graphics[0] && this._graphicsLayerPointOfOrigin.graphics[0]) {           
+              //if user has drawn grid size add to params
               var Canvas_Area = [];
               Canvas_Area.push(this._graphicsLayerGridSize.graphics[0]);
               var canvasAreaFeatureSet = new FeatureSet();
               canvasAreaFeatureSet.features = Canvas_Area;
               
-              var params = { 
-                "GRG_Name": this.addPointGRGName.value,
-                "Target_Point_of_Origin": pointOfOriginFeatureSet,
-                "Number_of_Horizontal_Cells": this.pointCellHorizontal.value,
-                "Number_of_Vertical_Cells": this.pointCellVertical.value,
-                "Cell_Width": 0,
-                "Cell_Height": 0,
-                "Cell_Units": this.pointCellUnits.value,
-                "Grid_Size": canvasAreaFeatureSet,
-                "Labeling_Start_Position": this.pointLabelStartPosition.value,
-                "Labeling_Style": this.pointLabelStyle.value
-              };
-            } else {
-              var pointOfOrigin = [];
-              pointOfOrigin.push(this._graphicsLayerPointOfOrigin.graphics[0]);
-              var pointOfOriginFeatureSet = new FeatureSet();
-              pointOfOriginFeatureSet.features = pointOfOrigin;
-              var params = { 
-                "GRG_Name": this.addPointGRGName.value,
-                "Target_Point_of_Origin": pointOfOriginFeatureSet,
-                "Number_of_Horizontal_Cells": this.pointCellHorizontal.value,
-                "Number_of_Vertical_Cells": this.pointCellVertical.value,
-                "Cell_Width": this.pointCellWidth.value,
-                "Cell_Height": this.pointCellHeight.value,
-                "Cell_Units": this.pointCellUnits.value,
-                "Labeling_Start_Position": this.pointLabelStartPosition.value,
-                "Labeling_Style": this.pointLabelStyle.value
-              };              
+              params.Grid_Size = canvasAreaFeatureSet;
+              params.Cell_Width = 0;
+              params.Cell_Height = 0;
             }
             this.map.setMapCursor("wait");
             this.gpCreatePointGRG.submitJob(params, dojoLang.hitch(this,this.gpComplete));            
           }
         },
         
-        gpComplete: function () {          
-          var a = dijit.byId('grgName');
-          a.addOption([{value: this.addPointGRGName.value, label: this.addPointGRGName.value}]);
-          
-          if (this._graphicsLayerPointOfOrigin) {
-            this._graphicsLayerPointOfOrigin.clear();
-          }
-          if (this._graphicsLayerGridSize) {
-            this._graphicsLayerGridSize.clear();
-          }
+        gpComplete: function () {
+          //clear user drawn graphics using existing function          
+          this.tabSwitched();
           
           //refresh each of the feature layers to up date grids after creation
           for(var j = 0; j < this.map.graphicsLayerIds.length; j++) {
             this.map.getLayer(this.map.graphicsLayerIds[j]).refresh();
           }
           
+          //reset form value and mouse cursor
           this.pointCanvasArea.value = "";
           this.map.setMapCursor("default");
+          
+          //reset the draw grid size buttons
           this.deleteCellButtonClicked();      
         },
         

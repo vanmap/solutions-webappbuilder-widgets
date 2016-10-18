@@ -15,142 +15,63 @@
 ///////////////////////////////////////////////////////////////////////////
 
 define([
-  'dojo/_base/declare',
-  'jimu/BaseWidgetSetting',
-  'dojo/_base/lang',
-  'dojo/_base/array',
-  'dijit/_WidgetsInTemplateMixin',
-  'dojo/_base/Color',
-  'dojo/dom-geometry',
-  'dijit/form/HorizontalSlider',
-  'dijit/ColorPalette',
-  'dijit/form/NumberSpinner',
-  'jimu/dijit/ColorPicker'
+    'dojo/_base/declare',
+    'jimu/BaseWidgetSetting',
+    'dijit/_WidgetsInTemplateMixin',
+    'dijit/form/ValidationTextBox'
 ],
-  function(
-    declare,
-    BaseWidgetSetting,
-    lang,
-    array,
-    _WidgetsInTemplateMixin,
-    Color,
-    domGeometry
-    ) {
+    function (declare, BaseWidgetSetting, _WidgetsInTemplateMixin) {
+        return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
 
-    return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
-      baseClass: 'distance-and-direction-setting',      
+            baseClass: 'jimu-widget-setting-grg',
 
-      postCreate: function(){
-        this.setConfig(this.config);
+            startup: function () {
+                this.inherited(arguments);
+                if (!this.config.createAreaGRGService) {
+                    this.config.createAreaGRGService = {
+                      url: {}
+                    };
+                }
+                if (!this.config.createPointGRGService) {
+                    this.config.createPointGRGService = {
+                      url: {}
+                    };
+                }
+                if (!this.config.deleteGRGService) {
+                    this.config.deleteGRGService = {
+                      url: {}
+                    };
+                }
+                if (!this.config.gridFeatureService) {
+                    this.config.gridFeatureService = {
+                      url: {}
+                    };
+                }                                                
+                this.setConfig(this.config);
+            },
 
-        this.lineColorPicker.onChange = lang.hitch(this, function(val) {
-          this.setColorText(this.lineColorPicker.domNode, val); 
-        });
-        this.circleColorPicker.onChange = lang.hitch(this, function(val) {
-          this.setColorText(this.circleColorPicker.domNode, val); 
-        });
-        this.ellipseColorPicker.onChange = lang.hitch(this, function(val) {
-          this.setColorText(this.ellipseColorPicker.domNode, val); 
-        });
-        this.rangeRingColorPicker.onChange = lang.hitch(this, function(val) {
-          this.setColorText(this.rangeRingColorPicker.domNode, val); 
-        });
-      },
+            setConfig: function (config) {
+                this.config = config;
+                if (config.createAreaGRGService.url !== undefined) {
+                    this.createAreaServiceUrl.set('value', config.createAreaGRGService.url);
+                }
+                if (config.createPointGRGService.url !== undefined) {
+                    this.createPointServiceUrl.set('value', config.createPointGRGService.url);
+                }
+                if (config.deleteGRGService.url !== undefined) {
+                    this.deleteServiceUrl.set('value', config.deleteGRGService.url);
+                }
+                if (config.gridFeatureService.url !== undefined) {
+                    this.gridAreaServiceUrl.set('value', config.gridFeatureService.url);
+                }                                                
+            },
 
-      setConfig: function(config){
-        var controls = [{
-            colorPicker: this.lineColorPicker,
-            numberCtrl: this.lineSize,
-            color: config.feedback.lineSymbol.color,
-            width: config.feedback.lineSymbol.width
-          }, {
-            colorPicker: this.circleColorPicker,
-            numberCtrl: this.circleSize,
-            color: config.feedback.circleSymbol.outline.color,
-            width: config.feedback.circleSymbol.outline.width
-          }, {
-            colorPicker: this.ellipseColorPicker,
-            numberCtrl: this.ellipseSize,
-            color: config.feedback.ellipseSymbol.outline.color,
-            width: config.feedback.ellipseSymbol.outline.width
-          }, {
-            colorPicker: this.rangeRingColorPicker,
-            numberCtrl: this.rangeRingSize,
-            color: config.feedback.rangeRingSymbol.outline.color,
-            width: config.feedback.rangeRingSymbol.outline.width            
-          }
-        ];        
-        array.forEach(controls, lang.hitch(this, function (control) {
-          this.setColorPickerAttr(control.colorPicker, control.color);
-          this.setNumberAttr(control.numberCtrl, control.width);
-        }));
-      },
-
-      getConfig: function(){
-
-        this.config.feedback = {
-          lineSymbol: {
-            type: "esriSLS",
-            style: "esriSLSSolid",
-            color: this.lineColorPicker.get("color"), 
-            width: this.lineSize.get("value"),            
-          },
-          circleSymbol: {
-            type: "esriSFS",
-            style: "esriSFSNull",
-            color: [255,0,0,0],
-            outline: {
-              color: this.circleColorPicker.get("color"), 
-              width: this.circleSize.get("value"),
-              type: "esriSLS",
-              style: "esriSLSSolid"
+            getConfig: function () {
+                this.config.createAreaGRGService.url = this.createAreaServiceUrl.get('value');
+                this.config.createPointGRGService.url = this.createPointServiceUrl.get('value');
+                this.config.deleteGRGService.url = this.deleteServiceUrl.get('value');
+                this.config.gridFeatureService.url = this.gridAreaServiceUrl.get('value');                                                
+                return this.config;
             }
-          },
-          ellipseSymbol: {
-            type: "esriSFS",
-            style: "esriSFSNull",
-            color: [255,0,0,0],
-            outline: {
-              color: this.ellipseColorPicker.get("color"), 
-              width: this.ellipseSize.get("value"),
-              type: "esriSLS",
-              style: "esriSLSSolid"
-            }
-          },
-          rangeRingSymbol: {
-            type: "esriSFS",
-            style: "esriSFSNull",
-            color: [255,0,0,0],
-            outline: {
-              color: this.rangeRingColorPicker.get("color"), 
-              width: this.rangeRingSize.get("value"),
-              type: "esriSLS",
-              style: "esriSLSSolid"
-            }
-          }
-        };      
-
-        return this.config;
-      },
-
-      setColorPickerAttr: function(ctrl, color) {
-        this.setColorText(ctrl.domNode, color);
-        ctrl.setColor(new Color(color));
-      },
-
-      setNumberAttr: function(ctrl, val) {
-        ctrl.set("value", val);
-      },
-
-      setColorText: function(domNode, color) {
-        if (!(color instanceof Color)) {
-          color = new Color(color);
-        }
-        var text = color.toHex();
-        var textColor = (0.2126*color.r + 0.7152*color.g + 0.0722*color.b) > 128 ? new Color([0,0,0]) : new Color([255,255,255]);
-        var height = domGeometry.position(domNode).h === 0 ? "36px" :  domGeometry.position(domNode).h + 'px';
-        var style = 'width:100%;text-align:center;vertical-align:middle;line-height:' + height + ';color:' + textColor + ';';
-        domNode.innerHTML = "<div style='" + style + "'>" + text +"</div>";
-      }     
+        });
     });
-  });

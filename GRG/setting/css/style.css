@@ -1,54 +1,27 @@
-.distance-and-direction-setting {
-  margin-left: 0px;
+.jimu-widget-setting-grg {
+    margin:0;
+    padding:0;
+    font-size:15px;
 }
 
-.distance-and-direction-setting-h3 {
+.jimu-widget-setting-grg-h3 {
     color: #596679;
 }
 
-.distance-and-direction-setting-style table {
-    color: #333333;
-    width: 100%;
-    border-collapse: collapse;
+.jimu-widget-setting-grg .setting-table > thead > tr > th,
+.jimu-widget-setting-grg .setting-table > tbody > tr > td{
+    height:40px;
+    line-height:40px;
+    vertical-align:middle;
 }
 
-.distance-and-direction-setting-style th {
-    background-color: #518dca;
-    padding: 8px;
-    text-align: left;
-    color: #ffffff;
+.jimu-widget-setting-grg .input-table > tbody > tr > .first{
+    width:auto;
+    text-align: right;
+    padding-right:15px;
+    min-width: 200px;
 }
 
-.distance-and-direction-setting-style tr {
-    background-color: #ffffff;
-}
-
-.distance-and-direction-setting-style td {
-    padding: 8px;
-}
-
-.settings-section tr {
-    vertical-align: top;
-}
-
-.distance-and-direction-setting-line-size {
-    width: 70px;
-}
-
-.distance-and-direction-setting-color-picker {
-    width: 70px;
-}
-
-.distance-and-direction-setting-interval-width {
-    border-color: #000;
-    border-style: hidden solid solid solid;
-    border-width: 1px;
-    height: 10px;
-    margin: auto;
-}
-
-.distance-and-direction-setting-style-map {
-    width: 500px;
-    height: 550px;
-    float: left;
+.jimu-widget-setting-grg .input-table > tbody > tr > .second{
+    width:650px;
 }

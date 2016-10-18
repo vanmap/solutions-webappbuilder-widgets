@@ -74,7 +74,7 @@ define([
         },
 
         postCreate: function () {
-          this.gpCreatePointGRG = new Geoprocessor("https://hgis-ags10-4-1.gigzy.local/ags/rest/services/CreatePointGRG/GPServer/Create%20Point%20GRG");
+          this.gpCreatePointGRG = new Geoprocessor(this.createPointGRGService);
          
           // create graphics layer for grid extent and add to map
           this._graphicsLayerPointOfOrigin = new GraphicsLayer();
@@ -213,7 +213,7 @@ define([
                  
           if ( this.addPointGRGName.isValid() && this.pointCellHorizontal.isValid() && this.pointCellVertical.isValid() && this.pointCellWidth.isValid() && this.pointCellHeight.isValid() && this.pointCanvasArea.value != "") {
             // Check if grid of same name exists
-            var queryTask = new QueryTask("https://hgis-ags10-4-1.gigzy.local/ags/rest/services/GRG_Layer/FeatureServer/0");
+            var queryTask = new QueryTask(this.gridFeatureService);
             var query = new Query();
             query.returnGeometry = false;
             query.outFields = ["grg_name"];

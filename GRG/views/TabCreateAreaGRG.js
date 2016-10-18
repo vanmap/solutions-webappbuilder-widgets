@@ -72,7 +72,7 @@ define([
         },
 
         postCreate: function () {
-          this.gpCreateAreaGRG = new Geoprocessor("https://hgis-ags10-4-1.gigzy.local/ags/rest/services/CreateAreaGRG/GPServer/Create%20Area%20GRG");
+          this.gpCreateAreaGRG = new Geoprocessor(this.createAreaGRGService);
          
           // create graphics layer for grid extent and add to map
           this._graphicsLayerGRGExtent = new GraphicsLayer();
@@ -211,7 +211,7 @@ define([
           //check form inouts for validity
           if ( this.addGRGName.isValid() && this.cellWidth.isValid() && this.cellHeight.isValid() && this.canvasArea.value != "") {
             // Check if grid of same name exists
-            var queryTask = new QueryTask("https://hgis-ags10-4-1.gigzy.local/ags/rest/services/GRG_Layer/FeatureServer/0");
+            var queryTask = new QueryTask(this.gridFeatureService);
             var query = new Query();
             query.returnGeometry = false;
             query.outFields = ["grg_name"];

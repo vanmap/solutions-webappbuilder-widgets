@@ -52,7 +52,7 @@ define([
         },
 
         postCreate: function () {       
-          this.gpDelete = new Geoprocessor("https://hgis-ags10-4-1.gigzy.local/ags/rest/services/DeleteGRG/GPServer/Delete%20GRG");
+          this.gpDelete = new Geoprocessor(this.deleteGRGService);
           
           this.own(dojoOn(
             this.deleteGRGButton, 
@@ -110,7 +110,7 @@ define([
         },
         
         tabSwitched: function () {
-          var queryTask = new QueryTask("https://hgis-ags10-4-1.gigzy.local/ags/rest/services/GRG_Layer/FeatureServer/0");
+          var queryTask = new QueryTask(this.gridFeatureService);
           var query = new Query();
           query.returnGeometry = false;
           query.outFields = ["grg_name"];

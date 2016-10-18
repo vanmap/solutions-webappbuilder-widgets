@@ -20,6 +20,7 @@ define([
   'dojo/aspect',
   'dijit/registry',
   'dijit/_WidgetsInTemplateMixin',
+  'esri/config',
   'jimu/BaseWidget',
   'jimu/dijit/TabContainer3',
   './views/TabCreateAreaGRG',
@@ -31,6 +32,7 @@ define([
   aspect,
   registry,
   dijitWidgetsInTemplate,
+  config,
   jimuBaseWidget,
   JimuTabContainer3,
   TabCreateAreaGRG,
@@ -45,9 +47,10 @@ define([
      *
      **/
     postCreate: function () {
-
       this.createAreaGRGTab = new TabCreateAreaGRG({
         map: this.map,
+        createAreaGRGService: this.config.createAreaGRGService.url,
+        gridFeatureService: this.config.gridFeatureService.url,
         canavasAreaFillSymbol: {
           type: 'esriSFS',
           style: 'esriSFSNull',
@@ -76,6 +79,8 @@ define([
       
       this.createPointGRGTab = new TabCreatePointGRG({
         map: this.map,
+        createPointGRGService: this.config.createPointGRGService.url,
+        gridFeatureService: this.config.gridFeatureService.url,
         pointSymbol: {
           'color': [255, 0, 0, 255],
           'size': 8,
@@ -104,7 +109,9 @@ define([
       );
 
       this.removeGRGTab = new TabDeleteGRG({
-        map: this.map
+        map: this.map,
+        deleteGRGService: this.config.deleteGRGService.url,
+        gridFeatureService: this.config.gridFeatureService.url,        
         },
         this.deleteTabNode
       );

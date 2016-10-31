@@ -1,21 +1,18 @@
 <div class="tabPanel" data-dojo-attach-point="createContainer">
   
   <div class="controls">
-
-    <div class="controlGroup">
-      <label>GRG Name</label>
+  
+    <div class="controlGroup" data-dojo-attach-point="addGRGPoint">      
       <div class="controlItem">
-        <input id="addPointGRGName" class="jimu-input textInput" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="addPointGRGName" 
-           data-dojo-props='missingMessage:"You must enter a name for the GRG."' required="true"></input>
+        <div class="addExtentBtn" data-dojo-attach-point="addGRGPointBtn"></div>
+        <label class="paddedTop">Use the draw tool to specify the GRG center</label>
       </div>
     </div>
     
-    <div class="controlGroup">
-      <label>Center Point</label>
+    <div class="controlGroupHidden" data-dojo-attach-point="deleteGRGPoint">
       <div class="controlItem">
-        <input class="jimu-input textInput" data-dojo-attach-point="pointCanvasArea" disabled >
-        </input>
-        <div class="addExtentBtn" data-dojo-attach-point="addPointAreaBtn"></div>
+        <div class="deleteBtn" data-dojo-attach-point="deleteGRGPointBtn"></div>
+        <label class="paddedTop">Remove GRG Point</label>
       </div>
     </div>
     
@@ -31,25 +28,29 @@
           rangeMessage:"Value must be greater than 0."' data-dojo-attach-point="pointCellVertical" value="5"></input>
       </div>
     </div>
-
+    
+    <div class="controlGroup">
+      <label>Grid Angle</label>
+      <div class="controlItem">
+        <input data-dojo-type="dijit/form/NumberSpinner" data-dojo-attach-point="gridAnglePoint" value="0" data-dojo-props="intermediateChanges:true, smallDelta:1, constraints:{min:-89,max:89,places:0}"/>
+      </div>
+    </div>
+    
     <div class="controlGroup">
       <label>Cell Width</label>
       <div class="controlItem">
-        <input class="jimu-input dijitNumberTextBox" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:1,places:0},
+        <input class="jimu-input dijitNumberTextBox" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:0,pattern: "#0.##############"},
           invalidMessage:"The value entered is not valid.",
-          rangeMessage:"Value must be greater than 0."' data-dojo-attach-point="pointCellWidth" value="1000" ></input>
-        <div class="addExtentBtn" data-dojo-attach-point="addCellPointBtn"></div>
-        <div class="rotateBtn jimu-state-hidden" data-dojo-attach-point="pointRotateCellBtn"></div>
-        <div class="deleteBtn jimu-state-hidden" data-dojo-attach-point="pointDeleteCellBtn"></div>
+          rangeMessage:"Value must be greater than 0."' data-dojo-attach-point="pointCellWidth" value="1000000" ></input>
       </div>
     </div>  
     
     <div class="controlGroup">
       <label>Cell Height</label>
       <div class="controlItem">
-        <input class="jimu-input dijitNumberTextBox" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:1,places:0},
+        <input class="jimu-input dijitNumberTextBox" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:0,pattern: "#0.##############"},
           invalidMessage:"The value entered is not valid.",
-          rangeMessage:"Value must be greater than 0."' data-dojo-attach-point="pointCellHeight" value="1000"></input>
+          rangeMessage:"Value must be greater than 0."' data-dojo-attach-point="pointCellHeight" value="1000000"></input>
       </div>
     </div>
     
@@ -58,6 +59,8 @@
       <select class="controlSpace" data-dojo-type="dijit/form/Select" data-dojo-attach-point="pointCellUnits" >
           <option selected="selected" value="meters">Meters</option>
           <option value="feet">Feet</option>
+          <option value="kilometers">Kilometers</option>
+          <option value="miles">Miles</option>
       </select>
  
     </div>
@@ -81,6 +84,7 @@
     
     <div class="buttonContainer">
       <div class='jimu-btn' data-dojo-attach-point='createPointGRGButton'>Create GRG</div>
+      <div class='jimu-btn controlGroupHidden' data-dojo-attach-point='saveGRGPointButton'>Save GRG to Portal</div>
     </div>
 
   </div>

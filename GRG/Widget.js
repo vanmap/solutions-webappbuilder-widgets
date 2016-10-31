@@ -19,55 +19,46 @@ define([
   'dojo/topic',
   'dojo/aspect',
   'dijit/registry',
+  'esri/IdentityManager',
+  'esri/arcgis/OAuthInfo',
   'dijit/_WidgetsInTemplateMixin',
-  'esri/config',
   'jimu/BaseWidget',
-  'jimu/dijit/TabContainer3',
+  'jimu/dijit/TabContainer',
   './views/TabCreateAreaGRG',
-  './views/TabCreatePointGRG',
-  './views/TabDeleteGRG'
+  './views/TabCreatePointGRG'
 ], function (
   dojoDeclare,
   dojoTopic,
   aspect,
   registry,
+  esriId,
+  OAuthInfo,
   dijitWidgetsInTemplate,
-  config,
   jimuBaseWidget,
-  JimuTabContainer3,
+  TabContainer,
   TabCreateAreaGRG,
-  TabCreatePointGRG,
-  TabDeleteGRG
+  TabCreatePointGRG
 ) {
   'use strict';
   var clz = dojoDeclare([jimuBaseWidget, dijitWidgetsInTemplate], {
     baseClass: 'jimu-widget-GRG',
-
-    /**
+  /**
      *
      **/
     postCreate: function () {
+      //when widget opens check to see if user is logged in, if not force user to login
+      var info = this.appLogin();
+      
       this.createAreaGRGTab = new TabCreateAreaGRG({
         map: this.map,
-        createAreaGRGService: this.config.createAreaGRGService.url,
-        gridFeatureService: this.config.gridFeatureService.url,
-        canavasAreaFillSymbol: {
+        esriId: esriId,
+        info: info,
+        GRGAreaFillSymbol: {
           type: 'esriSFS',
           style: 'esriSFSNull',
           color: [0,0,255,0],
           outline: {
             color: [0, 0, 255, 255],
-            width: 1.25,
-            type: 'esriSLS',
-            style: 'esriSLSSolid'
-          }
-        },
-        cellAreaFillSymbol: {
-          type: 'esriSFS',
-          style: 'esriSFSNull',
-          color: [0,255,0,0],
-          outline: {
-            color: [0, 255, 0, 255],
             width: 1.25,
             type: 'esriSLS',
             style: 'esriSLSSolid'
@@ -79,8 +70,8 @@ define([
       
       this.createPointGRGTab = new TabCreatePointGRG({
         map: this.map,
-        createPointGRGService: this.config.createPointGRGService.url,
-        gridFeatureService: this.config.gridFeatureService.url,
+        esriId: esriId,
+        info: info,
         pointSymbol: {
           'color': [255, 0, 0, 255],
           'size': 8,
@@ -108,36 +99,51 @@ define([
         this.createTabPointNode
       );
 
-      this.removeGRGTab = new TabDeleteGRG({
-        map: this.map,
-        deleteGRGService: this.config.deleteGRGService.url,
-        gridFeatureService: this.config.gridFeatureService.url,        
-        },
-        this.deleteTabNode
-      );
-
-      this.tab = new JimuTabContainer3({
+      this.tab = new TabContainer({
         tabs: [
           {
-            title: 'Area',
-            content: this.createAreaGRGTab
+            title: 'Create GRG By Area',
+            content: this.createAreaGRGTab,
+                   
           },
           {
-            title: 'Point',
+            title: 'Create GRG By Point',
             content: this.createPointGRGTab
-          },
-          {
-            title: 'Remove',
-            content: this.removeGRGTab
           }
         ]
       }, this.tabContainer);
+     
+      this.tab.selectTab('Create GRG By Area');
       
       var tabContainer1 = registry.byId('tabContainer');
     
       aspect.after(tabContainer1, "selectTab", function() {
           dojoTopic.publish('TAB_SWITCHED');        
       });
+    },
+    
+    appLogin: function () {
+      var info = new OAuthInfo({
+          appId : this.appConfig.appId,
+          portalUrl : this.appConfig.portalUrl,
+          popup : false,
+          popupCallbackUrl: window.location.href
+        });
+      
+      esriId.registerOAuthInfos([info]);
+      esriId.checkSignInStatus(info.portalUrl + "/sharing").then(
+        function () {
+        console.log('logged in');
+      }).otherwise(
+        function (error) {
+        console.log(error);
+        esriId.getCredential(info.portalUrl + "/sharing", {
+          oAuthPopupConfirmation : false
+        }).then(function () {
+          console.log('logged in');
+        });
+      });
+      return info;
     },
 
     onClose: function () {

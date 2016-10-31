@@ -19,47 +19,62 @@ define([
     'dojo',
     'dojo/_base/declare',
     'dojo/_base/lang',
+    'dojo/dom-class',
     'dojo/on',
     'dojo/topic',
-    'dojo/_base/array',
     'dojo/_base/html',
-    'dojo/dom-class',
     'dijit/_WidgetBase',
     'dijit/_TemplatedMixin',
     'dijit/_WidgetsInTemplateMixin',
     'jimu/dijit/Message',
+    'esri/IdentityManager',
+    'esri/config',
+    'esri/arcgis/OAuthInfo',
+    'esri/geometry/geometryEngine',
     'esri/layers/GraphicsLayer',
+    'esri/layers/FeatureLayer',
+    'esri/layers/LabelClass',
+    'esri/request',
     'esri/symbols/SimpleFillSymbol',
+    'esri/symbols/SimpleLineSymbol',
+    'esri/renderers/SimpleRenderer',
+    'esri/dijit/PopupTemplate',
+    'esri/Color',
     'esri/graphic',
     'esri/toolbars/draw',
-    'esri/toolbars/edit',
-    'esri/tasks/Geoprocessor',
-    'esri/tasks/query',
-    'esri/tasks/QueryTask',
-    'esri/tasks/FeatureSet',
-    'dojo/text!../templates/TabCreateAreaGRG.html'
+    'esri/symbols/TextSymbol',
+    './drawGRG',
+    'dojo/text!../templates/TabCreateAreaGRG.html',
+    'dijit/form/NumberSpinner'
 ], function (
     dojo,
     dojoDeclare,
     dojoLang,
+    dojoClass,
     dojoOn,
     dojoTopic,
-    array,
     html,
-    dojoDomClass,
     dijitWidgetBase,    
     dijitTemplatedMixin,
     dijitWidgetsInTemplate,
     Message,
+    esriId,
+    esriConfig,
+    OAuthInfo,
+    geometryEngine,
     GraphicsLayer,
+    FeatureLayer,
+    LabelClass,
+    esriRequest,
     SimpleFillSymbol,
+    SimpleLineSymbol,
+    SimpleRenderer,
+    PopupTemplate,
+    Color,
     Graphic,
     Draw,
-    Edit,
-    Geoprocessor,
-    Query,
-    QueryTask,
-    FeatureSet,
+    TextSymbol,
+    drawGRG,
     templateStr    
 ) {
     'use strict';
@@ -71,31 +86,74 @@ define([
           dojoDeclare.safeMixin(this, args);
         },
 
-        postCreate: function () {
-          this.gpCreateAreaGRG = new Geoprocessor(this.createAreaGRGService);
-         
+        postCreate: function () {       
+          
+          console.log(this.esriId);
+          console.log(this.info);
+          
+          this.angle = 0;
+          this.currentUnit = 'meters';
+          
           // create graphics layer for grid extent and add to map
           this._graphicsLayerGRGExtent = new GraphicsLayer();
-          this._extentSym = new SimpleFillSymbol(this.canavasAreaFillSymbol);
+          this._extentSym = new SimpleFillSymbol(this.GRGAreaFillSymbol);          
+          this.map.addLayers([this._graphicsLayerGRGExtent]);
           
-          this._graphicsLayerCellSize = new GraphicsLayer();
-          this._cellSym = new SimpleFillSymbol(this.cellAreaFillSymbol);
-          
-          this.map.addLayers([this._graphicsLayerGRGExtent,this._graphicsLayerCellSize]);
+          // create a renderer for the grg layer to override default symbology
+          var gridColor = new Color("#000");
+          var gridLine = new SimpleLineSymbol("solid", gridColor, 1.5);
+          var gridSymbol = new SimpleFillSymbol("solid", gridLine, null);
+          var gridRenderer = new SimpleRenderer(gridSymbol);
 
+          var featureCollection = {
+            "layerDefinition": {
+              "geometryType": "esriGeometryPolygon",
+              "objectIdField": "ObjectID",
+              "fields": [{
+                "name": "ObjectID",
+                "alias": "ObjectID",
+                "type": "esriFieldTypeOID"
+                }, {
+                "name": "grid",
+                "alias": "grid",
+                "type": "esriFieldTypeString"
+              }]
+            }
+          };     
+
+          // create a text symbol to define the style of labels
+          var GRGLabel = new TextSymbol().setColor(gridColor);
+          GRGLabel.font.setSize("12pt");
+          GRGLabel.font.setFamily("arial");
+
+          var json = {
+            "labelExpressionInfo": {"value" : "{grid}"}
+          };
+
+          var labelClass = new LabelClass(json);
+
+          labelClass.symbol = GRGLabel;
+          
+          var popupTemplate = new PopupTemplate({
+            title: "{grid}",
+            description: "{grid}"
+          });
+
+          this._featureLayer = new FeatureLayer(featureCollection,{
+            infoTemplate: popupTemplate,
+            showLabels: true,
+            outFields: ["*"]
+          });
+
+          this._featureLayer.setLabelingInfo([labelClass]);
+          this._featureLayer.setRenderer(gridRenderer);
+          
+          this.map.addLayer(this._featureLayer);          
+          
           // add draw toolbar
           this.dt = new Draw(this.map);
-          this.dtCell = new Draw(this.map);
-          
-          // add edit toolbar that will be used for rotating grid 
-          this.editToolbar = new Edit(this.map);
                     
-          this.syncEvents();
-          
-          this.own(dojoOn(
-            this.createGRGButton, 
-            'click', dojoLang.hitch(this, this.createGRG)
-          ));
+          this.syncEvents();                  
         },
         
         syncEvents: function () {
@@ -104,192 +162,186 @@ define([
           dojoTopic.subscribe('DD_WIDGET_CLOSE', dojoLang.hitch(this, this.setGraphicsHidden));
           dojoTopic.subscribe('TAB_SWITCHED', dojoLang.hitch(this, this.tabSwitched));
           
+          this.own(dojoOn(
+            this.createGRGButton,
+            'click',
+            dojoLang.hitch(this, this.createGRG)
+          ));
+          
+          this.own(dojoOn(
+            this.addGRGAreaBtn,
+            'click',
+            dojoLang.hitch(this, this.addGRGAreaButtonClicked)
+          ));
+
+          this.own(dojoOn(
+            this.saveGRGButton,
+            'click',
+            dojoLang.hitch(this, this.saveGRG)
+          ));          
+                    
+          this.own(dojoOn(
+            this.deleteGRGAreaBtn,
+            'click',
+            dojoLang.hitch(this, this.deleteGRGAreaButtonClicked)
+          ));
+          
+          this.own(dojoOn(
+            this.gridAngle, 
+            'change',
+            dojoLang.hitch(this, this.angleChange)
+          ));
+          
+          this.own(dojoOn(
+            this.cellUnits, 
+            'change',
+            dojoLang.hitch(this, this.cellUnitsChange)
+          ));
+          
           this.own(
             this.dt.on(
               'draw-complete',
-              dojoLang.hitch(this, this.drawCanvasComplete)
+              dojoLang.hitch(this, this.drawGRGAreaComplete)
           ));
-          
-          this.own(
-            this.dtCell.on(
-              'draw-complete',
-              dojoLang.hitch(this, this.drawPointAreaComplete)
-          ));
-
-          this.own(dojoOn(
-            this.addCanvasAreaBtn,
-            'click',
-            dojoLang.hitch(this, this.extentButtonClicked)
-          ));
-
-          this.own(dojoOn(
-            this.addCellAreaBtn,
-            'click',
-            dojoLang.hitch(this, this.cellAreaButtonClicked)
-          ));
-          
-          this.own(dojoOn(
-            this.rotateCellBtn,
-            'click',
-            dojoLang.hitch(this, this.rotateButtonClicked)
-          ));
-          
-          this.own(dojoOn(
-            this.deleteCellBtn,
-            'click',
-            dojoLang.hitch(this, this.deleteCellButtonClicked)
-          ));
-          
-          this.editToolbar.on("rotate-stop", dojoLang.hitch(this,function(evt){
-            this.editToolbar.deactivate();
-          }));
         },
-
-        extentButtonClicked: function () {
+        
+        angleChange: function () {          
+          if (this.gridAngle.isValid() && !isNaN(this.gridAngle.value) && this._graphicsLayerGRGExtent.graphics[0]){                        
+            var rotateBy = this.gridAngle.getValue() - this.angle;            
+            var geom = geometryEngine.rotate(this._graphicsLayerGRGExtent.graphics[0].geometry, rotateBy*-1);
+            this._graphicsLayerGRGExtent.clear();
+            var graphic = new Graphic(geom, this._extentSym);
+            this._graphicsLayerGRGExtent.add(graphic);            
+            this.angle = this.gridAngle.getValue();
+          }          
+        },
+        
+        cellUnitsChange: function () {
+          this.cellWidth.setValue(drawGRG.convertUnits(this.currentUnit,this.cellUnits.value,this.cellWidth.value));
+          this.cellHeight.setValue(drawGRG.convertUnits(this.currentUnit,this.cellUnits.value,this.cellHeight.value));
+          this.currentUnit = this.cellUnits.value;
+        },
+        
+        deleteGRGAreaButtonClicked: function () {
           this._graphicsLayerGRGExtent.clear();
-          this.map.disableMapNavigation();
-          this.dtCell.deactivate();
-          html.removeClass(this.addCellAreaBtn, 'jimu-state-active');
-          this.dt.activate('extent');
-          html.addClass(this.addCanvasAreaBtn, 'jimu-state-active');
-        },
-        
-        rotateButtonClicked: function () {
-          if (this._graphicsLayerCellSize.graphics[0]) {
-            this.editToolbar.activate(Edit.ROTATE,this._graphicsLayerCellSize.graphics[0])
-          }
-          else{
-            var alertMessage = new Message({
-              message: '<p>NO cell area drawn</p>'
-            });
-          }
-        },
-        
-        deleteCellButtonClicked: function () {          
-          html.removeClass(this.addCellAreaBtn, 'jimu-state-hidden');
-          html.addClass(this.rotateCellBtn, 'jimu-state-hidden');
-          html.addClass(this.deleteCellBtn, 'jimu-state-hidden');
-          this.cellWidth.setAttribute('disabled',false);
-          this.cellHeight.setAttribute('disabled',false);
-          this._graphicsLayerCellSize.clear();          
+          
+          //reset the angle
+          this.angle = 0;
+          this.gridAngle.setValue(0);         
+          
+          html.removeClass(this.addGRGAreaBtn, 'jimu-state-active');          
+          html.removeClass(this.addGRGArea, 'controlGroupHidden');
+          html.addClass(this.addGRGArea, 'controlGroup');
+          html.removeClass(this.deleteGRGArea, 'controlGroup');
+          html.addClass(this.deleteGRGArea, 'controlGroupHidden');          
         },        
         
-        cellAreaButtonClicked: function () {
-          this._graphicsLayerCellSize.clear();
+        addGRGAreaButtonClicked: function () {
+          this._featureLayer.clear();
           this.map.disableMapNavigation();
-          this.dt.deactivate();
-          html.removeClass(this.addCanvasAreaBtn, 'jimu-state-active');
-          this.dtCell.activate('rectangle');
-          html.addClass(this.addCellAreaBtn, 'jimu-state-active');
+          this.dt.activate('rectangle');
+          dojoClass.toggle(this.addGRGAreaBtn, 'jimu-state-active');
+          html.addClass(this.saveGRGButton, 'controlGroupHidden');
         },
 
-        drawCanvasComplete: function (evt) {          
-          var graphic = new Graphic(evt.geometry, this._extentSym);
+        drawGRGAreaComplete: function (evt) {          
+          var graphic = new Graphic(evt.geometry, this._extentSym);          
           this._graphicsLayerGRGExtent.add(graphic);
-          this.canvasArea.value = parseInt(evt.geometry.xmin) + " " + parseInt(evt.geometry.ymin) + " " + parseInt(evt.geometry.xmax) + " " + parseInt(evt.geometry.ymax);
           this.map.enableMapNavigation();
           this.dt.deactivate();
-          html.removeClass(this.addCanvasAreaBtn, 'jimu-state-active');
-        },
-        
-        drawPointAreaComplete: function (evt) {          
-          var graphic = new Graphic(evt.geometry, this._cellSym);
-          this._graphicsLayerCellSize.add(graphic);
-          this.cellWidth.setValue(parseInt(evt.geometry.getExtent().xmax - evt.geometry.getExtent().xmin));
-          this.cellHeight.setValue(parseInt(evt.geometry.getExtent().ymax - evt.geometry.getExtent().ymin));
-          this.cellWidth.setAttribute('disabled',true);
-          this.cellHeight.setAttribute('disabled',true);
-          this.map.enableMapNavigation();
-          this.dtCell.deactivate();
-          html.removeClass(this.addCellAreaBtn, 'jimu-state-active');
-          html.addClass(this.addCellAreaBtn, 'jimu-state-hidden');
-          html.removeClass(this.rotateCellBtn, 'jimu-state-hidden');
-          html.removeClass(this.deleteCellBtn, 'jimu-state-hidden');
+          
+          this.cellWidth.setValue(parseInt((geometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,1), this.cellUnits.value))/9));
+          this.cellHeight.setValue(parseInt((geometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,3), this.cellUnits.value))/9));
+          
+                    
+          dojoClass.toggle(this.addGRGArea, "controlGroupHidden");
+          dojoClass.toggle(this.deleteGRGArea, "controlGroupHidden");
         },
         
         createGRG: function () {                 
-          //check form inouts for validity
-          if ( this.addGRGName.isValid() && this.cellWidth.isValid() && this.cellHeight.isValid() && this.canvasArea.value != "") {
-            // Check if grid of same name exists
-            var queryTask = new QueryTask(this.gridFeatureService);
-            var query = new Query();
-            query.returnGeometry = false;
-            query.outFields = ["grg_name"];
-            query.where = "1=1";
-            query.returnDistinctValues = true;
-            queryTask.execute(query,dojoLang.hitch(this,this.processQueryResults));
-          } else {
+          //check form inputs for validity
+          if (this._graphicsLayerGRGExtent.graphics[0] && this.cellWidth.isValid() && this.cellHeight.isValid()) {
+            
+            var geom = this._graphicsLayerGRGExtent.graphics[0].geometry;
+
+            //work out width and height of AOI
+            var GRGAreaWidth = geometryEngine.distance(geom.getPoint(0,0), geom.getPoint(0,1), 'meters');
+            var GRGAreaHeight = geometryEngine.distance(geom.getPoint(0,0), geom.getPoint(0,3), 'meters');
+            
+            var cellWidth = drawGRG.convertUnits(this.cellUnits.value,"meters",this.cellWidth.value);
+            var cellHeight = drawGRG.convertUnits(this.cellUnits.value,"meters",this.cellHeight.value);
+   
+            //work out how many cells are needed horizontally & Vertically to cover the whole canvas area
+            var numCellsHorizontal = Math.ceil(GRGAreaWidth/cellWidth);
+            var numCellsVertical = Math.ceil(GRGAreaHeight/cellHeight);
+            
+            if(drawGRG.checkGridSize(numCellsHorizontal,numCellsVertical))
+            {
+              
+              //get center point of AOI
+              var centerPoint = geom.getCentroid();
+              
+              var features = drawGRG.createGRG(numCellsHorizontal,numCellsVertical,centerPoint,cellWidth,cellHeight,this.angle,this.labelStartPosition.value,this.labelStyle.value); 
+              
+              //apply the edits to the feature layer
+              this._featureLayer.applyEdits(features, null, null);
+              
+              this.deleteGRGAreaButtonClicked();
+              
+              if(esriId.checkSignInStatus(this.info.portalUrl + "/sharing"))
+              {
+                html.removeClass(this.saveGRGButton, 'controlGroupHidden');
+              }
+              
+              
+              
+            }
+          }
+          else {
             // Invalid entry
             var alertMessage = new Message({
-              message: '<p>The GRG creation form has missing or invalid parameters, Please ensure:</p><ul><li>The GRG Name is not blank.</li><li>The canvas area is not blank.</li><li>The cell width and height contain valid values.</li></ul>'
+              message: '<p>The GRG creation form has missing or invalid parameters, Please ensure:</p><ul><li>A GRG area has been drawn.</li><li>The cell width and height contain valid values.</li></ul>'
             });          
-          }                
-        },
-        
-        processQueryResults: function (results) {
-          var gridNameArray = [];
-          array.forEach(results.features, dojoLang.hitch(this, function (feature) {            
-            gridNameArray.push(feature.attributes.grg_name);
-          }));
-          if (gridNameArray.includes(this.addGRGName.value))
-          { 
-            // Grid Name already exists alert user
-            var alertMessage = new Message({
-              message: '<p>A grid with the name supplied already exists, please enter a different name.</p>'
-            });
-          }
-          else
-          {
-            // Do the post  
-            var params = { 
-                "GRG_Name": this.addGRGName.value, 
-                "Canvas_Area": this.canvasArea.value,
-                "Cell_Width": this.cellWidth.value,
-                "Cell_Height": this.cellHeight.value,
-                "Cell_Units": this.cellUnits.value,
-                "Labeling_Start_Position": this.labelStartPosition.value,
-                "Labeling_Style": this.labelStyle.value
-              };
-            
-            if (this.cellWidth.disabled == true && this._graphicsLayerCellSize.graphics[0]) {
-              //if user has drawn grid size add to params
-              var features = [];
-              features.push(this._graphicsLayerCellSize.graphics[0]);
-              var featureSet = new FeatureSet();
-              featureSet.features = features;
-              
-              params.Draw_Cell = featureSet;
-              params.Cell_Width = 0;
-              params.Cell_Height = 0;
-            }
-            this.map.setMapCursor("wait");
-            this.gpCreateAreaGRG.submitJob(params, dojoLang.hitch(this,this.gpComplete));            
           }
         },
         
-        gpComplete: function () {          
-          //clear user drawn graphics using existing function          
-          this.tabSwitched();
+        saveGRG: function () {
+          console.log("save grg");
+           
+          var path = "sharing/rest/content/users/" + this.esriId.credentials[0].userId + "/createService";
           
-          //refresh each of the feature layers to up date grids after creation
-          for(var j = 0; j < this.map.graphicsLayerIds.length; j++) {
-            this.map.getLayer(this.map.graphicsLayerIds[j]).refresh();
-          }
+          //1. generateToken
+          //2. isServiceNameAvailable
+          // http://resources.arcgis.com/en/help/arcgis-rest-api/index.html#/Check_Service_Name/02r300000076000000/
+          //3. createService
+          //4. addToDefinition
           
-          //reset form value and mouse cursor
-          this.canvasArea.value = "";
-          this.map.setMapCursor("default");
-          
-          //reset the draw grid size buttons
-          this.deleteCellButtonClicked();      
+          esriRequest({
+            url: this.info.portalUrl + path,
+            content: { 
+              token: this.esriId.credentials[0].token,
+              title: "test",
+              outputType: "featureService",
+              createParameters: {
+                 "name" : "EmptyServiceName",
+                 "serviceDescription" : "",
+                 "hasStaticData" : false,
+                 "maxRecordCount" : 1000,
+                 "supportedQueryFormats" : "JSON",
+                 "capabilities" : "Create,Delete,Query,Update,Editing"                 
+              },
+            },
+          }, { usePost: true }).then(this._saveSuccessful, this._error);
+
         },
+        
+        _error: function(){console.log("fail");},
+        
+        _saveSuccessful: function(){console.log("published");},
         
         setGraphicsHidden: function () {
           if (this._graphicsLayerGRGExtent) {
             this._graphicsLayerGRGExtent.hide();
-          }
-          if (this._graphicsLayerCellSize) {
-            this._graphicsLayerCellSize.hide();
           }
         },
         
@@ -297,18 +349,13 @@ define([
           if (this._graphicsLayerGRGExtent) {
             this._graphicsLayerGRGExtent.show();
           }
-          if (this._graphicsLayerCellSize) {
-            this._graphicsLayerCellSize.show();
-          }
         },
         
         tabSwitched: function () {
-          if (this._graphicsLayerGRGExtent) {
-            this._graphicsLayerGRGExtent.clear();
-          }
-          if (this._graphicsLayerCellSize) {
-            this._graphicsLayerCellSize.clear();
-          }
-        }
-    });
+          this._featureLayer.clear();
+          this.dt.deactivate();
+          this.deleteGRGAreaButtonClicked();
+          html.addClass(this.saveGRGButton, 'controlGroupHidden');
+        }      
+  });
 });

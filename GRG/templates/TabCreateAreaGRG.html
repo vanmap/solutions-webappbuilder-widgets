@@ -2,40 +2,43 @@
   
   <div class="controls">
 
-    <div class="controlGroup">
-      <label>GRG Name</label>
+    <div class="controlGroup" data-dojo-attach-point="addGRGArea">      
       <div class="controlItem">
-        <input id="addGRGName" class="jimu-input textInput" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="addGRGName" 
-           data-dojo-props='missingMessage:"You must enter a name for the GRG."' required="true"></input>
+        <div class="addExtentBtn" data-dojo-attach-point="addGRGAreaBtn"></div>
+        <label class="paddedTop">Use the draw tool to specify GRG Area</label>
+      </div>
+    </div>
+    
+    <div class="controlGroupHidden" data-dojo-attach-point="deleteGRGArea">
+      <div class="controlItem">
+        <div class="deleteBtn" data-dojo-attach-point="deleteGRGAreaBtn"></div>
+        <label class="paddedTop">Remove GRG Area</label>
       </div>
     </div>
     
     <div class="controlGroup">
-      <label>Canvas Area</label>
+      <label>Grid Angle</label>
       <div class="controlItem">
-        <input class="jimu-input textInput" data-dojo-attach-point="canvasArea" disabled >
-        </input>
-        <div class="addExtentBtn" data-dojo-attach-point="addCanvasAreaBtn"></div>
+        <input data-dojo-type="dijit/form/NumberSpinner" data-dojo-attach-point="gridAngle" value="0" data-dojo-props="intermediateChanges:true, smallDelta:1, constraints:{min:-89,max:89,places:0}"/>
       </div>
     </div>
 
     <div class="controlGroup">
       <label>Cell Width</label>
       <div class="controlItem">
-        <input class="jimu-input dijitNumberTextBox" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:1,places:0},
+        <input class="jimu-input dijitNumberTextBox" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:0,pattern: "#0.##############"},
           invalidMessage:"The value entered is not valid.",
+          required: true,
           rangeMessage:"Value must be greater than 0."' data-dojo-attach-point="cellWidth" value="1000" ></input>
-        <div class="addExtentBtn" data-dojo-attach-point="addCellAreaBtn"></div>
-        <div class="rotateBtn jimu-state-hidden" data-dojo-attach-point="rotateCellBtn"></div>
-        <div class="deleteBtn jimu-state-hidden" data-dojo-attach-point="deleteCellBtn"></div>
       </div>
     </div>
     
     <div class="controlGroup">
       <label>Cell Height</label>
       <div class="controlItem">
-        <input class="jimu-input textInput" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:1,places:0},
-          invalidMessage:"The value entered is not valid.",
+        <input class="jimu-input textInput" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:0},
+          invalidMessage:"The value entered is not valid.",          
+          required: true,
           rangeMessage:"Value must be greater than 0."' data-dojo-attach-point="cellHeight" value="1000"></input>
       </div>
     </div>
@@ -45,6 +48,8 @@
       <select class="controlSpace" data-dojo-type="dijit/form/Select" data-dojo-attach-point="cellUnits" >
           <option selected="selected" value="meters">Meters</option>
           <option value="feet">Feet</option>
+          <option value="kilometers">Kilometers</option>
+          <option value="miles">Miles</option>
       </select>
  
     </div>
@@ -68,8 +73,9 @@
     
     <div class="buttonContainer">
       <div class='jimu-btn' data-dojo-attach-point='createGRGButton'>Create GRG</div>
+      <div class='jimu-btn controlGroupHidden' data-dojo-attach-point='saveGRGButton'>Save GRG to Portal</div>
     </div>
-
+    
   </div>
   
 </div>

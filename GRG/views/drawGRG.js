@@ -64,7 +64,7 @@ define([
             startX = centerPoint.x + offsetX;
             startY = centerPoint.y + offsetY;
             polygon.addRing([
-              [startX - (j * cellWidth) , startY - (i * cellHeight)],[startX - ((j+1) * cellWidth) , startY - (i * cellHeight)],[startX - ((j+1) * cellWidth) , startY - ((i+1) * cellHeight)],[startX - (j * cellWidth) , startY - ((i+1) * cellHeight)],[startX - (j * cellWidth) , startY - (i * cellHeight)]]);
+              [startX - (j * cellWidth) , startY - (i * cellHeight)],[startX - (j * cellWidth) , startY - ((i+1) * cellHeight)],[startX - ((j+1) * cellWidth) , startY - ((i+1) * cellHeight)],[startX - ((j+1) * cellWidth) , startY - (i * cellHeight)],[startX - (j * cellWidth) , startY - (i * cellHeight)]]);
             break;
           case 'Lower-Right':
             startX = centerPoint.x + offsetX;
@@ -76,14 +76,14 @@ define([
             startX = centerPoint.x - offsetX;
             startY = centerPoint.y - offsetY;
             polygon.addRing([
-              [startX + (j * cellWidth) , startY + (i * cellHeight)],[startX + ((j+1) * cellWidth) , startY + (i * cellHeight)],[startX + ((j+1) * cellWidth) , startY + ((i+1) * cellHeight)],[startX + (j * cellWidth) , startY + ((i+1) * cellHeight)],[startX + (j * cellWidth) , startY + (i * cellHeight)]]);
+              [startX + (j * cellWidth) , startY + (i * cellHeight)],[startX + (j * cellWidth) , startY + ((i+1) * cellHeight)],[startX + ((j+1) * cellWidth) , startY + ((i+1) * cellHeight)],[startX + ((j+1) * cellWidth) , startY + (i * cellHeight)],[startX + (j * cellWidth) , startY + (i * cellHeight)]]);
             break;              
         }
         
         //rotate the graphics as required
         var polygonRotated =  geometryEngine.rotate(polygon, (angle * -1),  centerPoint);
         var graphic = new Graphic(polygonRotated);
-                            
+                          
         var attr = {};
             
         switch (labelStyle) {
@@ -100,10 +100,9 @@ define([
             
         number += 1;
         secondLetterIndex += 1;
-        secondLetter = grg.convertNumberToLetters(secondLetterIndex)
+        secondLetter = grg.convertNumberToLetters(secondLetterIndex);
         
         graphic.setAttributes(attr);
-        
         features.push(graphic);
       }  
       letterIndex += 1;

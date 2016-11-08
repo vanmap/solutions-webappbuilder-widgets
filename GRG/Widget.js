@@ -18,9 +18,13 @@ define([
   'dojo/_base/declare',
   'dojo/topic',
   'dojo/aspect',
+  'dojo/_base/lang',
   'dijit/registry',
   'esri/IdentityManager',
   'esri/arcgis/OAuthInfo',
+  'esri/config',
+  'esri/dijit/util/busyIndicator',
+  'esri/domUtils',  
   'dijit/_WidgetsInTemplateMixin',
   'jimu/BaseWidget',
   'jimu/dijit/TabContainer',
@@ -30,9 +34,13 @@ define([
   dojoDeclare,
   dojoTopic,
   aspect,
+  dojoLang,
   registry,
   esriId,
   OAuthInfo,
+  esriConfig,
+  busyIndicator,
+  domUtils,
   dijitWidgetsInTemplate,
   jimuBaseWidget,
   TabContainer,
@@ -46,13 +54,9 @@ define([
      *
      **/
     postCreate: function () {
-      //when widget opens check to see if user is logged in, if not force user to login
-      var info = this.appLogin();
-      
       this.createAreaGRGTab = new TabCreateAreaGRG({
         map: this.map,
-        esriId: esriId,
-        info: info,
+        appConfig: this.appConfig,
         GRGAreaFillSymbol: {
           type: 'esriSFS',
           style: 'esriSFSNull',
@@ -70,8 +74,7 @@ define([
       
       this.createPointGRGTab = new TabCreatePointGRG({
         map: this.map,
-        esriId: esriId,
-        info: info,
+        appConfig: this.appConfig,
         pointSymbol: {
           'color': [255, 0, 0, 255],
           'size': 8,
@@ -120,32 +123,15 @@ define([
       aspect.after(tabContainer1, "selectTab", function() {
           dojoTopic.publish('TAB_SWITCHED');        
       });
+      
+      this.busyIndicator  = busyIndicator.create(domUtils.getNode(this.domNode));
+      dojoTopic.subscribe("SHOW_BUSY", dojoLang.hitch(this, this.showBusy));
     },
     
-    appLogin: function () {
-      var info = new OAuthInfo({
-          appId : this.appConfig.appId,
-          portalUrl : this.appConfig.portalUrl,
-          popup : false,
-          popupCallbackUrl: window.location.href
-        });
-      
-      esriId.registerOAuthInfos([info]);
-      esriId.checkSignInStatus(info.portalUrl + "/sharing").then(
-        function () {
-        console.log('logged in');
-      }).otherwise(
-        function (error) {
-        console.log(error);
-        esriId.getCredential(info.portalUrl + "/sharing", {
-          oAuthPopupConfirmation : false
-        }).then(function () {
-          console.log('logged in');
-        });
-      });
-      return info;
+    showBusy: function () {
+      this.busyIndicator.show();      
     },
-
+    
     onClose: function () {
       dojoTopic.publish('DD_WIDGET_CLOSE');
     },

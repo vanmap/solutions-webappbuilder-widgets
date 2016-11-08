@@ -23,6 +23,7 @@ define([
     'dojo/on',
     'dojo/topic',
     'dojo/_base/html',
+    'dojo/json',
     'dijit/_WidgetBase',
     'dijit/_TemplatedMixin',
     'dijit/_WidgetsInTemplateMixin',
@@ -30,18 +31,23 @@ define([
     'esri/IdentityManager',
     'esri/config',
     'esri/arcgis/OAuthInfo',
+    'esri/arcgis/Portal',
     'esri/geometry/geometryEngine',
     'esri/layers/GraphicsLayer',
     'esri/layers/FeatureLayer',
     'esri/layers/LabelClass',
     'esri/request',
+    'esri/SpatialReference',
     'esri/symbols/SimpleFillSymbol',
     'esri/symbols/SimpleLineSymbol',
     'esri/renderers/SimpleRenderer',
+    'esri/geometry/Polygon',
     'esri/dijit/PopupTemplate',
+    'esri/symbols/Font',
     'esri/Color',
     'esri/graphic',
     'esri/toolbars/draw',
+    'esri/toolbars/edit',
     'esri/symbols/TextSymbol',
     './drawGRG',
     'dojo/text!../templates/TabCreateAreaGRG.html',
@@ -54,6 +60,7 @@ define([
     dojoOn,
     dojoTopic,
     html,
+    JSON,
     dijitWidgetBase,    
     dijitTemplatedMixin,
     dijitWidgetsInTemplate,
@@ -61,18 +68,23 @@ define([
     esriId,
     esriConfig,
     OAuthInfo,
+    arcgisPortal,
     geometryEngine,
     GraphicsLayer,
     FeatureLayer,
     LabelClass,
     esriRequest,
+    SpatialReference,
     SimpleFillSymbol,
     SimpleLineSymbol,
     SimpleRenderer,
+    Polygon,
     PopupTemplate,
+    Font,
     Color,
     Graphic,
     Draw,
+    Edit,
     TextSymbol,
     drawGRG,
     templateStr    
@@ -81,27 +93,23 @@ define([
     return dojoDeclare([dijitWidgetBase, dijitTemplatedMixin, dijitWidgetsInTemplate], {
         templateString: templateStr,
         baseClass: 'jimu-widget-TabLine',
+        GRG: null,
 
         constructor: function (args) {
           dojoDeclare.safeMixin(this, args);
         },
 
         postCreate: function () {       
-          
-          console.log(this.esriId);
-          console.log(this.info);
-          
           this.angle = 0;
           this.currentUnit = 'meters';
           
           // create graphics layer for grid extent and add to map
           this._graphicsLayerGRGExtent = new GraphicsLayer();
-          this._extentSym = new SimpleFillSymbol(this.GRGAreaFillSymbol);          
-          this.map.addLayers([this._graphicsLayerGRGExtent]);
+          this._extentSym = new SimpleFillSymbol(this.GRGAreaAreaFillSymbol);
           
           // create a renderer for the grg layer to override default symbology
           var gridColor = new Color("#000");
-          var gridLine = new SimpleLineSymbol("solid", gridColor, 1.5);
+          var gridLine = new SimpleLineSymbol("solid", gridColor, 2.5);
           var gridSymbol = new SimpleFillSymbol("solid", gridLine, null);
           var gridRenderer = new SimpleRenderer(gridSymbol);
 
@@ -119,48 +127,45 @@ define([
                 "type": "esriFieldTypeString"
               }]
             }
-          };     
+          };
 
-          // create a text symbol to define the style of labels
-          var GRGLabel = new TextSymbol().setColor(gridColor);
-          GRGLabel.font.setSize("12pt");
-          GRGLabel.font.setFamily("arial");
+          this.GRGArea = new FeatureLayer(featureCollection,{
+            id: "GRG",
+            outFields: ["*"]
+          });
+          this.GRGArea.setRenderer(gridRenderer);
 
           var json = {
             "labelExpressionInfo": {"value" : "{grid}"}
           };
 
+          // create a text symbol to define the style of labels
           var labelClass = new LabelClass(json);
-
-          labelClass.symbol = GRGLabel;
-          
-          var popupTemplate = new PopupTemplate({
-            title: "{grid}",
-            description: "{grid}"
+          labelClass.symbol = new TextSymbol({
+            font: new Font("11", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLD, "Helvetica"),
+            color: new Color("#666633")
           });
-
-          this._featureLayer = new FeatureLayer(featureCollection,{
-            infoTemplate: popupTemplate,
-            showLabels: true,
-            outFields: ["*"]
-          });
-
-          this._featureLayer.setLabelingInfo([labelClass]);
-          this._featureLayer.setRenderer(gridRenderer);
+          this.GRGArea.setLabelingInfo([labelClass]);
           
-          this.map.addLayer(this._featureLayer);          
+          this.map.addLayers([this.GRGArea,this._graphicsLayerGRGExtent]);          
           
           // add draw toolbar
           this.dt = new Draw(this.map);
+          
+          // add edit toolbar that will be used for rotating grid 
+          this.editToolbar = new Edit(this.map);
                     
-          this.syncEvents();                  
+          this.syncEvents();
+          this.initSaveToPortal();
+          
+          
         },
         
         syncEvents: function () {
           
           dojoTopic.subscribe('DD_WIDGET_OPEN', dojoLang.hitch(this, this.setGraphicsShown));
           dojoTopic.subscribe('DD_WIDGET_CLOSE', dojoLang.hitch(this, this.setGraphicsHidden));
-          dojoTopic.subscribe('TAB_SWITCHED', dojoLang.hitch(this, this.tabSwitched));
+          dojoTopic.subscribe('TAB_SWITCHED', dojoLang.hitch(this, this.tabSwitched));         
           
           this.own(dojoOn(
             this.createGRGButton,
@@ -172,13 +177,7 @@ define([
             this.addGRGAreaBtn,
             'click',
             dojoLang.hitch(this, this.addGRGAreaButtonClicked)
-          ));
-
-          this.own(dojoOn(
-            this.saveGRGButton,
-            'click',
-            dojoLang.hitch(this, this.saveGRG)
-          ));          
+          ));      
                     
           this.own(dojoOn(
             this.deleteGRGAreaBtn,
@@ -203,8 +202,20 @@ define([
               'draw-complete',
               dojoLang.hitch(this, this.drawGRGAreaComplete)
           ));
+          
+          this.own(
+            this._graphicsLayerGRGExtent.on(
+              'click',
+              dojoLang.hitch(this, function(evt) {
+               this.editToolbar.activate(Edit.MOVE, evt.graphic); 
+              })
+          ));
+          
+          this.editToolbar.on("graphic-move-stop", dojoLang.hitch(this,function(evt){
+            this.editToolbar.deactivate();
+          }));          
         },
-        
+              
         angleChange: function () {          
           if (this.gridAngle.isValid() && !isNaN(this.gridAngle.value) && this._graphicsLayerGRGExtent.graphics[0]){                        
             var rotateBy = this.gridAngle.getValue() - this.angle;            
@@ -237,7 +248,13 @@ define([
         },        
         
         addGRGAreaButtonClicked: function () {
-          this._featureLayer.clear();
+          this.GRGArea.clear();
+          
+          //refresh each of the feature/graphic layers to enusre labels are removed
+          for(var j = 0; j < this.map.graphicsLayerIds.length; j++) {
+            this.map.getLayer(this.map.graphicsLayerIds[j]).refresh();
+          }
+          
           this.map.disableMapNavigation();
           this.dt.activate('rectangle');
           dojoClass.toggle(this.addGRGAreaBtn, 'jimu-state-active');
@@ -260,7 +277,7 @@ define([
         
         createGRG: function () {                 
           //check form inputs for validity
-          if (this._graphicsLayerGRGExtent.graphics[0] && this.cellWidth.isValid() && this.cellHeight.isValid()) {
+          if (this._graphicsLayerGRGExtent.graphics[0] && this.addGRGName.isValid() && this.cellWidth.isValid() && this.cellHeight.isValid()) {
             
             var geom = this._graphicsLayerGRGExtent.graphics[0].geometry;
 
@@ -279,65 +296,21 @@ define([
             {
               
               //get center point of AOI
-              var centerPoint = geom.getCentroid();
-              
+              var centerPoint = geom.getCentroid();              
               var features = drawGRG.createGRG(numCellsHorizontal,numCellsVertical,centerPoint,cellWidth,cellHeight,this.angle,this.labelStartPosition.value,this.labelStyle.value); 
-              
               //apply the edits to the feature layer
-              this._featureLayer.applyEdits(features, null, null);
-              
-              this.deleteGRGAreaButtonClicked();
-              
-              if(esriId.checkSignInStatus(this.info.portalUrl + "/sharing"))
-              {
-                html.removeClass(this.saveGRGButton, 'controlGroupHidden');
-              }
-              
-              
-              
+              this.GRGArea.applyEdits(features, null, null);
+              this.deleteGRGAreaButtonClicked();              
+              html.removeClass(this.saveGRGButton, 'controlGroupHidden');
             }
           }
           else {
             // Invalid entry
             var alertMessage = new Message({
-              message: '<p>The GRG creation form has missing or invalid parameters, Please ensure:</p><ul><li>A GRG area has been drawn.</li><li>The cell width and height contain valid values.</li></ul>'
+              message: '<p>The GRG creation form has missing or invalid parameters, Please ensure:</p><ul><li>The GRG Name is not blank.</li><li>A GRG area has been drawn.</li><li>The cell width and height contain valid values.</li></ul>'
             });          
           }
         },
-        
-        saveGRG: function () {
-          console.log("save grg");
-           
-          var path = "sharing/rest/content/users/" + this.esriId.credentials[0].userId + "/createService";
-          
-          //1. generateToken
-          //2. isServiceNameAvailable
-          // http://resources.arcgis.com/en/help/arcgis-rest-api/index.html#/Check_Service_Name/02r300000076000000/
-          //3. createService
-          //4. addToDefinition
-          
-          esriRequest({
-            url: this.info.portalUrl + path,
-            content: { 
-              token: this.esriId.credentials[0].token,
-              title: "test",
-              outputType: "featureService",
-              createParameters: {
-                 "name" : "EmptyServiceName",
-                 "serviceDescription" : "",
-                 "hasStaticData" : false,
-                 "maxRecordCount" : 1000,
-                 "supportedQueryFormats" : "JSON",
-                 "capabilities" : "Create,Delete,Query,Update,Editing"                 
-              },
-            },
-          }, { usePost: true }).then(this._saveSuccessful, this._error);
-
-        },
-        
-        _error: function(){console.log("fail");},
-        
-        _saveSuccessful: function(){console.log("published");},
         
         setGraphicsHidden: function () {
           if (this._graphicsLayerGRGExtent) {
@@ -352,10 +325,351 @@ define([
         },
         
         tabSwitched: function () {
-          this._featureLayer.clear();
+          this.GRGArea.clear();
+          //refresh each of the feature/graphic layers to enusre labels are removed
+          for(var j = 0; j < this.map.graphicsLayerIds.length; j++) {
+            this.map.getLayer(this.map.graphicsLayerIds[j]).refresh();
+          }
           this.dt.deactivate();
           this.deleteGRGAreaButtonClicked();
           html.addClass(this.saveGRGButton, 'controlGroupHidden');
-        }      
+        },
+
+        initSaveToPortal: function() {          
+          
+          esriId.registerOAuthInfos();
+          
+          this.own(dojoOn(this.saveGRGButton, "click", dojoLang.hitch(this, function(evt) {
+          
+          var featureServiceName = this.addGRGName.value;
+          
+          esriId.getCredential(this.appConfig.portalUrl + "/sharing", { oAuthPopupConfirmation: false }).then(dojoLang.hitch(this, function() {
+              //sign in
+              new arcgisPortal.Portal(this.appConfig.portalUrl).signIn().then(dojoLang.hitch(this, function(portalUser) {
+               //Get the token
+                var token = portalUser.credential.token;
+                var orgId = portalUser.orgId;
+                var userName = portalUser.username;
+                
+                var checkServiceNameUrl = this.appConfig.portalUrl + "sharing/rest/portals/" + orgId + "/isServiceNameAvailable";
+                var createServiceUrl = this.appConfig.portalUrl + "sharing/content/users/" + userName + "/createService"; 
+
+                this.isNameAvailable(checkServiceNameUrl, token, featureServiceName).then(dojoLang.hitch(this, function(response0) {
+                  if (response0.available) {
+                    //set dojoLang to busy
+                    dojoTopic.publish('SHOW_BUSY');
+                    //create the service
+                    this.createFeatureService(createServiceUrl, token, 
+                      this.getFeatureServiceParams(featureServiceName)).then(dojoLang.hitch(this, function(response1) {
+                        if (response1.success) {
+                          var addToDefinitionUrl = response1.serviceurl.replace(new RegExp('rest', 'g'), "rest/admin") + "/addToDefinition";
+                          
+                          
+                          this.addDefinitionToService(addToDefinitionUrl, token, 
+                            this.getLayerParams(featureServiceName)).then(dojoLang.hitch(this, function(response2) {
+
+                              if (response2.success) {
+                                //Push features to new layer
+                                 var newFeatureLayer = new FeatureLayer(response1.serviceurl + "/0?token=" + token, {
+                                   outFields: ["*"]                                  
+                                 });
+                                 this.map.addLayer(newFeatureLayer);
+                                
+                                newFeatureLayer.applyEdits(this.GRGArea.graphics,null,null).then(dojoLang.hitch(this, function(){
+                                  this.tabSwitched();                                
+                                })).otherwise(dojoLang.hitch(this,function(){this.tabSwitched();}));                                
+                              }
+
+                            }), function(err2) {
+                              new Message({
+                                message: "Add to definition: " + err2.message
+                              });                              
+                            });
+                        } else {
+                          new Message({
+                            message: "Unable to create " + featureServiceName
+                          });
+                        }
+                      }), function(err1) {
+                        new Message({
+                          message: "Create Service: " + err1.message
+                        });
+                      });
+                  } else {
+                     new Message({
+                      message: "You already have a feature service named " + featureServiceName + ". Please choose another name."
+                    });                    
+                  }
+                }), function(err0) {
+                  new Message({
+                    message: "Check Service: " + err0.message
+                  });
+                });
+
+              }))
+            }));
+        })));
+      },
+
+      isNameAvailable: function(serviceName, token, featureServiceName) {
+        //Check for the layer name
+        var def = esriRequest({
+          url: serviceName,
+          content: {
+            name: featureServiceName,
+            type: "Feature Service",
+            token: token,
+            f: "json"
+          },
+          handleAs: "json",
+          callbackParamName: "callback"
+        },{usePost: true});
+        return def;
+      },
+
+      createFeatureService: function(serviceUrl, token, createParams) {
+        //create the service
+        var def = esriRequest({
+          url: serviceUrl,
+          content: {
+            f: "json",
+            token: token,
+            typeKeywords: "ArcGIS Server,Data,Feature Access,Feature Service,Service,Hosted Service",
+            createParameters: JSON.stringify(createParams),
+            outputType: "featureService"
+          },
+          handleAs: "json",
+          callbackParamName: "callback"
+        },{usePost: true});
+        return def;
+      },
+
+      addDefinitionToService: function(serviceUrl, token, defParams) {
+        var def = esriRequest({
+          url: serviceUrl,
+          content: {
+            token: token,
+            addToDefinition: JSON.stringify(defParams),
+            f: "json"                            
+          },
+          handleAs: "json",
+          callbackParamName: "callback"                          
+        },{usePost: true});
+        return def;
+      },
+
+      getFeatureServiceParams: function(featureServiceName) {
+        return {
+         "name" : featureServiceName,
+         "serviceDescription" : "",
+         "hasStaticData" : false,
+         "maxRecordCount" : 1000,
+         "supportedQueryFormats" : "JSON",
+         "capabilities" : "Create,Delete,Query,Update,Editing",
+         "description" : "",
+         "copyrightText" : "",
+         "spatialReference" : {
+            "wkid" : 102100
+            },
+         "initialExtent" : {
+            "xmin" : -20037507.0671618,
+            "ymin" : -30240971.9583862,
+            "xmax" : 20037507.0671618,
+            "ymax" : 18398924.324645,
+            "spatialReference" : {
+               "wkid" : 102100,
+               "latestWkid" : 3857
+               }
+            },
+         "allowGeometryUpdates" : true,
+         "units" : "esriMeters",
+         "xssPreventionInfo" : {
+            "xssPreventionEnabled" : true,
+            "xssPreventionRule" : "InputOnly",
+            "xssInputRule" : "rejectInvalid"
+          }
+        }
+      },
+
+      getLayerParams: function(layerName) {          
+        return {
+          "layers": [
+            {
+              "adminLayerInfo": {
+                "geometryField": {
+                  "name": "Shape"
+                },
+                "xssTrustedFields": ""
+              },
+              "id": 0,
+              "name": layerName,
+              "type": "Feature Layer",
+              "displayField": "",
+              "description": "",
+              "copyrightText": "",
+              "defaultVisibility": true,
+              "ownershipBasedAccessControlForFeatures" : {
+                "allowOthersToQuery" : false, 
+                "allowOthersToDelete" : false, 
+                "allowOthersToUpdate" : false
+              },              
+              "relationships": [],
+              "isDataVersioned" : false, 
+              "supportsCalculate" : true, 
+              "supportsAttachmentsByUploadId" : true, 
+              "supportsRollbackOnFailureParameter" : true, 
+              "supportsStatistics" : true, 
+              "supportsAdvancedQueries" : true, 
+              "supportsValidateSql" : true, 
+              "supportsCoordinatesQuantization" : true, 
+              "supportsApplyEditsWithGlobalIds" : true,
+              "advancedQueryCapabilities" : {
+                "supportsPagination" : true, 
+                "supportsQueryWithDistance" : true, 
+                "supportsReturningQueryExtent" : true, 
+                "supportsStatistics" : true, 
+                "supportsOrderBy" : true, 
+                "supportsDistinct" : true, 
+                "supportsQueryWithResultType" : true, 
+                "supportsSqlExpression" : true, 
+                "supportsReturningGeometryCentroid" : true
+              },          
+              "useStandardizedQueries" : false,      
+              "geometryType": "esriGeometryPolygon",
+              "minScale" : 0, 
+              "maxScale" : 0,
+              "extent": {
+                "xmin" : -20037507.0671618,
+                "ymin" : -30240971.9583862,
+                "xmax" : 20037507.0671618,
+                "ymax" : 18398924.324645,
+                "spatialReference": {
+                  "wkid": 102100,
+                  "latestWkid": 3857
+                }
+              },
+              "drawingInfo": {
+                "renderer": {
+                 "type": "simple",
+                 "symbol": {
+                  "color": null,
+                  "outline": {
+                   "color": [
+                    26,
+                    26,
+                    26,
+                    255
+                   ],
+                   "width": 1.5,
+                   "type": "esriSLS",
+                   "style": "esriSLSSolid"
+                  },
+                  "type": "esriSFS",
+                  "style": "esriSFSSolid"
+                 }
+                },
+                "transparency": 0,
+                "labelingInfo": [
+                   {
+                    "labelExpression": "[grid]",
+                    "labelExpressionInfo": {"value": "{grid}"},
+                    "format": null,
+                    "fieldInfos": null,
+                    "useCodedValues": false,
+                    "maxScale": 0,
+                    "minScale": 0,
+                    "where": null,
+                    "sizeInfo": null,
+                    "labelPlacement": "esriServerPolygonPlacementAlwaysHorizontal",
+                    "symbol": {
+                     "color": [
+                      51,
+                      51,
+                      51,
+                      255
+                     ],
+                     "type": "esriTS",
+                     "backgroundColor": null,
+                     "borderLineColor": null,
+                     "haloSize": 0,
+                     "haloColor": null,
+                     "horizontalAlignment": "center",
+                     "rightToLeft": false,
+                     "angle": 0,
+                     "xoffset": 0,
+                     "yoffset": 0,
+                     "text": "",
+                     "rotated": false,
+                     "kerning": true,
+                     "font": {
+                      "size": 9.75,
+                      "style": "normal",
+                      "decoration": "none",
+                      "weight": "bold",
+                      "family": "Arial"
+                     }
+                    }
+                   }
+                ]
+              },
+              "allowGeometryUpdates": true,
+              "hasAttachments": false,
+              "htmlPopupType": "esriServerHTMLPopupTypeNone",
+              "hasM": false,
+              "hasZ": false,
+              "objectIdField": "OBJECTID",
+              "globalIdField": "",
+              "typeIdField": "",
+              "fields": [
+                {
+                  "name": "OBJECTID",
+                  "type": "esriFieldTypeOID",
+                  "actualType": "int",
+                  "alias": "OBJECTID",
+                  "sqlType": "sqlTypeOther",
+                  "nullable": false,
+                  "editable": false,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "GRID",
+                  "type": "esriFieldTypeString",
+                  "alias": "GRID",
+                  "actualType": "nvarchar",
+                  "nullable": true,
+                  "editable": true,
+                  "domain": null,
+                  "defaultValue": null,
+                  "sqlType": "sqlTypeNVarchar",
+                  "length": 256
+                }
+              ],
+              "indexes": [],
+              "types": [],
+              "templates": [
+                {
+                  "name": "New Feature",
+                  "description": "",
+                  "drawingTool": "esriFeatureEditToolPolygon",
+                  "prototype": {
+                    "attributes": {
+                      "GRID": null
+                    }
+                  }
+                }
+              ],
+              "supportedQueryFormats": "JSON",
+              "hasStaticData": false,
+              "maxRecordCount": 10000,
+              "standardMaxRecordCount" : 4000,               
+              "tileMaxRecordCount" : 4000, 
+              "maxRecordCountFactor" : 1,   
+              "exceedsLimitFactor" : 1,           
+              "capabilities": "Query,Editing,Create,Update,Delete"
+            }
+          ]
+        }        
+      }       
   });
 });

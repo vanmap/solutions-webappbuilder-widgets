@@ -28,8 +28,7 @@ define([
     'dijit/_TemplatedMixin',
     'dijit/_WidgetsInTemplateMixin',
     'jimu/dijit/Message',
-    'esri/geometry/geometryEngine',
-    'esri/geometry/Polygon',
+    'esri/IdentityManager',
     'esri/layers/GraphicsLayer',
     'esri/layers/FeatureLayer',
     'esri/layers/LabelClass',
@@ -38,6 +37,7 @@ define([
     'esri/symbols/SimpleMarkerSymbol',
     'esri/renderers/SimpleRenderer',
     'esri/dijit/PopupTemplate',
+    'esri/symbols/Font',
     'esri/Color',
     'esri/graphic',
     'esri/toolbars/draw',
@@ -59,8 +59,7 @@ define([
     dijitTemplatedMixin,
     dijitWidgetsInTemplate,
     Message,
-    geometryEngine,
-    Polygon,
+    esriId,
     GraphicsLayer,
     FeatureLayer,
     LabelClass,
@@ -69,6 +68,7 @@ define([
     SimpleMarkerSymbol,
     SimpleRenderer,
     PopupTemplate,
+    Font,
     Color,
     Graphic,
     Draw,
@@ -94,14 +94,10 @@ define([
           // create graphics layer for grid extent and add to map
           this._graphicsLayerPointOfOrigin = new GraphicsLayer();
           this._pointSym = new SimpleMarkerSymbol(this.pointSymbol);
-          this.map.addLayers([this._graphicsLayerPointOfOrigin]);
-
-          // add draw toolbar
-          this.dtPoint = new Draw(this.map);
-          
+                    
           // create a renderer for the grg layer to override default symbology
           var gridColor = new Color("#000");
-          var gridLine = new SimpleLineSymbol("solid", gridColor, 1.5);
+          var gridLine = new SimpleLineSymbol("solid", gridColor, 2.5);
           var gridSymbol = new SimpleFillSymbol("solid", gridLine, null);
           var gridRenderer = new SimpleRenderer(gridSymbol);
           
@@ -120,37 +116,31 @@ define([
               }]
             }
           };
-          
-          // create a text symbol to define the style of labels
-          var GRGLabel = new TextSymbol().setColor(gridColor);
-          GRGLabel.font.setSize("12pt");
-          GRGLabel.font.setFamily("arial");
-          
+
+          this.GRGPoint = new FeatureLayer(featureCollection,{
+            outFields: ["*"]
+          });
+          this.GRGPoint.setRenderer(gridRenderer);
+         
           var json = {
             "labelExpressionInfo": {"value": "{grid}"}
           };
           
+          // create a text symbol to define the style of labels
           var labelClass = new LabelClass(json);
-          
-          labelClass.symbol = GRGLabel; // symbol also can be set in LabelClass' json
-          
-          var popupTemplate = new PopupTemplate({
-            title: "{grid}",
-            description: "{grid}"
+          labelClass.symbol = new TextSymbol({
+            font: new Font("11", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLD, "Helvetica"),
+            color: new Color("#666633")
           });
+          this.GRGPoint.setLabelingInfo([labelClass]);
           
-          this._featureLayerPoint = new FeatureLayer(featureCollection,{
-            infoTemplate: popupTemplate,
-            showLabels: true,
-            outFields: ["*"]
-          });
-          
-          this._featureLayerPoint.setRenderer(gridRenderer);
-          this._featureLayerPoint.setLabelingInfo([labelClass]);
+          this.map.addLayers([this.GRGPoint,this._graphicsLayerPointOfOrigin]);
 
-          this.map.addLayer(this._featureLayerPoint);
+          // add draw toolbar
+          this.dtPoint = new Draw(this.map);
           
           this.syncEvents();
+          this.initSaveToPortal();
         },
         
         syncEvents: function () {
@@ -190,8 +180,12 @@ define([
         },
         
         addGRGPointClicked: function () {
-          this._featureLayerPoint.clear();
+          this.GRGPoint.clear();
           this._graphicsLayerPointOfOrigin.clear();
+          //refresh each of the feature/graphic layers to enusre labels are removed
+          for(var j = 0; j < this.map.graphicsLayerIds.length; j++) {
+            this.map.getLayer(this.map.graphicsLayerIds[j]).refresh();
+          }
           this.map.disableMapNavigation();
           this.dtPoint.activate('point');
           html.addClass(this.addGRGPointBtn, 'jimu-state-active');
@@ -226,7 +220,7 @@ define([
         
         createPointGRG: function () {
         //check form inouts for validity
-        if ( this._graphicsLayerPointOfOrigin.graphics[0] && this.pointCellWidth.isValid() && this.pointCellHeight.isValid() && this.gridAnglePoint.isValid()) {
+        if ( this._graphicsLayerPointOfOrigin.graphics[0] && this.addGRGPointName.isValid() && this.pointCellWidth.isValid() && this.pointCellHeight.isValid() && this.gridAnglePoint.isValid()) {
           
           //get center point of AOI
           var centerPoint = this._graphicsLayerPointOfOrigin.graphics[0].geometry;
@@ -237,7 +231,8 @@ define([
           if(drawGRG.checkGridSize(this.pointCellHorizontal.value,this.pointCellVertical.value))
           {
             var features = drawGRG.createGRG(this.pointCellHorizontal.value,this.pointCellVertical.value,centerPoint,cellWidth,cellHeight,this.gridAnglePoint.value,this.pointLabelStartPosition.value,this.pointLabelStyle.value); 
-            this._featureLayerPoint.applyEdits(features, null, null);
+            //apply the edits to the feature layer
+            this.GRGPoint.applyEdits(features, null, null);
             this.deleteGRGPointButtonClicked();
             html.removeClass(this.saveGRGPointButton, 'controlGroupHidden');            
           }
@@ -245,7 +240,7 @@ define([
         } else {
           // Invalid entry
           var alertMessage = new Message({
-            message: '<p>The GRG creation form has missing or invalid parameters, Please ensure:</p><ul><li>A GRG point has been drawn.</li><li>The cell width and height contain invalid values.</li><li>The grid angle is invalid.</li></ul>'
+            message: '<p>The GRG creation form has missing or invalid parameters, Please ensure:</p><ul><li>The GRG Name is not blank.</li><li>A GRG point has been drawn.</li><li>The cell width and height contain valid values.</li><li>The grid angle is valid.</li></ul>'
           });          
         }
       },
@@ -263,10 +258,354 @@ define([
         },
         
         tabSwitched: function () {
-          this._featureLayerPoint.clear();
+          this.GRGPoint.clear();          
           this.dtPoint.deactivate();
           this.deleteGRGPointButtonClicked();
           html.addClass(this.saveGRGPointButton, 'controlGroupHidden');
+        },
+        
+        initSaveToPortal: function() {          
+          
+          esriId.registerOAuthInfos();
+          
+          this.own(dojoOn(this.saveGRGPointButton, "click", dojoLang.hitch(this, function(evt) {
+          
+          var featureServiceName = this.addGRGName.value;
+          
+          esriId.getCredential(this.appConfig.portalUrl + "/sharing", { oAuthPopupConfirmation: false }).then(dojoLang.hitch(this, function() {
+              //sign in
+              new arcgisPortal.Portal(this.appConfig.portalUrl).signIn().then(dojoLang.hitch(this, function(portalUser) {
+               //Get the token
+                var token = portalUser.credential.token;
+                var orgId = portalUser.orgId;
+                var userName = portalUser.username;
+                
+                var checkServiceNameUrl = this.appConfig.portalUrl + "sharing/rest/portals/" + orgId + "/isServiceNameAvailable";
+                var createServiceUrl = this.appConfig.portalUrl + "sharing/content/users/" + userName + "/createService"; 
+
+                this.isNameAvailable(checkServiceNameUrl, token, featureServiceName).then(dojoLang.hitch(this, function(response0) {
+                  if (response0.available) {
+                    //set dojoLang to busy
+                    this.busyIndicator.show();
+                    //create the service
+                    this.createFeatureService(createServiceUrl, token, 
+                      this.getFeatureServiceParams(featureServiceName)).then(dojoLang.hitch(this, function(response1) {
+                        if (response1.success) {
+                          var addToDefinitionUrl = response1.serviceurl.replace(new RegExp('rest', 'g'), "rest/admin") + "/addToDefinition";
+                          
+                          
+                          this.addDefinitionToService(addToDefinitionUrl, token, 
+                            this.getLayerParams(featureServiceName)).then(dojoLang.hitch(this, function(response2) {
+
+                              if (response2.success) {
+                                //Push features to new layer
+                                 var newFeatureLayer = new FeatureLayer(response1.serviceurl + "/0?token=" + token, {
+                                   outFields: ["*"]                                  
+                                 });
+                                 this.map.addLayer(newFeatureLayer);
+                                
+                                newFeatureLayer.applyEdits(this.GRGPoint.graphics,null,null).then(dojoLang.hitch(this, function(){
+                                  this.tabSwitched();                                
+                                })).otherwise(dojoLang.hitch(this,function(){this.tabSwitched();}));
+                                this.map.setMapCursor("default");
+                              }
+
+                            }), function(err2) {
+                              this.map.setMapCursor("default");
+                              new Message({
+                                message: "Add to definition: " + err2.message
+                              });                              
+                            });
+                        } else {
+                          this.map.setMapCursor("default");
+                          new Message({
+                            message: "Unable to create " + featureServiceName
+                          });
+                        }
+                      }), function(err1) {
+                        this.map.setMapCursor("default");
+                        new Message({
+                          message: "Create Service: " + err1.message
+                        });
+                      });
+                  } else {
+                    this.map.setMapCursor("default");
+                    new Message({
+                      message: "You already have a feature service named " + featureServiceName + ". Please choose another name."
+                    });                    
+                  }
+                }), function(err0) {
+                  this.map.setMapCursor("default");
+                  new Message({
+                    message: "Check Service: " + err0.message
+                  });
+                });
+
+              }))
+            }));
+        })));
+      },
+
+      isNameAvailable: function(serviceName, token, featureServiceName) {
+        //Check for the layer name
+        var def = esriRequest({
+          url: serviceName,
+          content: {
+            name: featureServiceName,
+            type: "Feature Service",
+            token: token,
+            f: "json"
+          },
+          handleAs: "json",
+          callbackParamName: "callback"
+        },{usePost: true});
+        return def;
+      },
+
+      createFeatureService: function(serviceUrl, token, createParams) {
+        //create the service
+        var def = esriRequest({
+          url: serviceUrl,
+          content: {
+            f: "json",
+            token: token,
+            typeKeywords: "ArcGIS Server,Data,Feature Access,Feature Service,Service,Hosted Service",
+            createParameters: JSON.stringify(createParams),
+            outputType: "featureService"
+          },
+          handleAs: "json",
+          callbackParamName: "callback"
+        },{usePost: true});
+        return def;
+      },
+
+      addDefinitionToService: function(serviceUrl, token, defParams) {
+        var def = esriRequest({
+          url: serviceUrl,
+          content: {
+            token: token,
+            addToDefinition: JSON.stringify(defParams),
+            f: "json"                            
+          },
+          handleAs: "json",
+          callbackParamName: "callback"                          
+        },{usePost: true});
+        return def;
+      },
+
+      getFeatureServiceParams: function(featureServiceName) {
+        return {
+         "name" : featureServiceName,
+         "serviceDescription" : "",
+         "hasStaticData" : false,
+         "maxRecordCount" : 1000,
+         "supportedQueryFormats" : "JSON",
+         "capabilities" : "Create,Delete,Query,Update,Editing",
+         "description" : "",
+         "copyrightText" : "",
+         "spatialReference" : {
+            "wkid" : 102100
+            },
+         "initialExtent" : {
+            "xmin" : -20037507.0671618,
+            "ymin" : -30240971.9583862,
+            "xmax" : 20037507.0671618,
+            "ymax" : 18398924.324645,
+            "spatialReference" : {
+               "wkid" : 102100,
+               "latestWkid" : 3857
+               }
+            },
+         "allowGeometryUpdates" : true,
+         "units" : "esriMeters",
+         "xssPreventionInfo" : {
+            "xssPreventionEnabled" : true,
+            "xssPreventionRule" : "InputOnly",
+            "xssInputRule" : "rejectInvalid"
+          }
         }
+      },
+
+      getLayerParams: function(layerName) {          
+        return {
+          "layers": [
+            {
+              "adminLayerInfo": {
+                "geometryField": {
+                  "name": "Shape"
+                },
+                "xssTrustedFields": ""
+              },
+              "id": 0,
+              "name": layerName,
+              "type": "Feature Layer",
+              "displayField": "",
+              "description": "",
+              "copyrightText": "",
+              "defaultVisibility": true,
+              "ownershipBasedAccessControlForFeatures" : {
+                "allowOthersToQuery" : false, 
+                "allowOthersToDelete" : false, 
+                "allowOthersToUpdate" : false
+              },              
+              "relationships": [],
+              "isDataVersioned" : false, 
+              "supportsCalculate" : true, 
+              "supportsAttachmentsByUploadId" : true, 
+              "supportsRollbackOnFailureParameter" : true, 
+              "supportsStatistics" : true, 
+              "supportsAdvancedQueries" : true, 
+              "supportsValidateSql" : true, 
+              "supportsCoordinatesQuantization" : true, 
+              "supportsApplyEditsWithGlobalIds" : true,
+              "advancedQueryCapabilities" : {
+                "supportsPagination" : true, 
+                "supportsQueryWithDistance" : true, 
+                "supportsReturningQueryExtent" : true, 
+                "supportsStatistics" : true, 
+                "supportsOrderBy" : true, 
+                "supportsDistinct" : true, 
+                "supportsQueryWithResultType" : true, 
+                "supportsSqlExpression" : true, 
+                "supportsReturningGeometryCentroid" : true
+              },          
+              "useStandardizedQueries" : false,      
+              "geometryType": "esriGeometryPolygon",
+              "minScale" : 0, 
+              "maxScale" : 0,
+              "extent": {
+                "xmin" : -20037507.0671618,
+                "ymin" : -30240971.9583862,
+                "xmax" : 20037507.0671618,
+                "ymax" : 18398924.324645,
+                "spatialReference": {
+                  "wkid": 102100,
+                  "latestWkid": 3857
+                }
+              },
+              "drawingInfo": {
+                "renderer": {
+                 "type": "simple",
+                 "symbol": {
+                  "color": null,
+                  "outline": {
+                   "color": [
+                    26,
+                    26,
+                    26,
+                    255
+                   ],
+                   "width": 1.5,
+                   "type": "esriSLS",
+                   "style": "esriSLSSolid"
+                  },
+                  "type": "esriSFS",
+                  "style": "esriSFSSolid"
+                 }
+                },
+                "transparency": 0,
+                "labelingInfo": [
+                   {
+                    "labelExpression": "[grid]",
+                    "labelExpressionInfo": {"value": "{grid}"},
+                    "format": null,
+                    "fieldInfos": null,
+                    "useCodedValues": false,
+                    "maxScale": 0,
+                    "minScale": 0,
+                    "where": null,
+                    "sizeInfo": null,
+                    "labelPlacement": "esriServerPolygonPlacementAlwaysHorizontal",
+                    "symbol": {
+                     "color": [
+                      51,
+                      51,
+                      51,
+                      255
+                     ],
+                     "type": "esriTS",
+                     "backgroundColor": null,
+                     "borderLineColor": null,
+                     "haloSize": 0,
+                     "haloColor": null,
+                     "horizontalAlignment": "center",
+                     "rightToLeft": false,
+                     "angle": 0,
+                     "xoffset": 0,
+                     "yoffset": 0,
+                     "text": "",
+                     "rotated": false,
+                     "kerning": true,
+                     "font": {
+                      "size": 9.75,
+                      "style": "normal",
+                      "decoration": "none",
+                      "weight": "bold",
+                      "family": "Arial"
+                     }
+                    }
+                   }
+                ]
+              },
+              "allowGeometryUpdates": true,
+              "hasAttachments": false,
+              "htmlPopupType": "esriServerHTMLPopupTypeNone",
+              "hasM": false,
+              "hasZ": false,
+              "objectIdField": "OBJECTID",
+              "globalIdField": "",
+              "typeIdField": "",
+              "fields": [
+                {
+                  "name": "OBJECTID",
+                  "type": "esriFieldTypeOID",
+                  "actualType": "int",
+                  "alias": "OBJECTID",
+                  "sqlType": "sqlTypeOther",
+                  "nullable": false,
+                  "editable": false,
+                  "domain": null,
+                  "defaultValue": null
+                },
+                {
+                  "name": "GRID",
+                  "type": "esriFieldTypeString",
+                  "alias": "GRID",
+                  "actualType": "nvarchar",
+                  "nullable": true,
+                  "editable": true,
+                  "domain": null,
+                  "defaultValue": null,
+                  "sqlType": "sqlTypeNVarchar",
+                  "length": 256
+                }
+              ],
+              "indexes": [],
+              "types": [],
+              "templates": [
+                {
+                  "name": "New Feature",
+                  "description": "",
+                  "drawingTool": "esriFeatureEditToolPolygon",
+                  "prototype": {
+                    "attributes": {
+                      "GRID": null
+                    }
+                  }
+                }
+              ],
+              "supportedQueryFormats": "JSON",
+              "hasStaticData": false,
+              "maxRecordCount": 10000,
+              "standardMaxRecordCount" : 4000,               
+              "tileMaxRecordCount" : 4000, 
+              "maxRecordCountFactor" : 1,   
+              "exceedsLimitFactor" : 1,           
+              "capabilities": "Query,Editing,Create,Update,Delete"
+            }
+          ]
+        }        
+      }
+      
     });
 });

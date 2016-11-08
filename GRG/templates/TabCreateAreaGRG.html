@@ -1,7 +1,15 @@
-<div class="tabPanel" data-dojo-attach-point="createContainer">
+<div class="tabPanel" data-dojo-attach-point="createAreaContainer">
   
   <div class="controls">
 
+    <div class="controlGroup">
+      <label>GRG Name</label>
+      <div class="controlItem">
+        <input class="jimu-input textInput" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="addGRGName" 
+           data-dojo-props='missingMessage:"You must enter a name for the GRG."' required="true"></input>
+      </div>
+    </div>
+    
     <div class="controlGroup" data-dojo-attach-point="addGRGArea">      
       <div class="controlItem">
         <div class="addExtentBtn" data-dojo-attach-point="addGRGAreaBtn"></div>
@@ -73,7 +81,7 @@
     
     <div class="buttonContainer">
       <div class='jimu-btn' data-dojo-attach-point='createGRGButton'>Create GRG</div>
-      <div class='jimu-btn controlGroupHidden' data-dojo-attach-point='saveGRGButton'>Save GRG to Portal</div>
+      <div class='jimu-btn controlGroupHidden' data-dojo-attach-point='saveGRGButton'>Publish GRG to Portal</div>
     </div>
     
   </div>

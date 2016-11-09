@@ -124,12 +124,17 @@ define([
           dojoTopic.publish('TAB_SWITCHED');        
       });
       
-      this.busyIndicator  = busyIndicator.create(domUtils.getNode(this.domNode));
+      this.busyIndicator  = busyIndicator.create(document.body);
       dojoTopic.subscribe("SHOW_BUSY", dojoLang.hitch(this, this.showBusy));
+      dojoTopic.subscribe("HIDE_BUSY", dojoLang.hitch(this, this.hideBusy));
     },
     
     showBusy: function () {
       this.busyIndicator.show();      
+    },
+    
+    hideBusy: function () {
+      this.busyIndicator.hide();      
     },
     
     onClose: function () {

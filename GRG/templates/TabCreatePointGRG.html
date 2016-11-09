@@ -3,10 +3,10 @@
   <div class="controls">
   
     <div class="controlGroup">
-      <label>GRG Name</label>
+      <label>Published GRG Layer Name</label>
       <div class="controlItem">
         <input class="jimu-input textInput" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="addGRGPointName" 
-           data-dojo-props='missingMessage:"You must enter a name for the GRG."' required="true"></input>
+           data-dojo-props="regExp:'[a-zA-Z0-9_]*', invalidMessage:'Layer name must only contain alpha-numeric characters and underscores', missingMessage:'You must enter a name for the GRG.'" required="true"></input>
       </div>
     </div>
     
@@ -49,7 +49,7 @@
       <div class="controlItem">
         <input class="jimu-input dijitNumberTextBox" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:0,pattern: "#0.##############"},
           invalidMessage:"The value entered is not valid.",
-          rangeMessage:"Value must be greater than 0."' data-dojo-attach-point="pointCellWidth" value="1000000" ></input>
+          rangeMessage:"Value must be greater than 0."' data-dojo-attach-point="pointCellWidth" value="1000" ></input>
       </div>
     </div>  
     
@@ -58,7 +58,7 @@
       <div class="controlItem">
         <input class="jimu-input dijitNumberTextBox" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:0,pattern: "#0.##############"},
           invalidMessage:"The value entered is not valid.",
-          rangeMessage:"Value must be greater than 0."' data-dojo-attach-point="pointCellHeight" value="1000000"></input>
+          rangeMessage:"Value must be greater than 0."' data-dojo-attach-point="pointCellHeight" value="1000"></input>
       </div>
     </div>
     

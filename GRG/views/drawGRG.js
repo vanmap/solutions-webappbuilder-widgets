@@ -19,13 +19,17 @@ define([
   'esri/geometry/geometryEngine',
   'esri/graphic',
   'esri/SpatialReference',
-  'jimu/dijit/Message'
+  'jimu/dijit/Message',
+  'esri/request',
+  'dojo/json'
 ], function(
   Polygon,
   geometryEngine,
   Graphic,
   SpatialReference,
-  Message
+  Message,
+  esriRequest,
+  JSON
 ) {
   
   var grg = {};
@@ -201,6 +205,265 @@ define([
           break;
       }
     }
+  },
+  
+  grg.getFeatureServiceParams = function (featureServiceName) {
+    return {
+     "name" : featureServiceName,
+     "serviceDescription" : "",
+     "hasStaticData" : false,
+     "maxRecordCount" : 1000,
+     "supportedQueryFormats" : "JSON",
+     "capabilities" : "Create,Delete,Query,Update,Editing",
+     "description" : "",
+     "copyrightText" : "",
+     "spatialReference" : {
+        "wkid" : 102100
+        },
+     "initialExtent" : {
+        "xmin":-18746028.312877923,
+        "ymin":-6027547.894280539,
+        "xmax":18824299.82984192,
+        "ymax":12561937.384669386,
+        "spatialReference":{
+          "wkid":102100
+        }
+      },
+     "allowGeometryUpdates" : true,
+     "units" : "esriMeters",
+     "xssPreventionInfo" : {
+        "xssPreventionEnabled" : true,
+        "xssPreventionRule" : "InputOnly",
+        "xssInputRule" : "rejectInvalid"
+      }
+    }
+  },
+
+  grg.getLayerParams = function (layerName) {          
+    return {
+      "layers": [
+        {
+          "adminLayerInfo": {
+            "geometryField": {
+              "name": "Shape"
+            },
+            "xssTrustedFields": ""
+          },
+          "id": 0,
+          "name": layerName,
+          "type": "Feature Layer",
+          "displayField": "",
+          "description": "",
+          "copyrightText": "",
+          "defaultVisibility": true,
+          "ownershipBasedAccessControlForFeatures" : {
+            "allowOthersToQuery" : false, 
+            "allowOthersToDelete" : false, 
+            "allowOthersToUpdate" : false
+          },              
+          "relationships": [],
+          "isDataVersioned" : false, 
+          "supportsCalculate" : true, 
+          "supportsAttachmentsByUploadId" : true, 
+          "supportsRollbackOnFailureParameter" : true, 
+          "supportsStatistics" : true, 
+          "supportsAdvancedQueries" : true, 
+          "supportsValidateSql" : true, 
+          "supportsCoordinatesQuantization" : true, 
+          "supportsApplyEditsWithGlobalIds" : true,
+          "advancedQueryCapabilities" : {
+            "supportsPagination" : true, 
+            "supportsQueryWithDistance" : true, 
+            "supportsReturningQueryExtent" : true, 
+            "supportsStatistics" : true, 
+            "supportsOrderBy" : true, 
+            "supportsDistinct" : true, 
+            "supportsQueryWithResultType" : true, 
+            "supportsSqlExpression" : true, 
+            "supportsReturningGeometryCentroid" : true
+          },          
+          "useStandardizedQueries" : false,      
+          "geometryType": "esriGeometryPolygon",
+          "minScale" : 0, 
+          "maxScale" : 0,
+          "extent": {
+            "xmin":-18746028.312877923,
+            "ymin":-6027547.894280539,
+            "xmax":18824299.82984192,
+            "ymax":12561937.384669386,
+            "spatialReference":{
+              "wkid":102100
+            }
+          },
+          "drawingInfo": {
+            "renderer": {
+             "type": "simple",
+             "symbol": {
+              "color": null,
+              "outline": {
+               "color": [
+                26,
+                26,
+                26,
+                255
+               ],
+               "width": 1.5,
+               "type": "esriSLS",
+               "style": "esriSLSSolid"
+              },
+              "type": "esriSFS",
+              "style": "esriSFSSolid"
+             }
+            },
+            "transparency": 0,
+            "labelingInfo": [
+               {
+                "labelExpression": "[grid]",
+                "labelExpressionInfo": {"value": "{grid}"},
+                "format": null,
+                "fieldInfos": null,
+                "useCodedValues": false,
+                "maxScale": 0,
+                "minScale": 0,
+                "where": null,
+                "sizeInfo": null,
+                "labelPlacement": "esriServerPolygonPlacementAlwaysHorizontal",
+                "symbol": {
+                 "color": [
+                  51,
+                  51,
+                  51,
+                  255
+                 ],
+                 "type": "esriTS",
+                 "backgroundColor": null,
+                 "borderLineColor": null,
+                 "haloSize": 0,
+                 "haloColor": null,
+                 "horizontalAlignment": "center",
+                 "rightToLeft": false,
+                 "angle": 0,
+                 "xoffset": 0,
+                 "yoffset": 0,
+                 "text": "",
+                 "rotated": false,
+                 "kerning": true,
+                 "font": {
+                  "size": 9.75,
+                  "style": "normal",
+                  "decoration": "none",
+                  "weight": "bold",
+                  "family": "Arial"
+                 }
+                }
+               }
+            ]
+          },
+          "allowGeometryUpdates": true,
+          "hasAttachments": false,
+          "htmlPopupType": "esriServerHTMLPopupTypeNone",
+          "hasM": false,
+          "hasZ": false,
+          "objectIdField": "OBJECTID",
+          "globalIdField": "",
+          "typeIdField": "",
+          "fields": [
+            {
+              "name": "OBJECTID",
+              "type": "esriFieldTypeOID",
+              "actualType": "int",
+              "alias": "OBJECTID",
+              "sqlType": "sqlTypeOther",
+              "nullable": false,
+              "editable": false,
+              "domain": null,
+              "defaultValue": null
+            },
+            {
+              "name": "GRID",
+              "type": "esriFieldTypeString",
+              "alias": "GRID",
+              "actualType": "nvarchar",
+              "nullable": true,
+              "editable": true,
+              "domain": null,
+              "defaultValue": null,
+              "sqlType": "sqlTypeNVarchar",
+              "length": 256
+            }
+          ],
+          "indexes": [],
+          "types": [],
+          "templates": [
+            {
+              "name": "New Feature",
+              "description": "",
+              "drawingTool": "esriFeatureEditToolPolygon",
+              "prototype": {
+                "attributes": {
+                  "GRID": null
+                }
+              }
+            }
+          ],
+          "supportedQueryFormats": "JSON",
+          "hasStaticData": false,
+          "maxRecordCount": 10000,
+          "standardMaxRecordCount" : 4000,               
+          "tileMaxRecordCount" : 4000, 
+          "maxRecordCountFactor" : 1,   
+          "exceedsLimitFactor" : 1,           
+          "capabilities": "Query,Editing,Create,Update,Delete"
+        }
+      ]
+    }        
+  },
+  
+  grg.isNameAvailable = function (serviceName, token, featureServiceName) {
+    //Check for the layer name
+    var def = esriRequest({
+      url: serviceName,
+      content: {
+        name: featureServiceName,
+        type: "Feature Service",
+        token: token,
+        f: "json"
+      },
+      handleAs: "json",
+      callbackParamName: "callback"
+    },{usePost: true});
+    return def;
+  },
+
+  grg.createFeatureService = function (serviceUrl, token, createParams) {
+    //create the service
+    var def = esriRequest({
+      url: serviceUrl,
+      content: {
+        f: "json",
+        token: token,
+        typeKeywords: "ArcGIS Server,Data,Feature Access,Feature Service,Service,Hosted Service",
+        createParameters: JSON.stringify(createParams),
+        outputType: "featureService"
+      },
+      handleAs: "json",
+      callbackParamName: "callback"
+    },{usePost: true});
+    return def;
+  },
+
+  grg.addDefinitionToService = function (serviceUrl, token, defParams) {
+    var def = esriRequest({
+      url: serviceUrl,
+      content: {
+        token: token,
+        addToDefinition: JSON.stringify(defParams),
+        f: "json"                            
+      },
+      handleAs: "json",
+      callbackParamName: "callback"                          
+    },{usePost: true});
+    return def;
   }
   
   return grg;

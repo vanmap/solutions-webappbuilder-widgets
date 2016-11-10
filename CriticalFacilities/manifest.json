@@ -1,13 +1,13 @@
 {
-  "name": "HelyxCustomWidget",
+  "name": "CriticalFacilities",
   "2D": true,
   "3D": false,
   "platform": "HTML",
   "version": "0.0.1",
   "wabVersion": "2.1",
-  "author": "Helyx SIS Ltd, Dr Sam Meek",
+  "author": "Esri Inc.",
   "description": "A widget for uploading and geocoding CSV files in batch",
-  "copyright": "© Helyx SIS Ltd, 2016",
+  "copyright": "",
   "license": "http://www.apache.org/licenses/LICENSE-2.0",
   "properties": {
 		"inPanel":true,

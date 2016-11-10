@@ -35,8 +35,9 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
             this.featureCollection = null;
             this.featureLayer = null;
             this.correctFieldNames = null;
-            //this.arraySelectedFields = null;
             this.mappedArrayFields = null;
+            this.latField = null;
+            this.longField = null;
      
 
 
@@ -87,70 +88,78 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
 
             var objectId = 0;
             var counter = 0;
-            var latField = this.findValueByKeyValue(this.arraySelectedFields, "name", "selectLatitude");
-            var longField = this.findValueByKeyValue(this.arraySelectedFields, "name", "selectLongitude");
+
+            //get the lat and long fields from the mapped fields/from the user telling us in the configuration
+
+            //var latField = "latitude";
+           // var longFields = "longitude";
+            
+            //var latField = this.findValueByKeyValue(this.arraySelectedFields, "name", "selectLatitude");
+            //var longField = this.findValueByKeyValue(this.arraySelectedFields, "name", "selectLongitude");
 
             // Init the feature collections
             this.featureCollection = this.onGenerateFeatureCollectionTemplateCSV();
 
-            // Add records in this CSV store as graphics
+         
+            console.log("++++ mappedArrayFields " + this.mappedArrayFields.length);
 
-           // console.log("mapped array fields " + this.mappedArrayFields[0][0] + " " +  this.mappedArrayFields[0][1]);
-           
-           /* arrayUtils.forEach(this.storeItems, lang.hitch(this, function(item) {
+          /**   arrayUtils.forEach(this.mappedArrayFields, function(field){
+                    console.log("mapped Array Fields " + field);
+                });*/
 
-                console.log ("item " + item);
-                var attrs = this.csvStore.getAttributes(item),
-                    attributes = {};
-
-                   
-                // Read all the attributes for this record/item
-               
-                arrayUtils.forEach(attrs, lang.hitch(this, function(attr) {
-                    //attr is the name of the attribute
-                    console.log("attr " + attr);
-                  //  console.log("attr " + attr + " numValue " + numVal);
-                    //change the value lookup to get the number indicated by the lookup
-                   
-                    var value = Number(this.csvStore.getValue(item, attr));
-
-                    attributes[attr] = isNaN(value) ? this.csvStore.getValue(item, attr) : value;
-                    
-                    //  console.log("attr " + attr + " value " + attributes[attr] + " numVal " + numVal);
-                     
-                }));*/
-           
+          
+        
             arrayUtils.forEach(this.storeItems, lang.hitch(this, function(item) {
 
-                console.log ("item " + item);
                 var attrs = this.csvStore.getAttributes(item),
-                    attributes = {};
+            
+                attributes = {}; 
 
+                //console.log ("attrs " + attrs);
                    
                 // Read all the attributes for this record/item
-               var count = 0;
+                //use 1 to skip the spatial object
+                var count = 1;
+
                 arrayUtils.forEach(attrs, lang.hitch(this, function(attr) {
                     //attr is the name of the attribute
                     
                   //  console.log("attr " + attr + " numValue " + numVal);
                     //change the value lookup to get the number indicated by the lookup
+                   // console.log ("+!+!+! " + this.mappedArrayFields[count][0]);
                    
                     var value = Number(this.csvStore.getValue(item, this.mappedArrayFields[count][0]));
 
-                    console.log("attr " + attr + " " + this.mappedArrayFields[count][0]);
+                 //   console.log(" value " + value + " csvStore.getValue " + this.csvStore.getValue(item, this.mappedArrayFields[count][0]));
 
                     attributes[this.mappedArrayFields[count][1]] = isNaN(value) ? this.csvStore.getValue(item, this.mappedArrayFields[count][0]) : value;
                     
-                    //  console.log("attr " + attr + " value " + attributes[attr] + " numVal " + numVal);
-                count++;
-                }));
+                   // if(attributes[this.mappedArrayFields[count][1]] == isNaN(value)){
+
+                      //this.mappedArrayFields[count][1] = this.csvStore.getValue(item, this.mappedArrayFields[count][0]);
+                    //}
+
+                   //console.log("attributes " + attributes[this.mappedArrayFields[count][1]]);
+                   // console.log("attr " + attr + " value " + attributes[attr] );
+                   count++;
+
+                })); 
 
                 
                 attributes["ObjectID"] = objectId;
                 objectId++;
 
-                var latitude = parseFloat(attributes[latField]);
-                var longitude = parseFloat(attributes[longField]);
+               // console.log("latfield " + this.latField + " longfield " + this.longField);
+
+                //console.log("attributes  1 " + attributes);
+           
+
+                //console.log("latitude " + attributes[this.latField] + " longitude " + attributes[this.longField]);
+
+
+                var latitude = parseFloat(attributes[this.latField]);
+                var longitude = parseFloat(attributes[this.longField]);
+
 
                 if (isNaN(latitude) || isNaN(longitude)) {
                     return;
@@ -158,16 +167,18 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
 
                 //setup new set of attributes
 
-               
-
                 var geometry = webMercatorUtils
                     .geographicToWebMercator(new Point(longitude, latitude));
                 var feature = {
                     "geometry": geometry.toJson(),
                     "attributes": attributes
                 };
+
+
                 JSON.stringify(feature);
+               // console.log("Stringified feature " + JSON.stringify(feature));
                 this.featureCollection.featureSet.features.push(feature);
+
             }));
 
             var orangeRed = new Color([238, 69, 0, 0.5]); // hex is #ff4500
@@ -179,6 +190,7 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
 
             this.featureLayer = new FeatureLayer(this.featureCollection, {
                 //infoTemplate: infoTemplate,
+                //make it get the file name here
                 id: "temporaryCSVFile",
                 editable: true,
                 outFields: ["*"]
@@ -235,25 +247,49 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
                     }
                 ]
             };
+            
+            
+            
+            
+            
+            var tempArray = [];
 
-            arrayUtils.forEach(this.arraySelectedFields, lang.hitch(this,function(selectedField) {
-                console.log("selectedFieldName " + selectedField.value);
-            }));
+            for (i=1;i<this.mappedArrayFields.length;i++){
+                var entry = this.mappedArrayFields[i][1];
+                
+                tempArray.push(entry)
+            }
+          /*  arrayUtils.forEach(this.mappedArrayFields, function(selectedField) {
+                //console.log("selectedFieldName " + selectedField[1]);
+                tempArray.push(selectedField[1]);
+            });*/
 
            var count = 0;
-           arrayUtils.forEach(this.csvFieldNames, lang.hitch(this, function(csvFieldName) {
+          // arrayUtils.forEach(this.mappedArrayFields, lang.hitch(this, function(field) {
             
+            //var count1 = 0;
+
+             arrayUtils.forEach(tempArray, function(temp) {
+                //console.log("tempArray " + temp);
+                //tempArray.push(selectedField[1]);
+            });
+
+           
+
+            console.log("tempArray " + tempArray.length);
             
-             //arrayUtils.forEach(this.arraySelectedFields, lang.hitch(this,function(csvFieldName) {
+            arrayUtils.forEach(tempArray, lang.hitch(this,function(csvFieldName) {
                
-                console.log ("count " + this.correctFieldNames[count].value);
+               // console.log ("count " + this.correctFieldNames[count].value);
 
                 var value = this.csvStore.getValue(this.storeItems[0], csvFieldName);
                 var parsedValue = Number(value);
                 
-                console.log("CSV Field Name " + csvFieldName + " " );
+          //      console.log("CSV Field Name " + field + " " );
                 
-                var correctFieldName = this.correctFieldNames[count].value;
+                var correctFieldName = this.mappedArrayFields[count][1];
+
+                console.log("    " + this.mappedArrayFields[count][1]);
 
                 if (isNaN(parsedValue)) { //check first value and see if it is a number
                     this.featureCollection.layerDefinition.fields.push({
@@ -282,6 +318,7 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
         },
 
         onGetSeparator: function () {
+
             console.log("onGetSeparator");
             var newLineIndex = this.fileData.indexOf("\n");
             var firstLine = lang.trim(this.fileData.substr(0, newLineIndex));

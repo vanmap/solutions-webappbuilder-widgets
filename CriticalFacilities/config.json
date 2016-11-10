@@ -1,0 +1,5 @@
+{
+    "selectedFeatureService" : "https://opsserver1041.bristol.local:6443/arcgis/rest/services/critical_facilities/shelters_manatee/FeatureServer/0",
+    "latitudeField" : "latitude",
+    "longitudeField" : "longitude"
+}

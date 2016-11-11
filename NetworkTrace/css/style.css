@@ -192,6 +192,7 @@
 {
     background-image: url("../images/skip.png");
     background-color: #666666;
+    border-radius:2px;
 }
 
 .resultItemButtonSkipIconSelected

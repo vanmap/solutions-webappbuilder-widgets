@@ -86,6 +86,7 @@ define([
         
         //rotate the graphics as required
         var polygonRotated =  geometryEngine.rotate(polygon, (angle * -1),  centerPoint);
+        
         var graphic = new Graphic(polygonRotated);
                           
         var attr = {};
@@ -207,7 +208,7 @@ define([
     }
   },
   
-  grg.getFeatureServiceParams = function (featureServiceName) {
+  grg.getFeatureServiceParams = function (featureServiceName, map) {
     return {
      "name" : featureServiceName,
      "serviceDescription" : "",
@@ -215,16 +216,17 @@ define([
      "maxRecordCount" : 1000,
      "supportedQueryFormats" : "JSON",
      "capabilities" : "Create,Delete,Query,Update,Editing",
+     "tags" : "GRG",
      "description" : "",
      "copyrightText" : "",
      "spatialReference" : {
         "wkid" : 102100
         },
      "initialExtent" : {
-        "xmin":-18746028.312877923,
-        "ymin":-6027547.894280539,
-        "xmax":18824299.82984192,
-        "ymax":12561937.384669386,
+        "xmin": map.extent.xmin,
+        "ymin": map.extent.ymin,
+        "xmax": map.extent.xmax,
+        "ymax": map.extent.ymax,
         "spatialReference":{
           "wkid":102100
         }
@@ -239,7 +241,7 @@ define([
     }
   },
 
-  grg.getLayerParams = function (layerName) {          
+  grg.getLayerParams = function (layerName, map) {          
     return {
       "layers": [
         {
@@ -253,7 +255,8 @@ define([
           "name": layerName,
           "type": "Feature Layer",
           "displayField": "",
-          "description": "",
+          "description": "A GRG (Gridded Reference Graphic) is a grid overlay used for a common reference point in many situations - from cordon and search operations to security for presidential inaugurations.",
+          "tags" : "GRG",
           "copyrightText": "",
           "defaultVisibility": true,
           "ownershipBasedAccessControlForFeatures" : {
@@ -287,10 +290,10 @@ define([
           "minScale" : 0, 
           "maxScale" : 0,
           "extent": {
-            "xmin":-18746028.312877923,
-            "ymin":-6027547.894280539,
-            "xmax":18824299.82984192,
-            "ymax":12561937.384669386,
+            "xmin": map.extent.xmin,
+            "ymin": map.extent.ymin,
+            "xmax": map.extent.xmax,
+            "ymax": map.extent.ymax,
             "spatialReference":{
               "wkid":102100
             }

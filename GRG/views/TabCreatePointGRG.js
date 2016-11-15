@@ -288,10 +288,10 @@ define([
                     //set the map to busy
                     dojoTopic.publish('SHOW_BUSY');
                     drawGRG.createFeatureService(createServiceUrl, token, 
-                      drawGRG.getFeatureServiceParams(featureServiceName)).then(dojoLang.hitch(this, function(response1) {
+                      drawGRG.getFeatureServiceParams(featureServiceName, this.map)).then(dojoLang.hitch(this, function(response1) {
                         if (response1.success) {
                           var addToDefinitionUrl = response1.serviceurl.replace(new RegExp('rest', 'g'), "rest/admin") + "/addToDefinition";
-                          drawGRG.addDefinitionToService(addToDefinitionUrl, token, drawGRG.getLayerParams(featureServiceName)).then(dojoLang.hitch(this, function(response2) {
+                          drawGRG.addDefinitionToService(addToDefinitionUrl, token, drawGRG.getLayerParams(featureServiceName, this.map)).then(dojoLang.hitch(this, function(response2) {
                             if (response2.success) {
                               //Push features to new layer
                                var newFeatureLayer = new FeatureLayer(response1.serviceurl + "/0?token=" + token, {

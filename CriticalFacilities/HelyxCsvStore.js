@@ -50,15 +50,13 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
             console.log("Processing CSV: ", this.inFile, ", ", this.inFile.name, ", ", this.inFile.type, ", ", this.inFile.size);
             if (this.inFile.data) {
                 console.log('file.data');
-                //var decoded = bytesToString(base64.decode(file.data));
-                //processCsvData(decoded);
             }
             else {
                 console.log("not file data");
                 var reader = new FileReader();
                 reader.onload = lang.hitch(this, function () {
                     console.log("Finished reading CSV data");
-                    // processCsvData(reader.result);
+                  
                     this.fileData = reader.result;
                     
                     this.onProcessCsvData();
@@ -82,31 +80,16 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
             console.log("onGetFeatureCollection");
         },
 
-        //this is the location where the schema lookup is actually done (I think!)
         onProcessForm: function () {
             console.log("processForm");
 
             var objectId = 0;
             var counter = 0;
 
-            //get the lat and long fields from the mapped fields/from the user telling us in the configuration
-
-            //var latField = "latitude";
-           // var longFields = "longitude";
-            
-            //var latField = this.findValueByKeyValue(this.arraySelectedFields, "name", "selectLatitude");
-            //var longField = this.findValueByKeyValue(this.arraySelectedFields, "name", "selectLongitude");
-
-            // Init the feature collections
             this.featureCollection = this.onGenerateFeatureCollectionTemplateCSV();
 
          
             console.log("++++ mappedArrayFields " + this.mappedArrayFields.length);
-
-          /**   arrayUtils.forEach(this.mappedArrayFields, function(field){
-                    console.log("mapped Array Fields " + field);
-                });*/
-
           
         
             arrayUtils.forEach(this.storeItems, lang.hitch(this, function(item) {
@@ -115,46 +98,24 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
             
                 attributes = {}; 
 
-                //console.log ("attrs " + attrs);
-                   
-                // Read all the attributes for this record/item
-                //use 1 to skip the spatial object
+                //this is a nasty hack. It assumes that the spatial object is the first field, not sure that this is always true.
+                //it should look for the spatial object type and disregard it, rather than by position
                 var count = 1;
 
                 arrayUtils.forEach(attrs, lang.hitch(this, function(attr) {
-                    //attr is the name of the attribute
-                    
-                  //  console.log("attr " + attr + " numValue " + numVal);
-                    //change the value lookup to get the number indicated by the lookup
-                   // console.log ("+!+!+! " + this.mappedArrayFields[count][0]);
+                  
                    
                     var value = Number(this.csvStore.getValue(item, this.mappedArrayFields[count][0]));
 
-                 //   console.log(" value " + value + " csvStore.getValue " + this.csvStore.getValue(item, this.mappedArrayFields[count][0]));
-
                     attributes[this.mappedArrayFields[count][1]] = isNaN(value) ? this.csvStore.getValue(item, this.mappedArrayFields[count][0]) : value;
                     
-                   // if(attributes[this.mappedArrayFields[count][1]] == isNaN(value)){
-
-                      //this.mappedArrayFields[count][1] = this.csvStore.getValue(item, this.mappedArrayFields[count][0]);
-                    //}
-
-                   //console.log("attributes " + attributes[this.mappedArrayFields[count][1]]);
-                   // console.log("attr " + attr + " value " + attributes[attr] );
-                   count++;
+                    count++;
 
                 })); 
 
                 
                 attributes["ObjectID"] = objectId;
                 objectId++;
-
-               // console.log("latfield " + this.latField + " longfield " + this.longField);
-
-                //console.log("attributes  1 " + attributes);
-           
-
-                //console.log("latitude " + attributes[this.latField] + " longitude " + attributes[this.longField]);
 
 
                 var latitude = parseFloat(attributes[this.latField]);
@@ -176,7 +137,7 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
 
 
                 JSON.stringify(feature);
-               // console.log("Stringified feature " + JSON.stringify(feature));
+
                 this.featureCollection.featureSet.features.push(feature);
 
             }));
@@ -185,30 +146,27 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
             var marker = new SimpleMarkerSymbol("solid", 10, null, orangeRed);
             var renderer = new SimpleRenderer(marker);
 
-            //var json = { title: "Attributes", content: "Lat: ${Lat}<br>Lon: ${Lon}" }
-            //var infoTemplate = new InfoTemplate(json);
-
             this.featureLayer = new FeatureLayer(this.featureCollection, {
-                //infoTemplate: infoTemplate,
-                //make it get the file name here
+              
                 id: "temporaryCSVFile",
                 editable: true,
                 outFields: ["*"]
             });
             this.featureLayer.setRenderer(renderer);
 
-            // featureLayer.on("click")
+         
             on(this.featureLayer, "click", function(e) {
                 console.log("FL clicked");
                 console.log(e.graphic);
                 console.log(e.graphic.attributes);
                 console.log("X: " + e.graphic.geometry.x + ", Y: " + e.graphic.geometry.y);
-                // var node = e.graphic.getNode();
-                // console.log(node); 
+            
             });
 
             this.inMap.addLayers([this.featureLayer]);
             this.onZoomToData(this.featureLayer);
+            document.getElementById('btnSubmitData').disabled=false;
+            document.getElementById('btnAddToMap').disabled=true;
 
         },
 
@@ -259,19 +217,12 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
                 
                 tempArray.push(entry)
             }
-          /*  arrayUtils.forEach(this.mappedArrayFields, function(selectedField) {
-                //console.log("selectedFieldName " + selectedField[1]);
-                tempArray.push(selectedField[1]);
-            });*/
+     
 
-           var count = 0;
-          // arrayUtils.forEach(this.mappedArrayFields, lang.hitch(this, function(field) {
-            
-            //var count1 = 0;
+                var count = 0;
 
-             arrayUtils.forEach(tempArray, function(temp) {
-                //console.log("tempArray " + temp);
-                //tempArray.push(selectedField[1]);
+                arrayUtils.forEach(tempArray, function(temp) {
+               
             });
 
            
@@ -280,12 +231,9 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
             
             arrayUtils.forEach(tempArray, lang.hitch(this,function(csvFieldName) {
                
-               // console.log ("count " + this.correctFieldNames[count].value);
-
                 var value = this.csvStore.getValue(this.storeItems[0], csvFieldName);
                 var parsedValue = Number(value);
                 
-          //      console.log("CSV Field Name " + field + " " );
                 
                 var correctFieldName = this.mappedArrayFields[count][1];
 

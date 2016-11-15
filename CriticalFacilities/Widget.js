@@ -20,6 +20,8 @@ define(['dojo/_base/declare',
   "./helyxcsvstore",
   'jimu/loaderplugins/jquery-loader!https://code.jquery.com/jquery-git1.min.js'],
 
+//"selectedFeatureService" : "https://opsserver1041.bristol.local:6443/arcgis/rest/services/critical_facilities/shelters_manatee/FeatureServer/0",
+//"selectedFeatureService" : "https://opsserver1041.bristol.local:6443/arcgis/rest/services/critical_facilities/bugsites/FeatureServer/0",
 
   function (declare, BaseWidget, lang, on, dom, arrayUtils, CsvStore, query, html, domConstruct, registry, webMercatorUtils, Point, Color, esriConfig, SimpleMarkerSymbol, SimpleRenderer, FeatureLayer, esriRequest, hCsvStore, $) {
     //To create a widget, you need to derive from BaseWidget.
@@ -48,6 +50,8 @@ define(['dojo/_base/declare',
         this.inherited(arguments);
         this.own(on(this.map, "mouse-move", lang.hitch(this, this.onMouseMove)));
         this.own(on(this.map, "click", lang.hitch(this, this.onMapClick)));
+        
+        
         //change here when looking up field headers from a feature service
         var arrayFacility = ['Facility', 'Fac', 'Facil'];
         var arrayAddress = ['Address', 'Add'];
@@ -125,25 +129,60 @@ define(['dojo/_base/declare',
               });
               console.log("length " + arrayFieldsFromFeatureService.length);
 
+              var numberOfFields = 0;
                 arrayUtils.forEach(arrayFieldsFromFeatureService, function(i, value){
-                var fieldName = i.value;
+                  var fieldName = i.value;
 
-                console.log("field Name " + fieldName);
-       // <!-- <label data-dojo-attach-point="labelFacility" for="selectFacility">Facility</label>
-         //   <select id="selectFacility" name="selectFacility" data-dojo-attach-point="fieldFacility"></select>-->
-        
-                var node = domConstruct.toDom('<label data-dojo-attach-point="label'+fieldName + '" for="select'+fieldName+'">' + fieldName + '</label>');
-                var selectNode = domConstruct.toDom('<select id="select'+fieldName + '" name="select' + fieldName + '" data-dojo-attach-point="field' + fieldName + '"></select>');
+                  console.log("field Name " + fieldName);
+         
+                  var node = domConstruct.toDom('<label id="label'+fieldName+'" data-dojo-attach-point="label'+fieldName + '" for="select'+fieldName+'">' + fieldName + '</label>');
+                  var selectNode = domConstruct.toDom('<select id="select'+fieldName + '" name="select' + fieldName + '" data-dojo-attach-point="field' + fieldName + '"></select>');
 
-             //   console.log("node ++++++++++ " + node);
-          
-                document.getElementById('fieldsetForm').appendChild(node);
-                document.getElementById('fieldsetForm').appendChild(selectNode);
-              //console.log ("arrayPopulation " + i.name + " " + i.value);
-          });
-          //first need the correct number of html fields with labels setup
-          //set the html elements
-          //example dojo.query('fieldset#fieldsetForm')[0].children[1].innerText = "Facility";
+      
+                  document.getElementById('fieldsetForm').appendChild(node);
+                  document.getElementById('fieldsetForm').appendChild(selectNode);
+
+                  //set element styling
+                  document.getElementById('label'+fieldName).style.fontSize="10pt";
+                  document.getElementById('label'+fieldName).style.fontFamily="Avenir, LT";
+                  document.getElementById('label'+fieldName).style.lineHeight = "13px";
+                  document.getElementById('label'+fieldName).style.margin = "3px";
+
+
+
+                  numberOfFields++;
+            });
+
+                  console.log("number of fields " + numberOfFields);
+                  //do dynamic widget styling here
+                  //things to do:
+                  // font size: document.getElementById('labellatitude').style.fontSize="10pt";
+                  // font : document.getElementById('labellatitude').style.fontFamily("Avenir, LT");
+                  // margin around select boxes: document.getElementById('selectlatitude').style.margin="0px";
+                  // align labels and elements: document.getElementById('selectlatitude').style.height; document.getElementById('labellatitude').style.lineHeight = "20px" (selectbox height);
+                  // set the widget frame to the correct size: document.getElementById('dijit__WidgetBase_4').style.width = "360px";
+                  // set the whole widget to the correct size: document.getElementById('_5_panel').style.width="300px";
+
+
+                  var height = (numberOfFields * 20) + 200; 
+                  var widgetHeight = height + 80;
+                  var buttonHeight = (numberOfFields * 20) + 150;
+
+                  document.getElementById('fieldsetForm').style.height = height + 'px';
+                  document.getElementById('fieldsetForm').style.width = '300px';
+                  document.getElementById('dijit__WidgetBase_4').style.width = "350px";
+                  document.getElementById('_5_panel').style.width="350px";
+                  document.getElementById('_5_panel').style.height=widgetHeight+'px';
+                  document.getElementById('btnSubmitData').style.top = buttonHeight + 'px';
+                  document.getElementById('btnAddToMap').style.top = buttonHeight + 'px';
+
+                 
+                  //disable submit to feature service button until points have been added.
+
+                  document.getElementById('btnSubmitData').disabled = true;
+                 
+
+                  //set field form spacing
 
             },    function(error) {
                   console.log("Error: ", error.message);
@@ -155,10 +194,9 @@ define(['dojo/_base/declare',
       startup: function () {
         console.log('startup');
         this.inherited(arguments);
-        // this.mapIdNode.innerHTML = 'map id:' + this.map.id;
-        // this.mapSrNode.innerHTML = 'map sr:' + this.map.spatialReference.wkid;
+  
         thisMap = this.map;
-        // get feature service and map fields
+     
        
 
 
@@ -194,7 +232,7 @@ define(['dojo/_base/declare',
           files = dataTransfer.files,
           types = dataTransfer.types;
 
-        // File drop?
+      
         if (files && files.length === 1) {
           console.log("[ FILES ]");
           var file = files[0]; // that's right I'm only reading one file
@@ -209,7 +247,6 @@ define(['dojo/_base/declare',
                 
             });
            
-           // console.log("latField " + latfieldFromConfig + " " + " longField " + longFieldFromConfig);
 
             myCsvStore.latField = latFieldFromConfig;
             myCsvStore.longField = longFieldFromConfig;
@@ -219,8 +256,7 @@ define(['dojo/_base/declare',
           }
         }
 
-        // Show form - need to test all ok here first
-        // $('#fields-popup').show();
+  
 
       },
 
@@ -234,14 +270,7 @@ define(['dojo/_base/declare',
       },
 
       onMapClick: function (evt) {
-      // console.log('onMapClick');
-        // if (window.appInfo.isRunInMobile) {
-        //   return;
-        // }
-        // if (!this.enableRealtime || !this.selectedItem) {
-        //   return;
-        // }
-        //console.log(JSON.stringify(evt.mapPoint));
+    
       },
 
       onMouseMove: function (evt) {
@@ -251,36 +280,10 @@ define(['dojo/_base/declare',
 
 
 
-      //this is where things are added
+ 
 
       onAddClick: function() {
         console.log('onAddClick');
-
-
-     /*   var map0 = dojo.query('select#selectFacility')[0][dojo.query('select#selectFacility').val()].firstChild.data;
-        var map1 = dojo.query('select#selectAddress')[0][dojo.query('select#selectAddress').val()].firstChild.data;
-        var map2 = dojo.query('select#selectCity')[0][dojo.query('select#selectCity').val()].firstChild.data;
-        var map3 = dojo.query('select#selectState')[0][dojo.query('select#selectState').val()].firstChild.data;
-        var map4 = dojo.query('select#selectLongitude')[0][dojo.query('select#selectLongitude').val()].firstChild.data;
-        var map5 = dojo.query('select#selectLatitude')[0][dojo.query('select#selectLatitude').val()].firstChild.data;
-        var map6 = dojo.query('select#selectType')[0][dojo.query('select#selectType').val()].firstChild.data;
-        //var map7 = dojo.query('select#selectUsngNot')[0][dojo.query('select#selectUsngNot').val()].firstChild.data
-        var map7 = "USNG_NOT";
-        var map8 = dojo.query('select#selectX')[0][dojo.query('select#selectX').val()].firstChild.data;
-        var map9 = dojo.query('select#selectY')[0][dojo.query('select#selectY').val()].firstChild.data;
-
-        var lab0 = "Facility";
-        var lab1 = "Address";
-        var lab2 = "City";
-        var lab3 = "State";
-        var lab4 = "Longitude";
-        var lab5 = "Latitude";
-        var lab6 = "Type";
-        var lab7 = "USNG_NOT";
-        var lab8 = "X";
-        var lab9 = "Y"; */
-
-        //var arrayMappedFields = [[map0,lab0], [map1,lab1], [map2,lab2], [map3,lab3], [map4,lab4], [map5,lab5], [map6,lab6], [map7,lab7], [map8,lab8], [map9,lab9]];
 
        var arrayMappedFields = [[]];
 
@@ -302,26 +305,11 @@ define(['dojo/_base/declare',
 
 
         arraySelectedFields = [];
- 
-      //  query('select[id^="select"]').forEach(function (node, index, arr) {
-        //    var nodeName = node.name;
-          //  console.log("node Name +++++ " + nodeName);
-            //var selectedOption = $("#" + node.name + " :selected").text();
-            
-          // console.log("node Name " + node.name + ": " + selectedOption );
-            // Populate selected fields array and update class property
-         //   arraySelectedFields.push({ name: nodeName, value: selectedOption });
-           // myCsvStore.arraySelectedFields = arraySelectedFields;#
-        
-           //console.log("arrayMappedFields length " + arrayMappedFields.length);
+
             myCsvStore.correctFieldNames = arrayFieldsFromFeatureService;
             myCsvStore.mappedArrayFields = arrayMappedFields;
-        //});
-    //    console.log("Stringified selected fields: " + JSON.stringify(arraySelectedFields));
-        
-        // Add the CSV Store to the map using featurecollection and featurelayer
+
         myCsvStore.onProcessForm();
-        // processForm(this.map, arraySelectedFields);
 
       },
 
@@ -329,44 +317,32 @@ define(['dojo/_base/declare',
       onSubmitClick: function(){
          console.log('onSubmitClick');
 
-         //submits the added graphics to the feature service, this is currently hard coded, but will eventually be taken from the confurator thing
-        
-
-         var featureLayer = myCsvStore.featureLayer;
-
-        // var features = featureLayer.features;        
-                         
+         var featureLayer = myCsvStore.featureLayer;                         
 
          console.log("featureLayer size " + featureLayer.id ); 
 
-         //update features in this demo, add features later and update
-
-        //get data from REST endpoint and compare the ID of each of the records against what is already there. Sort them into two arrays and invoke add/update 
-        //via applyEdits below
         var flayer = new esri.layers.FeatureLayer(this.featureservice,  {
           mode: esri.layers.FeatureLayer.MODE_ONDEMAND,
           
           outFields: ['*']
         });
 
-       // console.log("featureService " + flayer.graphics)
-
-        //features to add
+     
          var features = featureLayer.graphics;
          var theExtent = null;
 
-        // console.log("features length " + features.length);
+      
 
          for (var f = 0, fl = features.length; f < fl; f++) {
             var feature = features[f];
             var attribs = feature.attributes;
-             // feature.setSymbol(normalpictureMarkerSymbol);
+         
              feature.setInfoTemplate(flayer.infoTemplate);
                             flayer.add(feature);
 
                             //adds, updates, deletes, callback, errback
                             flayer.applyEdits([feature], null , null);
-                            //this.map.addLayers([flayer]);
+                       
 
                           
         }  
@@ -377,9 +353,6 @@ define(['dojo/_base/declare',
 
       onClearClick: function(){
              console.log('onClearClick');
-
-         //REST endpoint https://opsserver1041.bristol.local:6443/arcgis/rest/services/critical_facilities/shelters_manatee/FeatureServer/0/applyEdits
-         //update features in this demo, add features later and update
 
         //get data from REST endpoint and compare the ID of each of the records against what is already there. Sort them into two arrays and invoke add/update 
         //via applyEdits below
@@ -393,31 +366,14 @@ define(['dojo/_base/declare',
 
         console.log("featureService " + flayer.graphics);
 
-        //features to add
-        // var features = featureLayer.selectFeatures();
+
          var theExtent = null;
          var selectQuery = new Query();
 
         //  selectQuery.where = "'Facility' = '*'";
         selectQuery.where = "1=1";
 
-         var selectFeatures = flayer.selectFeatures(selectQuery, flayer.SELECTION_NEW);
-         
-
-         //console.log("features length " + selectFeatures.length);
-
-        /* for (var f = 0, fl = features.length; f < fl; f++) {
-            var feature = features[f];
-            var attribs = feature.attributes;
-             // feature.setSymbol(normalpictureMarkerSymbol);
-             feature.setInfoTemplate(flayer.infoTemplate);
-                            flayer.add(feature);
-
-                            //adds, updates, deletes, callback, errback
-                            flayer.applyEdits(null, null, [feature]);
-                            //this.map.addLayers([flayer]);
-                            flayer.refresh();
-        } */
+        var selectFeatures = flayer.selectFeatures(selectQuery, flayer.SELECTION_NEW);
 
         console.log("selected Features " + selectedFeatures.id);
 
@@ -464,8 +420,6 @@ define(['dojo/_base/declare',
       resize: function () {
         console.log('resize');
       }
-
-      //methods to communication between widgets:
 
     });
 

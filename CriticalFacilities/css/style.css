@@ -3,7 +3,7 @@
     border-width: 2px;
     border-color: #4A4866;
     border-style: solid;
-    padding: 12px;
+    padding: 10px;
     margin: 4px;
     width: 280px;
     height: 340px;
@@ -26,6 +26,7 @@
     clear:right;
     position: relative;
     width: 175px;
+    margin: 3px;
     
 }
 
@@ -53,11 +54,9 @@
 .fieldset-form #btnAddToMap{
   font-weight: bold;
   font-family: "Avenir", LT;
-  float:left;
   clear: left;
   display: inline-block;
-  
-    height:30px;
+  height:30px;
   border-radius: 4px;
   background-color: #518dca;
   border: #518dca;
@@ -69,21 +68,22 @@
   transition: all 0.5s;
   cursor: pointer;
   margin-top: 10px;
+  position: absolute;
+  left: 25px;
+  top: 25px;
  
 }
 
-.fieldset-form #btnAddToMap:hover {
+.fieldset-form #btnAddToMap:hover:enabled {
     background-color: #ffffff;
     border-color: #518dca;
-   
     border: 1px solid #518dca;
     color: #518dca;
 }
 
-.fieldset-form #btnAddToMap:active{
-    font-weight: bold;
+.fieldset-form #btnAddToMap:active:enabled {
+  font-weight: bold;
   font-family: "Avenir", LT;
-  float:left;
   clear: left;
   display: inline-block;
   height:30px;
@@ -99,10 +99,15 @@
   cursor: pointer;
   margin: 5px;
 }
-.fieldset-form #btnSubmitData:active{
-    font-weight: bold;
+.fieldset-form #btnAddToMap:disabled{
+    background-color: #d9d9d9;
+    color: #ffffff;
+    font-size: 14px;
+}
+
+.fieldset-form #btnSubmitData:active:enabled {
+  font-weight: bold;
   font-family: "Avenir", LT;
-  float:right;
   clear: right;
   display: inline-block;
   height:30px;
@@ -119,13 +124,18 @@
   margin: 5px;
 }
 
+.fieldset-form #btnSubmitData:disabled{
+    background-color: #d9d9d9;
+    color: #ffffff;
+    font-size: 14px;
+}
+
 
 
 .fieldset-form #btnSubmitData{
     
   font-weight: bold;
   font-family: "Avenir", LT;
-  float:right;
   clear: right;
   display: inline-block;
   height:30px;
@@ -140,8 +150,12 @@
   transition: all 0.5s;
   cursor: pointer;
   margin: 10px;
+  position: absolute;
+  right: 25px;
+  top: 25px;
 }
-.fieldset-form #btnSubmitData:hover{
+
+.fieldset-form #btnSubmitData:hover:enabled {
     background-color: #ffffff;
     border-color: #518dca;
    

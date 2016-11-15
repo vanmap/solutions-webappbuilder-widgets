@@ -145,10 +145,11 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
             var orangeRed = new Color([238, 69, 0, 0.5]); // hex is #ff4500
             var marker = new SimpleMarkerSymbol("solid", 10, null, orangeRed);
             var renderer = new SimpleRenderer(marker);
+            //var tempName = 
 
             this.featureLayer = new FeatureLayer(this.featureCollection, {
               
-                id: "temporaryCSVFile",
+                id: this.inFile.name,
                 editable: true,
                 outFields: ["*"]
             });

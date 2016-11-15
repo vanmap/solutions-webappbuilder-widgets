@@ -66,7 +66,7 @@ define(['dojo/_base/declare',
         
         
         //array of fields
-        arrayFields = [
+        /*arrayFields = [
           { name: 'arrayFacility', value: arrayFacility },
           { name: 'arrayAddress', value: arrayAddress },
           { name: 'arrayCity', value: arrayCity },
@@ -77,11 +77,11 @@ define(['dojo/_base/declare',
           { name: 'arrayUsngNot', value: arrayUsngNot },
           { name: 'arrayX', value: arrayX },
           { name: 'arrayY', value: arrayY }
-        ];
+        ]; */
 
         //array of fields to map to (need to create this from the feature service)
 
-        correctArrayFields = [
+      /*  correctArrayFields = [
           { name: 'arrayFacility', value: 'Facility' },
           { name: 'arrayAddress', value: 'Address' },
           { name: 'arrayCity', value: 'City' },
@@ -92,7 +92,7 @@ define(['dojo/_base/declare',
           { name: 'arrayUsngNot', value: 'USING_NOT' },
           { name: 'arrayX', value: 'X' },
           { name: 'arrayY', value: 'Y' }
-        ];
+        ]; */
 
         this.featureservice = this.config.selectedFeatureService;
         latFieldFromConfig = this.config.latitudeField;
@@ -242,7 +242,7 @@ define(['dojo/_base/declare',
             
             myCsvStore = new hCsvStore({
                 inFile: file,
-                inArrayFields: arrayFields,
+                inArrayFields: arrayFieldsFromFeatureService,
                 inMap: thisMap
                 
             });

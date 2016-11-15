@@ -268,8 +268,8 @@ define([
           this.map.enableMapNavigation();
           this.dt.deactivate();
           
-          this.cellWidth.setValue(parseInt((geometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,1), this.cellUnits.value))/9));
-          this.cellHeight.setValue(parseInt((geometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,3), this.cellUnits.value))/9));
+          this.cellWidth.setValue((geometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,1), this.cellUnits.value))/9);
+          this.cellHeight.setValue((geometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,3), this.cellUnits.value))/9);
           
                     
           dojoClass.toggle(this.addGRGArea, "controlGroupHidden");

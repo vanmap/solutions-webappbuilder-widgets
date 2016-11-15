@@ -102,7 +102,7 @@ define([
           var gridLine = new SimpleLineSymbol("solid", gridColor, 2.5);
           var gridSymbol = new SimpleFillSymbol("solid", gridLine, null);
           var gridRenderer = new SimpleRenderer(gridSymbol);
-
+                  
           var featureCollection = {
             "layerDefinition": {
               "geometryType": "esriGeometryPolygon",
@@ -115,7 +115,16 @@ define([
                 "name": "grid",
                 "alias": "grid",
                 "type": "esriFieldTypeString"
-              }]
+              }],
+              "extent": {
+            "xmin":-18746028.312877923,
+            "ymin":-6027547.894280539,
+            "xmax":18824299.82984192,
+            "ymax":12561937.384669386,
+            "spatialReference":{
+              "wkid":102100
+            }
+          },
             }
           };
 
@@ -124,6 +133,8 @@ define([
             outFields: ["*"]
           });
           this.GRGArea.setRenderer(gridRenderer);
+          
+          console.log(this.GRGArea);
 
           var json = {
             "labelExpressionInfo": {"value" : "{grid}"}
@@ -349,10 +360,10 @@ define([
                   //set the map to busy
                   dojoTopic.publish('SHOW_BUSY');
                   //create the service
-                  drawGRG.createFeatureService(createServiceUrl, token, drawGRG.getFeatureServiceParams(featureServiceName)).then(dojoLang.hitch(this, function(response1) {
+                  drawGRG.createFeatureService(createServiceUrl, token, drawGRG.getFeatureServiceParams(featureServiceName, this.map)).then(dojoLang.hitch(this, function(response1) {
                     if (response1.success) {
                       var addToDefinitionUrl = response1.serviceurl.replace(new RegExp('rest', 'g'), "rest/admin") + "/addToDefinition";
-                      drawGRG.addDefinitionToService(addToDefinitionUrl, token, drawGRG.getLayerParams(featureServiceName)).then(dojoLang.hitch(this, function(response2) {
+                      drawGRG.addDefinitionToService(addToDefinitionUrl, token, drawGRG.getLayerParams(featureServiceName, this.map)).then(dojoLang.hitch(this, function(response2) {
                         if (response2.success) {
                           //Push features to new layer
                            var newFeatureLayer = new FeatureLayer(response1.serviceurl + "/0?token=" + token, {

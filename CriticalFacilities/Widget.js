@@ -18,7 +18,8 @@ define(['dojo/_base/declare',
   "esri/layers/FeatureLayer",
   "esri/request",
   "./helyxcsvstore",
-  'jimu/loaderplugins/jquery-loader!https://code.jquery.com/jquery-git1.min.js'],
+  'jimu/loaderplugins/jquery-loader!https://code.jquery.com/jquery-git1.min.js'
+  ],
 
 //"selectedFeatureService" : "https://opsserver1041.bristol.local:6443/arcgis/rest/services/critical_facilities/shelters_manatee/FeatureServer/0",
 //"selectedFeatureService" : "https://opsserver1041.bristol.local:6443/arcgis/rest/services/critical_facilities/bugsites/FeatureServer/0",

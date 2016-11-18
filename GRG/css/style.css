@@ -1,5 +1,18 @@
-.jimu-widget-GRG {
+.jimu-widget-GRG  .paddedTop{
+   padding-top: 10px;
+   padding-left: 3px;
+}
 
+.jimu-widget-GRG  .control  .tab{
+  background-color: #fff;
+  font-size: 12px;
+}
+
+.jimu-widget-GRG .control  .tab.jimu-state-selected {
+    border-top: 0px solid #FFF;
+    border-bottom: 2px solid #24b5cc;
+    color: #000;
+    font-size: 12px;
 }
 
 .jimu-widget-GRG .tabsContainer {
@@ -27,14 +40,10 @@
     margin-left: 9px;
 }
 
+
 .jimu-widget-GRG .dijitNumberTextBox {
     width: 225px;
     height: 32px;
-}
-
-.jimu-widget-GRG .tabPanel {
-    border-bottom: 1px solid #CCC;
-    padding-bottom: 20px;
 }
 
 .jimu-widget-GRG .tabPanel fieldset {
@@ -70,6 +79,10 @@
 
 .jimu-widget-GRG .controlGroup {
     margin-top: 13px;
+}
+
+.jimu-widget-GRG .controlGroupHidden {
+    display: none;
 }
 
 .jimu-widget-GRG .controlGroup .controlGroupChild{

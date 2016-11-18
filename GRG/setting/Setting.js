@@ -15,63 +15,82 @@
 ///////////////////////////////////////////////////////////////////////////
 
 define([
-    'dojo/_base/declare',
-    'jimu/BaseWidgetSetting',
-    'dijit/_WidgetsInTemplateMixin',
-    'dijit/form/ValidationTextBox'
+  'dojo/_base/declare',
+  'jimu/BaseWidgetSetting',
+  'dojo/_base/lang',
+  'dojo/_base/array',
+  'dijit/_WidgetsInTemplateMixin',
+  'dojo/_base/Color',
+  'dojo/dom-geometry',
+  'dojo/on',
+  'esri/symbols/TextSymbol',
+  'esri/symbols/SimpleFillSymbol',
+  'esri/symbols/jsonUtils',
+  'jimu/dijit/SymbolPicker',
+  'dijit/form/HorizontalSlider',
+  'dijit/ColorPalette',
+  'dijit/form/NumberSpinner',
+  'jimu/dijit/ColorPicker'  
 ],
-    function (declare, BaseWidgetSetting, _WidgetsInTemplateMixin) {
-        return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
+  function(
+    declare,
+    BaseWidgetSetting,
+    lang,
+    array,
+    _WidgetsInTemplateMixin,
+    Color,
+    domGeometry,
+    on,
+    TextSymbol,
+    SimpleFillSymbol,
+    symbolJsonUtils,
+    SymbolPicker
+    ) {
 
-            baseClass: 'jimu-widget-setting-grg',
+    return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
+      baseClass: 'grg-setting',      
+      gridSym: null,
+      textSym: null,
+      selectedGridSymbol: null,
+      selectedTextSymbol: null,
 
-            startup: function () {
-                this.inherited(arguments);
-                if (!this.config.createAreaGRGService) {
-                    this.config.createAreaGRGService = {
-                      url: {}
-                    };
-                }
-                if (!this.config.createPointGRGService) {
-                    this.config.createPointGRGService = {
-                      url: {}
-                    };
-                }
-                if (!this.config.deleteGRGService) {
-                    this.config.deleteGRGService = {
-                      url: {}
-                    };
-                }
-                if (!this.config.gridFeatureService) {
-                    this.config.gridFeatureService = {
-                      url: {}
-                    };
-                }                                                
-                this.setConfig(this.config);
-            },
+      postCreate: function(){
+        this.inherited(arguments);                
+        this.setConfig(this.config);
+      },
 
-            setConfig: function (config) {
-                this.config = config;
-                if (config.createAreaGRGService.url !== undefined) {
-                    this.createAreaServiceUrl.set('value', config.createAreaGRGService.url);
-                }
-                if (config.createPointGRGService.url !== undefined) {
-                    this.createPointServiceUrl.set('value', config.createPointGRGService.url);
-                }
-                if (config.deleteGRGService.url !== undefined) {
-                    this.deleteServiceUrl.set('value', config.deleteGRGService.url);
-                }
-                if (config.gridFeatureService.url !== undefined) {
-                    this.gridAreaServiceUrl.set('value', config.gridFeatureService.url);
-                }                                                
-            },
+      startup: function() {
+        this.inherited(arguments);
+        this.textSymbol.inputText.value = "A1";
+        this.textSymbol._onTextSymbolChange();
+      },
 
-            getConfig: function () {
-                this.config.createAreaGRGService.url = this.createAreaServiceUrl.get('value');
-                this.config.createPointGRGService.url = this.createPointServiceUrl.get('value');
-                this.config.deleteGRGService.url = this.deleteServiceUrl.get('value');
-                this.config.gridFeatureService.url = this.gridAreaServiceUrl.get('value');                                                
-                return this.config;
-            }
-        });
+      gridSymbolChanged: function(newFillSymbol) {
+        this.selectedGridSymbol = newFillSymbol;
+      },
+
+      textSymbolChanged: function(newTextSymbol) {
+        this.selectedTextSymbol = newTextSymbol;
+      },
+
+      setConfig: function(config){
+        if (config.grg) {
+          this.gridSymbol.reset();
+          this.gridSymbol.showBySymbol(new SimpleFillSymbol(this.config.grg.gridSymbol)); 
+
+          this.textSymbol.reset();
+          this.config.grg.textSymbol.text = "";
+          this.textSymbol.showBySymbol(new TextSymbol(this.config.grg.textSymbol)); 
+        }
+      },
+
+      getConfig: function(){
+        this.config.grg = {
+          gridSymbol: this.gridSymbol.getSymbol().toJson(),
+          textSymbol: this.textSymbol.getSymbol().toJson()
+        };      
+        return this.config;
+      }
+
     });
+  });

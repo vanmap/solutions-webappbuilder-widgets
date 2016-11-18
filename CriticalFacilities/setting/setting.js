@@ -1,21 +1,7 @@
-///////////////////////////////////////////////////////////////////////////
-// Copyright © 2015 Esri. All Rights Reserved.
-//
-// Licensed under the Apache License Version 2.0 (the "License");
-// you may not use this file except in compliance with the License.
-// You may obtain a copy of the License at
-//
-//    http://www.apache.org/licenses/LICENSE-2.0
-//
-// Unless required by applicable law or agreed to in writing, software
-// distributed under the License is distributed on an "AS IS" BASIS,
-// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-// See the License for the specific language governing permissions and
-// limitations under the License.
-///////////////////////////////////////////////////////////////////////////
 
 define([
   "dojo/_base/declare",
+  'dojo/_base/array',
   "dojo/_base/lang",
   'dojo/_base/Color',
   "dojo/on",
@@ -24,87 +10,107 @@ define([
   "jimu/dijit/CheckBox",
   "jimu/dijit/ColorPickerButton",
   "dijit/form/TextBox",
-  "dojo/parser"
-], function(declare, lang, Color, on, _WidgetsInTemplateMixin, BaseWidgetSetting, CheckBox, textBox, parser) {
-  var PARTIAL_WITHIN = 'partial', WHOLLY_WITHIN = 'wholly';
+  "dojo/parser",
+  'jimu/LayerInfos/LayerInfos',
+  'dojo/_base/html'
+  
+], function(
+  declare, 
+  arrayUtils, 
+  lang, 
+  Color, 
+  on, 
+  _WidgetsInTemplateMixin, 
+  BaseWidgetSetting,
+  CheckBox,
+  colorPickerButton,
+  textBox, 
+  parser, 
+  LayerInfos,
+  html
+  ) {
   return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
-    baseClass: 'jimu-widget-select-setting',
 
+    baseClass: 'jimu-widget-select-setting',
     //get a list of feature services from the web map
     //enable user to choose feature service
     //enable user to select fields to map to, offer options on what to do with the omitted fields
 
-    selectionColor: '',
-    selectionMode: '',
-    allowExport: false,
-    featureService: '',
+    _jimuLayerInfos: null,
+    _layersTable: null,
+    _editableLayerInfos: null,
 
-    postCreate: function() {
-      this.inherited(arguments);
 
-      this.allowExportCheckBox = new CheckBox({
-        label: this.nls.allowExport,
-        checked: this.config && this.config.allowExport,
-        onChange: lang.hitch(this, this._onAllowExportChange)
-      }, this.exportCheckBoxDiv);
+      startup: function() {
+        this.inherited(arguments);
+        LayerInfos.getInstance(this.map, this.map.itemInfo)
+          .then(lang.hitch(this, function(operLayerInfos) {
+            this._jimuLayerInfos = operLayerInfos;
+            this._init();
+            this.setConfig();
+          }));
+      },
 
-      if(this.config) {
-        this._init();
-      }
 
-      this.own(on(this.featureService, 'change', lang.hitch(this,
-          this._onColorChange)));
+
+
+      getConfig: function() {
+
+        var layersTableData =  this._layersTable.getData();
+          array.forEach(this._editableLayerInfos, function(layerInfo, index) {
+            layerInfo._editFlag = layersTableData[index].edit;
+            layerInfo.disableGeometryUpdate = layersTableData[index].disableGeometryUpdate;
+         // if(layerInfo._editFlag) {
+           // delete layerInfo._editFlag;
+              checkedLayerInfos.push(layerInfo);
+         // }
+          });
+      return this.config;
     },
 
-    _onColorChange: function(color) {
-      //this.selectionColor = color.toHex();
-        this.config.selectedFeatureService = document.getElementById("dijit_form_TextBox_0").value;
+     _init: function() {
+       // this._initToolbar();
+       // this._initLayersTable();
     },
 
 
-    _onSelectPartialMode: function() {
-      this.selectionMode = PARTIAL_WITHIN;
-    },
+     _setLayersTable: function(LayerInfos) {
+        array.forEach(LayerInfos, function(layerInfo) {
+          var _jimuLayerInfo = this._jimuLayerInfos.getLayerInfoById(layerInfo.featureLayer.id);
+          var addRowResult = this._layersTable.addRow({
+            label: _jimuLayerInfo.title,
+            edit: layerInfo._editFlag,
+            disableGeometryUpdate: layerInfo.disableGeometryUpdate
+          });
+          addRowResult.tr._layerInfo = layerInfo;
 
-    _onSelectWhollyMode: function() {
-      this.selectionMode = WHOLLY_WITHIN;
-    },
+          // var editableCheckBox;
+          // var editableCheckBoxDomNode = query(".editable .jimu-checkbox", addRowResult.tr)[0];
+          // if(editableCheckBoxDomNode) {
+          //   editableCheckBox = registry.byNode(editableCheckBoxDomNode);
+          //   // this.own(on(editableCheckBox,
+          //   // 'change',
+          //   // lang.hitch(this, function() {
+          //   //   console.log(layerInfo.id);
+          //   // })));
+          //   editableCheckBox.onChange = lang.hitch(this, function(checked) {
+          //     layerInfo._editFlag = checked;
+          //   });
+          // }
+        }, this);
+      },
 
-    _onAllowExportChange: function(checked) {
-      this.allowExport = checked;
-    },
+   
+   
 
-    _init: function() {
-      this.selectionColor = this.config.selectionColor;
-      if(this.config.selectionColor) {
-        this.colorPicker.setColor(new Color(this.selectionColor));
-      }
+     setConfig: function() {
+        // if (!config.editor.layerInfos) { //***************
+        //   config.editor.layerInfos = [];
+        // }
+        this._editableLayerInfos = this._getEditableLayerInfos();
+        this._setLayersTable(this._editableLayerInfos);
+      },
 
-      this.selectionMode = this.config.selectionMode;
-      if(this.config.selectionMode === PARTIAL_WITHIN) {
-        this.partialMode.checked = true;
-        this._onSelectPartialMode();
-      }else if(this.config.selectionMode === WHOLLY_WITHIN) {
-        this.whollyMode.checked = true;
-        this._onSelectWhollyMode();
-      }
-
-      this.allowExport = this.config.allowExport;
-      this.allowExportCheckBox.setValue(this.allowExport);
-    },
-
-    setConfig: function(config) {
-      this.config = config;
-      this._init();
-    },
-
-    getConfig: function() {
-      return {
-        selectedFeatureService: document.getElementById("dijit_form_TextBox_0").value,
-        selectionColor: this.selectionColor,
-        selectionMode: this.selectionMode,
-        allowExport: this.allowExport
-      };
-    }
+ 
   });
 });

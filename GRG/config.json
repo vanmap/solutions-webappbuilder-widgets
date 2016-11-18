@@ -1,14 +1,1 @@
-{
-    "createAreaGRGService": {
-        "url": "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/CreateAreaGRG/GPServer/Create%20Area%20GRG"
-    },
-    "createPointGRGService": {
-    	"url": "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/CreatePointGRG/GPServer/Create%20Point%20GRG"
-    },
-    "deleteGRGService": {
-    	"url": "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/DeleteGRG/GPServer/Delete%20GRG"
-    },
-    "gridFeatureService": {
-    	"url": "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/GRG_Layer/FeatureServer/0"
-    }
-}
+{}

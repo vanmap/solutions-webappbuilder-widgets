@@ -18,56 +18,51 @@ define([
   'dojo/_base/declare',
   'dojo/topic',
   'dojo/aspect',
+  'dojo/_base/lang',
   'dijit/registry',
-  'dijit/_WidgetsInTemplateMixin',
+  'esri/IdentityManager',
+  'esri/arcgis/OAuthInfo',
   'esri/config',
+  'esri/dijit/util/busyIndicator',
+  'esri/domUtils',  
+  'dijit/_WidgetsInTemplateMixin',
   'jimu/BaseWidget',
-  'jimu/dijit/TabContainer3',
+  'jimu/dijit/TabContainer',
   './views/TabCreateAreaGRG',
-  './views/TabCreatePointGRG',
-  './views/TabDeleteGRG'
+  './views/TabCreatePointGRG'
 ], function (
   dojoDeclare,
   dojoTopic,
   aspect,
+  dojoLang,
   registry,
+  esriId,
+  OAuthInfo,
+  esriConfig,
+  busyIndicator,
+  domUtils,
   dijitWidgetsInTemplate,
-  config,
   jimuBaseWidget,
-  JimuTabContainer3,
+  TabContainer,
   TabCreateAreaGRG,
-  TabCreatePointGRG,
-  TabDeleteGRG
+  TabCreatePointGRG
 ) {
   'use strict';
   var clz = dojoDeclare([jimuBaseWidget, dijitWidgetsInTemplate], {
     baseClass: 'jimu-widget-GRG',
-
-    /**
+  /**
      *
      **/
     postCreate: function () {
       this.createAreaGRGTab = new TabCreateAreaGRG({
         map: this.map,
-        createAreaGRGService: this.config.createAreaGRGService.url,
-        gridFeatureService: this.config.gridFeatureService.url,
-        canavasAreaFillSymbol: {
+        appConfig: this.appConfig,
+        GRGAreaFillSymbol: {
           type: 'esriSFS',
           style: 'esriSFSNull',
           color: [0,0,255,0],
           outline: {
             color: [0, 0, 255, 255],
-            width: 1.25,
-            type: 'esriSLS',
-            style: 'esriSLSSolid'
-          }
-        },
-        cellAreaFillSymbol: {
-          type: 'esriSFS',
-          style: 'esriSFSNull',
-          color: [0,255,0,0],
-          outline: {
-            color: [0, 255, 0, 255],
             width: 1.25,
             type: 'esriSLS',
             style: 'esriSLSSolid'
@@ -79,8 +74,7 @@ define([
       
       this.createPointGRGTab = new TabCreatePointGRG({
         map: this.map,
-        createPointGRGService: this.config.createPointGRGService.url,
-        gridFeatureService: this.config.gridFeatureService.url,
+        appConfig: this.appConfig,
         pointSymbol: {
           'color': [255, 0, 0, 255],
           'size': 8,
@@ -108,38 +102,41 @@ define([
         this.createTabPointNode
       );
 
-      this.removeGRGTab = new TabDeleteGRG({
-        map: this.map,
-        deleteGRGService: this.config.deleteGRGService.url,
-        gridFeatureService: this.config.gridFeatureService.url,        
-        },
-        this.deleteTabNode
-      );
-
-      this.tab = new JimuTabContainer3({
+      this.tab = new TabContainer({
         tabs: [
           {
-            title: 'Area',
-            content: this.createAreaGRGTab
+            title: 'Create GRG By Area',
+            content: this.createAreaGRGTab,
+                   
           },
           {
-            title: 'Point',
+            title: 'Create GRG By Point',
             content: this.createPointGRGTab
-          },
-          {
-            title: 'Remove',
-            content: this.removeGRGTab
           }
         ]
       }, this.tabContainer);
+     
+      this.tab.selectTab('Create GRG By Area');
       
       var tabContainer1 = registry.byId('tabContainer');
     
       aspect.after(tabContainer1, "selectTab", function() {
           dojoTopic.publish('TAB_SWITCHED');        
       });
+      
+      this.busyIndicator  = busyIndicator.create(document.body);
+      dojoTopic.subscribe("SHOW_BUSY", dojoLang.hitch(this, this.showBusy));
+      dojoTopic.subscribe("HIDE_BUSY", dojoLang.hitch(this, this.hideBusy));
     },
-
+    
+    showBusy: function () {
+      this.busyIndicator.show();      
+    },
+    
+    hideBusy: function () {
+      this.busyIndicator.hide();      
+    },
+    
     onClose: function () {
       dojoTopic.publish('DD_WIDGET_CLOSE');
     },

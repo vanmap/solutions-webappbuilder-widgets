@@ -96,9 +96,7 @@ define([
           this._pointSym = new SimpleMarkerSymbol(this.pointSymbol);
                     
           // create a renderer for the grg layer to override default symbology
-          var gridColor = new Color("#000");
-          var gridLine = new SimpleLineSymbol("solid", gridColor, 2.5);
-          var gridSymbol = new SimpleFillSymbol("solid", gridLine, null);
+          var gridSymbol = new SimpleFillSymbol(this.cellAreaFillSymbol);
           var gridRenderer = new SimpleRenderer(gridSymbol);
           
           var featureCollection = {
@@ -123,12 +121,12 @@ define([
           this.GRGPoint.setRenderer(gridRenderer);
          
           var json = {
-            "labelExpressionInfo": {"value": "{grid}"}
+            "labelExpressionInfo": {"value": "{GRID}"}
           };
           
           // create a text symbol to define the style of labels
           var labelClass = new LabelClass(json);
-          labelClass.symbol = new TextSymbol({
+          labelClass.symbol = new TextSymbol(this.cellTextSymbol || {
             font: new Font("11", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLD, "Helvetica"),
             color: new Color("#666633")
           });
@@ -291,13 +289,19 @@ define([
                       drawGRG.getFeatureServiceParams(featureServiceName, this.map)).then(dojoLang.hitch(this, function(response1) {
                         if (response1.success) {
                           var addToDefinitionUrl = response1.serviceurl.replace(new RegExp('rest', 'g'), "rest/admin") + "/addToDefinition";
-                          drawGRG.addDefinitionToService(addToDefinitionUrl, token, drawGRG.getLayerParams(featureServiceName, this.map)).then(dojoLang.hitch(this, function(response2) {
+                          drawGRG.addDefinitionToService(addToDefinitionUrl, token, drawGRG.getLayerParams(featureServiceName, this.map, this.cellTextSymbol, this.cellAreaFillSymbol)).then(dojoLang.hitch(this, function(response2) {
                             if (response2.success) {
                               //Push features to new layer
-                               var newFeatureLayer = new FeatureLayer(response1.serviceurl + "/0?token=" + token, {
-                                 outFields: ["*"]                                  
+                              var newFeatureLayer = new FeatureLayer(response1.serviceurl + "/0?token=" + token, {
+                                mode: FeatureLayer.MODE_SNAPSHOT,
+                                outFields: ["*"]                                  
                                });
-                               this.map.addLayer(newFeatureLayer);
+                              this.map.addLayer(newFeatureLayer);
+
+                              var newGraphics = [];
+                              dojoArray.forEach(this.GRGArea.graphics, function (g) {
+                                newGraphics.push(new Graphic(g.geometry, null, {GRID: g.attributes["GRID"]}));
+                              }, this);
                               
                               newFeatureLayer.applyEdits(this.GRGPoint.graphics,null,null).then(dojoLang.hitch(this, function(){
                                 this.tabSwitched();                                

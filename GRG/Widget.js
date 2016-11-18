@@ -57,7 +57,7 @@ define([
       this.createAreaGRGTab = new TabCreateAreaGRG({
         map: this.map,
         appConfig: this.appConfig,
-        GRGAreaFillSymbol: {
+        GRGAreaFillSymbol: this.config.grg.gridSymbol || {
           type: 'esriSFS',
           style: 'esriSFSNull',
           color: [0,0,255,0],
@@ -66,9 +66,31 @@ define([
             width: 1.25,
             type: 'esriSLS',
             style: 'esriSLSSolid'
-          }
-        }
-        },
+          }},
+        cellTextSymbol: this.config.grg.textSymbol || {
+          "color": {
+            "r": 102,
+            "g": 102,
+            "b": 51,
+            "a": 1
+          },
+          "type": "textsymbol",
+          "horizontalAlignment": "center",
+          "rotated": false,
+          "kerning": true,
+          "font": {
+            "size": 11,
+            "style": "normal",
+            "variant": "normal",
+            "weight": "normal",
+            "family": "Helvetica"
+          },
+          "x": 0,
+          "y": 0,
+          "xoffset": 0,
+          "yoffset": 0,
+          "align": "middle"
+        }},
         this.createTabAreaNode
       );
       
@@ -87,7 +109,7 @@ define([
               'style': 'esriSLSSolid'
           }
         },
-        cellAreaFillSymbol: {
+        cellAreaFillSymbol: this.config.grg.gridSymbol || {
           type: 'esriSFS',
           style: 'esriSFSNull',
           color: [0,255,0,0],
@@ -96,9 +118,31 @@ define([
             width: 1.25,
             type: 'esriSLS',
             style: 'esriSLSSolid'
-          }
-        }
-        },
+          }},
+        cellTextSymbol: this.config.grg.textSymbol || {
+          "color": {
+            "r": 102,
+            "g": 102,
+            "b": 51,
+            "a": 1
+          },
+          "type": "textsymbol",
+          "horizontalAlignment": "center",
+          "rotated": false,
+          "kerning": true,
+          "font": {
+            "size": 11,
+            "style": "normal",
+            "variant": "normal",
+            "weight": "normal",
+            "family": "Helvetica"
+          },
+          "x": 0,
+          "y": 0,
+          "xoffset": 0,
+          "yoffset": 0,
+          "align": "middle"
+        }},
         this.createTabPointNode
       );
 

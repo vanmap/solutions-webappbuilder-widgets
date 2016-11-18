@@ -1,29 +1,29 @@
-.distance-and-direction-setting {
+.grg-setting {
   margin-left: 0px;
 }
 
-.distance-and-direction-setting-h3 {
+.grg-setting-h3 {
     color: #596679;
 }
 
-.distance-and-direction-setting-style table {
+.grg-setting-style table {
     color: #333333;
     width: 100%;
     border-collapse: collapse;
 }
 
-.distance-and-direction-setting-style th {
-    background-color: #518dca;
+.grg-setting-style th {
+    background-color: #24B5CC;
     padding: 8px;
     text-align: left;
     color: #ffffff;
 }
 
-.distance-and-direction-setting-style tr {
+.grg-setting-style tr {
     background-color: #ffffff;
 }
 
-.distance-and-direction-setting-style td {
+.grg-setting-style td {
     padding: 8px;
 }
 
@@ -31,15 +31,15 @@
     vertical-align: top;
 }
 
-.distance-and-direction-setting-line-size {
+.grg-setting-line-size {
     width: 70px;
 }
 
-.distance-and-direction-setting-color-picker {
+.grg-setting-color-picker {
     width: 70px;
 }
 
-.distance-and-direction-setting-interval-width {
+.grg-setting-interval-width {
     border-color: #000;
     border-style: hidden solid solid solid;
     border-width: 1px;
@@ -47,8 +47,12 @@
     margin: auto;
 }
 
-.distance-and-direction-setting-style-map {
+.grg-setting-style-map {
     width: 500px;
     height: 550px;
     float: left;
+}
+
+.jimu-symbol-chooser .symbol-set-table {
+    border: 1px solid #D7D7D7;    
 }

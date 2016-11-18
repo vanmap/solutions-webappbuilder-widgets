@@ -93,13 +93,13 @@ define([
             
         switch (labelStyle) {
           case 'Alpha-Numeric':
-            attr["grid"] = letter.toString() + number.toString();
+            attr["GRID"] = letter.toString() + number.toString();
             break;
           case 'Alpha-Alpha':
-            attr["grid"] = letter.toString() + secondLetter.toString();
+            attr["GRID"] = letter.toString() + secondLetter.toString();
             break;
            case 'Numeric':
-            attr["grid"] = number.toString();
+            attr["GRID"] = number.toString();
             break
         }
             
@@ -241,7 +241,7 @@ define([
     }
   },
 
-  grg.getLayerParams = function (layerName, map) {          
+  grg.getLayerParams = function (layerName, map, textSymbol, gridSymbol) {          
     return {
       "layers": [
         {
@@ -301,28 +301,13 @@ define([
           "drawingInfo": {
             "renderer": {
              "type": "simple",
-             "symbol": {
-              "color": null,
-              "outline": {
-               "color": [
-                26,
-                26,
-                26,
-                255
-               ],
-               "width": 1.5,
-               "type": "esriSLS",
-               "style": "esriSLSSolid"
-              },
-              "type": "esriSFS",
-              "style": "esriSFSSolid"
-             }
+             "symbol": gridSymbol
             },
             "transparency": 0,
             "labelingInfo": [
                {
-                "labelExpression": "[grid]",
-                "labelExpressionInfo": {"value": "{grid}"},
+                "labelExpression": "[GRID]",
+                "labelExpressionInfo": {"value": "{GRID}"},
                 "format": null,
                 "fieldInfos": null,
                 "useCodedValues": false,
@@ -331,35 +316,8 @@ define([
                 "where": null,
                 "sizeInfo": null,
                 "labelPlacement": "esriServerPolygonPlacementAlwaysHorizontal",
-                "symbol": {
-                 "color": [
-                  51,
-                  51,
-                  51,
-                  255
-                 ],
-                 "type": "esriTS",
-                 "backgroundColor": null,
-                 "borderLineColor": null,
-                 "haloSize": 0,
-                 "haloColor": null,
-                 "horizontalAlignment": "center",
-                 "rightToLeft": false,
-                 "angle": 0,
-                 "xoffset": 0,
-                 "yoffset": 0,
-                 "text": "",
-                 "rotated": false,
-                 "kerning": true,
-                 "font": {
-                  "size": 9.75,
-                  "style": "normal",
-                  "decoration": "none",
-                  "weight": "bold",
-                  "family": "Arial"
-                 }
-                }
-               }
+                "symbol": textSymbol
+              }
             ]
           },
           "allowGeometryUpdates": true,
@@ -404,7 +362,7 @@ define([
               "drawingTool": "esriFeatureEditToolPolygon",
               "prototype": {
                 "attributes": {
-                  "GRID": null
+                  "GRID": ""
                 }
               }
             }

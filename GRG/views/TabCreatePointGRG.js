@@ -108,8 +108,8 @@ define([
               "alias": "ObjectID",
               "type": "esriFieldTypeOID"
               }, {
-              "name": "grid",
-              "alias": "grid",
+              "name": "GRID",
+              "alias": "GRID",
               "type": "esriFieldTypeString"
               }]
             }

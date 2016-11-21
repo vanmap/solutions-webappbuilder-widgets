@@ -112,8 +112,8 @@ define([
                 "alias": "ObjectID",
                 "type": "esriFieldTypeOID"
                 }, {
-                "name": "GRID",
-                "alias": "GRID",
+                "name": "grid",
+                "alias": "grid",
                 "type": "esriFieldTypeString"
               }],
               "extent": {
@@ -137,7 +137,7 @@ define([
           console.log(this.GRGArea);
 
           var json = {
-            "labelExpressionInfo": {"value" : "{GRID}"}
+            "labelExpressionInfo": {"value" : "{grid}"}
           };
 
           // create a text symbol to define the style of labels
@@ -373,7 +373,7 @@ define([
 
                           var newGraphics = [];
                           dojoArray.forEach(this.GRGArea.graphics, function (g) {
-                            newGraphics.push(new Graphic(g.geometry, null, {GRID: g.attributes["GRID"]}));
+                            newGraphics.push(new Graphic(g.geometry, null, {grid: g.attributes["grid"]}));
                           }, this);
 
                           newFeatureLayer.applyEdits(newGraphics, null, null).then(dojoLang.hitch(this, function(){

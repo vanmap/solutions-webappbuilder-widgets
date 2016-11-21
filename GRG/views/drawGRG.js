@@ -93,13 +93,13 @@ define([
             
         switch (labelStyle) {
           case 'Alpha-Numeric':
-            attr["GRID"] = letter.toString() + number.toString();
+            attr["grid"] = letter.toString() + number.toString();
             break;
           case 'Alpha-Alpha':
-            attr["GRID"] = letter.toString() + secondLetter.toString();
+            attr["grid"] = letter.toString() + secondLetter.toString();
             break;
            case 'Numeric':
-            attr["GRID"] = number.toString();
+            attr["grid"] = number.toString();
             break
         }
             
@@ -306,8 +306,8 @@ define([
             "transparency": 0,
             "labelingInfo": [
                {
-                "labelExpression": "[GRID]",
-                "labelExpressionInfo": {"value": "{GRID}"},
+                "labelExpression": "[grid]",
+                "labelExpressionInfo": {"value": "{grid}"},
                 "format": null,
                 "fieldInfos": null,
                 "useCodedValues": false,
@@ -341,9 +341,9 @@ define([
               "defaultValue": null
             },
             {
-              "name": "GRID",
+              "name": "grid",
               "type": "esriFieldTypeString",
-              "alias": "GRID",
+              "alias": "grid",
               "actualType": "nvarchar",
               "nullable": true,
               "editable": true,
@@ -362,7 +362,7 @@ define([
               "drawingTool": "esriFeatureEditToolPolygon",
               "prototype": {
                 "attributes": {
-                  "GRID": ""
+                  "grid": ""
                 }
               }
             }

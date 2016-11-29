@@ -226,11 +226,10 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
                
             });
 
-           
-
             console.log("tempArray " + tempArray.length);
             
             arrayUtils.forEach(tempArray, lang.hitch(this,function(csvFieldName) {
+                console.log("csvFieldName " + csvFieldName);
                
                 var value = this.csvStore.getValue(this.storeItems[0], csvFieldName);
                 var parsedValue = Number(value);

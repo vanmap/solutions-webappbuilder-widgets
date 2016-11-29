@@ -17,14 +17,16 @@ define(['dojo/_base/declare',
   "esri/renderers/SimpleRenderer",
   "esri/layers/FeatureLayer",
   "esri/request",
+  'jimu/LayerInfos/LayerInfos',
   "./helyxcsvstore",
   'jimu/loaderplugins/jquery-loader!https://code.jquery.com/jquery-git1.min.js'
+  
   ],
 
 //"selectedFeatureService" : "https://opsserver1041.bristol.local:6443/arcgis/rest/services/critical_facilities/shelters_manatee/FeatureServer/0",
 //"selectedFeatureService" : "https://opsserver1041.bristol.local:6443/arcgis/rest/services/critical_facilities/bugsites/FeatureServer/0",
 
-  function (declare, BaseWidget, lang, on, dom, arrayUtils, CsvStore, query, html, domConstruct, registry, webMercatorUtils, Point, Color, esriConfig, SimpleMarkerSymbol, SimpleRenderer, FeatureLayer, esriRequest, hCsvStore, $) {
+  function (declare, BaseWidget, lang, on, dom, arrayUtils, CsvStore, query, html, domConstruct, registry, webMercatorUtils, Point, Color, esriConfig, SimpleMarkerSymbol, SimpleRenderer, FeatureLayer, esriRequest, layerInfos, hCsvStore, $) {
     //To create a widget, you need to derive from BaseWidget.
     return declare([BaseWidget], {
       // Custom widget code goes here
@@ -44,6 +46,8 @@ define(['dojo/_base/declare',
       latFieldFromConfig: null,
       longFieldFromConfig: null,
       featureservice: null,
+      _configEditor: null,
+      arrayFieldsFromFeatureService: null,
 
       // methods to communication with app container:
       postCreate: function () {
@@ -51,59 +55,33 @@ define(['dojo/_base/declare',
         this.inherited(arguments);
         this.own(on(this.map, "mouse-move", lang.hitch(this, this.onMouseMove)));
         this.own(on(this.map, "click", lang.hitch(this, this.onMapClick)));
-        
-        
-        //change here when looking up field headers from a feature service
-        var arrayFacility = ['Facility', 'Fac', 'Facil'];
-        var arrayAddress = ['Address', 'Add'];
-        var arrayCity = ['Town', 'City'];
-        var arrayState = ['State', 'St'];
-        var arrayLongitude = ['Lon', 'Long', 'Longitude'];
-        var arrayLatitude = ['Lat', 'Latitude'];
-        var arrayType = ['Type', 'Ty'];
-        var arrayUsngNot = ['USNGNOT', 'USNG', 'USNG_NOT'];
-        var arrayX = ['X', 'XCoords'];
-        var arrayY = ['Y', 'YCoords'];
-        
-        
-        //array of fields
-        /*arrayFields = [
-          { name: 'arrayFacility', value: arrayFacility },
-          { name: 'arrayAddress', value: arrayAddress },
-          { name: 'arrayCity', value: arrayCity },
-          { name: 'arrayState', value: arrayState },
-          { name: 'arrayLongitude', value: arrayLongitude },
-          { name: 'arrayLatitude', value: arrayLatitude },
-          { name: 'arrayType', value: arrayType },
-          { name: 'arrayUsngNot', value: arrayUsngNot },
-          { name: 'arrayX', value: arrayX },
-          { name: 'arrayY', value: arrayY }
-        ]; */
-
-        //array of fields to map to (need to create this from the feature service)
-
-      /*  correctArrayFields = [
-          { name: 'arrayFacility', value: 'Facility' },
-          { name: 'arrayAddress', value: 'Address' },
-          { name: 'arrayCity', value: 'City' },
-          { name: 'arrayState', value: 'State' },
-          { name: 'arrayLongitude', value: 'Longitude' },
-          { name: 'arrayLatitude', value: 'Latitude' },
-          { name: 'arrayType', value: 'Type' },
-          { name: 'arrayUsngNot', value: 'USING_NOT' },
-          { name: 'arrayX', value: 'X' },
-          { name: 'arrayY', value: 'Y' }
-        ]; */
-
+                
         this.featureservice = this.config.selectedFeatureService;
         latFieldFromConfig = this.config.latitudeField;
         longFieldFromConfig = this.config.longitudeField;
+       
+        this._configEditor = lang.clone(this.config.editor);
 
-        console.log("config Feature Service " + this.featureservice + " fields " + latFieldFromConfig + " " + longFieldFromConfig );
+       
+        console.log("+++++++++++config length " + this._configEditor.layerInfos);
+        console.log("fields " + this._configEditor.layerInfos[0].fieldInfos.length);
 
-        arrayFieldsFromFeatureService = [];
 
-         var requestHandle = esriRequest({
+
+      //  console.log("layerInfos size " = layerInfos.length);
+
+        /*arrayUtils.forEach(this._configEditor.layerInfos, function(layerInfo){
+            console.log("layer Info " + layerInfo);
+        });*/
+
+
+       // console.log("config Feature Service " + this.featureservice + " fields " + latFieldFromConfig + " " + longFieldFromConfig );
+
+    //   var featureServiceFromConfig = this._configEditor.layerInfos[0]
+    
+        //arrayFieldsFromFeatureService = [];
+
+         /*var requestHandle = esriRequest({
             "url": this.featureservice,
             "content": {
               "f": "json"
@@ -116,58 +94,77 @@ define(['dojo/_base/declare',
                   
                   console.log("Success: ", response.fields);
               
-              var fieldsArray = response.fields;
+              var fieldsArray = response.fields;*/
 
-              arrayUtils.forEach(fieldsArray, function(i, field) {
-               // console.log("fields " + i.name);
-              console.log("name " + "array"+i.name + " type " + i.type);
+             
+             // var numberOfFields = 0;
 
+               
+        
+        /*else {
+          console.log('Error grabbing map from DOM');
+        }
 
-              if(i.type != "esriFieldTypeGeometry" && i.type != "esriFieldTypeOID"){  
-                  arrayFieldsFromFeatureService.push({"name": "array"+i.name, "value": i.name});
-                }
-
-              });
-              console.log("length " + arrayFieldsFromFeatureService.length);
-
-              var numberOfFields = 0;
-                arrayUtils.forEach(arrayFieldsFromFeatureService, function(i, value){
-                  var fieldName = i.value;
-
-                  console.log("field Name " + fieldName);
-         
-                  var node = domConstruct.toDom('<label id="label'+fieldName+'" data-dojo-attach-point="label'+fieldName + '" for="select'+fieldName+'">' + fieldName + '</label>');
-                  var selectNode = domConstruct.toDom('<select id="select'+fieldName + '" name="select' + fieldName + '" data-dojo-attach-point="field' + fieldName + '"></select>');
+            },    function(error) {
+                  console.log("Error: ", error.message);
+      });*/
+      
+      
+  
+      },
 
       
-                  document.getElementById('fieldsetForm').appendChild(node);
-                  document.getElementById('fieldsetForm').appendChild(selectNode);
+    startup: function(){
+    //  console.log("startup");
+    arrayFieldsFromFeatureService = [];
+     arrayUtils.forEach(this._configEditor.layerInfos[0].fieldInfos, function(i, field) {
+               // console.log("fields " + i.name);
+              //console.log("name " + "array "+i.name + " type " + i.type);
+
+                console.log("fieldname " + i.fieldName);
+              /*if(i.type != "esriFieldTypeGeometry" && i.type != "esriFieldTypeOID"){*/  
+                arrayFieldsFromFeatureService.push({"name": "array"+i.fieldName, "value": i.fieldName});
+                //}
+
+              });
+              
+              console.log("length " + arrayFieldsFromFeatureService.length);
+
+
+          arrayUtils.forEach(arrayFieldsFromFeatureService, function(i){
+
+                  if(i.value != "objectid_1" && i.value != "objectid"){
+                  
+                    var fieldName = i.value;
+
+                    console.log("field Name " + fieldName);
+         
+                    var node = domConstruct.toDom('<label id="label'+fieldName+'" data-dojo-attach-point="label'+fieldName + '" for="select'+fieldName+'">' + fieldName + '</label>');
+                    var selectNode = domConstruct.toDom('<select id="select'+fieldName + '" name="select' + fieldName + '" data-dojo-attach-point="field' + fieldName + '"></select>');
+
+                    console.log("node " + node);
+                    console.log("node " + selectNode);
+                    console.log("fieldSetForm " + document.getElementById("fieldsetForm"));
+
+                    document.getElementById('fieldsetForm').appendChild(node);
+                    document.getElementById('fieldsetForm').appendChild(selectNode);
 
                   //set element styling
-                  document.getElementById('label'+fieldName).style.fontSize="10pt";
-                  document.getElementById('label'+fieldName).style.fontFamily="Avenir, LT";
-                  document.getElementById('label'+fieldName).style.lineHeight = "13px";
-                  document.getElementById('label'+fieldName).style.margin = "3px";
+                    document.getElementById('label'+fieldName).style.fontSize="10pt";
+                    document.getElementById('label'+fieldName).style.fontFamily="Avenir, LT";
+                    document.getElementById('label'+fieldName).style.lineHeight = "13px";
+                    document.getElementById('label'+fieldName).style.margin = "3px";
 
+                  }
 
-
-                  numberOfFields++;
+                 // numberOfFields++;
             });
 
-                  console.log("number of fields " + numberOfFields);
-                  //do dynamic widget styling here
-                  //things to do:
-                  // font size: document.getElementById('labellatitude').style.fontSize="10pt";
-                  // font : document.getElementById('labellatitude').style.fontFamily("Avenir, LT");
-                  // margin around select boxes: document.getElementById('selectlatitude').style.margin="0px";
-                  // align labels and elements: document.getElementById('selectlatitude').style.height; document.getElementById('labellatitude').style.lineHeight = "20px" (selectbox height);
-                  // set the widget frame to the correct size: document.getElementById('dijit__WidgetBase_4').style.width = "360px";
-                  // set the whole widget to the correct size: document.getElementById('_5_panel').style.width="300px";
+                  console.log("number of fields " + arrayFieldsFromFeatureService.length);
 
-
-                  var height = (numberOfFields * 20) + 200; 
+                  var height = (arrayFieldsFromFeatureService.length * 20) + 200; 
                   var widgetHeight = height + 80;
-                  var buttonHeight = (numberOfFields * 20) + 150;
+                  var buttonHeight = (arrayFieldsFromFeatureService.length * 20) + 150;
 
                   document.getElementById('fieldsetForm').style.height = height + 'px';
                   document.getElementById('fieldsetForm').style.width = '300px';
@@ -182,38 +179,19 @@ define(['dojo/_base/declare',
 
                   document.getElementById('btnSubmitData').disabled = true;
                  
-
                   //set field form spacing
-
-            },    function(error) {
-                  console.log("Error: ", error.message);
-      });
-       
+                 // this.inherited(arguments);
   
-      },
-
-      startup: function () {
-        console.log('startup');
-        this.inherited(arguments);
-  
-        thisMap = this.map;
-     
-       
-
-
+                  thisMap = this.map;
         
-        domMap = dom.byId(this.map.id);
-        if (thisMap) {
-          on(domMap, "dragenter", this.onDragEnter);
-          on(domMap, "dragover", this.onDragOver);
-          on(domMap, "drop", this.onDrop);   
+                  domMap = dom.byId(this.map.id);
+                  if (thisMap) {
+                       on(domMap, "dragenter", this.onDragEnter);
+                       on(domMap, "dragover", this.onDragOver);
+                       on(domMap, "drop", this.onDrop);   
 
-        } else {
-          console.log('Error grabbing map from DOM');
-        }
-
-    
-      },
+        } 
+    },
 
       onDragEnter: function (event) {
         console.log('onDragEnter');
@@ -292,18 +270,25 @@ define(['dojo/_base/declare',
       
        arrayUtils.forEach(arrayFieldsFromFeatureService, function(setField){
           
-          
-          if(setField!=null){
-          var tempText = setField.value;
-          console.log("tempText " + tempText);
-          var queryResult = dojo.query('select#select' + tempText)[0][dojo.query('select#select' + tempText).val()].firstChild.data;
+        //console.log("+++arrayFieldsFromfeatureService " + setField);
+          if(setField!=null&&setField.value!="objectid"&&setField.value!="objectid_1"){
+            var tempText = setField.value;
+            console.log("tempText " + tempText);
+            var queryResult = dojo.query('select#select' + tempText)[0][dojo.query('select#select' + tempText).val()].firstChild.data;
+             arrayMappedFields.push([queryResult, tempText]);
+            console.log ("query result " + queryResult);
           }
          
           
-          arrayMappedFields.push([queryResult, tempText]);
+         
 
        });
 
+       arrayUtils.forEach(arrayMappedFields, function(field){
+          console.log("fields from ++++++ " + field);
+       });
+
+       console.log("arrayMappedFields Length " + arrayMappedFields.length); 
 
         arraySelectedFields = [];
 

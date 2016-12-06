@@ -59,101 +59,49 @@ define(['dojo/_base/declare',
         this.featureservice = this.config.selectedFeatureService;
         latFieldFromConfig = this.config.latitudeField;
         longFieldFromConfig = this.config.longitudeField;
+
+        
        
         this._configEditor = lang.clone(this.config.editor);
 
        
         console.log("+++++++++++config length " + this._configEditor.layerInfos);
-        console.log("fields " + this._configEditor.layerInfos[0].fieldInfos.length);
+       // console.log("fields " + this._configEditor.layerInfos[0].fieldInfos.length);
 
-
-
-      //  console.log("layerInfos size " = layerInfos.length);
-
-        /*arrayUtils.forEach(this._configEditor.layerInfos, function(layerInfo){
-            console.log("layer Info " + layerInfo);
-        });*/
-
-
-       // console.log("config Feature Service " + this.featureservice + " fields " + latFieldFromConfig + " " + longFieldFromConfig );
-
-    //   var featureServiceFromConfig = this._configEditor.layerInfos[0]
-    
-        //arrayFieldsFromFeatureService = [];
-
-         /*var requestHandle = esriRequest({
-            "url": this.featureservice,
-            "content": {
-              "f": "json"
-            },
-            "callbackParamName": "callback"
-          });
-
-          requestHandle.then(
-              function(response) {
-                  
-                  console.log("Success: ", response.fields);
-              
-              var fieldsArray = response.fields;*/
-
-             
-             // var numberOfFields = 0;
-
-               
-        
-        /*else {
-          console.log('Error grabbing map from DOM');
-        }
-
-            },    function(error) {
-                  console.log("Error: ", error.message);
-      });*/
-      
-      
-  
       },
 
       
     startup: function(){
-    //  console.log("startup");
+    console.log("startup");
+
+
     arrayFieldsFromFeatureService = [];
-     arrayUtils.forEach(this._configEditor.layerInfos[0].fieldInfos, function(i, field) {
-               // console.log("fields " + i.name);
-              //console.log("name " + "array "+i.name + " type " + i.type);
 
-                console.log("fieldname " + i.fieldName);
-              /*if(i.type != "esriFieldTypeGeometry" && i.type != "esriFieldTypeOID"){*/  
-                arrayFieldsFromFeatureService.push({"name": "array"+i.fieldName, "value": i.fieldName});
-                //}
+    if(this._configEditor.layerInfos[0]!=null){
 
-              });
-              
-              console.log("length " + arrayFieldsFromFeatureService.length);
-
-
-          arrayUtils.forEach(arrayFieldsFromFeatureService, function(i){
-
-                  if(i.value != "objectid_1" && i.value != "objectid"){
-                  
-                    var fieldName = i.value;
-
-                    console.log("field Name " + fieldName);
+    arrayUtils.forEach(this._configEditor.layerInfos[0].fieldInfos, function(i, field) {
+            
+        arrayFieldsFromFeatureService.push({"name": "array"+i.fieldName, "value": i.fieldName});
          
-                    var node = domConstruct.toDom('<label id="label'+fieldName+'" data-dojo-attach-point="label'+fieldName + '" for="select'+fieldName+'">' + fieldName + '</label>');
-                    var selectNode = domConstruct.toDom('<select id="select'+fieldName + '" name="select' + fieldName + '" data-dojo-attach-point="field' + fieldName + '"></select>');
+    });
+              
+      arrayUtils.forEach(arrayFieldsFromFeatureService, function(i){
 
-                    console.log("node " + node);
-                    console.log("node " + selectNode);
-                    console.log("fieldSetForm " + document.getElementById("fieldsetForm"));
+        if(i.value != "objectid_1" && i.value != "objectid"){
+                  
+            var fieldName = i.value;
+            var node = domConstruct.toDom('<label id="label'+fieldName+'" data-dojo-attach-point="label'+fieldName + '" for="select'+fieldName+'">' + fieldName + '</label>');
+                  
+            var selectNode = domConstruct.toDom('<select id="select'+fieldName + '" name="select' + fieldName + '" data-dojo-attach-point="field' + fieldName + '"></select>');
 
-                    document.getElementById('fieldsetForm').appendChild(node);
-                    document.getElementById('fieldsetForm').appendChild(selectNode);
+            document.getElementById('fieldsetForm').appendChild(node);
+            document.getElementById('fieldsetForm').appendChild(selectNode);
 
                   //set element styling
-                    document.getElementById('label'+fieldName).style.fontSize="10pt";
-                    document.getElementById('label'+fieldName).style.fontFamily="Avenir, LT";
-                    document.getElementById('label'+fieldName).style.lineHeight = "13px";
-                    document.getElementById('label'+fieldName).style.margin = "3px";
+            document.getElementById('label'+fieldName).style.fontSize="10pt";
+            document.getElementById('label'+fieldName).style.fontFamily="Avenir, LT";
+            document.getElementById('label'+fieldName).style.lineHeight = "13px";
+            document.getElementById('label'+fieldName).style.margin = "3px";
 
                   }
 
@@ -168,7 +116,8 @@ define(['dojo/_base/declare',
 
                   document.getElementById('fieldsetForm').style.height = height + 'px';
                   document.getElementById('fieldsetForm').style.width = '300px';
-                  document.getElementById('dijit__WidgetBase_4').style.width = "350px";
+                  //this.getPanel().resize({w:350})
+                
                   document.getElementById('_5_panel').style.width="350px";
                   document.getElementById('_5_panel').style.height=widgetHeight+'px';
                   document.getElementById('btnSubmitData').style.top = buttonHeight + 'px';
@@ -191,6 +140,26 @@ define(['dojo/_base/declare',
                        on(domMap, "drop", this.onDrop);   
 
         } 
+    }
+
+    else{
+
+        var height = 200;
+        var widgetHeight = 80;
+        var buttonHeight = 150;
+        document.getElementById('fieldsetForm').style.height = height + 'px';
+        document.getElementById('fieldsetForm').style.width = '300px';
+        document.getElementById('dijit__WidgetBase_4').style.width = "350px";
+        document.getElementById('_5_panel').style.width="350px";
+        document.getElementById('_5_panel').style.height=widgetHeight+'px';
+        document.getElementById('btnSubmitData').style.top = buttonHeight + 'px';
+        document.getElementById('btnAddToMap').style.top = buttonHeight + 'px';
+        document.getElementById('btnAddToMap').remove();
+        document.getElementById('btnSubmitData').remove();
+        document.getElementById('fieldsetForm').remove();
+        document.getElementById('dijit__WidgetBase_4').innerText = "No suitable feature service available";
+    }
+    
     },
 
       onDragEnter: function (event) {

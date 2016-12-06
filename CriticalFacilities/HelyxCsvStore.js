@@ -319,7 +319,7 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
                     arrayUtils.forEach(this.csvFieldNames, lang.hitch(this, function(csvFieldName, i) {
                     // console.log(node.name + ": " + csvFieldName);
 
-                    //use domconstruct here to create html elements -- lookup how this works -- look for sample code. Use to create html node and insert into widget.html element
+                    //use   domconstruct here to create html elements -- lookup how this works -- look for sample code. Use to create html node and insert into widget.html element
                     //declarative code vs constructed via dom-construct
                     //get field names from REST endpoint
                     //need way to determine type before the field is created.

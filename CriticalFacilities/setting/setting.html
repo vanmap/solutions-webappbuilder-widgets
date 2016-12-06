@@ -2,7 +2,12 @@
   <div data-dojo-attach-point="firstPageDiv">
     <table class="setting-table input-table" cellspacing="0">
       <tbody>
-        <tr>
+            <label data-dojo-attach-point="labelLatitude" for="selectLatitude">Select Latitude Field</label>
+            <select id="selectLatitude" name="selectLatitude" data-dojo-attach-point="fieldLatitude"></select>
+
+            <label data-dojo-attach-point="labelLongitude" for="selectLongitude">Select Longitude Field</label>
+            <select id="selectLongitude" name="selectLongitude" data-dojo-attach-point="fieldLongitude"></select>
+      <!--  <tr>
             <td class="first jimu-trailing-padding1">${nls.useFilterEdit}</td>
             <td class="second jimu-leading-padding1">
                 <div class="" style="">
@@ -11,7 +16,7 @@
                 </div>
             </td>
         </tr>
-        <tr>
+      <tr>
           <td class="first jimu-trailing-padding1">${nls.toolbarVisible}</td>
           <td class="second jimu-leading-padding1">
             <div class="" style="">
@@ -20,8 +25,8 @@
               data-dojo-type="dijit/form/CheckBox"/>
             </div>
           </td>
-        </tr>
-        <tr class="toolbar-options-tr" data-dojo-attach-point="toolbarOptionsTr">
+        </tr> -->
+      <!--  <tr class="toolbar-options-tr" data-dojo-attach-point="toolbarOptionsTr">
           <td class="first jimu-trailing-padding1  toolbar-options-td" data-dojo-attach-point="toolbarOptionsLabel">${nls.toolbarOptions}</td>
           <td class="second jimu-leading-padding1  toolbar-options-td" data-dojo-attach-point="toolbarOptionsTd">
             <span class="jimu-trailing-margin05 jimu-float-leading">${nls.mergeVisible}</span>
@@ -37,8 +42,8 @@
               data-dojo-type="dijit/form/CheckBox"/>
             </div>
 
-            <span class="jimu-trailing-margin05 jimu-float-leading" >${nls.reshapeVisible}</span>
-            <div class="jimu-trailing-margin2 jimu-float-leading">
+            <span class="jimu-trailing-margin05 jimu-float-leading" >${nls.reshapeVisible}</span> -->
+          <!--  <div class="jimu-trailing-margin2 jimu-float-leading">
               <input data-dojo-attach-point="reshapeVisible" 
               data-dojo-type="dijit/form/CheckBox"/>
             </div>
@@ -95,7 +100,7 @@
               />
             </div>
           </td>
-        </tr>
+        </tr>-->
       </tbody>
     </table>
     <div data-dojo-attach-point="tableLayerInfos"></div>

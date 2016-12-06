@@ -26,7 +26,9 @@ define([
     'dojo/_base/array',
     "./EditFields",
     "../utils",
-    'dijit/form/NumberSpinner'
+    'dijit/form/NumberSpinner',
+    'dojo/dom-construct',
+    'dojo/dom'
   ],
   function(
     declare,
@@ -39,7 +41,9 @@ define([
     on,
     array,
     EditFields,
-    editUtils) {
+    editUtils,
+    domConstruct,
+    dom) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
       //these two properties is defined in the BaseWidget
       baseClass: 'jimu-widget-edit-setting',
@@ -52,23 +56,79 @@ define([
       _layersTable: null,
       _editableLayerInfos: null,
       _featureService: null,
+      _arrayOfFields: null,
+      _layerForFields: null,
+      _latField: null,
+      _longField: null,
 
       startup: function() {
         this.inherited(arguments);
+
+        document.getElementById('selectLatitude').style.width = "100px";
+        document.getElementById('selectLongitude').style.width = "100px";
+        
         LayerInfos.getInstance(this.map, this.map.itemInfo)
           .then(lang.hitch(this, function(operLayerInfos) {
             /*operLayerInfos.getLayerInfoArray().forEach(function(layerInfo) {
               console.log(layerInfo.title, layerInfo.id, layerInfo.getUrl());
             }),*/
 
-            this._featureService = operLayerInfos.getLayerInfoArray()[0].getUrl();
+            var count = 0;
+            var latNode = document.getElementById('selectLatitude');
+            var longNode = document.getElementById('selectLongitude');
+            //console.log("dom construct " + domConstruct);
+            
+             operLayerInfos.traversalLayerInfosOfWebmap(function (layerInfo) {
+              layerInfo.getLayerObject().then(function (lo) {
+              if (lo.fields) {
+                
+                array.forEach(lo.fields, function(field){
+                  console.log("fields Names " + field.name);
 
-          //  console.log("selectedFeatureService " + config.selectedFeatureService);
+                  var option = document.createElement('option');
+                  option.text = field.name;
+                  option.value = count;
+                  latNode.add(option);
 
-            this._jimuLayerInfos = operLayerInfos;
-            this._init();
-            this.setConfig();
+                  var longOption = document.createElement('option');
+                  longOption.text = field.name;
+                  longOption.value = count;
+                  longNode.add(longOption);
+                  
+
+                  /*domConstruct.create("option", {
+                        value: count,
+                        innerHTML: field.name,
+                        selected: false
+                    }, node);
+                 */
+
+                    count++;
+                });
+                    
+                  }
+                })
+              });
+
+
+            
+            
+              this._featureService = operLayerInfos.getLayerInfoArray()[0].getUrl();
+              this.layerForFields = operLayerInfos.getLayerInfoArray()[0];
+            //console.log("selectedFeatureService " + config.selectedFeatureService);
+
+              this._jimuLayerInfos = operLayerInfos;
+
+
+
+              this._init();
+              this.setConfig();
+
           }));
+           
+      var layerToPop = this.map.getLayer(this.layerForFields.id);
+
+      console.log("++++++++++++ " + this.nls.fields);
       },
 
       _init: function() {
@@ -77,17 +137,17 @@ define([
       },
 
       _initToolbar: function() {
-        this.useFilterEdit.set('checked', this.config.editor.useFilterEdit);
-        this.toolbarVisible.set('checked', this.config.editor.toolbarVisible);
-        this.enableUndoRedo.set('checked', this.config.editor.enableUndoRedo);
-        this.mergeVisible.set('checked', this.config.editor.toolbarOptions.mergeVisible);
-        this.cutVisible.set('checked', this.config.editor.toolbarOptions.cutVisible);
-        this.reshapeVisible.set('checked', this.config.editor.toolbarOptions.reshapeVisible);
-        this.autoApplyEditWhenGeometryIsMoved.set('checked',
-            this.config.editor.autoApplyEditWhenGeometryIsMoved);
+        //this.useFilterEdit.set('checked', this.config.editor.useFilterEdit);
+    //    this.toolbarVisible.set('checked', this.config.editor.toolbarVisible);
+        //this.enableUndoRedo.set('checked', this.config.editor.enableUndoRedo);
+        //this.mergeVisible.set('checked', this.config.editor.toolbarOptions.mergeVisible);
+      //  this.cutVisible.set('checked', this.config.editor.toolbarOptions.cutVisible);
+       // this.reshapeVisible.set('checked', this.config.editor.toolbarOptions.reshapeVisible);
+    //    this.autoApplyEditWhenGeometryIsMoved.set('checked',
+      //      this.config.editor.autoApplyEditWhenGeometryIsMoved);
         this._onToolbarSelected();
         // default value is 15 pixels, compatible with old version app.
-        this.snappingTolerance.set('value', this.config.editor.snappingTolerance === undefined ?
+     /*   this.snappingTolerance.set('value', this.config.editor.snappingTolerance === undefined ?
                                             15 :
                                             this.config.editor.snappingTolerance);
         // default value is 5 pixels, compatible with old version app.
@@ -98,7 +158,7 @@ define([
         // default value is 0 pixels, compatible with old version app.
         this.stickyMoveTolerance.set('value', this.config.editor.stickyMoveTolerance === undefined ?
                                             0 :
-                                            this.config.editor.stickyMoveTolerance);
+                                            this.config.editor.stickyMoveTolerance);*/
       },
 
       _initLayersTable: function() {
@@ -142,7 +202,13 @@ define([
         //   config.editor.layerInfos = [];
         // }
         this._editableLayerInfos = this._getEditableLayerInfos();
+
+       /* array.forEach(this._editableLayerInfos, function(info){
+          console.log("info " + info[0]);
+        });*/
+
         this._setLayersTable(this._editableLayerInfos);
+        //populate the page with persisted information
       },
 
       _getEditableLayerInfos: function() {
@@ -328,6 +394,7 @@ define([
           });
           // add new fieldInfos at end.
           array.forEach(baseSimpleFieldInfos, function(baseSimpleFieldInfo) {
+      //      console.log("_getSimpleFieldInfos");
             if(!baseSimpleFieldInfo._exit) {
               simpleFieldInfos.push(baseSimpleFieldInfo);
             }
@@ -340,6 +407,8 @@ define([
 
       _onEditFieldInfoClick: function(tr) {
         var rowData = this._layersTable.getRowData(tr);
+        console.log("edit fields open");
+
         if(rowData && rowData.edit) {
           var editFields = new EditFields({
             nls: this.nls,
@@ -350,7 +419,7 @@ define([
       },
 
       _onToolbarSelected: function() {
-        if (this.toolbarVisible.checked) {
+      /*  if (this.toolbarVisible.checked) {
           //html.setStyle(this.toolbarOptionsLabel, 'display', 'table-cell');
           //html.setStyle(this.toolbarOptionsTd, 'display', 'table-cell');
           html.removeClass(this.toolbarOptionsTr, 'disable');
@@ -360,25 +429,26 @@ define([
           //html.setStyle(this.toolbarOptionsTd, 'display', 'none');
           html.addClass(this.toolbarOptionsTr, 'disable');
           html.setStyle(this.toolbarOptionsCoverage, 'display', 'block');
-        }
+        }*/
       },
 
       _resetToolbarConfig: function() {
-        this.config.editor.useFilterEdit = this.useFilterEdit.checked;
-        this.config.editor.toolbarVisible = this.toolbarVisible.checked;
-        this.config.editor.enableUndoRedo = this.enableUndoRedo.checked;
-        this.config.editor.toolbarOptions.mergeVisible = this.mergeVisible.checked;
-        this.config.editor.toolbarOptions.cutVisible = this.cutVisible.checked;
-        this.config.editor.toolbarOptions.reshapeVisible = this.reshapeVisible.checked;
-        this.config.editor.autoApplyEditWhenGeometryIsMoved =
-          this.autoApplyEditWhenGeometryIsMoved.checked;
-        this.config.editor.snappingTolerance = this.snappingTolerance.value;
-        this.config.editor.popupTolerance = this.popupTolerance.value;
-        this.config.editor.stickyMoveTolerance = this.stickyMoveTolerance.value;
+       // this.config.editor.useFilterEdit = this.useFilterEdit.checked;
+    //    this.config.editor.toolbarVisible = this.toolbarVisible.checked;
+       // this.config.editor.enableUndoRedo = this.enableUndoRedo.checked;
+       // this.config.editor.toolbarOptions.mergeVisible = this.mergeVisible.checked;
+        //this.config.editor.toolbarOptions.cutVisible = this.cutVisible.checked;
+        //this.config.editor.toolbarOptions.reshapeVisible = this.reshapeVisible.checked;
+        //this.config.editor.autoApplyEditWhenGeometryIsMoved =
+          //this.autoApplyEditWhenGeometryIsMoved.checked;
+        //this.config.editor.snappingTolerance = this.snappingTolerance.value;
+        //this.config.editor.popupTolerance = this.popupTolerance.value;
+        //this.config.editor.stickyMoveTolerance = this.stickyMoveTolerance.value;
       },
 
       getConfig: function() {
         // get toolbar config
+        console.log("getConfig");
         this._resetToolbarConfig();
 
         // get layerInfos config
@@ -406,8 +476,17 @@ define([
         } else {
           this.config.editor.layerInfos = checkedLayerInfos;
 
+         
+
+          var queryLat = dojo.query('select#selectLatitude')[0][dojo.query('select#selectLatitude').val()].firstChild.data;
+          var queryLon = dojo.query('select#selectLongitude')[0][dojo.query('select#selectLongitude').val()].firstChild.data;
           console.log("featureservice " + this._featureService);
+          console.log("lat, Long ", queryLat, queryLon);
           this.config.selectedFeatureService = this._featureService;
+          this.config.latitudeField = queryLat;
+          this.config.longitudeField = queryLon;
+
+          
 
           //console.log("layerInfos length " + this.config.editor.layerInfos.length);
           

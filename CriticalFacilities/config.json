@@ -1,8 +1,8 @@
 {
      
     "selectedFeatureService" : "",
-    "latitudeField" : "latitude",
-    "longitudeField" : "longitude",
+    "latitudeField" : "",
+    "longitudeField" : "",
      
     "editor": {
       "enableUndoRedo": true,

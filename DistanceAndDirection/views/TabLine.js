@@ -51,7 +51,7 @@ define([
     '../models/ShapeModel',
     '../views/CoordinateInput',
     '../views/EditOutputCoordinate',
-    '../views/DirectionalLineSymbol',
+    '../models/DirectionalLineSymbol',
     '../util',
     'dojo/text!../templates/TabLine.html',
     'dijit/form/NumberTextBox'
@@ -119,8 +119,7 @@ define([
           //Create the directional line symbol with basic polyline params
           var basicOptions = {
               directionSymbol: "arrow1",
-              directionPixelBuffer: 40,
-              showDirectionalSymbols: false,
+              directionPixelBuffer: 30,
               showStartSymbol: true,
               showEndSymbol: true
           };            

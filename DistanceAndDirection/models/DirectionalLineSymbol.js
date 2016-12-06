@@ -113,7 +113,7 @@ define([
                 }
             });
             this.showEndSymbol = options.showEndSymbol || false;
-            this.endSymbol = options.endSymbol || this.directionSymbol;
+            this.endSymbol = options.endSymbol || "arrow1";
 
             this.graphics = [];
             this.map = null;
@@ -208,7 +208,8 @@ define([
                                 continue;
                             }
 
-                            var sym = g.symbol.type === "DirectionalLineSymbol" ? g.symbol : g.symbol.outline && g.symbol.outline.type === "DirectionalLineSymbol" ? g.symbol.outline : null;
+                            // var sym = g.symbol.type === "DirectionalLineSymbol" ? g.symbol : g.symbol.outline && g.symbol.outline.type === "DirectionalLineSymbol" ? g.symbol.outline : null;
+                            var sym =  g.symbol;
                             if (sym) {
                                 sym.drawGraphicDirection(g, layer, this);
                             }
@@ -317,7 +318,8 @@ define([
                     if (endPt2) {
                         if (!this._isEqual(endPt1, endPt2)) {
                             var endAngle = this._getAngle(endPt1, endPt2);
-                            var endG = this._createGraphic(endPt2, this._createSymbol(this.endSymbol, endAngle));
+                            var endSym = this._createSymbol(this.endSymbol, endAngle);
+                            var endG = this._createGraphic(endPt2, endSym);
                             if (endG.geometry) {
                                 graphicsLayer.add(endG);
 
@@ -345,27 +347,27 @@ define([
         },
 
         _getLastItem: function (segments) {
-        	//returns the last item in a polyline segment array
+            //returns the last item in a polyline segment array
             return segments[segments.length-1][segments[segments.length-1].length-1]
         },
 
         _getSecondToLastItem: function (segments) {
-        	//returns the second to last item in a polyline segment array
+            //returns the second to last item in a polyline segment array
             return segments[segments.length-1][segments[segments.length-1].length-2]
         },
 
         _getFirstItem: function (segments) {
-        	//returns the first item in a polyline segment array
+            //returns the first item in a polyline segment array
             return segments[0][0];
         },
 
         _getAngle: function (pt1, pt2) {
-        	//retuns an angle between two points
+            //retuns an angle between two points
             return ((180 / Math.PI) * Math.atan2(pt2[1] - pt1[1], pt2[0] - pt1[0])) - 180;
         },
 
         _isEqual: function (a, b) {
-        	//Check if two objects are equal         	
+            //Check if two objects are equal            
             //http://adripofjavascript.com/blog/drips/object-equality-in-javascript.html
 
             //Create arrays of property names
@@ -394,7 +396,7 @@ define([
         },
 
         _createSymbol: function (symbol, angle) {
-        	//creates a symbol from a simpleMarkerSymbol, pictureMarkerSymbol or predefined SVG string
+            //creates a symbol from a simpleMarkerSymbol, pictureMarkerSymbol or predefined SVG string
 
             var sym;
             //get the symbol. If it's not a string (ie: one of the pre-canned symbols) it should be a SimpleMarkerSymbol or PictureMarkerSymbol.
@@ -418,7 +420,7 @@ define([
         },        
 
         _createGraphic: function (directionPoint, symbol) {
-        	//creates a graphic from using screen poins and point symbol as input parameters
+            //creates a graphic from using screen poins and point symbol as input parameters
             var g = new Graphic();            
             g.setSymbol(symbol);
             g.attributes = { isDirectionalGraphic: true };            

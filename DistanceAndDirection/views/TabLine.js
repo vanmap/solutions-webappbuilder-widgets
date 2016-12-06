@@ -122,7 +122,7 @@ define([
               directionPixelBuffer: 40,
               showDirectionalSymbols: false,
               showStartSymbol: true,
-              showEndSymbol: true,
+              showEndSymbol: true
           };            
           basicOptions = dojoLang.mixin(basicOptions, this.lineSymbol);
           this._lineSym = new DirectionalLineSymbol(basicOptions);

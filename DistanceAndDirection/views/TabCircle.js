@@ -605,7 +605,6 @@ define([
       }
 
       this.emit('graphic_created', this.currentCircle);
-      //this.clearUI(true);
     },
 
     /*

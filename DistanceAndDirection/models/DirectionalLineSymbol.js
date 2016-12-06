@@ -209,7 +209,7 @@ define([
                             }
 
                             // var sym = g.symbol.type === "DirectionalLineSymbol" ? g.symbol : g.symbol.outline && g.symbol.outline.type === "DirectionalLineSymbol" ? g.symbol.outline : null;
-                            var sym = g.symbol;
+                            var sym =  g.symbol;
                             if (sym) {
                                 sym.drawGraphicDirection(g, layer, this);
                             }

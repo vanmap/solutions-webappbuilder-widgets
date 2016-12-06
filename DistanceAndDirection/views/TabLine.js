@@ -119,7 +119,7 @@ define([
           //Create the directional line symbol with basic polyline params
           var basicOptions = {
               directionSymbol: "arrow1",
-              directionPixelBuffer: 40,
+              directionPixelBuffer: 30,
               showStartSymbol: true,
               showEndSymbol: true
           };            

@@ -241,6 +241,9 @@ define([
                 'change',
                 dojoLang.hitch(this, this.lengthUnitDDDidChange)
               ),
+              dojoOn(this.coordinateFormatButton, 'click',
+                dojoLang.hitch(this, this.coordinateFormatButtonWasClicked)
+              ),
               dojoOn(this.coordinateFormat.content.applyButton, 'click',
                   dojoLang.hitch(this, function () {
                       var fs = this.coordinateFormat.content.formats[this.coordinateFormat.content.ct];
@@ -274,7 +277,12 @@ define([
               ),
               dojoOn(this.angleInput, 'keyup',
                 dojoLang.hitch(this, this.onOrientationAngleKeyupHandler)
-              )
+              ),
+              dojoOn(this.coordinateFormat.content.cancelButton, 'click',
+                dojoLang.hitch(this, function () {
+                    DijitPopup.close(this.coordinateFormat);
+                }
+              ))
             );
         },
 
@@ -343,6 +351,17 @@ define([
                     //this.createCenterPointGraphic();
                 }));
             }
+        },
+
+        /*
+         *
+        */
+        coordinateFormatButtonWasClicked: function () {
+            this.coordinateFormat.content.set('ct', this.coordTool.inputCoordinate.formatType);
+            DijitPopup.open({
+                popup: this.coordinateFormat,
+                around: this.coordinateFormatButton
+            });
         },
 
         /*
@@ -482,6 +501,17 @@ define([
           if (this.centerPointGraphic) {
             this._gl.remove(this.centerPointGraphic);
           }
+        },
+
+        /*
+        *
+        */
+        setCoordLabel: function (toType) {
+            this.coordInputLabel.innerHTML = dojoString.substitute(
+              'Center Point (${crdType})', {
+                  crdType: toType
+              }
+            );
         },
 
         /*

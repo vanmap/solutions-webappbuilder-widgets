@@ -434,8 +434,8 @@ define([
           this.angleUnitDDDidChange();
 
           this.currentEllipse.graphic.setAttributes({
-            'MINOR': parseFloat(dojoDomAttr.get(this.minorAxisInput, 'value').replace(',',''),2),
-            'MAJOR': parseFloat(dojoDomAttr.get(this.majorAxisInput, 'value').replace(',',''),2),
+            'MINOR': parseFloat(dojoDomAttr.get(this.minorAxisInput, 'value').replace(/,/g,''),2),
+            'MAJOR': parseFloat(dojoDomAttr.get(this.majorAxisInput, 'value').replace(/,/g,''),2),
             'ORIENTATION_ANGLE': parseFloat(this.currentEllipse.angle.replace(',',''),2)
           });
 

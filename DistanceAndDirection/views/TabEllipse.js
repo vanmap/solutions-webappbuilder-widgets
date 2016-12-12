@@ -188,6 +188,8 @@ define([
                 this.coordTool.inputCoordinate.set('coordinateEsriGeometry', nv);
                 this.dt.addStartGraphic(nv, this._ptSym);
             }));
+            
+            
 
             this.coordTool.inputCoordinate.watch(
               'outputString', dojoLang.hitch(
@@ -229,6 +231,7 @@ define([
                 'draw-complete',
                 dojoLang.hitch(this, this.feedbackDidComplete)
               ),
+              
               this.ellipseType.on(
                 'change',
                 dojoLang.hitch(this, this.ellipseTypeChangeHandler)
@@ -240,6 +243,9 @@ define([
               this.lengthUnitDD.on(
                 'change',
                 dojoLang.hitch(this, this.lengthUnitDDDidChange)
+              ),
+              dojoOn(this.coordinateFormatButton, 'click',
+                dojoLang.hitch(this, this.coordinateFormatButtonWasClicked)
               ),
               dojoOn(this.coordinateFormat.content.applyButton, 'click',
                   dojoLang.hitch(this, function () {
@@ -274,7 +280,12 @@ define([
               ),
               dojoOn(this.angleInput, 'keyup',
                 dojoLang.hitch(this, this.onOrientationAngleKeyupHandler)
-              )
+              ),
+              dojoOn(this.coordinateFormat.content.cancelButton, 'click',
+                dojoLang.hitch(this, function () {
+                    DijitPopup.close(this.coordinateFormat);
+                }
+              ))
             );
         },
 
@@ -305,7 +316,7 @@ define([
          * update the gui with the major axis length
          */
         majorLengthDidChange: function (l) {
-            var fl = dojoNumber.format(l, { places: 2 });
+            var fl = dojoNumber.format(l, { places: 0 });
             dojoDomAttr.set(
               this.majorAxisInput,
               'value',
@@ -317,7 +328,7 @@ define([
          * update the gui with the min axis length
          */
         minorLengthDidChange: function (l) {
-            var fl = dojoNumber.format(l, { places: 2 });
+            var fl = dojoNumber.format(l, { places: 0 });
             dojoDomAttr.set(
               this.minorAxisInput,
               'value',
@@ -343,6 +354,17 @@ define([
                     //this.createCenterPointGraphic();
                 }));
             }
+        },
+
+        /*
+         *
+        */
+        coordinateFormatButtonWasClicked: function () {
+            this.coordinateFormat.content.set('ct', this.coordTool.inputCoordinate.formatType);
+            DijitPopup.open({
+                popup: this.coordinateFormat,
+                around: this.coordinateFormatButton
+            });
         },
 
         /*
@@ -412,8 +434,8 @@ define([
           this.angleUnitDDDidChange();
 
           this.currentEllipse.graphic.setAttributes({
-            'MINOR': parseFloat(dojoDomAttr.get(this.minorAxisInput, 'value').replace(',',''),2),
-            'MAJOR': parseFloat(dojoDomAttr.get(this.majorAxisInput, 'value').replace(',',''),2),
+            'MINOR': parseFloat(dojoDomAttr.get(this.minorAxisInput, 'value').replace(/,/g,''),2),
+            'MAJOR': parseFloat(dojoDomAttr.get(this.majorAxisInput, 'value').replace(/,/g,''),2),
             'ORIENTATION_ANGLE': parseFloat(this.currentEllipse.angle.replace(',',''),2)
           });
 
@@ -482,6 +504,17 @@ define([
           if (this.centerPointGraphic) {
             this._gl.remove(this.centerPointGraphic);
           }
+        },
+
+        /*
+        *
+        */
+        setCoordLabel: function (toType) {
+            this.coordInputLabel.innerHTML = dojoString.substitute(
+              'Center Point (${crdType})', {
+                  crdType: toType
+              }
+            );
         },
 
         /*

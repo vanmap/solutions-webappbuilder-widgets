@@ -11,11 +11,12 @@
     </div>
 
     <div class="controlGroup">
-      <label>Center Point</label>
-      <div class="controlItem">
-        <input class="jimu-input coordInput" placeholder="Enter Coordinates" data-dojo-attach-point="startPointCoords" />
-        <div class="addPointBtn" data-dojo-attach-point="addPointBtn"></div>
-      </div>
+        <label data-dojo-attach-point="coordInputLabel">Center Point</label>
+        <div class="controlItem">
+            <input class="jimu-input coordInput" data-dojo-attach-point="startPointCoords" placeholder="Enter Coordinates" />
+            <span class="frmtBtn" data-dojo-attach-point="coordinateFormatButton"></span>
+            <span class="addPointBtn" data-dojo-attach-point="addPointBtn"></span>
+        </div>
     </div>
 
     <fieldset>

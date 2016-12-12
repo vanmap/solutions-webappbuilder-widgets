@@ -188,6 +188,8 @@ define([
                 this.coordTool.inputCoordinate.set('coordinateEsriGeometry', nv);
                 this.dt.addStartGraphic(nv, this._ptSym);
             }));
+            
+            
 
             this.coordTool.inputCoordinate.watch(
               'outputString', dojoLang.hitch(
@@ -229,6 +231,7 @@ define([
                 'draw-complete',
                 dojoLang.hitch(this, this.feedbackDidComplete)
               ),
+              
               this.ellipseType.on(
                 'change',
                 dojoLang.hitch(this, this.ellipseTypeChangeHandler)
@@ -313,7 +316,7 @@ define([
          * update the gui with the major axis length
          */
         majorLengthDidChange: function (l) {
-            var fl = dojoNumber.format(l, { places: 2 });
+            var fl = dojoNumber.format(l, { places: 0 });
             dojoDomAttr.set(
               this.majorAxisInput,
               'value',
@@ -325,7 +328,7 @@ define([
          * update the gui with the min axis length
          */
         minorLengthDidChange: function (l) {
-            var fl = dojoNumber.format(l, { places: 2 });
+            var fl = dojoNumber.format(l, { places: 0 });
             dojoDomAttr.set(
               this.minorAxisInput,
               'value',

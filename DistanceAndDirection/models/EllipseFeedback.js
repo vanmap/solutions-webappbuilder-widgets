@@ -66,17 +66,17 @@ define([
         syncEvents: function () {
             dojoTopic.subscribe(
                 'manual-ellipse-major-axis-input',
-                dojoLang.hitch(this, this.onMajorAxisManulInputHandler)
+                dojoLang.hitch(this, this.onMajorAxisManualInputHandler)
             );
 
             dojoTopic.subscribe(
                 'manual-ellipse-minor-axis-input',
-                dojoLang.hitch(this, this.onMinorAxisManulInputHandler)
+                dojoLang.hitch(this, this.onMinorAxisManualInputHandler)
             );
 
             dojoTopic.subscribe(
                 'manual-ellipse-orientation-angle-input',
-                dojoLang.hitch(this, this.onOrientationAngleManulInputHandler)
+                dojoLang.hitch(this, this.onOrientationAngleManualInputHandler)
             );
 
             dojoTopic.subscribe(
@@ -88,7 +88,7 @@ define([
         /*
         Handler for major axis manual input
         */
-        onMajorAxisManulInputHandler: function (majorLength) {
+        onMajorAxisManualInputHandler: function (majorLength) {
             if (majorLength === "") {
                 return;
             }
@@ -126,7 +126,7 @@ define([
         /*
         Handler for minor axis manual input
         */
-        onMinorAxisManulInputHandler: function (minorLength) {
+        onMinorAxisManualInputHandler: function (minorLength) {
             if (minorLength === "") {
                 return;
             }
@@ -164,7 +164,7 @@ define([
         /*
         Handler for orientation angle manual input
         */
-        onOrientationAngleManulInputHandler: function (orientationAngle) {
+        onOrientationAngleManualInputHandler: function (orientationAngle) {
             this.orientationAngle = Number(orientationAngle);
             //Check if we have a center, major and minor points
             if (this._points.length >= 3) {
@@ -425,8 +425,6 @@ define([
                   drawType: 'ellipse',
                   center: this._points[0]
               });
-            }
-
               dojoConnect.disconnect(this._onMouseMoveHandlerConnect);
               this._setTooltipMessage(0);
               this._drawEnd(elipseGeom);
@@ -435,8 +433,8 @@ define([
               this._majGraphic = null;
               this._minGraphic = null;
               this.orientationAngle = null;
-              this._clear();
-            
+              this._clear();              
+            }            
         }
 
     });

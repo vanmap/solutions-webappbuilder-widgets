@@ -90,6 +90,7 @@ define([
         baseClass: 'jimu-widget-TabEllipse',
 
         centerPointGraphic: null,
+        isManualInput: false,
 
         /*
          * class constructor
@@ -309,6 +310,7 @@ define([
         onOrientationAngleKeyupHandler: function (evt) {
             if (evt.keyCode === dojoKeys.ENTER) {
                 dojoTopic.publish('manual-ellipse-orientation-angle-input', this.angleInput.value);
+                this.isManualInput = true;
             }
         },
 
@@ -348,7 +350,7 @@ define([
                       this.coordTool.inputCoordinate.coordinateEsriGeometry
                     );
                     this.dt.addStartGraphic(
-                      this.coordTool.inputCoordinate.coordTool,
+                      r.coordinateEsriGeometry,
                       this._ptSym
                     );
                     //this.createCenterPointGraphic();
@@ -426,12 +428,16 @@ define([
         feedbackDidComplete: function (results) {
           this.currentEllipse = new ShapeModel(results);
           this.currentEllipse.graphic = new EsriGraphic(
-            this.currentEllipse.wmGeometry,
+            this.currentEllipse.geodesicGeometry,
             this._ellipseSym
           );
 
-          this.lengthUnitDDDidChange();
-          this.angleUnitDDDidChange();
+          if (!this.isManualInput) {
+            this.lengthUnitDDDidChange();
+            this.angleUnitDDDidChange();            
+          } else {
+            this.isManualInput = false;
+          }
 
           this.currentEllipse.graphic.setAttributes({
             'MINOR': parseFloat(dojoDomAttr.get(this.minorAxisInput, 'value').replace(/,/g,''),2),

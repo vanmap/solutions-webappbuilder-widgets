@@ -44,6 +44,7 @@ define([
     'esri/units',
     'esri/geometry/webMercatorUtils',
     'esri/tasks/FeatureSet',
+    '../util',
     '../models/EllipseFeedback',
     '../models/ShapeModel',
     '../views/CoordinateInput',
@@ -78,6 +79,7 @@ define([
     esriUnits,
     esriWMUtils,
     EsriFeatureSet,
+    Utils,
     DrawFeedBack,
     ShapeModel,
     CoordInput,
@@ -97,6 +99,7 @@ define([
          */
         constructor: function (args) {
             dojoDeclare.safeMixin(this, args);
+            this._utils = new Utils();
         },
 
         /*
@@ -322,7 +325,7 @@ define([
             dojoDomAttr.set(
               this.majorAxisInput,
               'value',
-              fl //this._getFormattedLength(l)
+              fl 
             );
         },
 
@@ -334,7 +337,7 @@ define([
             dojoDomAttr.set(
               this.minorAxisInput,
               'value',
-              fl //this._getFormattedLength(l)
+              fl 
             );
         },
 
@@ -389,7 +392,7 @@ define([
                 dojoDomAttr.set(
                   this.minorAxisInput,
                   'value',
-                  this._getFormattedLength(this.currentEllipse.geometry.minorAxisLength)
+                  this._utils.convertMetersToUnits(this.currentEllipse.geometry.minorAxisLength,"meters")
                 );
             }
         },
@@ -404,7 +407,7 @@ define([
             dojoDomAttr.set(
               this.majorAxisInput,
               'value',
-              this._getFormattedLength(majorAxisLength)
+              this._utils.convertMetersToUnits(majorAxisLength,"meters")
             );
         },
 
@@ -521,39 +524,6 @@ define([
                   crdType: toType
               }
             );
-        },
-
-        /*
-         *
-         */
-        _getFormattedLength: function (length) {
-          var convertedLength = length;
-          switch (this.currentLengthUnit) {
-            case 'meters':
-              convertedLength = length;
-              break;
-            case 'feet':
-              convertedLength = length * 3.28084;
-              break;
-            case 'kilometers':
-              convertedLength = length * 1000;
-              break;
-            case 'miles':
-              convertedLength = length * 0.00062137121212121;
-              break;
-            case 'nautical-miles':
-              convertedLength = length * 0.00053995682073433939625;
-              break;
-            case 'yards':
-              convertedLength = length * 1.0936133333333297735;
-              break;
-            case 'ussurveyfoot':
-              convertedLength = length * 3.2808333333465;
-              break;
-          }
-          return dojoNumber.format(convertedLength, {
-            places: 4
-          });
         }
     });
 });

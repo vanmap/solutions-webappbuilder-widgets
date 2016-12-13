@@ -28,6 +28,8 @@ define([
   'esri/geometry/geometryEngine',
   'esri/geometry/geodesicUtils',
   'esri/units',
+  'esri/symbols/SimpleMarkerSymbol', 
+  'esri/Color',
   'esri/graphic',
   'esri/geometry/webMercatorUtils',
   './Feedback',
@@ -45,6 +47,8 @@ define([
   esriGeometryEngine,
   geodesicUtils,
   Units,
+  SimpleMarkerSymbol, 
+  Color,
   EsriGraphic,
   EsriWebMercatorUtils,
   drawFeedback,
@@ -52,13 +56,18 @@ define([
 ) {
     var clz = dojoDeclare([drawFeedback], {
         orientationAngle: null,
+        majorAxisLength: [],
+        minorAxisLength: [],
+        
         /*
          * Class Constructor
          */
         constructor: function () {
             this._utils = new Utils();
             this.syncEvents();
-        },
+            this._majGraphic = new EsriGraphic();
+            this._minGraphic = new EsriGraphic();
+         },
 
         /*
 
@@ -115,7 +124,7 @@ define([
                       [centerPoint.x, centerPoint.y],
                       [endPoint.x, endPoint.y]]
                     ],
-                    spatialReference: map.spatialReference
+                    spatialReference: this.map.spatialReference
                 });
 
                 this._majGraphic = new EsriGraphic(majorLine, this.lineSymbol);
@@ -153,7 +162,7 @@ define([
                       [centerPoint.x, centerPoint.y],
                       [endPoint.x, endPoint.y]]
                     ],
-                    spatialReference: map.spatialReference
+                    spatialReference: this.map.spatialReference
                 });
 
                 this._minGraphic = new EsriGraphic(minorLine, this.lineSymbol);
@@ -208,67 +217,64 @@ define([
             }
 
             var start = snapPoint || evt.mapPoint;
-            var map = this.map;
-
             this._points.push(start.offset(0, 0));
-            this.set('startPoint', this._points[0]);
-
-            if (this._points.length >= 3) {
-                this._onDoubleClickHandler();
-                return;
-            }
-
-            if (this._points.length === 1) {
-                // create and add our major graphic
-                var pline = new EsriPolyLine({
-                    paths: [[
-                      [start.x, start.y],
-                      [start.x, start.y]]
-                    ], spatialReference: map.spatialReference
-                });
-
-                this._majGraphic = new EsriGraphic(pline, this.lineSymbol);
-                map.graphics.add(this._majGraphic);
-
-                // connect the mouse move event
-                this._onMouseMoveHandlerConnect = dojoConnect.connect(
-                  map,
-                  'onMouseMove',
-                  this._onMouseMoveHandler
-                );
-                
-                this._onDoubleClickHandler_connect = dojoConnect.connect(this.map, 'onDblClick', dojoLang.hitch(this, this._onDoubleClickHandler));
             
-                
-                
-
-                // create our minor graphic
-                var minLine = new EsriPolyLine({
-                    paths: [[
-                      [start.x, start.y],
-                      [start.x, start.y]]
-                    ], spatialReference: map.spatialReference
-                });
-
-                this._minGraphic = new EsriGraphic(minLine, this.lineSymbol);
-                map.graphics.add(this._minGraphic);
-
-            }
-
-            this._setTooltipMessage(this._points.length);
-            if (this._points.length === 2 && this._geometryType === 'polyline') {
-                var tooltip = this._tooltip;
-                if (tooltip) {
-                    tooltip.innerHTML = 'Click to finish drawing ellipse';
-                }
-            }
+            switch(this._points.length)
+            {
+                case 1:
+                    // create and add our major / minor graphics
+                    var maxLine = new EsriPolyLine({
+                        paths: [[
+                          [start.x, start.y],
+                          [start.x, start.y]]
+                        ], spatialReference: this.map.spatialReference
+                    });
+                    
+                    var minLine = new EsriPolyLine({
+                        paths: [[
+                          [start.x, start.y],
+                          [start.x, start.y]]
+                        ], spatialReference: this.map.spatialReference
+                    });
+                                        
+                    this._majGraphic = new EsriGraphic(maxLine, this.lineSymbol);
+                    this._minGraphic = new EsriGraphic(minLine, this.lineSymbol);
+                    this.map.graphics.add(this._majGraphic);
+                    this.map.graphics.add(this._minGraphic);
+                    
+                    // connect the mouse move event
+                    this._onMouseMoveHandlerConnect = dojoConnect.connect(
+                        this.map,
+                        'onMouseMove',
+                        this._onMouseMoveHandler
+                    );
+                    
+                    // connect a double click event to handle user double clicking
+                    this._onDoubleClickHandler_connect = dojoConnect.connect(this.map, 'onDblClick', dojoLang.hitch(this, this._onDoubleClickHandler));
+                                        
+                    var tooltip = this._tooltip;
+                    if (tooltip) {
+                        tooltip.innerHTML = 'Click length of major axis';
+                    }
+                    break;
+                    
+                case 2:
+                    var tooltip = this._tooltip;
+                    if (tooltip) {
+                        tooltip.innerHTML = 'Move mouse back to start position to set minor axis & finish drawing ellipse';
+                    }
+                    break;
+                    
+                case 3:
+                    this._onDoubleClickHandler();
+                    break;              
+            }            
         },
 
         /*
          *
          */
-        _onMouseMoveHandler: function (evt) {
-            
+        _onMouseMoveHandler: function (evt) {            
 
             var snapPoint;
             if (this.map.snappingManager) {
@@ -277,34 +283,34 @@ define([
 
             var end = snapPoint || evt.mapPoint;
             
-
             if (this._points.length === 1) {
-                var majorAxisLength = 0;
                 this._majGraphic.geometry.setPoint(0, 1, end);
-                this._majGraphic.setGeometry(this._majGraphic.geometry).setSymbol(this.lineSymbol);
-
-                majorAxisLength = geodesicUtils.geodesicLengths([this._majGraphic.geometry], Units.METERS);
-                var majorUnitLength = this._utils.convertMetersToUnits(majorAxisLength, this.lengthUnit);
+                this._majGraphic.setGeometry(this._majGraphic.geometry).setSymbol(this.lineSymbol);                
+                this.majorAxisLength = esriGeometryEngine.geodesicLength(this._majGraphic.geometry, 9001);          
+                var majorUnitLength = this._utils.convertMetersToUnits(this.majorAxisLength, this.lengthUnit);
                 dojoTopic.publish('DD_ELLIPSE_MAJOR_LENGTH_CHANGE', majorUnitLength);
 
             } else {
-                var minorAxisLength = 0;
                 if (this._minGraphic !== null){
                   var prevgeom = dojoLang.clone(this._minGraphic.geometry);
-                  this._minGraphic.geometry.setPoint(0, 1, end);
-                this._minGraphic.setGeometry(this._minGraphic.geometry).setSymbol(this.lineSymbol);
-                
-                minorAxisLength = geodesicUtils.geodesicLengths([this._minGraphic.geometry], Units.METERS);
-                majorAxisLength = geodesicUtils.geodesicLengths([this._majGraphic.geometry], Units.METERS);
-                
-                var minorUnitLength = this._utils.convertMetersToUnits(minorAxisLength, this.lengthUnit);
-
-                if (minorAxisLength > majorAxisLength) {
+                  
+                  var nearest = esriGeometryEngine.nearestCoordinate(this._majGraphic.geometry, end)
+                  var nearestGraphic =  new EsriPoint(nearest.coordinate.x, nearest.coordinate.y,102100);
+                  
+                  this._minGraphic.geometry.setPoint(0, 1, nearestGraphic);
+                  this._minGraphic.geometry = esriGeometryEngine.rotate(this._minGraphic.geometry,-90,this._points[0]);                  
+                  this._minGraphic.setGeometry(this._minGraphic.geometry).setSymbol(this.lineSymbol);
+                  
+                  var minGraphicGeo = EsriWebMercatorUtils.webMercatorToGeographic(this._minGraphic.geometry);
+                  this.minorAxisLength = geodesicUtils.geodesicLengths([minGraphicGeo], Units.METERS);
+                  
+                  var minorUnitLength = this._utils.convertMetersToUnits(this.minorAxisLength[0], this.lengthUnit);
+                  
+                  if (this.minorAxisLength[0] > this.majorAxisLength || this.minorAxisLength[0] == 0) {
                     this._minGraphic.setGeometry(prevgeom);
-                    return;
-                }
-
-                dojoTopic.publish('DD_ELLIPSE_MINOR_LENGTH_CHANGE', minorUnitLength);
+                    return; 
+                  }
+                  dojoTopic.publish('DD_ELLIPSE_MINOR_LENGTH_CHANGE', minorUnitLength);
                 }                
             }
         },
@@ -350,51 +356,14 @@ define([
          *
          */
         _onDoubleClickHandler: function (evt) {
-            //if (dojoHas('esri-touch')) {
-            //    this._points.push(evt.mapPoint);
-            //}
+            
             if (this._points.length >= 3)  {
-              var currentVertex = this._points[this._points.length - 1];
-              var previousVertex = this._points[this._points.length - 2];
-              if (currentVertex &&
-                previousVertex &&
-                currentVertex.x === previousVertex.x &&
-                currentVertex.y === previousVertex.y
-              ) {
-                  this._points = this._points.slice(0, this._points.length - 1);
-              } else {
-                  this._points = this._points.slice(0, this._points.length);
-              }
-
-              if (!this._majGraphic || !this._minGraphic) {
-                  dojoConnect.disconnect(this._onMouseMoveHandlerConnect);
-                  this._clear();
-                  this._onClickHandler(evt);
-                  return;
-              }
-
+              
               var elipseGeom = new EsriPolygon(this.map.spatialReference);
-
-              /*var majorAxisGeom = new EsriPolyLine({
-                paths:[[
-                  [this._points[0].x, this._points[0].y],
-                  [this._points[1].x, this._points[1].y]
-                ]], spatialReference: this.map.spatialReference
-              });*/
-
-              /*var minorAxisGeom = new EsriPolyLine({
-                paths:[[
-                  [this._points[0].x, this._points[0].y],
-                  [this._points[2].x, this._points[2].y]
-                ]], spatialReference: this.map.spatialReference
-              });*/
-
-              var majorAxisLength = geodesicUtils.geodesicLengths([this._majGraphic.geometry], Units.METERS);
-              var minorAxisLength = geodesicUtils.geodesicLengths([this._minGraphic.geometry], Units.METERS);
-
-              var centerScreen = this.map.toScreen(this._points[0]);
-              var majorScreen = this.map.toScreen(this._points[1]);
-              var minorScreen = this.map.toScreen(this._points[2]);
+ 
+              var centerScreen = this.map.toScreen(this._majGraphic.geometry.getPoint(0,0));
+              var majorScreen = this.map.toScreen(this._majGraphic.geometry.getPoint(0,1));
+              var minorScreen = this.map.toScreen(this._minGraphic.geometry.getPoint(0,1));
 
               var majorRadius = this.getLineLength(centerScreen.x, centerScreen.y, majorScreen.x, majorScreen.y);
               var minorRadius = this.getLineLength(centerScreen.x, centerScreen.y, minorScreen.x, minorScreen.y);
@@ -413,28 +382,55 @@ define([
               };
 
               var ellipse = EsriPolygon.createEllipse(ellipseParams);
+              
+              //var ellipse = this._createEllipse(ellipseParams);
+              
               elipseGeom.geometry = esriGeometryEngine.rotate(ellipse,
-                  this.orientationAngle !== null ?
-                  this.orientationAngle : this.convertAngle(angleDegrees));
+                  this.convertAngle(angleDegrees),this._majGraphic.geometry.getPoint(0,0));
 
               elipseGeom = dojoLang.mixin(elipseGeom, {
-                  majorAxisLength: majorAxisLength,
-                  minorAxisLength: minorAxisLength,
+                  majorAxisLength: this._utils.convertMetersToUnits(this.majorAxisLength, this.lengthUnit),
+                  minorAxisLength: this._utils.convertMetersToUnits(this.minorAxisLength, this.lengthUnit),
                   angle: this.orientationAngle !== null ?
                       this.orientationAngle.toFixed(2) : angleDegrees.toFixed(2),
                   drawType: 'ellipse',
                   center: this._points[0]
               });
-              dojoConnect.disconnect(this._onMouseMoveHandlerConnect);
-              this._setTooltipMessage(0);
-              this._drawEnd(elipseGeom);
-              this.map.graphics.clear();
-              //this.map.graphics.remove(this._minGraphic);
-              this._majGraphic = null;
-              this._minGraphic = null;
-              this.orientationAngle = null;
-              this._clear();              
-            }            
+            }
+            
+            dojoConnect.disconnect(this._onMouseMoveHandlerConnect);
+            this._setTooltipMessage(0);
+            this._drawEnd(elipseGeom);
+            this.map.graphics.clear();
+            //this.map.graphics.remove(this._minGraphic);
+            this._majGraphic = null;
+            this._minGraphic = null;
+            majorAxisLength = [];
+            minorAxisLength = [];
+            this.orientationAngle = null;
+            this._clear();
+        },
+        
+        _createEllipse: function(params) {
+          var dx = params.center.x,
+              dy = params.center.y,
+              a = params.longAxis,
+              b = params.shortAxis,
+              numberOfPoints = params.numberOfPoints,
+              map = params.map,
+              pt, i, cosZeta, sinZeta, ellipse,
+              path = [],
+              angle = (2*Math.PI)/numberOfPoints;
+          for (i = 0; i < numberOfPoints; i++) {
+            cosZeta = Math.cos(i*angle);
+            sinZeta = Math.sin(i*angle);      
+            pt = map.toMap({x:a*cosZeta + dx, y:b*sinZeta + dy});
+            path.push(pt);
+          }
+          path.push(path[0]);
+          ellipse = new EsriPolygon(map.spatialReference);
+          ellipse.addRing(path);
+          return ellipse;
         }
 
     });

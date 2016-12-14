@@ -49,7 +49,8 @@ define([
     '../models/ShapeModel',
     '../views/CoordinateInput',
     '../views/EditOutputCoordinate',
-    'dojo/text!../templates/TabEllipse.html'
+    'dojo/text!../templates/TabEllipse.html',
+    'dijit/form/NumberSpinner'
 ], function (
     dojoDeclare,
     dojoLang,
@@ -92,8 +93,7 @@ define([
         baseClass: 'jimu-widget-TabEllipse',
 
         centerPointGraphic: null,
-        isManualInput: false,
-
+        
         /*
          * class constructor
          */
@@ -120,15 +120,15 @@ define([
               'geometryType': 'esriGeometryPolygon',
               'fields': [{
                   'name': 'MAJOR',
-                  'type': 'esriFieldTypeDouble',
+                  'type': 'esriFieldTypeText',
                   'alias': 'Major'
                 }, {
                     'name': 'MINOR',
-                    'type': 'esriFieldTypeDouble',
+                    'type': 'esriFieldTypeText',
                     'alias': 'Minor'
                 }, {
                     'name': 'ORIENTATION_ANGLE',
-                    'type': 'esriFieldTypeDouble',
+                    'type': 'esriFieldTypeText',
                     'alias': 'Orientation Angle'
                 }
               ]
@@ -179,6 +179,8 @@ define([
             this.dt = new DrawFeedBack(this.map);
             this.dt.setLineSymbol(this._ellipseSym);
             this.dt.set('lengthUnit', 'feet');
+            this.dt.set('angle', 0);
+            this.dt.set('ellipseType', 'semi');
 
             this.syncEvents();
         },
@@ -229,6 +231,14 @@ define([
                 this.majorLengthDidChange
               )
             );
+            
+            dojoTopic.subscribe(
+              DrawFeedBack.DD_ELLIPSE_ANGLE_CHANGE,
+              dojoLang.hitch(
+                this,
+                this.angleDidChange
+              )
+            );
 
             this.own(
               this.dt.on(
@@ -236,10 +246,6 @@ define([
                 dojoLang.hitch(this, this.feedbackDidComplete)
               ),
               
-              this.ellipseType.on(
-                'change',
-                dojoLang.hitch(this, this.ellipseTypeChangeHandler)
-              ),
               this.angleUnitDD.on(
                 'change',
                 dojoLang.hitch(this, this.angleUnitDDDidChange)
@@ -285,6 +291,9 @@ define([
               dojoOn(this.angleInput, 'keyup',
                 dojoLang.hitch(this, this.onOrientationAngleKeyupHandler)
               ),
+              dojoOn(this.angleInput, 'change',
+                dojoLang.hitch(this, this.angleDidChange)
+              ),              
               dojoOn(this.coordinateFormat.content.cancelButton, 'click',
                 dojoLang.hitch(this, function () {
                     DijitPopup.close(this.coordinateFormat);
@@ -297,50 +306,47 @@ define([
          *
          */
         onMajorAxisInputKeyupHandler: function (evt) {
-            dojoTopic.publish('manual-ellipse-major-axis-input', this.majorAxisInput.value);
+            dojoTopic.publish('manual-ellipse-major-axis-input', this.majorAxisInput);
         },
 
         /*
          *
          */
         onMinorAxisInputKeyupHandler: function (evt) {
-            dojoTopic.publish('manual-ellipse-minor-axis-input', this.minorAxisInput.value);
+            dojoTopic.publish('manual-ellipse-minor-axis-input', this.minorAxisInput);
         },
-
+        
+        
         /*
          *
          */
         onOrientationAngleKeyupHandler: function (evt) {
             if (evt.keyCode === dojoKeys.ENTER) {
-                dojoTopic.publish('manual-ellipse-orientation-angle-input', this.angleInput.value);
-                this.isManualInput = true;
+                dojoTopic.publish('manual-ellipse-orientation-angle-input', this.angleInput.value);                
             }
         },
 
         /*
          * update the gui with the major axis length
          */
-        majorLengthDidChange: function (l) {
-            var fl = dojoNumber.format(l, { places: 0 });
-            dojoDomAttr.set(
-              this.majorAxisInput,
-              'value',
-              fl 
-            );
+        majorLengthDidChange: function (number) {
+            this.majorAxisInput.setValue(number);
         },
 
         /*
          * update the gui with the min axis length
          */
-        minorLengthDidChange: function (l) {
-            var fl = dojoNumber.format(l, { places: 0 });
-            dojoDomAttr.set(
-              this.minorAxisInput,
-              'value',
-              fl 
-            );
+        minorLengthDidChange: function (number) {
+            this.minorAxisInput.setValue(number);            
         },
-
+        
+        /*
+         * update the gui with angle
+         */
+        angleDidChange: function (number) {
+            this.angleInput.setValue(number);
+            this.dt.set('angle', number);
+        },
         /*
          * catch key press in start point
          */
@@ -382,47 +388,19 @@ define([
         },
 
         /*
-          *
-          */
+         *
+         */
         lengthUnitDDDidChange: function () {
             this.currentLengthUnit = this.lengthUnitDD.get('value');
-            this.dt.set('lengthUnit', this.currentLengthUnit);
-            if (this.currentEllipse) {
-                this.ellipseTypeChangeHandler();
-                dojoDomAttr.set(
-                  this.minorAxisInput,
-                  'value',
-                  this._utils.convertMetersToUnits(this.currentEllipse.geometry.minorAxisLength,"meters")
-                );
-            }
+            this.dt.set('lengthUnit', this.currentLengthUnit);            
         },
 
         /*
-          *
-          */
-        ellipseTypeChangeHandler: function () {
-            var majorAxisLength = this.ellipseType.get('value') === 'full' ?
-              this.currentEllipse.geometry.majorAxisLength * 2 :
-              this.currentEllipse.geometry.majorAxisLength;
-            dojoDomAttr.set(
-              this.majorAxisInput,
-              'value',
-              this._utils.convertMetersToUnits(majorAxisLength,"meters")
-            );
-        },
-
-        /*
-          *
-          */
+         *
+         */
         angleUnitDDDidChange: function () {
             this.currentAngleUnit = this.angleUnitDD.get('value');
-
-            if (this.currentEllipse) {
-                dojoDomAttr.set(
-                  this.angleInput,
-                  'value',
-                  this.currentEllipse.getAngle(this.currentAngleUnit));
-            }
+            this.dt.set('angleUnit', this.currentAngleUnit);
         },
 
         /*
@@ -434,18 +412,19 @@ define([
             this.currentEllipse.geodesicGeometry,
             this._ellipseSym
           );
-
-          if (!this.isManualInput) {
-            this.lengthUnitDDDidChange();
-            this.angleUnitDDDidChange();            
-          } else {
-            this.isManualInput = false;
+          
+          var unitForDistance = dijit.byId('lengthUnitDD').get('displayedValue');
+          var unitForAngle = dijit.byId('angleUnitDD').get('displayedValue');
+          
+          var majorValue = parseInt(dojoDomAttr.get(this.majorAxisInput, 'value')); 
+          if ((dojoDomAttr.get(this.ellipseType, 'value') == "full")) {
+              majorValue = majorValue * 2;
           }
 
           this.currentEllipse.graphic.setAttributes({
-            'MINOR': parseFloat(dojoDomAttr.get(this.minorAxisInput, 'value').replace(/,/g,''),2),
-            'MAJOR': parseFloat(dojoDomAttr.get(this.majorAxisInput, 'value').replace(/,/g,''),2),
-            'ORIENTATION_ANGLE': parseFloat(this.currentEllipse.angle.replace(',',''),2)
+            'MINOR': parseInt(dojoDomAttr.get(this.minorAxisInput, 'value')).toString() + " " + unitForDistance,
+            'MAJOR': majorValue.toString() + " " + unitForDistance,
+            'ORIENTATION_ANGLE': parseInt(dojoDomAttr.get(this.angleInput, 'value')).toString() + " " + unitForAngle,
           });
 
           this._gl.add(this.currentEllipse.graphic);

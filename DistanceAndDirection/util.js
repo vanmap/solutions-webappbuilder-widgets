@@ -482,7 +482,7 @@ define([
             case 'miles':
               convertedLength = length * 1609.34;
               break;
-            case 'nautical-miles':
+            case 'nauticalmiles':
               convertedLength = length * 1852.001376036;
               break;
             case 'yards':

@@ -111,7 +111,7 @@ define([
                     var lengthInMeters = this._utils.convertToMeters(Number(majorLength), this.lengthUnit);
                     this.majorAxisLength = lengthInMeters;
                     //We do have a center point. Get the end point
-                    var endPoint = this.getEndPoint(centerPoint, 1, lengthInMeters);
+                    var endPoint = this.getEndPoint(centerPoint, 0, lengthInMeters);
                     //Add major length point to array
                     this._points.splice(1, 0, endPoint);
                     //Clear major length graphic first

@@ -454,7 +454,7 @@ define([
             case 'miles':
               convLength = inMeters * 0.000621371;
               break;
-            case 'nauticalmiles':
+            case 'nautical-miles':
               convLength = inMeters * 0.000539957;
               break;
             case 'yards':
@@ -482,7 +482,7 @@ define([
             case 'miles':
               convertedLength = length * 1609.34;
               break;
-            case 'nauticalmiles':
+            case 'nautical-miles':
               convertedLength = length * 1852.001376036;
               break;
             case 'yards':

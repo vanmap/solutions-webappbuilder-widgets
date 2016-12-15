@@ -25,7 +25,7 @@ define(
       postCreate: function() {
         this.inherited(arguments);
         this.nls = lang.mixin(this.nls, window.jimuNls.common);
-        this._initFieldsTable();
+       // this._initFieldsTable();
         this._setFiedsTabele(this._layerInfo.fieldInfos);
       },
 
@@ -56,7 +56,7 @@ define(
 
       _initFieldsTable: function() {
         var fields2 = [{
-          name: 'visible',
+          /*name: 'visible',
           title: this.nls.display,
           type: 'checkbox',
           'class': 'display'
@@ -65,7 +65,7 @@ define(
           title: this.nls.edit,
           type: 'checkbox',
           'class': 'editable'
-        }, {
+        },{
           name: 'fieldName',
           title: this.nls.editpageName,
           type: 'text'
@@ -80,7 +80,7 @@ define(
           type: 'actions',
           actions: ['up', 'down'],
           'class': 'actions'
-        }];
+        */}];
         var args2 = {
           fields: fields2,
           selectable: false,

@@ -20,6 +20,7 @@ define([
     'jimu/BaseWidgetSetting',
     'jimu/dijit/SimpleTable',
     'jimu/LayerInfos/LayerInfos',
+    'jimu/utils',
     'dojo/_base/lang',
     'dojo/_base/html',
     'dojo/on',
@@ -36,6 +37,7 @@ define([
     BaseWidgetSetting,
     Table,
     LayerInfos,
+    utils,
     lang,
     html,
     on,
@@ -65,7 +67,10 @@ define([
         this.inherited(arguments);
 
         document.getElementById('selectLatitude').style.width = "100px";
+        document.getElementById('selectLatitude').style.margin = "15px";
         document.getElementById('selectLongitude').style.width = "100px";
+        document.getElementById('selectLongitude').style.margin = "15px";
+
         
         LayerInfos.getInstance(this.map, this.map.itemInfo)
           .then(lang.hitch(this, function(operLayerInfos) {
@@ -78,6 +83,7 @@ define([
             var longNode = document.getElementById('selectLongitude');
             //console.log("dom construct " + domConstruct);
             
+            //++++++++++++ this currently grabs fields from all layers
              operLayerInfos.traversalLayerInfosOfWebmap(function (layerInfo) {
               layerInfo.getLayerObject().then(function (lo) {
               if (lo.fields) {
@@ -131,6 +137,10 @@ define([
       console.log("++++++++++++ " + this.nls.fields);
       },
 
+      _onChangeRadio: function(click){
+        console.log("radio button clicked");
+      },
+
       _init: function() {
         this._initToolbar();
         this._initLayersTable();
@@ -165,13 +175,15 @@ define([
         var fields = [{
           name: 'edit',
           title: this.nls.edit,
-          type: 'checkbox',
-          'class': 'editable'
+          id: 'rdo',
+          type: 'radio',
+          width: '120px',
+          'class': 'select'
         }, {
           name: 'label',
           title: this.nls.label,
           type: 'text'
-        }, {
+        }/*, {
           name: 'disableGeometryUpdate',
           title: this.nls.update,
           type: 'checkbox',
@@ -183,19 +195,72 @@ define([
           type: 'actions',
           'class': 'edit-fields',
           actions: ['edit']
-        }];
+        }*/];
+
+        //fields[0].active = this.onClickHandler;
+     //   console.log(fields[0]);
         var args = {
           fields: fields,
           selectable: false
         };
+
         this._layersTable = new Table(args);
         this._layersTable.placeAt(this.tableLayerInfos);
         this._layersTable.startup();
+        
+        //console.log("table Fields " + this._layersTable.getRowData(0));
+
+      this._initRadioButtons;
+        
+
+        /*array.forEach(this._layersTable.fields, function(field){
+            console.log("fields " + field.type);
+            if(field.type=="radio"){
+
+                  console.log("button Radio");
+                  field.add("onclick", "alert('hello');");
+
+            }
+          
+        });*/
+        
 
         this.own(on(this._layersTable,
           'actions-edit',
           lang.hitch(this, this._onEditFieldInfoClick)));
+         
+          //this._initRadioButtons();
       },
+
+      _radioOnClick: function(radio){
+
+        console.log("radio onclick ");
+        
+      },
+
+      _initRadioButtons: function(){
+        var group = "radio_" + utils.getRandomString();
+
+       
+
+        var layersTableData =  this._layersTable.getData();
+
+         console.log("length " + layersTableData.length);
+
+        array.forEach(this._editableLayerInfos, function(layerInfo, index) {
+         
+          console.log("layersTableInfo " + layersTableData[index]);
+        }); 
+       
+
+          /*if(field.type=='radio'){
+
+              field = group;
+
+              this.own(on(field, 'click', lang.hitch(this, this._onChangeRadio)));
+          }*/
+
+    },
 
       setConfig: function() {
         // if (!config.editor.layerInfos) { //***************
@@ -293,6 +358,8 @@ define([
           //   });
           // }
         }, this);
+
+        this._initRadioButtons();
       },
 
       // about fieldInfos mehtods.

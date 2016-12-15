@@ -1,12 +1,8 @@
 <div style="width:100%;">
   <div data-dojo-attach-point="firstPageDiv">
-    <table class="setting-table input-table" cellspacing="0">
+    <table class="setting-table input-table" cellspacing="0" dojo-attach-point="layerTable">
       <tbody>
-            <label data-dojo-attach-point="labelLatitude" for="selectLatitude">Select Latitude Field</label>
-            <select id="selectLatitude" name="selectLatitude" data-dojo-attach-point="fieldLatitude"></select>
-
-            <label data-dojo-attach-point="labelLongitude" for="selectLongitude">Select Longitude Field</label>
-            <select id="selectLongitude" name="selectLongitude" data-dojo-attach-point="fieldLongitude"></select>
+            
       <!--  <tr>
             <td class="first jimu-trailing-padding1">${nls.useFilterEdit}</td>
             <td class="second jimu-leading-padding1">
@@ -105,5 +101,10 @@
     </table>
     <div data-dojo-attach-point="tableLayerInfos"></div>
     <div data-dojo-attach-point="tableLayerInfosError" style="display:none; padding: 5px;"></div>
+    <label data-dojo-attach-point="labelLatitude" for="selectLatitude">Select Latitude Field</label>
+            <select id="selectLatitude" name="selectLatitude" data-dojo-attach-point="fieldLatitude"></select>
+
+            <label data-dojo-attach-point="labelLongitude" for="selectLongitude">Select Longitude Field</label>
+            <select id="selectLongitude" name="selectLongitude" data-dojo-attach-point="fieldLongitude"></select>
   </div>
 </div>

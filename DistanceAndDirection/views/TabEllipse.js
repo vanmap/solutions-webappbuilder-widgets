@@ -416,15 +416,15 @@ define([
           var unitForDistance = dijit.byId('lengthUnitDD').get('displayedValue');
           var unitForAngle = dijit.byId('angleUnitDD').get('displayedValue');
           
-          var majorValue = parseInt(dojoDomAttr.get(this.majorAxisInput, 'value')); 
+          var majorValue = dojoDomAttr.get(this.majorAxisInput, 'value'); 
           if ((dojoDomAttr.get(this.ellipseType, 'value') == "full")) {
               majorValue = majorValue * 2;
           }
 
           this.currentEllipse.graphic.setAttributes({
-            'MINOR': parseInt(dojoDomAttr.get(this.minorAxisInput, 'value')).toString() + " " + unitForDistance,
+            'MINOR': dojoDomAttr.get(this.minorAxisInput, 'value').toString() + " " + unitForDistance,
             'MAJOR': majorValue.toString() + " " + unitForDistance,
-            'ORIENTATION_ANGLE': parseInt(dojoDomAttr.get(this.angleInput, 'value')).toString() + " " + unitForAngle,
+            'ORIENTATION_ANGLE': dojoDomAttr.get(this.angleInput, 'value').toString() + " " + unitForAngle,
           });
 
           this._gl.add(this.currentEllipse.graphic);

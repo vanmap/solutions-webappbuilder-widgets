@@ -25,7 +25,7 @@
           <label>Major</label>
           <div class="controlItem">
             <input class="jimu-input coordInput" data-dojo-type="dijit/form/NumberTextBox" 
-              data-dojo-props='constraints:{min:1,places:0},
+              data-dojo-props='constraints:{min:1},
                 invalidMessage:"The value entered must be numeric.",
                 rangeMessage:"Value must be greater than 0."'
            data-dojo-attach-point="majorAxisInput" />
@@ -36,7 +36,7 @@
           <label>Minor</label>
           <div class="controlItem">
             <input class="jimu-input coordInput" data-dojo-type="dijit/form/NumberTextBox" 
-              data-dojo-props='constraints:{min:1,places:0},
+              data-dojo-props='constraints:{min:1},
                 invalidMessage:"The value entered must be numeric.",
                 rangeMessage:"Value must be greater than 0."' data-dojo-attach-point="minorAxisInput" />
           </div>
@@ -59,7 +59,7 @@
     <div class="controlGroup">
       <label>Orientation Angle</label>
       <div class="controlItem">
-        <input data-dojo-type="dijit/form/NumberSpinner" data-dojo-attach-point="angleInput" value="0" data-dojo-props="intermediateChanges:true, smallDelta:1, constraints:{min:0,max:6400,places:0}"/>
+        <input data-dojo-type="dijit/form/NumberSpinner" data-dojo-attach-point="angleInput" value="0" data-dojo-props="intermediateChanges:true, smallDelta:1, constraints:{min:0,max:6400}"/>
         <select style="width: 100px" class="controlSpace" data-dojo-type="dijit/form/Select" id="angleUnitDD" data-dojo-attach-point="angleUnitDD">
           <option value="degrees">Degrees</option>
           <option value="mils">Mils</option>

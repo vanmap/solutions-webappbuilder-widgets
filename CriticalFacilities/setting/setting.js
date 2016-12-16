@@ -49,10 +49,6 @@ define([
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
       //these two properties is defined in the BaseWidget
       baseClass: 'jimu-widget-edit-setting',
-      // selectLayer: null,
-      // tooltipDialog: null,
-      // featurelayers: [],
-      // indexLayer: -1,
 
       _jimuLayerInfos: null,
       _layersTable: null,
@@ -62,29 +58,27 @@ define([
       _layerForFields: null,
       _latField: null,
       _longField: null,
+      _layerInfos: [],
 
       startup: function() {
         this.inherited(arguments);
+
+        console.log("startup");
 
         document.getElementById('selectLatitude').style.width = "100px";
         document.getElementById('selectLatitude').style.margin = "15px";
         document.getElementById('selectLongitude').style.width = "100px";
         document.getElementById('selectLongitude').style.margin = "15px";
 
-        
         LayerInfos.getInstance(this.map, this.map.itemInfo)
           .then(lang.hitch(this, function(operLayerInfos) {
-            /*operLayerInfos.getLayerInfoArray().forEach(function(layerInfo) {
-              console.log(layerInfo.title, layerInfo.id, layerInfo.getUrl());
-            }),*/
+           
 
             var count = 0;
             var latNode = document.getElementById('selectLatitude');
             var longNode = document.getElementById('selectLongitude');
-            //console.log("dom construct " + domConstruct);
-            
-            //++++++++++++ this currently grabs fields from all layers
-             operLayerInfos.traversalLayerInfosOfWebmap(function (layerInfo) {
+           
+            /* operLayerInfos.traversalLayerInfosOfWebmap(function (layerInfo) {
               layerInfo.getLayerObject().then(function (lo) {
               if (lo.fields) {
                 
@@ -100,75 +94,118 @@ define([
                   longOption.text = field.name;
                   longOption.value = count;
                   longNode.add(longOption);
-                  
-
-                  /*domConstruct.create("option", {
-                        value: count,
-                        innerHTML: field.name,
-                        selected: false
-                    }, node);
-                 */
-
-                    count++;
+                  count++;
                 });
                     
                   }
                 })
-              });
-
+              });*/
 
             
-            
-              this._featureService = operLayerInfos.getLayerInfoArray()[0].getUrl();
+              this._featureService = operLayerInfos.getLayerInfoArray()[0].getUrl(); //this currently gets the first layer, need to change to get the selected layer
               this.layerForFields = operLayerInfos.getLayerInfoArray()[0];
-            //console.log("selectedFeatureService " + config.selectedFeatureService);
 
               this._jimuLayerInfos = operLayerInfos;
-
-
-
               this._init();
               this.setConfig();
 
           }));
            
-      var layerToPop = this.map.getLayer(this.layerForFields.id);
+              var layerToPop = this.map.getLayer(this.layerForFields.id);
 
-      console.log("++++++++++++ " + this.nls.fields);
+              console.log("++++++++++++ " + this.nls.fields);
       },
 
-      _onChangeRadio: function(click){
-        console.log("radio button clicked");
-      },
 
       _init: function() {
         this._initToolbar();
         this._initLayersTable();
       },
 
-      _initToolbar: function() {
-        //this.useFilterEdit.set('checked', this.config.editor.useFilterEdit);
-    //    this.toolbarVisible.set('checked', this.config.editor.toolbarVisible);
-        //this.enableUndoRedo.set('checked', this.config.editor.enableUndoRedo);
-        //this.mergeVisible.set('checked', this.config.editor.toolbarOptions.mergeVisible);
-      //  this.cutVisible.set('checked', this.config.editor.toolbarOptions.cutVisible);
-       // this.reshapeVisible.set('checked', this.config.editor.toolbarOptions.reshapeVisible);
-    //    this.autoApplyEditWhenGeometryIsMoved.set('checked',
-      //      this.config.editor.autoApplyEditWhenGeometryIsMoved);
-        this._onToolbarSelected();
-        // default value is 15 pixels, compatible with old version app.
-     /*   this.snappingTolerance.set('value', this.config.editor.snappingTolerance === undefined ?
-                                            15 :
-                                            this.config.editor.snappingTolerance);
-        // default value is 5 pixels, compatible with old version app.
-        this.popupTolerance.set('value', this.config.editor.popupTolerance === undefined ?
-                                            5 :
-                                            this.config.editor.popupTolerance);
 
-        // default value is 0 pixels, compatible with old version app.
-        this.stickyMoveTolerance.set('value', this.config.editor.stickyMoveTolerance === undefined ?
-                                            0 :
-                                            this.config.editor.stickyMoveTolerance);*/
+
+      //this is supposed to get the fields from the selected feature service
+      onFieldClick: function(click){
+        console.log("on Field click");
+
+        var layersTableData =  this._layersTable.getData();
+        var selected = null;
+
+        console.log("length +++++++++++ " + layersTableData.length);
+
+        //this can tell you what feature service is selected via the radio button
+
+        var label = null;
+        array.forEach(layersTableData, function(layerInfo, index) {
+          
+          if(layersTableData[index].edit == true){
+
+             console.log("____+_+" + layersTableData[index].edit, layersTableData[index].label);
+             selected = index;
+             label = layersTableData[index].label;
+             
+          }
+          //need to:
+          //1) populate the drop down fields according to the feature service that is selected
+          //2) set the config to reflect the feature service
+        
+        });
+
+        var count = 0;
+        var latNode = document.getElementById('selectLatitude');
+        var longNode = document.getElementById('selectLongitude');
+        
+        latNode.innerHTML = "";
+        longNode.innerHTML = "";
+        
+       // var info = this._jimuLayerInfos.getLayerInfoArray()[selected];
+        
+        
+        this._jimuLayerInfos.traversalLayerInfosOfWebmap(function (layerInfo) {
+              layerInfo.getLayerObject().then(function (lo) {
+
+         if(label == layerInfo.title){ 
+              console.log("++++ " +  layerInfo.id, layerInfo.title);
+                
+                if (lo.fields) {
+                
+                  array.forEach(lo.fields, function(field){
+                  console.log("fields Names " + field.name);
+
+                  var option = document.createElement('option');
+                  option.text = field.name;
+                  option.value = count;
+                  latNode.add(option);
+
+                  var longOption = document.createElement('option');
+                  longOption.text = field.name;
+                  longOption.value = count;
+                  longNode.add(longOption);
+                  count++;
+                  });
+                    
+                  }
+                }
+                })
+              
+              });
+      
+          
+         console.log("fields button press " + this._jimuLayerInfos);
+         this._featureService = this._jimuLayerInfos.getLayerInfoArray()[selected].getUrl();
+         this.layerForFields = this._jimuLayerInfos.getLayerInfoArray()[selected];
+         selected = null;
+         console.log(this._featureService, this.layerForFields);
+
+         this.getConfig();
+
+         //this.setConfig();
+       
+      },
+      //unused function
+      _initToolbar: function() {
+      
+        this._onToolbarSelected();
       },
 
       _initLayersTable: function() {
@@ -183,22 +220,9 @@ define([
           name: 'label',
           title: this.nls.label,
           type: 'text'
-        }/*, {
-          name: 'disableGeometryUpdate',
-          title: this.nls.update,
-          type: 'checkbox',
-          'class': 'update',
-          width: '300px'
-        }, {
-          name: 'actions',
-          title: this.nls.fields,
-          type: 'actions',
-          'class': 'edit-fields',
-          actions: ['edit']
-        }*/];
+        }];
 
-        //fields[0].active = this.onClickHandler;
-     //   console.log(fields[0]);
+   
         var args = {
           fields: fields,
           selectable: false
@@ -207,23 +231,9 @@ define([
         this._layersTable = new Table(args);
         this._layersTable.placeAt(this.tableLayerInfos);
         this._layersTable.startup();
-        
-        //console.log("table Fields " + this._layersTable.getRowData(0));
+     
 
       this._initRadioButtons;
-        
-
-        /*array.forEach(this._layersTable.fields, function(field){
-            console.log("fields " + field.type);
-            if(field.type=="radio"){
-
-                  console.log("button Radio");
-                  field.add("onclick", "alert('hello');");
-
-            }
-          
-        });*/
-        
 
         this.own(on(this._layersTable,
           'actions-edit',
@@ -232,55 +242,44 @@ define([
           //this._initRadioButtons();
       },
 
+      //unused function
       _radioOnClick: function(radio){
 
         console.log("radio onclick ");
+
         
       },
 
+      //this is supposed to initialise the radio buttons but is currently not used
+
       _initRadioButtons: function(){
-        var group = "radio_" + utils.getRandomString();
+          var group = "radio_" + utils.getRandomString();
 
-       
+          var layersTableData =  this._layersTable.getData();
 
-        var layersTableData =  this._layersTable.getData();
+          console.log("length +++++++++++ " + layersTableData.length);
 
-         console.log("length " + layersTableData.length);
-
-        array.forEach(this._editableLayerInfos, function(layerInfo, index) {
+          array.forEach(layersTableData, function(layerInfo, index) {
          
-          console.log("layersTableInfo " + layersTableData[index]);
+          console.log("____+_+" + layersTableData[index].edit, layersTableData[index].label);
+
         }); 
        
-
-          /*if(field.type=='radio'){
-
-              field = group;
-
-              this.own(on(field, 'click', lang.hitch(this, this._onChangeRadio)));
-          }*/
 
     },
 
       setConfig: function() {
-        // if (!config.editor.layerInfos) { //***************
-        //   config.editor.layerInfos = [];
-        // }
+     
         this._editableLayerInfos = this._getEditableLayerInfos();
 
-       /* array.forEach(this._editableLayerInfos, function(info){
-          console.log("info " + info[0]);
-        });*/
+      
 
         this._setLayersTable(this._editableLayerInfos);
-        //populate the page with persisted information
+     
       },
 
       _getEditableLayerInfos: function() {
-        // summary:
-        //   get all editable layers from map.
-        // description:
-        //   layerInfo will honor configuration if that layer has configured.
+       
         var editableLayerInfos = [];
         for(var i = this.map.graphicsLayerIds.length - 1; i >= 0; i--) {
           var layerObject = this.map.getLayer(this.map.graphicsLayerIds[i]);
@@ -344,19 +343,7 @@ define([
           });
           addRowResult.tr._layerInfo = layerInfo;
 
-          // var editableCheckBox;
-          // var editableCheckBoxDomNode = query(".editable .jimu-checkbox", addRowResult.tr)[0];
-          // if(editableCheckBoxDomNode) {
-          //   editableCheckBox = registry.byNode(editableCheckBoxDomNode);
-          //   // this.own(on(editableCheckBox,
-          //   // 'change',
-          //   // lang.hitch(this, function() {
-          //   //   console.log(layerInfo.id);
-          //   // })));
-          //   editableCheckBox.onChange = lang.hitch(this, function(checked) {
-          //     layerInfo._editFlag = checked;
-          //   });
-          // }
+        
         }, this);
 
         this._initRadioButtons();
@@ -485,32 +472,13 @@ define([
         }
       },
 
+      //unused function
       _onToolbarSelected: function() {
-      /*  if (this.toolbarVisible.checked) {
-          //html.setStyle(this.toolbarOptionsLabel, 'display', 'table-cell');
-          //html.setStyle(this.toolbarOptionsTd, 'display', 'table-cell');
-          html.removeClass(this.toolbarOptionsTr, 'disable');
-          html.setStyle(this.toolbarOptionsCoverage, 'display', 'none');
-        } else {
-          //html.setStyle(this.toolbarOptionsLabel, 'display', 'none');
-          //html.setStyle(this.toolbarOptionsTd, 'display', 'none');
-          html.addClass(this.toolbarOptionsTr, 'disable');
-          html.setStyle(this.toolbarOptionsCoverage, 'display', 'block');
-        }*/
+      
       },
-
+      //unused function
       _resetToolbarConfig: function() {
-       // this.config.editor.useFilterEdit = this.useFilterEdit.checked;
-    //    this.config.editor.toolbarVisible = this.toolbarVisible.checked;
-       // this.config.editor.enableUndoRedo = this.enableUndoRedo.checked;
-       // this.config.editor.toolbarOptions.mergeVisible = this.mergeVisible.checked;
-        //this.config.editor.toolbarOptions.cutVisible = this.cutVisible.checked;
-        //this.config.editor.toolbarOptions.reshapeVisible = this.reshapeVisible.checked;
-        //this.config.editor.autoApplyEditWhenGeometryIsMoved =
-          //this.autoApplyEditWhenGeometryIsMoved.checked;
-        //this.config.editor.snappingTolerance = this.snappingTolerance.value;
-        //this.config.editor.popupTolerance = this.popupTolerance.value;
-        //this.config.editor.stickyMoveTolerance = this.stickyMoveTolerance.value;
+       //tolerance = this.stickyMoveTolerance.value;
       },
 
       getConfig: function() {
@@ -530,14 +498,7 @@ define([
           }
         });
 
-        // var checkedLayerInfos = [];
-        // array.forEach(this._editableLayerInfos, function(layerInfo) {
-        //   if(layerInfo._editFlag) {
-        //     delete layerInfo._editFlag;
-        //     checkedLayerInfos.push(layerInfo);
-        //   }
-        // });
-
+        
         if(checkedLayerInfos.length === 0) {
           delete this.config.editor.layerInfos;
         } else {
@@ -552,10 +513,6 @@ define([
           this.config.selectedFeatureService = this._featureService;
           this.config.latitudeField = queryLat;
           this.config.longitudeField = queryLon;
-
-          
-
-          //console.log("layerInfos length " + this.config.editor.layerInfos.length);
           
         }
 

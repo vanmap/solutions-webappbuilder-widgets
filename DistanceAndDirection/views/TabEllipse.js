@@ -329,7 +329,6 @@ define([
                     dojoTopic.publish('manual-ellipse-orientation-angle-input', this.angleInput.value);
                 } else {
                   var alertMessage = new Message({
-                    message: '<p>The ellipse creation form has missing or invalid parameters, Please check your Orientation Angle, Major axis and Minor axis contain valid values.</p>'
                   });
                 }
             }

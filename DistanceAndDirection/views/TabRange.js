@@ -113,7 +113,7 @@ define([
          * dijit post create
          */
         postCreate: function () {
-            console.log('TabRange');
+            console.log('TabRings');
 
             this._util = new Util();
 

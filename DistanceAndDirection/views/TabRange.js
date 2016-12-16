@@ -411,25 +411,27 @@ define([
               dojoLang.clone(params.centerPoint),
               params.firstpointofcircle
             ]);
-
-            params.geoPLine = EsriGeometryEngine.geodesicDensify(
-              params.pLine, 9001
-            );
-
+            
             //Create the cut geometry
             params.cutGeom = new EsriPolyline(params.centerPoint.spatialReference);
             params.cutGeom.paths = params.lastCircle.rings;
 
             //Clone the geodesic radial
-            params.lineCopy = dojoLang.clone(params.geoPLine);
+            params.lineCopy = dojoLang.clone(params.pLine);
 
             for (params.radials = 0; params.radials < params.numRadials; params.radials++) {
-                params.rotatedRadial = EsriGeometryEngine.rotate(
-                  params.lineCopy, params.azimuth, params.centerPoint);
+              
+                params.rotatedRadial = EsriGeometryEngine.rotate(params.lineCopy, params.azimuth, params.centerPoint);
+                
                 //Cut the radial to the last range ring
                 params.cutRadial = EsriGeometryEngine.cut(params.rotatedRadial, params.cutGeom);
-                this._gl.add(new EsriGraphic(params.cutRadial.length === 1 ?
-                    params.cutRadial[0] : params.cutRadial[1], this._lineSym, {'Interval': ''}));
+                
+                //create a new geodesic polyline from the inner cut
+                var newline = new EsriPolyline(EsriGeometryEngine.geodesicDensify(params.cutRadial.length === 2 ?
+                    params.cutRadial[1] : params.cutRadial[0], 10000),params.centerPoint.spatialReference);
+                
+                this._gl.add(new EsriGraphic(newline, this._lineSym, {'Interval': ''}));               
+                
                 params.azimuth += params.interval;
             }
 

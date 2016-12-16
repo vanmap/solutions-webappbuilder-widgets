@@ -20,6 +20,7 @@ define([
     'dijit/registry',
     'dojo/_base/declare',
     'dojo/_base/lang',
+    'dojo/_base/array',    
     'dojo/dom-class',
     'dojo/on',
     'dojo/topic',
@@ -51,6 +52,7 @@ define([
     registry,
     dojoDeclare,
     dojoLang,
+    dojoArray,
     dojoClass,
     dojoOn,
     dojoTopic,
@@ -299,13 +301,15 @@ define([
                               this.map.addLayer(newFeatureLayer);
 
                               var newGraphics = [];
-                              dojoArray.forEach(this.GRGArea.graphics, function (g) {
+                              dojoArray.forEach(this.GRGPoint.graphics, function (g) {
                                 newGraphics.push(new Graphic(g.geometry, null, {grid: g.attributes["grid"]}));
                               }, this);
-                              
-                              newFeatureLayer.applyEdits(this.GRGPoint.graphics,null,null).then(dojoLang.hitch(this, function(){
+
+                              newFeatureLayer.applyEdits(newGraphics, null, null).then(dojoLang.hitch(this, function(){
                                 this.tabSwitched();                                
-                              })).otherwise(dojoLang.hitch(this,function(){this.tabSwitched();}));
+                              })).otherwise(dojoLang.hitch(this,function(){
+                                this.tabSwitched();
+                              })); 
                               dojoTopic.publish('HIDE_BUSY');
                             }
                           }), function(err2) {

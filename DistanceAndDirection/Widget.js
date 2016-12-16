@@ -259,7 +259,7 @@ define([
                       content: this.ellipseTab
                   },
                   {
-                      title: 'Range',
+                      title: 'Rings',
                       content: this.rangeTab
                   }
                 ]
@@ -268,14 +268,6 @@ define([
             this.own(dojoOn(this.clearGraphicsButton, 'click', function () {
                 dojoTopic.publish('DD_CLEAR_GRAPHICS');
             }));
-        },
-
-        onClose: function () {
-            dojoTopic.publish('DD_WIDGET_CLOSE');
-        },
-
-        onOpen: function () {
-            dojoTopic.publish('DD_WIDGET_OPEN');
         }
     });
     return clz;

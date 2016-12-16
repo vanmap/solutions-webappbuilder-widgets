@@ -124,7 +124,7 @@ define([
             line.spatialReference = this.geometry.spatialReference;
             line = esriWMUtils.webMercatorToGeographic(line);
             this.geographicGeometry = line;
-            this.geodesicGeometry = esriGeometryEngine.geodesicDensify(this.geometry.geometry, 1000);
+            this.geodesicGeometry = esriGeometryEngine.geodesicDensify(this.geometry.geometry, 10000);
             this.wmGeometry = this.geometry.geometry;
             this.angle = this.geometry.angle;
             this.startPoint = esriWMUtils.webMercatorToGeographic(this.geometry.center);

@@ -44,11 +44,13 @@ define([
     'esri/units',
     'esri/geometry/webMercatorUtils',
     'esri/tasks/FeatureSet',
+    '../util',
     '../models/EllipseFeedback',
     '../models/ShapeModel',
     '../views/CoordinateInput',
     '../views/EditOutputCoordinate',
-    'dojo/text!../templates/TabEllipse.html'
+    'dojo/text!../templates/TabEllipse.html',
+    'dijit/form/NumberSpinner'
 ], function (
     dojoDeclare,
     dojoLang,
@@ -78,6 +80,7 @@ define([
     esriUnits,
     esriWMUtils,
     EsriFeatureSet,
+    Utils,
     DrawFeedBack,
     ShapeModel,
     CoordInput,
@@ -90,12 +93,13 @@ define([
         baseClass: 'jimu-widget-TabEllipse',
 
         centerPointGraphic: null,
-
+        
         /*
          * class constructor
          */
         constructor: function (args) {
             dojoDeclare.safeMixin(this, args);
+            this._utils = new Utils();
         },
 
         /*
@@ -116,15 +120,15 @@ define([
               'geometryType': 'esriGeometryPolygon',
               'fields': [{
                   'name': 'MAJOR',
-                  'type': 'esriFieldTypeDouble',
+                  'type': 'esriFieldTypeText',
                   'alias': 'Major'
                 }, {
                     'name': 'MINOR',
-                    'type': 'esriFieldTypeDouble',
+                    'type': 'esriFieldTypeText',
                     'alias': 'Minor'
                 }, {
                     'name': 'ORIENTATION_ANGLE',
-                    'type': 'esriFieldTypeDouble',
+                    'type': 'esriFieldTypeText',
                     'alias': 'Orientation Angle'
                 }
               ]
@@ -175,6 +179,8 @@ define([
             this.dt = new DrawFeedBack(this.map);
             this.dt.setLineSymbol(this._ellipseSym);
             this.dt.set('lengthUnit', 'feet');
+            this.dt.set('angle', 0);
+            this.dt.set('ellipseType', 'semi');
 
             this.syncEvents();
         },
@@ -188,6 +194,8 @@ define([
                 this.coordTool.inputCoordinate.set('coordinateEsriGeometry', nv);
                 this.dt.addStartGraphic(nv, this._ptSym);
             }));
+            
+            
 
             this.coordTool.inputCoordinate.watch(
               'outputString', dojoLang.hitch(
@@ -223,16 +231,21 @@ define([
                 this.majorLengthDidChange
               )
             );
+            
+            dojoTopic.subscribe(
+              DrawFeedBack.DD_ELLIPSE_ANGLE_CHANGE,
+              dojoLang.hitch(
+                this,
+                this.angleDidChange
+              )
+            );
 
             this.own(
               this.dt.on(
                 'draw-complete',
                 dojoLang.hitch(this, this.feedbackDidComplete)
               ),
-              this.ellipseType.on(
-                'change',
-                dojoLang.hitch(this, this.ellipseTypeChangeHandler)
-              ),
+              
               this.angleUnitDD.on(
                 'change',
                 dojoLang.hitch(this, this.angleUnitDDDidChange)
@@ -240,6 +253,9 @@ define([
               this.lengthUnitDD.on(
                 'change',
                 dojoLang.hitch(this, this.lengthUnitDDDidChange)
+              ),
+              dojoOn(this.coordinateFormatButton, 'click',
+                dojoLang.hitch(this, this.coordinateFormatButtonWasClicked)
               ),
               dojoOn(this.coordinateFormat.content.applyButton, 'click',
                   dojoLang.hitch(this, function () {
@@ -274,7 +290,15 @@ define([
               ),
               dojoOn(this.angleInput, 'keyup',
                 dojoLang.hitch(this, this.onOrientationAngleKeyupHandler)
-              )
+              ),
+              dojoOn(this.angleInput, 'change',
+                dojoLang.hitch(this, this.angleDidChange)
+              ),              
+              dojoOn(this.coordinateFormat.content.cancelButton, 'click',
+                dojoLang.hitch(this, function () {
+                    DijitPopup.close(this.coordinateFormat);
+                }
+              ))
             );
         },
 
@@ -282,49 +306,47 @@ define([
          *
          */
         onMajorAxisInputKeyupHandler: function (evt) {
-            dojoTopic.publish('manual-ellipse-major-axis-input', this.majorAxisInput.value);
+            dojoTopic.publish('manual-ellipse-major-axis-input', this.majorAxisInput);
         },
 
         /*
          *
          */
         onMinorAxisInputKeyupHandler: function (evt) {
-            dojoTopic.publish('manual-ellipse-minor-axis-input', this.minorAxisInput.value);
+            dojoTopic.publish('manual-ellipse-minor-axis-input', this.minorAxisInput);
         },
-
+        
+        
         /*
          *
          */
         onOrientationAngleKeyupHandler: function (evt) {
             if (evt.keyCode === dojoKeys.ENTER) {
-                dojoTopic.publish('manual-ellipse-orientation-angle-input', this.angleInput.value);
+                dojoTopic.publish('manual-ellipse-orientation-angle-input', this.angleInput.value);                
             }
         },
 
         /*
          * update the gui with the major axis length
          */
-        majorLengthDidChange: function (l) {
-            var fl = dojoNumber.format(l, { places: 2 });
-            dojoDomAttr.set(
-              this.majorAxisInput,
-              'value',
-              fl //this._getFormattedLength(l)
-            );
+        majorLengthDidChange: function (number) {
+            this.majorAxisInput.setValue(number);
         },
 
         /*
          * update the gui with the min axis length
          */
-        minorLengthDidChange: function (l) {
-            var fl = dojoNumber.format(l, { places: 2 });
-            dojoDomAttr.set(
-              this.minorAxisInput,
-              'value',
-              fl //this._getFormattedLength(l)
-            );
+        minorLengthDidChange: function (number) {
+            this.minorAxisInput.setValue(number);            
         },
-
+        
+        /*
+         * update the gui with angle
+         */
+        angleDidChange: function (number) {
+            this.angleInput.setValue(number);
+            this.dt.set('angle', number);
+        },
         /*
          * catch key press in start point
          */
@@ -337,12 +359,23 @@ define([
                       this.coordTool.inputCoordinate.coordinateEsriGeometry
                     );
                     this.dt.addStartGraphic(
-                      this.coordTool.inputCoordinate.coordTool,
+                      r.coordinateEsriGeometry,
                       this._ptSym
                     );
                     //this.createCenterPointGraphic();
                 }));
             }
+        },
+
+        /*
+         *
+        */
+        coordinateFormatButtonWasClicked: function () {
+            this.coordinateFormat.content.set('ct', this.coordTool.inputCoordinate.formatType);
+            DijitPopup.open({
+                popup: this.coordinateFormat,
+                around: this.coordinateFormatButton
+            });
         },
 
         /*
@@ -355,47 +388,19 @@ define([
         },
 
         /*
-          *
-          */
+         *
+         */
         lengthUnitDDDidChange: function () {
             this.currentLengthUnit = this.lengthUnitDD.get('value');
-            this.dt.set('lengthUnit', this.currentLengthUnit);
-            if (this.currentEllipse) {
-                this.ellipseTypeChangeHandler();
-                dojoDomAttr.set(
-                  this.minorAxisInput,
-                  'value',
-                  this._getFormattedLength(this.currentEllipse.geometry.minorAxisLength)
-                );
-            }
+            this.dt.set('lengthUnit', this.currentLengthUnit);            
         },
 
         /*
-          *
-          */
-        ellipseTypeChangeHandler: function () {
-            var majorAxisLength = this.ellipseType.get('value') === 'full' ?
-              this.currentEllipse.geometry.majorAxisLength * 2 :
-              this.currentEllipse.geometry.majorAxisLength;
-            dojoDomAttr.set(
-              this.majorAxisInput,
-              'value',
-              this._getFormattedLength(majorAxisLength)
-            );
-        },
-
-        /*
-          *
-          */
+         *
+         */
         angleUnitDDDidChange: function () {
             this.currentAngleUnit = this.angleUnitDD.get('value');
-
-            if (this.currentEllipse) {
-                dojoDomAttr.set(
-                  this.angleInput,
-                  'value',
-                  this.currentEllipse.getAngle(this.currentAngleUnit));
-            }
+            this.dt.set('angleUnit', this.currentAngleUnit);
         },
 
         /*
@@ -404,17 +409,22 @@ define([
         feedbackDidComplete: function (results) {
           this.currentEllipse = new ShapeModel(results);
           this.currentEllipse.graphic = new EsriGraphic(
-            this.currentEllipse.wmGeometry,
+            this.currentEllipse.geodesicGeometry,
             this._ellipseSym
           );
-
-          this.lengthUnitDDDidChange();
-          this.angleUnitDDDidChange();
+          
+          var unitForDistance = dijit.byId('lengthUnitDD').get('displayedValue');
+          var unitForAngle = dijit.byId('angleUnitDD').get('displayedValue');
+          
+          var majorValue = dojoDomAttr.get(this.majorAxisInput, 'value'); 
+          if ((dojoDomAttr.get(this.ellipseType, 'value') == "full")) {
+              majorValue = majorValue * 2;
+          }
 
           this.currentEllipse.graphic.setAttributes({
-            'MINOR': parseFloat(dojoDomAttr.get(this.minorAxisInput, 'value').replace(',',''),2),
-            'MAJOR': parseFloat(dojoDomAttr.get(this.majorAxisInput, 'value').replace(',',''),2),
-            'ORIENTATION_ANGLE': parseFloat(this.currentEllipse.angle.replace(',',''),2)
+            'MINOR': dojoDomAttr.get(this.minorAxisInput, 'value').toString() + " " + unitForDistance,
+            'MAJOR': majorValue.toString() + " " + unitForDistance,
+            'ORIENTATION_ANGLE': dojoDomAttr.get(this.angleInput, 'value').toString() + " " + unitForAngle,
           });
 
           this._gl.add(this.currentEllipse.graphic);
@@ -485,36 +495,14 @@ define([
         },
 
         /*
-         *
-         */
-        _getFormattedLength: function (length) {
-          var convertedLength = length;
-          switch (this.currentLengthUnit) {
-            case 'meters':
-              convertedLength = length;
-              break;
-            case 'feet':
-              convertedLength = length * 3.28084;
-              break;
-            case 'kilometers':
-              convertedLength = length * 1000;
-              break;
-            case 'miles':
-              convertedLength = length * 0.00062137121212121;
-              break;
-            case 'nautical-miles':
-              convertedLength = length * 0.00053995682073433939625;
-              break;
-            case 'yards':
-              convertedLength = length * 1.0936133333333297735;
-              break;
-            case 'ussurveyfoot':
-              convertedLength = length * 3.2808333333465;
-              break;
-          }
-          return dojoNumber.format(convertedLength, {
-            places: 4
-          });
+        *
+        */
+        setCoordLabel: function (toType) {
+            this.coordInputLabel.innerHTML = dojoString.substitute(
+              'Center Point (${crdType})', {
+                  crdType: toType
+              }
+            );
         }
     });
 });

@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// Copyright © 2014 Esri. All Rights Reserved.
+// Copyright © 2014 - 2016 Esri. All Rights Reserved.
 //
 // Licensed under the Apache License Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -47,7 +47,7 @@ define(['dojo/_base/declare',
         this.titleHeight = 35;
         this.inherited(arguments);
 
-        html.addClass(this.titleNode, 'jimu-panel-title');
+        html.addClass(this.titleNode, 'jimu-panel-title jimu-main-background');
         this.createCloseBtn();
         this.createMaxBtn();
         this.createFoldableBtn();
@@ -141,9 +141,11 @@ define(['dojo/_base/declare',
       },
 
       _switchParentNode: function(){
-        if (window.appInfo.isRunInMobile) {
+        if (window.appInfo.isRunInMobile && this.domNode &&
+          this.domNode.parentNode !== html.byId(jimuConfig.layoutId)) {
           html.place(this.domNode, jimuConfig.layoutId);
-        }else{
+        }else if(!window.appInfo.isRunInMobile && this.domNode &&
+          this.domNode.parentNode !== html.byId(this.map.id)) {
           html.place(this.domNode, this.map.id);
         }
       },

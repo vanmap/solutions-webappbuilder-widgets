@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// Copyright © 2014 Esri. All Rights Reserved.
+// Copyright © 2014 - 2016 Esri. All Rights Reserved.
 //
 // Licensed under the Apache License Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -58,18 +58,7 @@ function(declare, _WidgetsInTemplateMixin, lang, array, html, on, keys, query,
           this.map.itemInfo.itemData && this.map.itemInfo.itemData.bookmarks){
         array.forEach(this.map.itemInfo.itemData.bookmarks, function(bookmark){
           bookmark.isInWebmap = true;
-          // if (array.indexOf(this.bookmarks, bookmark) === -1){
-          //   this.bookmarks.push(bookmark);
-          // }
-          var repeat = 0;
-          for (var i = 0; i < this.bookmarks.length; i++ ){
-            if (this.bookmarks[i].name === bookmark.name){
-              repeat ++;
-            }
-          }
-          if (!repeat){
-            this.bookmarks.push(bookmark);
-          }
+          this.bookmarks.push(bookmark);
         }, this);
       }
       this.currentBookmark = null;
@@ -93,6 +82,8 @@ function(declare, _WidgetsInTemplateMixin, lang, array, html, on, keys, query,
     displayBookmarks: function() {
       // summary:
       //    remove all and then add
+      this._processDuplicateName(this.bookmarks);
+
       this._clearBookmarksDiv();
       this._createmarkItems();
     },
@@ -131,7 +122,7 @@ function(declare, _WidgetsInTemplateMixin, lang, array, html, on, keys, query,
     getBookmarkByName: function(name){
       var len = this.bookmarks.length;
       for (var i = 0; i < len; i++) {
-        if (this.bookmarks[i].name === name) {
+        if (this.bookmarks[i].displayName === name) {
           this.editIndex = i;
           return this.bookmarks[i];
         }
@@ -145,7 +136,7 @@ function(declare, _WidgetsInTemplateMixin, lang, array, html, on, keys, query,
         this._openEdit(this.nls.edit, bookmark);
       },
 
-    _openEdit: function(name, bookmark){
+    _openEdit: function(title, bookmark){
         this.edit = new Edit({
           nls: this.nls,
           folderUrl: this.folderUrl,
@@ -155,7 +146,7 @@ function(declare, _WidgetsInTemplateMixin, lang, array, html, on, keys, query,
         });
         this.edit.setConfig(bookmark || {});
         this.popup = new Popup({
-          titleLabel: name,
+          titleLabel: title,
           autoHeight: true,
           content: this.edit,
           container: 'main-page',
@@ -168,6 +159,7 @@ function(declare, _WidgetsInTemplateMixin, lang, array, html, on, keys, query,
               onClick: lang.hitch(this, '_onEditOk')
             }, {
               label: this.nls.cancel,
+              classNames: ['jimu-btn-vacation'],
               key:keys.ESCAPE
             }
           ],
@@ -237,10 +229,10 @@ function(declare, _WidgetsInTemplateMixin, lang, array, html, on, keys, query,
       var markItemTitle = query('.mark-item-title', markItem)[0];
       var markItemDeleteIcon = query('.mark-item-delete-icon', markItem)[0];
       this.own(on(markItemDeleteIcon, 'click',
-        lang.hitch(this, this._onmarkItemDeleteClick, bookmark.name)));
+        lang.hitch(this, this._onmarkItemDeleteClick, bookmark.displayName)));
       var markItemEditIcon = query('.mark-item-detail-icon', markItem)[0];
       this.own(on(markItemEditIcon, 'click',
-        lang.hitch(this, this._onmarkItemEditClick, bookmark.name)));
+        lang.hitch(this, this._onmarkItemEditClick, bookmark.displayName)));
       markItem.item = bookmark;
       var thumbnail;
 
@@ -250,8 +242,8 @@ function(declare, _WidgetsInTemplateMixin, lang, array, html, on, keys, query,
         thumbnail = this.folderUrl + 'images/thumbnail_default.png';
       }
       html.setAttr(markItemThumbnail, 'src', thumbnail);
-      markItemTitle.innerHTML = utils.sanitizeHTML(bookmark.name);
-      html.setAttr(markItemTitle, 'title', bookmark.name);
+      markItemTitle.innerHTML = utils.sanitizeHTML(bookmark.displayName);
+      html.setAttr(markItemTitle, 'title', bookmark.displayName);
       return markItem;
     },
 
@@ -272,6 +264,46 @@ function(declare, _WidgetsInTemplateMixin, lang, array, html, on, keys, query,
         this.bookmarks.splice(this.editIndex, 1);
       }
       this.displayBookmarks();
+    },
+
+    _processDuplicateName: function(bookmarks) {
+      var bookmarkArray = [];
+      var nameHash = {};
+      array.forEach(bookmarks, function(bookmark) {
+        var nameStr = bookmark.name;
+
+        if (nameStr in nameHash) {
+          nameHash[nameStr]++;
+        } else {
+          nameHash[nameStr] = 0;
+        }
+
+        if (nameHash[nameStr] > 0) {
+          //suffix name(num) first
+          var tmpDisplayName = nameStr + "(" + nameHash[nameStr] + ")";//like name(1)
+          if (tmpDisplayName in nameHash) {
+            nameHash[tmpDisplayName]++;
+            nameHash[nameStr]++;
+          } else {
+            nameHash[tmpDisplayName] = 0;
+          }
+
+          if (nameHash[tmpDisplayName] > 0) {
+            //type-in like "name(1)", turn to "name(2)"
+            bookmark.displayName = nameStr + "(" + nameHash[nameStr] + ")";
+          } else {
+            //type-in like "name", turn to "name(num)"
+            bookmark.displayName = tmpDisplayName;
+          }
+        } else {
+          //no duplicateName
+          bookmark.displayName = nameStr;
+        }
+
+        bookmarkArray.push(bookmark);
+      }, this);
+
+      bookmarks = bookmarkArray;
     }
 
   });

@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// Copyright © 2014 Esri. All Rights Reserved.
+// Copyright © 2014 - 2016 Esri. All Rights Reserved.
 //
 // Licensed under the Apache License Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -211,10 +211,11 @@ define([
           var services = gsUrl.slice(0, gsUrl.indexOf('/Geometry/'));
           request({
             url: services,
+            handleAs: 'json',
+            callbackParamName: "callback",
             content: {
               f: 'json'
-            },
-            handleAs: 'json'
+            }
           }).then(lang.hitch(this, function(response) {
             console.log(response);
             if (response && response.currentVersion) {
@@ -319,6 +320,7 @@ define([
             onClick: lang.hitch(this, '_onEditOk')
           }, {
             label: this.nls.cancel,
+            classNames: ['jimu-btn-vacation'],
             key: keys.ESCAPE
           }],
           onClose: lang.hitch(this, '_onEditClose')

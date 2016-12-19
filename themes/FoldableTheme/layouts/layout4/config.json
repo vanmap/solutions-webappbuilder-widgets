@@ -44,13 +44,13 @@
       "widgets/Scalebar/Widget":{
         "position": {
           "left": 220,
-          "bottom": 6
+          "bottom": 5
         }
       },
       "widgets/Coordinate/Widget": {
         "position": {
           "left": 395,
-          "bottom": 6
+          "bottom": 5
         }
       },
       "ph_4": {
@@ -128,13 +128,13 @@
         },
         "widgets/Scalebar/Widget":{
           "position": {
-            "left": 60,
-            "bottom": 18
+            "left": 12,
+            "bottom": 35
           }
         },
         "widgets/Coordinate/Widget": {
           "position": {
-            "left": 235,
+            "left": 12,
             "bottom": 18
           }
         },

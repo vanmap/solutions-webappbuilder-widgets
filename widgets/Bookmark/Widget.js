@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// Copyright © 2014 Esri. All Rights Reserved.
+// Copyright © 2014 - 2016 Esri. All Rights Reserved.
 //
 // Licensed under the Apache License Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -135,6 +135,8 @@ function(declare, lang, array, html, BaseWidget, on, aspect, string,
     },
 
     displayBookmarks: function() {
+      this._processDuplicateName(this.bookmarks);
+
       // summary:
       //    remove all and then add
       var items = [];
@@ -156,15 +158,7 @@ function(declare, lang, array, html, BaseWidget, on, aspect, string,
       }
       array.forEach(this.map.itemInfo.itemData.bookmarks, function(bookmark){
         bookmark.isInWebmap = true;
-        var repeat = 0;
-        for (var i = 0; i < this.bookmarks.length; i++ ){
-          if (this.bookmarks[i].name === bookmark.name){
-            repeat ++;
-          }
-        }
-        if (!repeat){
-          this.bookmarks.push(bookmark);
-        }
+        this.bookmarks.push(bookmark);
       }, this);
     },
 
@@ -208,7 +202,7 @@ function(declare, lang, array, html, BaseWidget, on, aspect, string,
 
       node = new ImageNode({
         img: thumbnail,
-        label: bookmark.name
+        label: bookmark.displayName
       });
       on(node.domNode, 'click', lang.hitch(this, lang.partial(this._onBookmarkClick, bookmark)));
 
@@ -236,7 +230,7 @@ function(declare, lang, array, html, BaseWidget, on, aspect, string,
       }, this);
 
       array.forEach(this.bookmarks, function(bookmark){
-        var key = this._getKeysKey() + '.' + bookmark.name;
+        var key = this._getKeysKey() + '.' + bookmark.displayName;
         keys.push(key);
         store.set(key, bookmark);
       }, this);
@@ -287,15 +281,15 @@ function(declare, lang, array, html, BaseWidget, on, aspect, string,
         this.errorNode.innerHTML = utils.stripHTML(this.nls.errorNameNull);
         return;
       }
-      if(array.some(this.bookmarks, function(b){
-        if(b.name === this.bookmarkName.value){
-          return true;
-        }
-      }, this)){
-        html.setStyle(this.errorNode, {visibility: 'visible'});
-        this.errorNode.innerHTML = utils.stripHTML(this.nls.errorNameExist);
-        return;
-      }
+      //if(array.some(this.bookmarks, function(b){
+      //  if(b.name === this.bookmarkName.value || b.displayName === this.bookmarkName.value){
+      //    return true;
+      //  }
+      //}, this)){
+      //  html.setStyle(this.errorNode, {visibility: 'visible'});
+      //  this.errorNode.innerHTML = utils.stripHTML(this.nls.errorNameExist);
+      //  return;
+      //}
 
       this._createBookmark();
 
@@ -332,12 +326,13 @@ function(declare, lang, array, html, BaseWidget, on, aspect, string,
       }else{
         b = {
           name: this.bookmarkName.value,
+          displayName: this.bookmarkName.value,
           extent: this.map.extent.toJson()
         };
       }
 
       this.bookmarks.push(b);
-      this._createBookMarkNode(b);
+      //this._createBookMarkNode(b);
       this._saveAllToLocalCache();
       this.resize();
     },
@@ -368,7 +363,7 @@ function(declare, lang, array, html, BaseWidget, on, aspect, string,
       // summary:
       //    set the map extent or camera, depends on it's 2D/3D map
       array.some(this.bookmarks, function(b, i){
-        if(b.name === bookmark.name){
+        if(b.displayName === bookmark.displayName){
           this.currentIndex = i;
           return true;
         }
@@ -394,6 +389,46 @@ function(declare, lang, array, html, BaseWidget, on, aspect, string,
 
     _setCamera: function(bookmark){
       this.map.setCamera(bookmark.camera, this.config.flyTime);
+    },
+
+    _processDuplicateName: function(bookmarks) {
+      var bookmarkArray = [];
+      var nameHash = {};
+      array.forEach(bookmarks, function(bookmark) {
+        var nameStr = bookmark.name;
+
+        if (nameStr in nameHash) {
+          nameHash[nameStr]++;
+        } else {
+          nameHash[nameStr] = 0;
+        }
+
+        if (nameHash[nameStr] > 0) {
+          //suffix name(num) first
+          var tmpDisplayName = nameStr + "(" + nameHash[nameStr] + ")";//like name(1)
+          if (tmpDisplayName in nameHash) {
+            nameHash[tmpDisplayName]++;
+            nameHash[nameStr]++;
+          } else {
+            nameHash[tmpDisplayName] = 0;
+          }
+
+          if (nameHash[tmpDisplayName] > 0) {
+            //type-in like "name(1)", turn to "name(2)"
+            bookmark.displayName = nameStr + "(" + nameHash[nameStr] + ")";
+          } else {
+            //type-in like "name", turn to "name(num)"
+            bookmark.displayName = tmpDisplayName;
+          }
+        } else {
+          //no duplicateName
+          bookmark.displayName = nameStr;
+        }
+
+        bookmarkArray.push(bookmark);
+      }, this);
+
+      bookmarks = bookmarkArray;
     }
 
   });

@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// Copyright © 2014 Esri. All Rights Reserved.
+// Copyright © 2014 - 2016 Esri. All Rights Reserved.
 //
 // Licensed under the Apache License Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -171,6 +171,17 @@ function(declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin,
         result = this._cloneSymbol(symbol);
       }
       return result;
+    },
+
+    hideColorPicker: function () {
+      var colorPickers = ["pointColor", "pointOutlineColor", "lineColor",
+        "fillColor", "fillOutlineColor", "textColor"];
+      for (var i = 0, len = colorPickers.length; i < len; i++) {
+        var colorPickerName = colorPickers[i];
+        if (this[colorPickerName]) {
+          this[colorPickerName].hideTooltipDialog();
+        }
+      }
     },
 
     _onBodyClicked: function(event){
@@ -417,6 +428,9 @@ function(declare, _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin,
       if (!def) {
         this._requestPointSymJson(fileName);
       }
+      var option = this.pointSymClassSelect.getOptions(fileName);
+      var label = option ? option.label : "";
+      this.pointSymClassSelect.domNode.title = label;
     },
 
     _showSelectedPointSymIconTable:function(){

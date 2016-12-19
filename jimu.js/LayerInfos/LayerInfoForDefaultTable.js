@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// Copyright © 2014 Esri. All Rights Reserved.
+// Copyright © 2014 - 2016 Esri. All Rights Reserved.
 //
 // Licensed under the Apache License Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -36,8 +36,9 @@ define([
       var def = new Deferred();
       if(this.layerObject.empty) {
         if(this.layerObject.url) {
+          var options = this._getLayerOptionsForCreateLayerObject();
           this.layerObject = new FeatureLayer(this.layerObject.url,
-                                              this.originOperLayer.options || {});
+                                        lang.mixin(options, this.originOperLayer.options || {}) || {});
           this.layerObject.on('load', lang.hitch(this, function() {
             def.resolve(this.layerObject);
           }));
@@ -95,6 +96,11 @@ define([
         enablePopup: undefined,
         infoTemplate: undefined
       };
+    },
+
+    // Todo ...
+    getFilter: function() {
+      return this.getFilterOfWebmap();
     }
   });
 });

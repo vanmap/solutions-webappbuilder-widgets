@@ -30,14 +30,14 @@
       },
       "widgets/Scalebar/Widget":{
         "position": {
-          "left": 56,
-          "bottom": 6
+          "left": 12,
+          "bottom": 25
         }
       },
       "widgets/Coordinate/Widget": {
         "position": {
-          "left": 231,
-          "bottom": 6
+          "left": 12,
+          "bottom": 5
         }
       },
       "ph_4": {
@@ -104,13 +104,13 @@
         },
         "widgets/Scalebar/Widget":{
           "position": {
-            "left": 60,
-            "bottom": 18
+            "left": 12,
+            "bottom": 40
           }
         },
         "widgets/Coordinate/Widget": {
           "position": {
-            "left": 235,
+            "left": 12,
             "bottom": 18
           }
         },

@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// Copyright © 2014 Esri. All Rights Reserved.
+// Copyright © 2014 - 2016 Esri. All Rights Reserved.
 //
 // Licensed under the Apache License Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -271,6 +271,9 @@ define([
         var config = this.getConfigById(ids[0]);
         if (!config) {
           return;
+        }
+        if(this.openedId){
+          this._switchNodeToClose(this.openedId);
         }
         this.openedId = ids[0];
         if (config.widgets && config.openType === 'openAll') {
@@ -722,7 +725,8 @@ define([
         }
         if (this.createMoreIcon) {
           this._createIconNode({
-            label: 'more'
+            label: this.nls.more,
+            name: '__more'
           });
         }
 
@@ -756,7 +760,7 @@ define([
 
       _createIconNode: function(iconConfig) {
         var node, iconUrl;
-        if (iconConfig.label === 'more') {
+        if (iconConfig.label === this.nls.more) {
           iconUrl = this.folderUrl + 'images/more_icon.png';
         } else {
           iconUrl = iconConfig.icon;
@@ -769,7 +773,8 @@ define([
           style: {
             width: this.height + 'px',
             height: this.height + 'px'
-          }
+          },
+          'data-widget-name': iconConfig.name
         }, this.containerNode);
 
         html.create('img', {
@@ -779,7 +784,7 @@ define([
           }
         }, node);
 
-        if (iconConfig.label === 'more') {
+        if (iconConfig.label === this.nls.more) {
           on(node, 'click', lang.hitch(this, this._showMorePane, iconConfig));
         } else {
           on(node, 'click', lang.hitch(this, function() {

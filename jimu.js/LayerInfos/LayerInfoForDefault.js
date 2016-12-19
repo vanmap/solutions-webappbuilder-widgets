@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// Copyright © 2014 Esri. All Rights Reserved.
+// Copyright © 2014 - 2016 Esri. All Rights Reserved.
 //
 // Licensed under the Apache License Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -26,11 +26,12 @@ define([
   'dojo/dom-attr',
   'dojo/aspect',
   'jimu/portalUrlUtils',
+  'jimu/utils',
   'esri/symbols/jsonUtils',
   'esri/dijit/PopupTemplate',
   'esri/dijit/Legend'
 ], function(declare, array, lang, Deferred, LayerInfo, LayerInfos, gfx, domConstruct,
-domAttr, aspect, portalUrlUtils, jsonUtils, PopupTemplate, Legend) {
+domAttr, aspect, portalUrlUtils, jimuUtils, jsonUtils, PopupTemplate, Legend) {
   var clazz = declare(LayerInfo, {
     _legendsNode: null,
     controlPopupInfo: null,
@@ -56,6 +57,40 @@ domAttr, aspect, portalUrlUtils, jsonUtils, PopupTemplate, Legend) {
       this._initControlPopup();
     },
 
+    _initOldFilter: function() {
+      // default value of this._oldFilter is null
+      if(this.layerObject &&
+         !this.layerObject.empty &&
+         this.layerObject.getDefinitionExpression) {
+        this._oldFilter = this.layerObject.getDefinitionExpression();
+      } else {
+        this._oldFilter = null;
+      }
+    },
+
+    _getLayerOptionsForCreateLayerObject: function() {
+      var options = {};
+      // assign id
+      options.id = this.id;
+      // prepare outFileds for create feature layer.
+      var outFields = [];
+      var infoTemplate = this.getInfoTemplate();
+      if(infoTemplate && infoTemplate.info && infoTemplate.info.fieldInfos) {
+        array.forEach(infoTemplate.info.fieldInfos, function(fieldInfo) {
+          if(fieldInfo.visible) {
+            outFields.push(fieldInfo.fieldName);
+          }
+        }, this);
+      } else {
+        outFields = ["*"];
+      }
+      options.outFields = outFields;
+
+      // assign capabilities
+      //options.resourceInfo = {capabilities: ["Query"]};
+      return options;
+    },
+
     getExtent: function() {
       var extent = this.originOperLayer.layerObject.fullExtent ||
         this.originOperLayer.layerObject.initialExtent;
@@ -69,9 +104,13 @@ domAttr, aspect, portalUrlUtils, jsonUtils, PopupTemplate, Legend) {
     },
 
 
-    _resetLayerObjectVisiblityBeforeInit: function() {
-      if(this._layerOption) {
-        this.layerObject.setVisibility(this._layerOption.visible);
+    _resetLayerObjectVisiblity: function(layerOptions) {
+      var layerOption  = layerOptions ? layerOptions[this.id]: null;
+      if(!this.originOperLayer.collection) {
+        if(layerOption) {
+          this.layerObject.setVisibility(layerOption.visible);
+          this._visible = this.layerObject.visible;
+        }
       }
     },
 
@@ -190,7 +229,8 @@ domAttr, aspect, portalUrlUtils, jsonUtils, PopupTemplate, Legend) {
       var legendsNode = domConstruct.create("div", {
         // placeAt 'legendsNode' to document.body first, else can not
         // show legend on IE8.
-        "class": "legends-div jimu-leading-margin1"
+        "class": "legends-div jimu-leading-margin1",
+        "legendsDivId": this.id
       }, document.body);
       domConstruct.create("img", {
         "class": "legends-loading-img",
@@ -224,9 +264,10 @@ domAttr, aspect, portalUrlUtils, jsonUtils, PopupTemplate, Legend) {
           arrangement: Legend.ALIGN_LEFT,
           respectCurrentMapScale: false,
           respectVisibility: false
-        }, legendsNode);
+        }, domConstruct.create("div", {}, legendsNode));
 
         legend.startup();
+        legendsNode._legendDijit = legend;
       }
     },
 
@@ -317,7 +358,6 @@ domAttr, aspect, portalUrlUtils, jsonUtils, PopupTemplate, Legend) {
     },
 
     // control popup
-
     _getDefaultPopupTemplate: function(object) {
       var popupTemplate = null;
       if(object && object.fields) {
@@ -329,13 +369,13 @@ domAttr, aspect, portalUrlUtils, jsonUtils, PopupTemplate, Legend) {
           mediaInfos: []
         };
         array.forEach(object.fields, function(field){
-          if(field.name !== object.objectIdField){
-            popupInfo.fieldInfos.push({
-              fieldName:field.name,
-              visible:true,
-              label:field.alias,
-              isEditable:false
-            });
+          if(field.name !== object.objectIdField &&
+             field.name.toLowerCase() !== "globalid" &&
+             field.name.toLowerCase() !== "shape"){
+            var fieldInfo = jimuUtils.getDefaultPortalFieldInfo(field);
+            fieldInfo.visible = true;
+            fieldInfo.isEditable = field.editable;
+            popupInfo.fieldInfos.push(fieldInfo);
           }
         });
         popupTemplate = new PopupTemplate(popupInfo);
@@ -344,13 +384,31 @@ domAttr, aspect, portalUrlUtils, jsonUtils, PopupTemplate, Legend) {
     },
 
     enablePopup: function() {
-      this.controlPopupInfo.enablePopup = true;
-      this.layerObject.infoTemplate = this.controlPopupInfo.infoTemplate;
+      return this.loadInfoTemplate().then(lang.hitch(this, function() {
+        if(this.controlPopupInfo.infoTemplate) {
+          this.controlPopupInfo.enablePopup = true;
+          this.layerObject.infoTemplate = this.controlPopupInfo.infoTemplate;
+          return true;
+        } else {
+          return false;
+        }
+      }));
     },
 
     disablePopup: function() {
       this.controlPopupInfo.enablePopup = false;
       this.layerObject.infoTemplate = null;
+    },
+
+    isPopupEnabled: function() {
+      var isPopupEnabled;
+      if(this.controlPopupInfo &&
+         this.controlPopupInfo.enablePopup) {
+        isPopupEnabled = true;
+      } else {
+        isPopupEnabled = false;
+      }
+      return isPopupEnabled;
     },
 
     loadInfoTemplate: function() {
@@ -366,50 +424,99 @@ domAttr, aspect, portalUrlUtils, jsonUtils, PopupTemplate, Legend) {
       return this.controlPopupInfo.infoTemplate;
     },
 
-    _getRelatedTableInfoArray: function(layerObject, InfoArray) {
-      var relatedTableInfoArray = [];
+    _getRelatedUrls: function(layerObject, relationshipRole) {
+      var relatedUrls = [];
+      if(!layerObject || !layerObject.url || !layerObject.relationships) {
+        return relatedUrls;
+      }
+
       var index = layerObject.url.lastIndexOf('/');
       var serverUrl = layerObject.url.slice(0, index);
       array.forEach(layerObject.relationships, function(relationship) {
-        var subUrl = serverUrl + '/' + relationship.relatedTableId.toString();
-        for(var i = 0; i < InfoArray.length; i++) {
-          if(lang.exists("layerObject.url", InfoArray[i]) &&
-            (portalUrlUtils.removeProtocol(subUrl.toString().toLowerCase()) ===
-            portalUrlUtils.removeProtocol(InfoArray[i].layerObject.url.toString().toLowerCase()))) {
-            relatedTableInfoArray.push(InfoArray[i]);
-            break;
-          }
+        if (!relationshipRole ||
+            !relationship.role ||
+            relationshipRole === relationship.role) {
+              var subUrl = serverUrl + '/' + relationship.relatedTableId.toString();
+              relatedUrls.push(subUrl);
         }
       }, this);
-      return relatedTableInfoArray;
+
+      return relatedUrls;
     },
 
-    getRelatedTableInfoArray: function() {
+    // summary:
+    //   get related tableInfo array
+    // parameters:
+    //   relationshipRole: optional
+    //       "esriRelRoleOrigin"
+    //       "esriRelRoleDestination"
+    getRelatedTableInfoArray: function(relationshipRole) {
       var relatedTableInfoArray = [];
       var def = new Deferred();
-
-      if(this.layerObject.relationships) {
-        var tableInfoArray;
-        var layerInfoArray;
-        var InfoArray;
-        LayerInfos.getInstance(this.map, this.map.itemInfo)
-          .then(lang.hitch(this, function(layerInfos) {
-            tableInfoArray = layerInfos.getTableInfoArray();
-            layerInfoArray = [];
-            layerInfos.getLayerInfoArray().forEach(lang.hitch(this, function(layerInfoWithSameUrl) {
-              layerInfoWithSameUrl.traversal(function(featureLayerInfo) {
-                layerInfoArray.push(featureLayerInfo);
-              });
-            }));
-            InfoArray = tableInfoArray.concat(layerInfoArray);
-            relatedTableInfoArray = this._getRelatedTableInfoArray(this.layerObject, InfoArray);
-            def.resolve(relatedTableInfoArray);
+      this.getLayerObject().then(lang.hitch(this, function(layerObject) {
+        var relatedUrls = this._getRelatedUrls(layerObject, relationshipRole);
+        if(relatedUrls.length === 0) {
+          def.resolve(relatedTableInfoArray);
+        } else {
+          LayerInfos.getInstanceSync().traversalAll(lang.hitch(this, function(layerInfo) {
+            var relatedUrlIndex = -1;
+            if(relatedUrls.length === 0) {
+              // all were found
+              return true;
+            } else {
+              array.forEach(relatedUrls, function(relatedUrl, index) {
+                if(lang.getObject("layerObject.url", false, layerInfo) &&
+                   (portalUrlUtils.removeProtocol(relatedUrl.toString().replace(/\/+/g, '/').toLowerCase()) ===
+                   portalUrlUtils.removeProtocol(
+                                 layerInfo.layerObject.url.toString().replace(/\/+/g, '/').toLowerCase()))
+                ) {
+                  relatedTableInfoArray.push(layerInfo);
+                  relatedUrlIndex = index;
+                }
+              }, this);
+              if(relatedUrlIndex >= 0) {
+                relatedUrls.splice(relatedUrlIndex, 1);
+              }
+              return false;
+            }
           }));
-      } else {
+          def.resolve(relatedTableInfoArray);
+        }
+      }), lang.hitch(this, function() {
         def.resolve(relatedTableInfoArray);
-      }
-
+      }));
       return def;
+    },
+
+    getFilter: function() {
+      // summary:
+      //   get filter from layerObject.
+      // description:
+      //   return null if does not have or cannot get it.
+      var filter;
+      if(this.layerObject &&
+         !this.layerObject.empty &&
+         this.layerObject.getDefinitionExpression) {
+        filter = this.layerObject.getDefinitionExpression();
+      } else {
+        filter = null;
+      }
+      return filter;
+    },
+
+    setFilter: function(layerDefinitionExpression) {
+      // summary:
+      //   set layer definition expression to layerObject.
+      // paramtter
+      //   layerDefinitionExpression: layer definition expression
+      //   set 'null' to delete layer definition express
+      // description:
+      //   operation will skip if layer not support filter.
+      if(this.layerObject &&
+         !this.layerObject.empty &&
+         this.layerObject.setDefinitionExpression) {
+        this.layerObject.setDefinitionExpression(layerDefinitionExpression);
+      }
     }
 
   });

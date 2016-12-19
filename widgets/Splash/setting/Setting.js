@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// Copyright © 2014 Esri. All Rights Reserved.
+// Copyright © 2014 - 2016 Esri. All Rights Reserved.
 //
 // Licensed under the Apache License Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -18,21 +18,24 @@ define([
     'dojo/_base/declare',
     "dojo/_base/lang",
     'dojo/_base/html',
-    'dojo/_base/Color',
     'dojo/on',
     'dojo/aspect',
     'dojo/cookie',
     'dojo/sniff',
     'dojo/query',
-    'dojo/io-query',
+    './ColorPickerEditor',
+    './BackgroundSelector',
+    './SizeSelector',
     'dijit/registry',
     'dijit/_WidgetsInTemplateMixin',
     'dijit/Editor',
     'jimu/utils',
     'jimu/BaseWidgetSetting',
-    'jimu/dijit/ColorPicker',
-    'dojo/NodeList-manipulate',
     "jimu/dijit/CheckBox",
+    'jimu/dijit/TabContainer',
+    'jimu/dijit/LoadingShelter',
+    'dojo/Deferred',
+    'dojo/NodeList-manipulate',
     "jimu/dijit/RadioBtn",
     'dijit/_editor/plugins/LinkDialog',
     'dijit/_editor/plugins/ViewSource',
@@ -48,37 +51,45 @@ define([
     'dojox/editor/plugins/UploadImage',
     './ChooseImage'
   ],
-  function(
-    declare,
-    lang,
-    html,
-    Color,
-    on,
-    aspect,
-    cookie,
-    has,
-    query,
-    ioquery,
-    registry,
-    _WidgetsInTemplateMixin,
-    Editor,
-    utils,
-    BaseWidgetSetting) {
+  function(declare, lang, html, on, aspect, cookie, has, query, ColorPickerEditor, BackgroundSelector, SizeSelector,
+           registry, _WidgetsInTemplateMixin,
+           Editor, utils, BaseWidgetSetting, CheckBox, TabContainer, LoadingShelter, Deferred) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
-      //these two properties is defined in the BaseWidget
       baseClass: 'jimu-widget-splash-setting',
+      _defaultSize: {mode: "wh", wh: {w: 600, h: 264}},
       _defaultColor: '#485566',
+      _defaultConfirmColor: "#ffffff",
+      _defaultTransparency: 0,
 
+      postMixInProperties: function() {
+        this.nls = lang.mixin(this.nls, window.jimuNls.common);
+      },
       postCreate: function() {
-        this.own(on(this.requireConfirmSplash, 'click', lang.hitch(this, function() {
-          this.set('requireConfirm', true);
-        })));
-        this.own(on(this.noRequireConfirmSplash, 'click', lang.hitch(this, function() {
-          this.set('requireConfirm', false);
-        })));
-        this.own(this.watch('requireConfirm', lang.hitch(this, this._changeRequireConfirm)));
-        this.own(aspect.before(this, 'getConfig', lang.hitch(this, this._beforeGetConfig)));
+        //LoadingShelter
+        this.shelter = new LoadingShelter({
+          hidden: true
+        });
+        this.shelter.placeAt(this.domNode);
+        this.shelter.startup();
 
+        this.tab = new TabContainer({
+          tabs: [{
+            title: this.nls.content,
+            content: this.contentTab
+          }, {
+            title: this.nls.appearance,
+            content: this.appearanceTab
+          }, {
+            title: this.nls.options,
+            content: this.optionsTab
+          }],
+          selected: this.nls.content
+        });
+        this.tab.placeAt(this.tabsContainer);
+        this.tab.startup();
+        this.inherited(arguments);
+      },
+      initContentTab: function() {
         var head = document.getElementsByTagName('head')[0];
         var tcCssHref = window.apiUrl + "dojox/editor/plugins/resources/css/TextColor.css";
         var tcCss = query('link[href="' + tcCssHref + '"]', head)[0];
@@ -96,17 +107,53 @@ define([
           utils.loadStyleLink("editor_plugins_resources_PasteFromWord", pfCssHref);
         }
 
-        this.urlParams = this.getUrlParams();
+        this.initEditor();
+      },
+      initAppearanceTab: function() {
+        this.sizeSelector = new SizeSelector({nls: this.nls}, this.sizeSelector);
 
-        this.inherited(arguments);
+        this.backgroundSelector = new BackgroundSelector({nls: this.nls}, this.backgroundSelector);
+        this.backgroundSelector.startup();
+
+        this.buttonColorPicker = new ColorPickerEditor({nls: this.nls}, this.buttonColorPickerEditor);
+        this.buttonColorPicker.startup();
+
+        this.confirmColorPicker = new ColorPickerEditor({nls: this.nls}, this.confirmColorPickerEditor);
+        this.confirmColorPicker.startup();
+      },
+      initOptionsTab: function() {
+        this.own(on(this.requireConfirmSplash, 'click', lang.hitch(this, function() {
+          this.set('requireConfirm', true);
+        })));
+        this.own(on(this.noRequireConfirmSplash, 'click', lang.hitch(this, function() {
+          this.set('requireConfirm', false);
+        })));
+        this.own(this.watch('requireConfirm', lang.hitch(this, this._changeRequireConfirm)));
+        this.own(aspect.before(this, 'getConfig', lang.hitch(this, this._beforeGetConfig)));
+        this.showOption = new CheckBox({
+          label: this.nls.optionText,
+          checked: false
+        }, this.showOption);
+        this.showOption.startup();
+        html.addClass(this.showOption.domNode, 'option-text');
+        this.confirmOption = new CheckBox({
+          label: this.nls.confirmOption,
+          checked: false
+        }, this.confirmOption);
+        this.confirmOption.startup();
+        html.addClass(this.confirmOption.domNode, 'confirm-option');
       },
 
       startup: function() {
         this.inherited(arguments);
+        this.shelter.show();
         if (!this.config.splash) {
           this.config.splash = {};
         }
-        this.initEditor();
+
+        this.initContentTab();
+        this.initAppearanceTab();
+        this.initOptionsTab();
 
         this.setConfig(this.config);
       },
@@ -130,6 +177,14 @@ define([
         });
         this.editor.startup();
 
+        var instrBox = html.getMarginBox(this.instructionNode);
+        var footerBox = html.getMarginBox(this.splashFooterNode);
+
+        html.setStyle(this.editorContainer, {
+          top: instrBox.h + 8 + 'px',
+          bottom: footerBox.h + 10 + 10 + 'px'
+        });
+
         if (has('ie') !== 8) {
           this.editor.resize({
             w: '100%',
@@ -147,16 +202,38 @@ define([
       setConfig: function(config) {
         this.config = config;
 
-        this.editor.set('value', config.splash.splashContent || this.nls.defaultContent);
-        this.set('requireConfirm', config.splash.requireConfirm);
-        this.showOption.setValue(config.splash.showOption);
-        this.confirmOption.setValue(config.splash.confirmEverytime);
-        html.setAttr(
-          this.confirmText,
-          'value',
-          utils.stripHTML(config.splash.confirmText || this.nls.defaultConfirmText)
-        );
-        this.colorPicker.setColor(new Color(config.splash.backgroundColor || this._defaultColor));
+        this._setWidthForOldVersion().then(lang.hitch(this, function() {
+          this.editor.set('value', config.splash.splashContent || this.nls.defaultContent);
+          this.set('requireConfirm', config.splash.requireConfirm);
+          this.showOption.setValue(config.splash.showOption);
+          this.confirmOption.setValue(config.splash.confirmEverytime);
+          html.setAttr(
+            this.confirmText,
+            'value',
+            utils.stripHTML(config.splash.confirm.text || this.nls.defaultConfirmText)
+          );
+          this.confirmColorPicker.setValues({
+            "color": config.splash.confirm.color || this._defaultConfirmColor,
+            "transparency": config.splash.confirm.transparency || this._defaultTransparency
+          });
+
+          this.sizeSelector.setValue(config.splash.size || this._defaultSize);
+          if ("undefined" !== typeof config.splash.image) {
+            this.imageChooser.setDefaultSelfSrc(config.splash.image);
+          }
+          this.backgroundSelector.setValues(config);
+
+          this.buttonColorPicker.setValues({
+            "color": config.splash.button.color || this._defaultColor,
+            "transparency": config.splash.button.transparency || this._defaultTransparency
+          });
+          html.setAttr(
+            this.buttonText, 'value',
+            utils.stripHTML(config.splash.button.text || this.nls.ok)
+          );
+
+          this.shelter.hide();
+        }));
       },
 
       _beforeGetConfig: function() {
@@ -167,44 +244,42 @@ define([
         });
       },
 
-      getUrlParams: function() {
-        var s = window.location.search,
-          p;
-        if (s === '') {
-          return {};
-        }
-
-        p = ioquery.queryToObject(s.substr(1));
-        return p;
-      },
-
       _getCookieKey: function() {
-        // xt or integration use id of app as key,
-        // deploy app use pathname as key
-        return 'isfirst_' +  this.urlParams.id || this.urlParams.appid ||
-          window.path;
+        return 'isfirst_' + encodeURIComponent(utils.getAppIdFromUrl());
       },
 
       getConfig: function() {
-        this.config.splash.splashContent = this.editor.get('value');
+        this.config.splash.splashContent = this._getEditorValue();
+        this.config.splash.size = this.sizeSelector.getValue();
+
         this.config.splash.requireConfirm = this.get('requireConfirm');
         this.config.splash.showOption = this.showOption.getValue();
         this.config.splash.confirmEverytime = this.confirmOption.getValue();
+
         if (this.get('requireConfirm')) {
-          this.config.splash.confirmText = utils.stripHTML(this.confirmText.value || "");
+          this.config.splash.confirm.text = utils.stripHTML(this.confirmText.value || "");
         } else {
-          this.config.splash.confirmText = "";
+          this.config.splash.confirm.text = "";
         }
-        var bgColor = this.colorPicker.getColor();
-        if (bgColor && bgColor.toHex) {
-          this.config.splash.backgroundColor = bgColor.toHex();
+        var confirmColor = this.confirmColorPicker.getValues();
+        if (confirmColor) {
+          this.config.splash.confirm.color = confirmColor.color;
+          this.config.splash.confirm.transparency = confirmColor.transparency;
         }
+
+        this.config.splash.background = this.backgroundSelector.getValues();
+
+        this.config.splash.button = {};
+        var btnColor = this.buttonColorPicker.getValues();
+        if (btnColor) {
+          this.config.splash.button.color = btnColor.color;
+          this.config.splash.button.transparency = btnColor.transparency;
+        }
+        this.config.splash.button.text = utils.stripHTML(this.buttonText.value || "");
+
+        this.config.splash.contentVertical = "top";
 
         return this.config;
-      },
-
-      _onConfirmTextBlur: function() {
-        this.confirmText.value = utils.stripHTML(this.confirmText.value || "");
       },
 
       _changeRequireConfirm: function() {
@@ -229,6 +304,39 @@ define([
         query('link[id^="editor_plugins_resources"]', head).remove();
 
         this.inherited(arguments);
+      },
+      _onConfirmTextBlur: function() {
+        this.confirmText.value = utils.stripHTML(this.confirmText.value || "");
+      },
+      _onButtonTextBlur: function() {
+        this.buttonText.value = utils.stripHTML(this.buttonText.value || "");
+      },
+      _getEditorValue: function() {
+        var contentVal = this.editor.get('value');
+        if (contentVal === "") {
+          contentVal = "<p></p>";
+        }
+        return contentVal;
+      },
+      //for old version update
+      _setWidthForOldVersion: function() {
+        var def = new Deferred();
+        var size = this.config.splash.size;
+        var isOldVersion = ("wh" === size.mode && typeof size.wh !== "undefined" && null === size.wh.h);
+        if (true === isOldVersion) {
+          return utils.getEditorContentHeight(this.config.splash.splashContent, this.domNode, {
+            "contentWidth": 600 - 40,
+            "contentMarginTop": 20,//contentMarginTop
+            "footerHeight": 88 + 10//contentMarginBottom
+          }).then(
+            lang.hitch(this, function(h) {
+              size.wh.h = h;
+              return h;
+            }));
+        } else {
+          def.resolve();
+          return def;
+        }
       }
     });
   });

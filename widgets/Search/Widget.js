@@ -47,6 +47,8 @@ define([
       searchDijit: null,
       searchResults: null,
 
+      _startWidth: null,
+
       postCreate: function() {
         if (this.closeable || !this.isOnScreen) {
           html.addClass(this.searchNode, 'default-width-for-openAtStart');
@@ -65,6 +67,10 @@ define([
         LayerInfos.getInstance(this.map, this.map.itemInfo)
           .then(lang.hitch(this, function(layerInfosObj) {
             this.layerInfosObj = layerInfosObj;
+            this.own(this.layerInfosObj.on(
+            'layerInfosFilterChanged',
+            lang.hitch(this, this.onLayerInfosFilterChanged)));
+
             utils.setMap(this.map);
             utils.setLayerInfosObj(this.layerInfosObj);
             utils.setAppConfig(this.appConfig);
@@ -179,13 +185,25 @@ define([
         }
       },
 
-      setPosition: function() {
-        this._resetSearchDijitStyle();
+      setPosition: function(position) {
+        this._resetSearchDijitStyle(position);
         this.inherited(arguments);
       },
 
       resize: function() {
         this._resetSearchDijitStyle();
+      },
+
+      onLayerInfosFilterChanged: function(changedLayerInfos) {
+        array.some(changedLayerInfos, lang.hitch(this, function(info) {
+          if (this.searchDijit && this.searchDijit.sources && this.searchDijit.sources.length > 0) {
+            array.forEach(this.searchDijit.sources, function(s) {
+              if (s._featureLayerId === info.id) {
+                s.featureLayer.setDefinitionExpression(info.getFilter());
+              }
+            });
+          }
+        }));
       },
 
       _resetSearchDijitStyle: function() {
@@ -196,7 +214,10 @@ define([
 
         setTimeout(lang.hitch(this, function() {
           if (this.searchDijit && this.searchDijit.domNode) {
-            var box = html.getMarginBox(this.domNode);
+            var box = {
+              w: !window.appInfo.isRunInMobile ? 274 : // original width of search dijit
+                parseInt(html.getComputedStyle(this.domNode).width, 10)
+            };
             var sourcesBox = html.getMarginBox(this.searchDijit.sourcesBtnNode);
             var submitBox = html.getMarginBox(this.searchDijit.submitNode);
             var style = null;
@@ -234,16 +255,27 @@ define([
         var sourceDefs = array.map(config.sources, lang.hitch(this, function(source) {
           var def = new Deferred();
           if (source && source.url && source.type === 'locator') {
-            def.resolve({
+            var _source = {
               locator: new Locator(source.url || ""),
               outFields: ["*"],
               singleLineFieldName: source.singleLineFieldName || "",
               name: jimuUtils.stripHTML(source.name || ""),
               placeholder: jimuUtils.stripHTML(source.placeholder || ""),
               countryCode: source.countryCode || "",
+              maxSuggestions: source.maxSuggestions,
               maxResults: source.maxResults || 6,
+              zoomScale: source.zoomScale || 50000,
               useMapExtent: !!source.searchInCurrentMapExtent
-            });
+            };
+
+            if (source.enableLocalSearch) {
+              _source.localSearchOptions = {
+                minScale: source.localSearchMinScale,
+                distance: source.localSearchDistance
+              };
+            }
+
+            def.resolve(_source);
           } else if (source && source.url && source.type === 'query') {
             var searchLayer = new FeatureLayer(source.url || null, {
               outFields: ["*"]
@@ -272,12 +304,20 @@ define([
                 exactMatch: !!source.exactMatch,
                 name: jimuUtils.stripHTML(source.name || ""),
                 placeholder: jimuUtils.stripHTML(source.placeholder || ""),
+                maxSuggestions: source.maxSuggestions || 6,
                 maxResults: source.maxResults || 6,
+                zoomScale: source.zoomScale || 50000,
                 infoTemplate: template,
-                useMapExtent: !!source.searchInCurrentMapExtent
+                useMapExtent: !!source.searchInCurrentMapExtent,
+                _featureLayerId: source.layerId
               };
               if (!template) {
                 delete convertedSource.infoTemplate;
+              }
+              if (convertedSource._featureLayerId) {
+                var layerInfo = this.layerInfosObj
+                  .getLayerInfoById(convertedSource._featureLayerId);
+                flayer.setDefinitionExpression(layerInfo.getFilter());
               }
               def.resolve(convertedSource);
             })));
@@ -315,6 +355,16 @@ define([
         }
       },
 
+      _getSourcePopupInfo: function(source) {
+        if (source._featureLayerId) {
+          var layerInfo = this.layerInfosObj.getLayerInfoById(source._featureLayerId);
+          if (layerInfo) {
+            return layerInfo.getPopupInfo();
+          }
+        }
+        return null;
+      },
+
       _captureSelect: function(e) {
         var sourceIndex = this.searchDijit.activeSourceIndex;
         if (sourceIndex === 'all') {
@@ -323,13 +373,28 @@ define([
         if (isFinite(sourceIndex) && esriLang.isDefined(sourceIndex)) {
           var source = this.searchDijit.sources[sourceIndex];
           if (source && 'featureLayer' in source) {
-            var formatedAttrs = this._getFormatedAttrs(
-              lang.clone(e.feature.attributes),
-              source.featureLayer.fields,
-              source.featureLayer.typeIdField,
-              source.featureLayer.types
-            );
-            e.feature.attributes = formatedAttrs;
+            var popupInfo = this._getSourcePopupInfo(source);
+            var notFormatted = (popupInfo && popupInfo.showAttachments) ||
+              (popupInfo && popupInfo.description &&
+              popupInfo.description.match(/http(s)?:\/\//)) ||
+              (popupInfo && popupInfo.mediaInfos && popupInfo.mediaInfos.length > 0);
+
+            // set a private property for select-result to get original feature from layer.
+            if (!e.feature.__attributes) {
+              e.feature.__attributes = e.feature.attributes;
+            }
+
+            if (!notFormatted) {
+              var formatedAttrs = this._getFormatedAttrs(
+                lang.clone(e.feature.attributes),
+                source.featureLayer.fields,
+                source.featureLayer.typeIdField,
+                source.featureLayer.types,
+                popupInfo
+              );
+
+              e.feature.attributes = formatedAttrs;
+            }
           }
         }
 
@@ -386,7 +451,20 @@ define([
         return content;
       },
 
-      _getFormatedAttrs: function(attrs, fields, typeIdField, types) {
+      _getFormatedAttrs: function(attrs, fields, typeIdField, types, popupInfo) {
+        function getFormatInfo(fieldName) {
+          if (popupInfo && esriLang.isDefined(popupInfo.fieldInfos)) {
+            for (var i = 0, len = popupInfo.fieldInfos.length; i < len; i++) {
+              var f = popupInfo.fieldInfos[i];
+              if (f.fieldName === fieldName) {
+                return f.format;
+              }
+            }
+          }
+
+          return null;
+        }
+
         var aliasAttrs = {};
         array.forEach(fields, lang.hitch(this, function(_field, i) {
           if (!attrs[_field.name]) {
@@ -397,16 +475,16 @@ define([
           var isTypeIdField = typeIdField && (_field.name === typeIdField);
           var fieldAlias = _field.name;
 
-          if (fields[i].type === "esriFieldTypeString") {
-            aliasAttrs[fieldAlias] = jimuUtils.fieldFormatter.getFormattedUrl(attrs[_field.name]);
-          } else if (fields[i].type === "esriFieldTypeDate") {
-            aliasAttrs[fieldAlias] = jimuUtils.fieldFormatter.getFormattedDate(attrs[_field.name]);
+          if (fields[i].type === "esriFieldTypeDate") {
+            aliasAttrs[fieldAlias] = jimuUtils.fieldFormatter.getFormattedDate(
+              attrs[_field.name], getFormatInfo(_field.name)
+              );
           } else if (fields[i].type === "esriFieldTypeDouble" ||
             fields[i].type === "esriFieldTypeSingle" ||
             fields[i].type === "esriFieldTypeInteger" ||
             fields[i].type === "esriFieldTypeSmallInteger") {
             aliasAttrs[fieldAlias] = jimuUtils.fieldFormatter.getFormattedNumber(
-              attrs[_field.name]
+              attrs[_field.name], getFormatInfo(_field.name)
               );
           }
 
@@ -543,12 +621,20 @@ define([
         } else {
           this._onClearSearch();
         }
+        // publish search results to other widgets
+        this.publishData({
+          'searchResults': evt
+        });
       },
 
-      _onSuggestResults: function() {
+      _onSuggestResults: function(evt) {
         this._resetSelectorPosition('.searchMenu');
 
         this._hideResultMenu();
+        // publish suggest results to other widgets
+        this.publishData({
+          'suggestResults': evt
+        });
       },
 
       _onSelectSearchResult: function(evt) {
@@ -579,6 +665,28 @@ define([
         var dataSourceIndex = e.sourceIndex;
         var sourceResults = this.searchResults[dataSourceIndex];
         var dataIndex = 0;
+        var that = this;
+
+        var getGraphics = function(layer, fid) {
+          var graphics = layer.graphics;
+          var gs = array.filter(graphics, function(g) {
+            return g.attributes[layer.objectIdField] === fid;
+          });
+          return gs;
+        };
+        var showPopupByFeatures = function(features) {
+          var location = null;
+          that.map.infoWindow.setFeatures(features);
+          if (features[0].geometry.type === "point") {
+            location = features[0].geometry;
+          } else {
+            location = features[0].geometry.getExtent().getCenter();
+          }
+          that.map.infoWindow.show(location, {
+            closetFirst: true
+          });
+        };
+
         for (var i = 0, len = sourceResults.length; i < len; i++) {
           if (jimuUtils.isEqual(sourceResults[i], result)) {
             dataIndex = i;
@@ -598,6 +706,33 @@ define([
               html.addClass(li, 'result-item-selected');
             }
           }));
+
+        var layer = this.map.getLayer(e.source._featureLayerId);
+
+        if (layer) {
+          var gs = getGraphics(layer, e.result.feature.__attributes[layer.objectIdField]);
+          if (gs.length > 0) {
+            showPopupByFeatures(gs);
+          } else {
+            var handle = on(layer, 'update-end', lang.hitch(this, function() {
+              if (this.domNode) {
+                var gs = getGraphics(layer, e.result.feature.__attributes[layer.objectIdField]);
+                if (gs.length > 0) {
+                  showPopupByFeatures(gs);
+                }
+              }
+
+              if (handle && handle.remove) {
+                handle.remove();
+              }
+            }));
+            this.own(handle);
+          }
+        }
+        // publish select result to other widgets
+        this.publishData({
+          'selectResult': e
+        });
       },
 
       _onClearSearch: function() {
@@ -620,15 +755,23 @@ define([
         if (groupNode) {
           var groupBox = html.getMarginBox(groupNode);
           var style = {
-            left: groupBox.l + 'px',
             width: groupBox.w + 'px'
           };
+          if (window.isRTL) {
+            var box = html.getMarginBox(this.searchDijit.domNode);
+            style.right = (box.w - groupBox.l - groupBox.w) + 'px';
+          } else {
+            style.left = groupBox.l + 'px';
+          }
           query('.show-all-results', this.searchResultsNode).style(style);
           query('.searchMenu', this.searchResultsNode).style(style);
         }
       },
 
       destroy: function() {
+        utils.setMap(null);
+        utils.setLayerInfosObj(null);
+        utils.setAppConfig(null);
         if (this.searchDijit) {
           this.searchDijit.clear();
         }

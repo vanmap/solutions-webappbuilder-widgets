@@ -74,10 +74,6 @@
   margin-top: 5px;
 }
 
-.jimu-widget-bookmark-setting .mark-item-div:nth-child(8n+1){
-  margin-left: 0px;
-}
-
 .jimu-widget-bookmark-setting .mark-item-div .mark-item-bg{
   position:relative;
   width:100%;

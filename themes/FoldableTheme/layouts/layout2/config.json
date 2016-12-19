@@ -21,32 +21,32 @@
       },
       "ph_4": {
         "position": {
-          "left": 55,
-          "bottom": 55
+          "left": 7,
+          "bottom": 70
         }
       },
       "ph_5": {
         "position": {
-          "left": 105,
-          "bottom": 55
+          "left": 57,
+          "bottom": 70
         }
       },
       "ph_6": {
         "position": {
-          "left": 155,
-          "bottom": 55
+          "left": 107,
+          "bottom": 70
         }
       },
       "ph_7": {
         "position": {
-          "left": 205,
-          "bottom": 55
+          "left": 157,
+          "bottom": 70
         }
       },
       "ph_8": {
         "position": {
-          "left": 255,
-          "bottom": 55
+          "left": 207,
+          "bottom": 70
         }
       }
     }
@@ -71,6 +71,55 @@
             "relativeTo": "browser",
             "zIndex": 4
           }
+        },
+        "widgets/Scalebar/Widget": {
+          "position": {
+            "left": 7,
+            "bottom": 40
+          },
+          "version": "1.4"
+        },
+        "widgets/Coordinate/Widget": {
+          "position": {
+            "left": 7,
+            "bottom": 20
+          },
+          "version": "1.4"
+        },
+        "ph_4": {
+          "position": {
+            "left": 7,
+            "bottom": 70
+          },
+          "version": "1.4"
+        },
+        "ph_5": {
+          "position": {
+            "left": 57,
+            "bottom": 70
+          },
+          "version": "1.4"
+        },
+        "ph_6": {
+          "position": {
+            "left": 107,
+            "bottom": 70
+          },
+          "version": "1.4"
+        },
+        "ph_7": {
+          "position": {
+            "left": 157,
+            "bottom": 70
+          },
+          "version": "1.4"
+        },
+        "ph_8": {
+          "position": {
+            "left": 207,
+            "bottom": 70
+          },
+          "version": "1.4"
         }
       }
     }

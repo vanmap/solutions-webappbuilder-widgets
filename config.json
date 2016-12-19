@@ -1,14 +1,24 @@
 {
   "theme": {
     "name": "FoldableTheme",
-    "styles": ["default", "black", "blue", "cyan", "green", "purple", "red", "yellow"],
-    "version": "1.4"
+    "styles": [
+      "default",
+      "black",
+      "green",
+      "red",
+      "purple",
+      "blue",
+      "cyan",
+      "yellow"
+    ],
+    "version": "2.2"
   },
-  "portalUrl": "http://cltdefense.maps.arcgis.com",
+  "portalUrl": "http://arcgisfordefense.maps.arcgis.com",
   "appId": "",
   "authorizedCrossOriginDomains": [],
-  "title": "Defense Solutions Widgets",
-  "subtitle": "with Web AppBuilder for ArcGIS",
+  "title": "Military Tools for ArcGIS",
+  "subtitle": "with Web AppBuilder",
+  "keepAppState": true,
   "logo": "images/app-logo.png",
   "geometryService": "http://utility.arcgisonline.com/arcgis/rest/services/Geometry/GeometryServer",
   "links": [],
@@ -23,22 +33,20 @@
           "height": 40,
           "relativeTo": "browser"
         },
-        "version": "1.4",
+        "version": "2.2",
         "id": "themes_FoldableTheme_widgets_HeaderController_Widget_1",
-        "name": "HeaderController",
-        "label": "Header Controller"
+        "name": "HeaderController"
       },
       {
         "uri": "widgets/Scalebar/Widget",
         "position": {
-          "left": 25,
+          "left": 7,
           "bottom": 25,
           "relativeTo": "map"
         },
-        "version": "1.4",
+        "version": "2.2",
         "id": "widgets_Scalebar_Widget_2",
-        "name": "Scalebar",
-        "label": "Scalebar"
+        "name": "Scalebar"
       },
       {
         "uri": "widgets/Search/Widget",
@@ -47,22 +55,20 @@
           "top": 5,
           "relativeTo": "map"
         },
-        "version": "1.4",
+        "version": "2.2",
         "id": "widgets_Search_Widget_3",
-        "name": "Search",
-        "label": "Search"
+        "name": "Search"
       },
       {
         "uri": "widgets/Coordinate/Widget",
         "position": {
-          "left": 200,
-          "bottom": 20,
+          "left": 7,
+          "bottom": 5,
           "relativeTo": "map"
         },
-        "version": "1.4",
+        "version": "2.2",
         "id": "widgets_Coordinate_Widget_4",
-        "name": "Coordinate",
-        "label": "Coordinate"
+        "name": "Coordinate"
       },
       {
         "position": {
@@ -71,7 +77,12 @@
           "relativeTo": "map"
         },
         "placeholderIndex": 1,
-        "id": "_5"
+        "id": "_5",
+        "name": "DistanceAndDirection",
+        "version": "1.4",
+        "keepConfigAfterMapSwithched": false,
+        "uri": "widgets/solutions-webappbuilder-widgets/DistanceAndDirection/Widget",
+        "config": "widgets/solutions-webappbuilder-widgets/DistanceAndDirection/config.json"
       },
       {
         "position": {
@@ -79,8 +90,13 @@
           "top": 45,
           "relativeTo": "map"
         },
-        "placeholderIndex": 2,
-        "id": "_6"
+        "placeholderIndex": 1,
+        "id": "_6",
+        "name": "CoordinateConversion",
+        "version": "1.4",
+        "keepConfigAfterMapSwithched": false,
+        "uri": "widgets/solutions-webappbuilder-widgets/CoordinateConversion/Widget",
+        "config": "widgets/solutions-webappbuilder-widgets/CoordinateConversion/config.json"
       },
       {
         "position": {
@@ -88,8 +104,13 @@
           "top": 45,
           "relativeTo": "map"
         },
-        "placeholderIndex": 3,
-        "id": "_7"
+        "placeholderIndex": 1,
+        "id": "_7",
+        "name": "Visibility",
+        "version": "1.4",
+        "keepConfigAfterMapSwithched": false,
+        "uri": "widgets/solutions-webappbuilder-widgets/Visibility/Widget",
+        "config": "widgets/solutions-webappbuilder-widgets/Visibility/config.json"
       },
       {
         "position": {
@@ -97,8 +118,13 @@
           "top": 45,
           "relativeTo": "map"
         },
-        "placeholderIndex": 4,
-        "id": "_8"
+        "placeholderIndex": 1,
+        "id": "_8",
+        "name": "GRG",
+        "version": "2.2",
+        "keepConfigAfterMapSwithched": false,
+        "uri": "widgets/solutions-webappbuilder-widgets/GRG/Widget",
+        "config": "widgets/solutions-webappbuilder-widgets/GRG/config.json"
       },
       {
         "position": {
@@ -106,21 +132,34 @@
           "top": 45,
           "relativeTo": "map"
         },
-        "placeholderIndex": 5,
-        "id": "_9"
+        "placeholderIndex": 1,
+        "id": "_9",
+        "name": "GridOverlay",
+        "version": "1.4",
+        "keepConfigAfterMapSwithched": false,
+        "uri": "widgets/solutions-webappbuilder-widgets/GridOverlay/wab/widgets/GridOverlay/Widget",
+        "config": "widgets/solutions-webappbuilder-widgets/GridOverlay/wab/widgets/GridOverlay/config.json"
+      },      
+      {
+        "position": {
+          "left": 255,
+          "top": 45,
+          "relativeTo": "map"
+        },
+        "placeholderIndex": 1,
+        "id": "_10"
       },
       {
         "uri": "widgets/OverviewMap/Widget",
         "position": {
-          "bottom": 0,
           "right": 0,
+          "bottom": 0,
           "zIndex": 1,
           "relativeTo": "map"
         },
-        "version": "1.4",
+        "version": "2.2",
         "id": "widgets_OverviewMap_Widget_10",
-        "name": "OverviewMap",
-        "label": "Overview Map"
+        "name": "OverviewMap"
       },
       {
         "uri": "widgets/HomeButton/Widget",
@@ -129,10 +168,9 @@
           "top": 75,
           "relativeTo": "map"
         },
-        "version": "1.4",
+        "version": "2.2",
         "id": "widgets_HomeButton_Widget_11",
-        "name": "HomeButton",
-        "label": "Home Button"
+        "name": "HomeButton"
       },
       {
         "uri": "widgets/MyLocation/Widget",
@@ -141,34 +179,28 @@
           "top": 110,
           "relativeTo": "map"
         },
-        "version": "1.4",
+        "version": "2.2",
         "id": "widgets_MyLocation_Widget_12",
-        "name": "MyLocation",
-        "label": "My Location"
+        "name": "MyLocation"
       },
       {
         "uri": "widgets/AttributeTable/Widget",
-        "positionRelativeTo": "browser",
-        "version": "1.1",
-        "id": "widgets/AttributeTable/Widget_13",
         "position": {
-          "left": 0,
-          "top": 0
+          "relativeTo": "browser"
         },
+        "version": "2.2",
+        "id": "widgets_AttributeTable_Widget_13",
         "name": "AttributeTable",
-        "label": "Attribute Table"
-      },
-      {
-        "uri": "widgets/ElevationProfileTable/Widget",
-        "positionRelativeTo": "browser",
-        "version": "1.1",
-        "id": "widgets/ElevationProfileTable/Widget_14",
-        "position": {
-          "left": 0,
-          "top": 0
-        },
-        "name": "ElevationProfileTable",
-        "label": "Elevation Profile Table"
+        "featureActions": [
+          {
+            "name": "ShowRelatedRecords",
+            "uri": "actions/ShowRelatedRecordsFeatureAction"
+          },
+          {
+            "name": "ViewInTable",
+            "uri": "actions/ViewInAttributeTableFeatureAction"
+          }
+        ]
       },
       {
         "uri": "widgets/Splash/Widget",
@@ -176,10 +208,9 @@
         "position": {
           "relativeTo": "browser"
         },
-        "version": "1.4",
+        "version": "2.2",
         "id": "widgets_Splash_Widget_14",
-        "name": "Splash",
-        "label": "Splash"
+        "name": "Splash"
       },
       {
         "uri": "widgets/ZoomSlider/Widget",
@@ -188,10 +219,9 @@
           "left": 7,
           "relativeTo": "map"
         },
-        "version": "1.4",
+        "version": "2.2",
         "id": "widgets_ZoomSlider_Widget_15",
-        "name": "ZoomSlider",
-        "label": "Zoom Slider"
+        "name": "ZoomSlider"
       }
     ],
     "panel": {
@@ -210,20 +240,20 @@
       "right": 0,
       "bottom": 0
     },
-    "itemId": "5a8d0eb2a94143e8ae11669dfd4cb711",
+    "itemId": "8bf7167d20924cbf8e25e7b11c7c502c",
     "mapOptions": {
       "extent": {
-        "xmin": -9028461.913843764,
-        "ymin": 4178375.8059166074,
-        "xmax": -8970369.77234711,
-        "ymax": 4211243.728079189,
+        "xmin": -13048328.922920268,
+        "ymin": 4033823.855849117,
+        "xmax": -13041067.405232985,
+        "ymax": 4037879.795662606,
         "spatialReference": {
           "wkid": 102100
         }
       }
     },
     "id": "map",
-    "portalUrl": "http://cltdefense.maps.arcgis.com/"
+    "portalUrl": "http://www.arcgis.com"
   },
   "widgetPool": {
     "panel": {
@@ -238,68 +268,186 @@
     },
     "widgets": [
       {
-        "uri": "widgets/Legend/Widget",
-        "version": "1.4",
-        "id": "widgets_Legend_Widget_16",
-        "name": "Legend",
-        "label": "Legend",
+        "uri": "widgets/LayerList/Widget",
+        "version": "2.2",
+        "id": "widgets_LayerList_Widget_17",
+        "name": "LayerList",
         "index": 2
       },
       {
-        "uri": "widgets/LayerList/Widget",
-        "version": "1.4",
-        "id": "widgets_LayerList_Widget_17",
-        "name": "LayerList",
-        "label": "Layer List",
-        "index": 3
-      },
-      {
-        "name": "FilterEditor",
-        "label": "Filter Editor",
-        "version": "1.4",
-        "uri": "widgets/FilterEditor/Widget",
-        "config": "widgets/FilterEditor/config.json",
-        "index": 4,
-        "id": "widgets_FilterEditor_Widget_18"
-      },
-      {
-        "name": "BombThreat",
-        "label": "Bomb Threat",
-        "version": "1.4",
-        "uri": "widgets/BombThreat/Widget",
-        "config": "widgets/BombThreat/config.json",
-        "index": 5,
-        "id": "widgets_BombThreat_Widget_19"
-      },
-      {
-        "name": "ERG",
-        "label": "ERG",
-        "version": "1.4",
-        "uri": "widgets/ERG/Widget",
-        "config": "widgets/ERG/config.json",
-        "index": 6,
-        "id": "widgets_ERG_Widget_20"
-      },
-      {
-        "name": "CIKR",
-        "label": "CI/KR",
-        "version": "1.4",
-        "uri": "widgets/CI_KR_Chart/Widget",
-        "config": "widgets/CI_KR_Chart/config.json",
-        "index": 7,
-        "id": "widgets_CIKR_Widget_21"
-      },
-      {
         "name": "Bookmark",
-        "label": "Bookmark",
-        "version": "1.4",
+        "version": "2.2",
         "uri": "widgets/Bookmark/Widget",
-        "config": "widgets/Bookmark/config.json",
+        "index": 3,
+        "id": "widgets_Bookmark_Widget_18"
+      },
+      {
+        "name": "BasemapGallery",
+        "version": "2.2",
+        "uri": "widgets/BasemapGallery/Widget",
+        "index": 4,
+        "id": "widgets_BasemapGallery_Widget_19"
+      },
+      {
+        "name": "Measurement",
+        "version": "2.2",
+        "uri": "widgets/Measurement/Widget",
+        "index": 5,
+        "id": "widgets_Measurement_Widget_20"
+      },
+      {
+        "name": "Legend",
+        "version": "2.2",
+        "uri": "widgets/Legend/Widget",
+        "config": "configs/Legend/config_Legend.json",
         "index": 7,
-        "id": "widgets_Bookmark_Widget_22"
+        "id": "widgets_Legend_Widget_21"
       }
     ],
     "groups": []
+  },
+  "mobileLayout": {
+    "widgetOnScreen": {
+      "widgets": [
+        {
+          "uri": "themes/FoldableTheme/widgets/HeaderController/Widget",
+          "position": {
+            "left": 0,
+            "top": 0,
+            "right": 0,
+            "height": 40,
+            "relativeTo": "browser"
+          },
+          "version": "2.2"
+        },
+        {
+          "uri": "widgets/Scalebar/Widget",
+          "position": {
+            "left": 7,
+            "bottom": 40,
+            "relativeTo": "map"
+          },
+          "version": "2.2"
+        },
+        {
+          "uri": "widgets/Search/Widget",
+          "position": {
+            "left": 55,
+            "top": 5
+          },
+          "version": "2.2"
+        },
+        {
+          "uri": "widgets/Coordinate/Widget",
+          "position": {
+            "left": 7,
+            "bottom": 17,
+            "relativeTo": "map"
+          },
+          "version": "2.2"
+        },
+        {
+          "position": {
+            "left": 55,
+            "top": 45
+          }
+        },
+        {
+          "position": {
+            "left": 105,
+            "top": 45
+          }
+        },
+        {
+          "position": {
+            "left": 155,
+            "top": 45
+          }
+        },
+        {
+          "position": {
+            "left": 205,
+            "top": 45
+          }
+        },
+        {
+          "position": {
+            "left": 255,
+            "top": 45
+          }
+        },
+        {
+          "uri": "widgets/OverviewMap/Widget",
+          "position": {
+            "right": 0,
+            "bottom": 0,
+            "zIndex": 1
+          },
+          "version": "2.2"
+        },
+        {
+          "uri": "widgets/HomeButton/Widget",
+          "inPanel": false,
+          "position": {
+            "left": 7,
+            "top": 75
+          },
+          "version": "2.2"
+        },
+        {
+          "uri": "widgets/MyLocation/Widget",
+          "inPanel": false,
+          "position": {
+            "left": 7,
+            "top": 110
+          },
+          "version": "2.2"
+        },
+        {
+          "uri": "widgets/AttributeTable/Widget",
+          "version": "2.2",
+          "position": {
+            "relativeTo": "browser"
+          }
+        },
+        {
+          "uri": "widgets/Splash/Widget",
+          "visible": false,
+          "position": {
+            "relativeTo": "browser"
+          },
+          "version": "2.2"
+        },
+        {
+          "uri": "widgets/ZoomSlider/Widget",
+          "visible": true,
+          "position": {
+            "top": 5,
+            "left": 7
+          },
+          "version": "2.2"
+        }
+      ]
+    },
+    "map": {
+      "position": {
+        "left": 0,
+        "top": 40,
+        "right": 0,
+        "bottom": 0
+      }
+    },
+    "widgetPool": {
+      "panel": {
+        "uri": "themes/FoldableTheme/panels/FoldablePanel/Panel",
+        "position": {
+          "top": 5,
+          "right": 5,
+          "bottom": 5,
+          "zIndex": 5
+        }
+      }
+    }
   },
   "loadingPage": {
     "backgroundColor": "#508dca",
@@ -308,13 +456,13 @@
     },
     "loadingGif": {
       "visible": true,
-      "uri": "configs/loading/images/predefined_loading_1.gif",
+      "uri": "/webappbuilder/apps/8/configs/loading/images/predefined_loading_1.gif",
       "width": 58,
       "height": 29
     }
   },
-  "wabVersion": "1.4",
-  "isTemplateApp": false,
+  "wabVersion": "2.2",
+  "isTemplateApp": true,
   "isWebTier": false,
   "httpProxy": {
     "useProxy": true,

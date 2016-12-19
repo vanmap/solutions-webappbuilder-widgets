@@ -44,7 +44,7 @@ define(
           goldenWidth: 100,
           goldenHeight: 60
         });
-        this.own(on(this.name, 'Change', lang.hitch(this, '_onNameChange')));
+        this.own(on(this.displayName, 'Change', lang.hitch(this, '_onNameChange')));
         html.addClass(this.imageChooser.domNode, 'img-chooser');
         html.place(this.imageChooser.domNode, this.imageChooserBase, 'replace');
       },
@@ -55,9 +55,12 @@ define(
           itemId: this.itemId
         };
 
-        if (bookmark.name){
-          this.name.set('value', bookmark.name);
+        if (bookmark.displayName){
+          this.displayName.set('value', bookmark.displayName);
         }
+        //if (bookmark.name){
+        //  this.rawName = bookmark.name;
+        //}
         if (bookmark.thumbnail){
           var thumbnailValue = utils.processUrlInWidgetConfig(bookmark.thumbnail, this.folderUrl);
           this.imageChooser.setDefaultSelfSrc(thumbnailValue);
@@ -78,7 +81,8 @@ define(
 
       getConfig: function(){
         var bookmark = {
-          name: this.name.get("value"),
+          displayName: this.displayName.get("value"),
+          name: this.displayName.get("value"),
           extent: this.extentChooser.getExtent(),
           thumbnail: this.imageChooser.imageData,
           isInWebmap: this.isInWebmap
@@ -95,7 +99,7 @@ define(
       },
 
       _checkRequiredField: function(){
-        if (!this.name.get('value')){
+        if (!this.displayName.get('value')){
           if (this.popup){
             this.popup.disableButton(0);
           }

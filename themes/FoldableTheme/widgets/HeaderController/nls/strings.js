@@ -5,7 +5,8 @@ define({
     signout: "Sign Out",
     about: "About",
     signInTo: "Sign in to",
-    cantSignOutTip: "This function is N/A in preview mode."
+    cantSignOutTip: "This function is N/A in preview mode.",
+    more: "more"
   }),
   "ar": 1,
   "cs": 1,
@@ -17,6 +18,7 @@ define({
   "fi": 1,
   "fr": 1,
   "he": 1,
+  "hr": 1,
   "it": 1,
   "ja": 1,
   "ko": 1,
@@ -29,6 +31,7 @@ define({
   "pt-pt": 1,
   "ro": 1,
   "ru": 1,
+  "sr": 1,
   "sv": 1,
   "th": 1,
   "tr": 1,

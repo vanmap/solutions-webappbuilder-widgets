@@ -7,7 +7,6 @@
     <div data-dojo-type="dijit/layout/ContentPane"
          data-dojo-attach-point="selectSection"
          title="CI_KR">
-        ${nls.info}
         <div data-dojo-attach-point="drawBox" data-dojo-type="jimu/dijit/DrawBox" data-dojo-props='types:["polygon"],showClear:true' style="margin-top:20px;"></div>
     </div>
     <!-- CIKR Results Section -->
@@ -32,17 +31,15 @@
                 <div data-dojo-type="dijit/layout/ContentPane"
                      data-dojo-attach-point="cpDemographic"
                      selected="true"
-                     title="Demographics"
-                     style="height:500px">   
+                     title="Demographics">   
                     <div data-dojo-attach-point="demoCategoryForm">
                         <!-- Multiple Select Category Type label -->
                         <label>Select Category Type</label>
-                        <br />
+                        <br /> <br />
                         <!-- Multiple Category Type drop down list -->
                         <select id="demoCategoryTypesId"
                                 data-dojo-attach-point="demoCategoryTypes"
-                                data-dojo-type="dijit/form/Select"
-                                style="width:100%">
+                                data-dojo-type="dijit/form/Select">
                         </select>
                     </div>              
                     <div class="chart-section-item chart-container" data-dojo-attach-point="pieChartSection"></div>
@@ -51,8 +48,7 @@
                 <div data-dojo-type="dijit/layout/ContentPane"
                      data-dojo-attach-point="cpFacilities"
                      title="Texas State Parks"
-                     class="cpFacilities"
-                     style="height:500px">
+                     class="cpFacilities">
                     <div class="resultsList" data-dojo-attach-point="facilitiesListSection" id="facilitiesListDiv" />
 
                     <div data-dojo-attach-point="facilitiesListToCopy" id="hiddenFacilitiesDiv" style="display:none;" />

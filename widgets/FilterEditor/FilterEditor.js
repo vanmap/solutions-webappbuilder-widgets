@@ -74,6 +74,10 @@ define([
        */
       postCreate: function () {
         this.inherited(arguments);
+
+        this.featureLayerNames = [];
+        this.flList = [];
+        
         this._getLayers();
         this._getFeatureLayers();
 
@@ -94,6 +98,22 @@ define([
       },
 
       /**
+       * Resets and null out class variables
+       */
+      destroy: function () {
+        this.inherited(arguments);
+        if (this.featureLayerNames) {
+          this.featureLayerNames = [];          
+        }          
+        if (this.flList) {
+          this.flList = [];
+        }
+        if (this.searchTemplatePicker) {
+          this.searchTemplatePicker = null;
+        }
+      },      
+
+      /**
        * Updates the template picker based on selection in dropdown
        **/
       _updateTemplate: function () {
@@ -105,22 +125,23 @@ define([
         if (val !== "") {
           if (val === "All") {
             this.searchTemplatePicker.attr("featureLayers", this.flList);
+
             if (this.filterTextBox.value === "") {
               this.searchTemplatePicker.attr("grouping", true);
             }
             else {
               this.searchTemplatePicker.attr("grouping", false);
             }
+
             this.searchTemplatePicker.update();
-          } else {
-            var flVal = this.selectDropDown.value;
-            var layer = new FeatureLayer(flVal);
-            layer.on("Load", lang.hitch(this, function (evt) {
-              this.searchTemplatePicker.attr("featureLayers", [layer]);
-              this.searchTemplatePicker.update();
-            }));
-            this.searchTemplatePicker.attr("grouping", false);
+
+            return;
           }
+          var flVal = this.selectDropDown.value;
+          var layer = new FeatureLayer(flVal);
+          this.searchTemplatePicker.attr("featureLayers", [layer]);
+          this.searchTemplatePicker.attr("grouping", false);
+          this.searchTemplatePicker.update();
         }
       },
 

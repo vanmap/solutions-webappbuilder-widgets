@@ -1,9 +1,13 @@
+
+
 # Filter Editor
-Similar to the Edit widget, the Filter Editor widget allows users to edit multiple feature layer services. 
-This widget displays each feature layer in a drop down list which provides easier access and readability.  
+Similar to the Edit widget, the Filter Editor widget allows users to edit multiple feature layer services.
+This widget displays each feature layer in a drop down list which provides easier access and readability.
 The ability to filter templates has also been added.  The filtering is done based on the selected feature layer
-in the drop down list.  If 'All' is selected, the TemplatePicker will display the filtered templates for all 
+in the drop down list.  If 'All' is selected, the TemplatePicker will display the filtered templates for all
 of the feature layers.
+
+[This tool is moving to Mature Support](#mature-support)
 
 ## Sections
 
@@ -12,6 +16,7 @@ of the feature layers.
 * [Instructions](#instructions)
 * [Resources](#resources)
 * [Issues](#issues)
+* [Mature Support](#mature-support)
 * [Contributing](#contributing)
 * [Licensing](#licensing)
 
@@ -21,7 +26,7 @@ of the feature layers.
 * Each feature service is displayed in a drop down list
 
 ## Requirements
-* ArcGIS WebApp Builder v.1.2
+* This widget is compatible with ArcGIS WebApp Builder versions 1.1, 1.2 and 1.3.
 
 ## Instructions
 In order to develop and test widgets, you need to deploy the Filter Editor widget directory into the stemapp/widgets
@@ -31,6 +36,8 @@ directory in your WebApp Builder installation.
 
 * Find a bug or want to request a new feature?  Please let us know by submitting an issue.
 
+## Mature Support
+For information Esri support levels visit the [Esri Product Life Cycle](http://support.esri.com/other-resources/product-life-cycle) page. Toolboxes marked for Mature Support will be removed from this repository's *dev* and *master* branches in the future, but will still be availalbe from earlier [releases](https://github.com/Esri/solutions-geoprocessing-toolbox/releases).
 ## Contributing
 
 Esri welcomes contributions from anyone and everyone. Please see our [guidelines for contributing](https://github.com/esri/contributing).
@@ -57,5 +64,5 @@ limitations under the License.
 A copy of the license is available in the repository's
 [license.txt](license.txt) file.
 
-[](Esri Tags: ArcGIS Defense and Intelligence Military Environment Planning Analysis Emergency Management Local-Government Local Government State-Government State Government Utilities)
+[](Esri Tags: ArcGISSolutions ArcGIS Defense and Intelligence Military Environment Planning Analysis Emergency Management Local-Government Local Government State-Government State Government Utilities)
 [](Esri Language: Javascript)

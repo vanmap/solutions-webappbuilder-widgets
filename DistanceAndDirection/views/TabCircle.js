@@ -41,6 +41,8 @@ define([
   'esri/graphic',
   'esri/units',
   'esri/geometry/webMercatorUtils',
+  'esri/geometry/Polyline',
+  'esri/geometry/Point',
   'esri/geometry/Circle',
   'esri/tasks/FeatureSet',
   'esri/layers/LabelClass',
@@ -76,6 +78,8 @@ define([
   EsriGraphic,
   esriUnits,
   esriWMUtils,
+  EsriPolyline,
+  EsriPoint,
   EsriCircle,
   EsriFeatureSet,
   EsriLabelClass,
@@ -456,11 +460,20 @@ define([
      */
     lengthUnitDDDidChange: function () {
       this.currentLengthUnit = this.lengthUnitDD.get('value');
+      var currentCreateCircleFrom = this.creationType.get('value');
       this.dt.set('lengthUnit', this.currentLengthUnit);
       if (this.currentCircle) {
         var currentLength = this.currentCircle.getLength(this.currentLengthUnit);
-        var length = this.creationType.get('value') === 'Radius' ?
-          currentLength : currentLength * 2;
+        var length = 0;
+        if (this.currentCircle.createCircleFrom === currentCreateCircleFrom) {
+          length = currentLength;  
+        } else {
+          if (currentCreateCircleFrom === "Radius") {
+            length = currentLength / 2;
+          } else {
+            length = currentLength * 2;
+          }
+        }
         dojoDomAttr.set(
           this.lengthInput,
           'value',
@@ -473,15 +486,40 @@ define([
      *
      */
     creationTypeDidChange: function() {
-      this.lengthUnitDDDidChange();
-      this.radiusDiameterLabel.innerHTML = this.creationType.get('value');
+      //this.lengthUnitDDDidChange();
+      var currentCreateCircleFrom = this.creationType.get('value');
+      this.radiusDiameterLabel.innerHTML = currentCreateCircleFrom;
+      if (this.currentCircle) {
+        var currentLength = this.currentCircle.getLength(this.currentLengthUnit);
+        var length = 0;
+        if (this.currentCircle.createCircleFrom === currentCreateCircleFrom) {
+          length = currentLength;  
+        } else {
+          if (currentCreateCircleFrom === "Radius") {
+            length = currentLength / 2;
+          } else {
+            length = currentLength * 2;
+          }
+        }
+        dojoDomAttr.set(
+          this.lengthInput,
+          'value',
+          this.currentCircle.formatLength(length)
+        );
+      }
     },
 
     /*
      *
      */
     feedbackDidComplete: function (results) {
-        this.setGraphic(false);
+        var center = results.geometry.center;
+        var edge = new EsriPoint(results.geometry.rings[0][0][0],
+          results.geometry.rings[0][0][1],
+          results.geometry.center.spatialReference);
+        var geom = new EsriPolyline(results.geometry.center.spatialReference);
+        geom.addPath([center, edge]);
+        this.setGraphic(false, geom);
     },
 
     /*
@@ -542,7 +580,7 @@ define([
     /*
      *
      */
-    setGraphic: function (isManual) {
+    setGraphic: function (isManual, lineGeom) {
 
       var results = {};
 
@@ -586,7 +624,9 @@ define([
       );
 
       results.geometry = this.coordTool.inputCoordinate.coordinateEsriGeometry;
+      results.lineGeometry = lineGeom;
       this.currentCircle = new ShapeModel(results);
+      this.currentCircle.createCircleFrom = this.creationType.get('value');
 
       this.currentCircle.graphic = new EsriGraphic(
         this.currentCircle.wmGeometry,

@@ -239,6 +239,7 @@ define([
             switch(this._points.length)
             {
                 case 1:
+                    this.set('startPoint', this._points[0]);
                     // create and add our major / minor graphics
                     var maxLine = new EsriPolyLine({
                         paths: [[

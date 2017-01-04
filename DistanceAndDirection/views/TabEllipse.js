@@ -454,7 +454,7 @@ define([
           this.map.enableMapNavigation();
           this.dt.deactivate();
           this.dt.removeStartGraphic();
-          dojoDomClass.toggle(this.addPointBtn, 'jimu-state-active');
+          dojoDomClass.remove(this.addPointBtn, 'jimu-state-active');
         },
 
         /*
@@ -464,11 +464,11 @@ define([
           if (this._gl) {
             this._gl.clear();
             this.coordTool.clear();
-            dojoDomAttr.set(this.startPointCoords, 'value', '');
-            dojoDomAttr.set(this.majorAxisInput, 'value', '');
-            dojoDomAttr.set(this.minorAxisInput, 'value', '');
-            dojoDomAttr.set(this.angleInput, 'value', '');
+            this.majorAxisInput.set('value', '');
+            this.minorAxisInput.set('value', '');
+            this.angleInput.set('value', '');
           }
+          dojoDomClass.remove(this.addPointBtn, 'jimu-state-active');
         },
 
         /*

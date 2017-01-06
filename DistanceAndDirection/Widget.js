@@ -259,7 +259,7 @@ define([
                       content: this.ellipseTab
                   },
                   {
-                      title: 'Range',
+                      title: 'Rings',
                       content: this.rangeTab
                   }
                 ]

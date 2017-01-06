@@ -115,7 +115,7 @@ define(['dojo/_base/declare',
                   var buttonHeight = (arrayFieldsFromFeatureService.length * 20) + 150;
 
                   document.getElementById('fieldsetForm').style.height = height + 'px';
-                  document.getElementById('fieldsetForm').style.width = '300px';
+                  document.getElementById('fieldsetForm').style.width = '320px';
                   //this.getPanel().resize({w:350})
                 
                   document.getElementById('_5_panel').style.width="350px";

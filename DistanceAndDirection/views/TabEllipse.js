@@ -414,11 +414,11 @@ define([
             if (this.currentAngleUnit == "degrees")
             {
               this.angleInput.constraints.max = 360;
-            this.angleInput.rangeMessage = "Value must be between than 0 and 360";
+            this.angleInput.rangeMessage = "Value must be between 0 and 360";
               
             } else {
             this.angleInput.constraints.max = 6400;
-            this.angleInput.rangeMessage = "Value must be between than 0 and 6400";
+            this.angleInput.rangeMessage = "Value must be between 0 and 6400";
             }
 
         },

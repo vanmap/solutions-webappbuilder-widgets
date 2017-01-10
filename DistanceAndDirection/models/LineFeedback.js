@@ -73,6 +73,27 @@ define([
          **/
         constructor: function () {
           this.inherited(arguments);
+          this.syncEvents();
+        },
+        
+        /*
+        * Start up event listeners
+        */
+        syncEvents: function () {
+            dojoTopic.subscribe(
+                'manual-linestart-point-input',
+                dojoLang.hitch(this, this.onLineStartManualInputHandler)
+            );
+        },
+        
+        /*
+        Handler for the manual input of start point
+        */
+        onLineStartManualInputHandler: function (centerPoint) {
+            this._points = [];
+            this._points.push(centerPoint.offset(0, 0));
+            this.set('startPoint', this._points[0]);
+            this.map.centerAt(centerPoint);
         },
 
         /**

@@ -206,12 +206,6 @@ define([
         )
       );
 
-      dojoOn(
-        this.coordTool,
-        'keyup',
-        dojoLang.hitch(this, this.startInputKeyPressed)
-      );
-
       dojoTopic.subscribe(
         'DD_CLEAR_GRAPHICS',
         dojoLang.hitch(this, this.clearGraphics)
@@ -224,6 +218,10 @@ define([
 
         this.coordTool.on('blur',
           dojoLang.hitch(this, this.coordToolDidLoseFocus)
+        ),
+        
+        dojoOn(this.coordTool, 'keyup',
+          dojoLang.hitch(this, this.coordToolKeyWasPressed)
         ),
 
         this.lengthUnitDD.on('change',
@@ -314,6 +312,21 @@ define([
        this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
      }));
     },
+    
+    /*
+     * catch key press in start point
+     */
+    coordToolKeyWasPressed: function (evt) {
+        if (evt.keyCode === dojoKeys.ENTER) {              
+            this.coordTool.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r) {
+                dojoTopic.publish(
+                  'manual-circle-center-point-input',
+                  this.coordTool.inputCoordinate.coordinateEsriGeometry
+                );
+                this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
+            }));
+        }
+    },
 
     /*
      *
@@ -373,16 +386,7 @@ define([
               this.createManualGraphic();
           }
       }
-    },
-
-    /*
-     *
-     */
-    startInputKeyPressed: function (evt) {
-          if (evt.keyCode === dojoKeys.ENTER) {
-              this.dt.addStartGraphic(this.coordTool.inputCoordinate, this._ptSym);
-          }
-      },
+    },    
 
     /*
      *

@@ -213,6 +213,7 @@ define([
             this._points = [];
             this._points.push(centerPoint.offset(0, 0));
             this.set('startPoint', this._points[0]);
+            this.map.centerAt(centerPoint);
         },
 
         /*

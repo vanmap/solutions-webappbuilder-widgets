@@ -51,10 +51,21 @@ define([
          *
          **/
         constructor: function () {
+            this.syncEvents();
             this.inherited(arguments);
             this._utils = new Utils();
             this.circlePoints = [];
-            //this._onDoubleClickHandler_connect = dojoConnect.connect(this.map, 'onDblClick', dojoLang.hitch(this, this._onDoubleClickHandler));
+            
+        },
+        
+        /*
+
+        */
+        syncEvents: function () {
+            dojoTopic.subscribe(
+                'manual-rangering-center-point-input',
+                dojoLang.hitch(this, this.onCenterPointManualInputHandler)
+            );
         },
 
         /**
@@ -62,6 +73,16 @@ define([
          **/
         clearGraphics: function (evt) {
             this.map.graphics.clear();
+        },
+        
+        /*
+        Handler for the manual input of a center point
+        */
+        onCenterPointManualInputHandler: function (centerPoint) {
+            this._points = [];
+            this._points.push(centerPoint.offset(0, 0));
+            this.set('startPoint', this._points[0]);
+            this.map.centerAt(centerPoint);
         },
 
         /**

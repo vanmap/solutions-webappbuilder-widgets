@@ -191,14 +191,11 @@ define([
           *
           */
         syncEvents: function () {
-
             this.dt.watch('startPoint', dojoLang.hitch(this, function (r, ov, nv) {
                 this.coordTool.inputCoordinate.set('coordinateEsriGeometry', nv);
                 this.dt.addStartGraphic(nv, this._ptSym);
             }));
             
-            
-
             this.coordTool.inputCoordinate.watch(
               'outputString', dojoLang.hitch(
                 this, function (r, ov, nv) {
@@ -316,8 +313,7 @@ define([
          */
         onMinorAxisInputKeyupHandler: function (evt) {
             dojoTopic.publish('manual-ellipse-minor-axis-input', this.minorAxisInput);
-        },
-        
+        },        
         
         /*
          *
@@ -356,22 +352,18 @@ define([
             this.angleInput.setValue(number);
             this.dt.set('angle', number);
         },
+        
         /*
          * catch key press in start point
          */
         coordToolKeyWasPressed: function (evt) {
-
             if (evt.keyCode === dojoKeys.ENTER) {
                 this.coordTool.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r) {
                     dojoTopic.publish(
                       'manual-ellipse-center-point-input',
                       this.coordTool.inputCoordinate.coordinateEsriGeometry
                     );
-                    this.dt.addStartGraphic(
-                      r.coordinateEsriGeometry,
-                      this._ptSym
-                    );
-                    //this.createCenterPointGraphic();
+                    this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
                 }));
             }
         },
@@ -518,11 +510,11 @@ define([
         *
         */
         setCoordLabel: function (toType) {
-            this.coordInputLabel.innerHTML = dojoString.substitute(
-              'Center Point (${crdType})', {
-                  crdType: toType
-              }
-            );
+          this.coordInputLabel.innerHTML = dojoString.substitute(
+            'Center Point (${crdType})', {
+                crdType: toType
+            }
+          );
         }
     });
 });

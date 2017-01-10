@@ -160,6 +160,9 @@ define([
               this.coordTool.on('blur',
                 dojoLang.hitch(this, this.coordToolDidLoseFocus)
               ),
+              dojoOn(this.coordTool, 'keyup',
+                dojoLang.hitch(this, this.coordToolKeyWasPressed)
+              ),
               this.dt.on('draw-complete',
                 dojoLang.hitch(this, this.feedbackDidComplete)
               ),
@@ -232,6 +235,21 @@ define([
                   this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
 
               }));
+        },
+        
+        /*
+         * catch key press in start point
+         */
+        coordToolKeyWasPressed: function (evt) {
+            if (evt.keyCode === dojoKeys.ENTER) {              
+                this.coordTool.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r) {
+                    dojoTopic.publish(
+                      'manual-rangering-center-point-input',
+                      this.coordTool.inputCoordinate.coordinateEsriGeometry
+                    );
+                    this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
+                }));
+            }
         },
 
         /*

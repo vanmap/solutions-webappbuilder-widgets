@@ -52,11 +52,8 @@ define([
      */
     constructor: function () {
       this.inherited(arguments);
-
       this._utils = new Utils();
-
       this.syncEvents();
-
     },
 
     /*
@@ -78,6 +75,21 @@ define([
         dojoTopic.subscribe('MANUAL_CIRCLE_RADIUS_INPUT_COMPLETE',
            dojoLang.hitch(this, this.manualRadiusUpdateComplete)
         );
+        
+        dojoTopic.subscribe(
+            'manual-circle-center-point-input',
+            dojoLang.hitch(this, this.onCenterPointManualInputHandler)
+        );
+    },
+    
+    /*
+    Handler for the manual input of a center point
+    */
+    onCenterPointManualInputHandler: function (centerPoint) {
+        this._points = [];
+        this._points.push(centerPoint.offset(0, 0));
+        this.set('startPoint', this._points[0]);
+        this.map.centerAt(centerPoint);
     },
 
     /*

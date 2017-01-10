@@ -33,6 +33,7 @@ define([
     'dijit/_WidgetsInTemplateMixin',
     'dijit/TooltipDialog',
     'dijit/popup',
+    'jimu/dijit/Message',
     'esri/layers/GraphicsLayer',
     'esri/layers/FeatureLayer',
     'esri/layers/LabelClass',
@@ -73,6 +74,7 @@ define([
     dijitWidgetsInTemplate,
     DijitTooltipDialog,
     DijitPopup,
+    Message,
     EsriGraphicsLayer,
     EsriFeatureLayer,
     EsriLabelClass,
@@ -365,6 +367,10 @@ define([
             this.coordToolStart.on('blur',
               dojoLang.hitch(this, this.coordToolStartDidLoseFocus)
             ),
+            
+            this.coordToolStart.on('keyup',
+              dojoLang.hitch(this, this.coordToolKeyWasPressed)
+            ),
 
             this.coordToolEnd.on('blur',
               dojoLang.hitch(this, this.coordToolEndDidLoseFocus)
@@ -387,15 +393,21 @@ define([
          * catch key press in start point
          */
         coordToolEndKeyWasPressed: function (evt) {
-
           if (this.lineTypeDD.get('value') !== 'Points') {
             return;
           }
 
           if (evt.keyCode === dojoKeys.ENTER ) {
-            this.coordToolEnd.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r) {
-              this.createManualGraphic();
-            }));
+            if(this.coordToolEnd.isValid() && this.coordToolStart.isValid() && this.coordToolStart.value != "") {
+              this.coordToolEnd.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r) {
+                this.createManualGraphic();
+              }));
+            }
+            else {
+              var alertMessage = new Message({
+                message: '<p>The line creation form contains invalid parameters. Please check the start and end points contain a valid values.</p>'
+              });
+            }
           }
         },
 
@@ -409,8 +421,21 @@ define([
            this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
          }));
         },
-
-
+        
+        /*
+         * catch key press in start point
+         */
+        coordToolKeyWasPressed: function (evt) {
+          if (evt.keyCode === dojoKeys.ENTER) {              
+            this.coordToolStart.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r) {
+              dojoTopic.publish(
+                'manual-linestart-point-input',
+                this.coordToolStart.inputCoordinate.coordinateEsriGeometry
+              );
+              this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
+            }));
+          }
+        },
 
         /*
          *

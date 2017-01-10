@@ -79,10 +79,14 @@ viewshed = arcpy.GetParameterAsText(6)
 wedge = arcpy.GetParameterAsText(7)
 fullwedge = arcpy.GetParameterAsText(8)
 
-elevation = r"d:\GitHub\air-c2-cop\data\Elevation\gtop30"
-
+# elevation = r"d:\GitHub\air-c2-cop\data\Elevation\gtop30"
+# elevation = r"D:\Workspace\Data\n36prj.tif"
+# elevation = r"D:\GitHub\military-tools-geoprocessing-toolbox\testdata\Elevation\Source\SRTM30M\n36.dt2"
 
 Output_CS = arcpy.Describe(elevation).spatialReference
+if not Output_CS.type == "Projected":
+    arcpy.AddError("Data Error: Input elevation raster must be in a projected coordinate system. Existing elevation raster is in {0}.".format(Output_CS.name))
+    
 arcpy.env.outputCoordinateSystem = Output_CS
 
 polylist = []
@@ -92,15 +96,18 @@ wedges = []
 ########End of Script Parameters##################
 ####
 
-arcpy.CalculateField_management(Point_Input, "RADIUS1", "0", "PYTHON", "")
-arcpy.CalculateField_management(Point_Input, "OFFSETB", "0", "PYTHON", "")
-arcpy.CalculateField_management(Point_Input, "RADIUS2", Radius2_Input, "PYTHON", "")
-arcpy.CalculateField_management(Point_Input, "AZIMUTH1", Azimuth1_Input, "PYTHON", "")
-arcpy.CalculateField_management(Point_Input, "AZIMUTH2", Azimuth2_Input, "PYTHON", "")
-arcpy.CalculateField_management(Point_Input, "OFFSETA", OffsetA_Input, "PYTHON", "")
-arcpy.CalculateField_management(Point_Input, "RADIUS1", Radius1_Input, "PYTHON", "")
+arcpy.CopyFeatures_management(Point_Input, "in_memory\\tempPoints")
+Point_Input = "in_memory\\tempPoints"
 
-arcpy.Buffer_analysis(Point_Input, "in_memory\OuterBuffer", "RADIUS2", "FULL", "ROUND", "NONE", "", "PLANAR")
+arcpy.CalculateField_management(Point_Input, "RADIUS1", "0", "PYTHON_9.3", "")
+arcpy.CalculateField_management(Point_Input, "OFFSETB", "0", "PYTHON_9.3", "")
+arcpy.CalculateField_management(Point_Input, "RADIUS2", Radius2_Input, "PYTHON_9.3", "")
+arcpy.CalculateField_management(Point_Input, "AZIMUTH1", Azimuth1_Input, "PYTHON_9.3", "")
+arcpy.CalculateField_management(Point_Input, "AZIMUTH2", Azimuth2_Input, "PYTHON_9.3", "")
+arcpy.CalculateField_management(Point_Input, "OFFSETA", OffsetA_Input, "PYTHON_9.3", "")
+arcpy.CalculateField_management(Point_Input, "RADIUS1", Radius1_Input, "PYTHON_9.3", "")
+
+arcpy.Buffer_analysis(Point_Input, "in_memory\OuterBuffer", "RADIUS2", "FULL", "ROUND", "NONE", "", "GEODESIC")
 
 desc = arcpy.Describe("in_memory\OuterBuffer")
 xMin = desc.Extent.XMin

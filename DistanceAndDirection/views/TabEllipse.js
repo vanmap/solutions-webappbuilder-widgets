@@ -323,10 +323,10 @@ define([
          *
          */
         onOrientationAngleKeyupHandler: function (evt) {
-            this.dt.set('angle', this.angleInput.value);
+            this.dt.set('angle', this.angleInput.displayedValue);
             if (evt.keyCode === dojoKeys.ENTER) {
                 if (this.angleInput.isValid() && this.minorAxisInput.isValid() && this.majorAxisInput.isValid()) {                
-                    dojoTopic.publish('manual-ellipse-orientation-angle-input', this.angleInput.value);
+                    dojoTopic.publish('manual-ellipse-orientation-angle-input', this.angleInput.displayedValue);
                 } else {
                   var alertMessage = new Message({
                     message: '<p>The ellipse creation form contains invalid parameters. Please check your Orientation Angle, Major axis and Minor axis contain valid values.</p>'
@@ -444,7 +444,7 @@ define([
           this.currentEllipse.graphic.setAttributes({
             'MINOR': dojoDomAttr.get(this.minorAxisInput, 'value').toString() + " " + unitForDistance,
             'MAJOR': majorValue.toString() + " " + unitForDistance,
-            'ORIENTATION_ANGLE': dojoDomAttr.get(this.angleInput, 'value').toString() + " " + unitForAngle,
+            'ORIENTATION_ANGLE': this.angleInput.displayedValue.toString() + " " + unitForAngle,
           });
 
           this._gl.add(this.currentEllipse.graphic);

@@ -114,6 +114,10 @@ define([
                     var endPoint = this.getEndPoint(centerPoint, 0, lengthInMeters);
                     //Add major length point to array
                     this._points.splice(1, 0, endPoint);
+                    while (this._points.length > 2)
+                    {
+                      this._points.pop();
+                    }
                     //Clear major length graphic first
                     if (this._majGraphic) {
                         this.map.graphics.remove(this._majGraphic);
@@ -161,6 +165,10 @@ define([
                     var endPoint = this.getEndPoint(centerPoint, 90, lengthInMeters);
                     //Add major length point to array
                     this._points.splice(2, 0, endPoint);
+                    while (this._points.length > 3)
+                    {
+                      this._points.pop();
+                    }
                     //Clear major length graphic first
                     if (this._minGraphic) {
                         this.map.graphics.remove(this._minGraphic);

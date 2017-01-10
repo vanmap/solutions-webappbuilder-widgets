@@ -317,22 +317,6 @@
         "id": "widgets_ImageDiscovery_Widget_23"
       },
       {
-        "name": "IncidentAnalysis",
-        "version": "2.2",
-        "featureActions": [
-          {
-            "name": "SetAsIncident",
-            "uri": "SetAsIncident"
-          }
-        ],
-        "uri": "widgets/IncidentAnalysis/Widget",
-        "index": 11,
-        "id": "widgets_IncidentAnalysis_Widget_24",
-        "position": {
-          "relativeTo": "map"
-        }
-      },
-      {
         "name": "InfoSummary",
         "version": "2.3",
         "IsController": false,

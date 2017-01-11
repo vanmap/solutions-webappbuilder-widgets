@@ -369,7 +369,9 @@ define([
          */
         lengthUnitDDDidChange: function () {
             this.currentLengthUnit = this.lengthUnitDD.get('value');
-            this.dt.set('lengthUnit', this.currentLengthUnit);            
+            this.dt.set('lengthUnit', this.currentLengthUnit);
+            this.onMajorAxisInputKeyupHandler();
+            this.onMinorAxisInputKeyupHandler();
         },
 
         /*

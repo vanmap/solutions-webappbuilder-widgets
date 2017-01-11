@@ -436,6 +436,7 @@ define([
                 'manual-linestart-point-input',
                 this.coordToolStart.inputCoordinate.coordinateEsriGeometry
               );
+              this.setCoordLabelStart(r.inputType);
               this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
             }));
           }

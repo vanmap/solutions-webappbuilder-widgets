@@ -323,6 +323,7 @@ define([
                   'manual-circle-center-point-input',
                   this.coordTool.inputCoordinate.coordinateEsriGeometry
                 );
+                this.setCoordLabel(r.inputType);
                 this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
             }));
         }

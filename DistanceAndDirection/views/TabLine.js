@@ -529,16 +529,17 @@ define([
         feedbackDidComplete: function (results) {
           if (this.lengthInput.get('value') !== undefined || this.angleInput.get('value') !== undefined) {
             this.currentLine = new ShapeModel(results);
+            
             this.currentLine.graphic = new EsriGraphic(
               this.currentLine.wmGeometry,
               this._lineSym, {
-                'GeoLength': this.lengthInput.get('value'),
-                'LineAngle': this.angleInput.get('value')
+                'GeoLength': this.currentLine.getFormattedLength(this.currentLengthUnit),
+                'LineAngle': this.currentLine.getAngle(this.currentAngleUnit)
               }
             );
 
-            //this.lengthUnitDDDidChange();
-            //this.angleUnitDDDidChange();
+            this.lengthUnitDDDidChange();
+            this.angleUnitDDDidChange();
 
             this._gl.add(this.currentLine.graphic);
             this._gl.refresh();
@@ -579,8 +580,9 @@ define([
            this._gl.remove(this.startGraphic);
 
             var stPt = this.coordToolStart.inputCoordinate.coordinateEsriGeometry;
-
-            var l = this.lengthInput.get('value');
+            
+            var l = this.dt._utils.convertToMeters(this.lengthInput.get('value'), this.lengthUnitDD.get('value'));
+            
             var ang = -Math.abs(this.angleInput.get('value'));
 
             var tempcircle = new EsriCircle(stPt, {

@@ -103,7 +103,7 @@ define([
           dojoLang.hitch(this, function (r) {
             this.hasError=true;
             this.inputType = 'UNKNOWN';
-            this.message = 'Invalid Coordinate 2';
+            this.message = 'Invalid Coordinate';
             dojoTopic.publish('COORDINATE_INPUT_TYPE_CHANGE', this);
             this.inputTypeDef.resolve(this);
           })
@@ -111,7 +111,7 @@ define([
       } else {
         this.hasError = true;
         this.inputType = 'UNKNOWN';
-        this.message = 'Invalid Coordinate 3';
+        this.message = 'Invalid Coordinate';
         this.inputTypeDef.resolve(this);
         dojoTopic.publish('COORDINATE_INPUT_TYPE_CHANGE', this);
       }

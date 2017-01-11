@@ -20,6 +20,7 @@ define([
     'dojo/_base/lang',
     'dojo/on',
     'dojo/topic',
+    'dojo/_base/html',
     'dojo/dom-attr',
     'dojo/dom-class',
     'dojo/dom-style',
@@ -57,6 +58,7 @@ define([
     dojoLang,
     dojoOn,
     dojoTopic,
+    dojoHTML,
     dojoDomAttr,
     dojoDomClass,
     dojoDomStyle,
@@ -191,56 +193,26 @@ define([
           *
           */
         syncEvents: function () {
-
+          
+            dojoTopic.subscribe('DD_CLEAR_GRAPHICS',dojoLang.hitch(this, this.clearGraphics));
+            //commented out as we want the graphics to remain when the widget is closed
+            /*dojoTopic.subscribe('DD_WIDGET_OPEN',dojoLang.hitch(this, this.setGraphicsShown));
+            dojoTopic.subscribe('DD_WIDGET_CLOSE',dojoLang.hitch(this, this.setGraphicsHidden));*/              
+            dojoTopic.subscribe('TAB_SWITCHED', dojoLang.hitch(this, this.tabSwitched));
+            dojoTopic.subscribe(DrawFeedBack.DD_ELLIPSE_MINOR_LENGTH_CHANGE,dojoLang.hitch(this,this.minorLengthDidChange));
+            dojoTopic.subscribe(DrawFeedBack.DD_ELLIPSE_MAJOR_LENGTH_CHANGE,dojoLang.hitch(this,this.majorLengthDidChange));            
+            dojoTopic.subscribe(DrawFeedBack.DD_ELLIPSE_ANGLE_CHANGE,dojoLang.hitch(this,this.angleDidChange));
+          
             this.dt.watch('startPoint', dojoLang.hitch(this, function (r, ov, nv) {
                 this.coordTool.inputCoordinate.set('coordinateEsriGeometry', nv);
                 this.dt.addStartGraphic(nv, this._ptSym);
             }));
             
-            
-
             this.coordTool.inputCoordinate.watch(
               'outputString', dojoLang.hitch(
                 this, function (r, ov, nv) {
                 this.coordTool.set('value', nv);
-            }));
-
-            dojoTopic.subscribe(
-              'DD_CLEAR_GRAPHICS',
-              dojoLang.hitch(this, this.clearGraphics)
-            );
-
-            dojoTopic.subscribe(
-              'DD_WIDGET_OPEN',
-              dojoLang.hitch(this, this.setGraphicsShown));
-
-            dojoTopic.subscribe(
-              'DD_WIDGET_CLOSE',
-              dojoLang.hitch(this, this.setGraphicsHidden));
-
-            dojoTopic.subscribe(
-              DrawFeedBack.DD_ELLIPSE_MINOR_LENGTH_CHANGE,
-              dojoLang.hitch(
-                this,
-                this.minorLengthDidChange
-              )
-            );
-
-            dojoTopic.subscribe(
-              DrawFeedBack.DD_ELLIPSE_MAJOR_LENGTH_CHANGE,
-              dojoLang.hitch(
-                this,
-                this.majorLengthDidChange
-              )
-            );
-            
-            dojoTopic.subscribe(
-              DrawFeedBack.DD_ELLIPSE_ANGLE_CHANGE,
-              dojoLang.hitch(
-                this,
-                this.angleDidChange
-              )
-            );
+            }));            
 
             this.own(
               this.dt.on(
@@ -316,17 +288,16 @@ define([
          */
         onMinorAxisInputKeyupHandler: function (evt) {
             dojoTopic.publish('manual-ellipse-minor-axis-input', this.minorAxisInput);
-        },
-        
+        },        
         
         /*
          *
          */
         onOrientationAngleKeyupHandler: function (evt) {
-            this.dt.set('angle', this.angleInput.value);
+            this.dt.set('angle', this.angleInput.displayedValue);
             if (evt.keyCode === dojoKeys.ENTER) {
                 if (this.angleInput.isValid() && this.minorAxisInput.isValid() && this.majorAxisInput.isValid()) {                
-                    dojoTopic.publish('manual-ellipse-orientation-angle-input', this.angleInput.value);
+                    dojoTopic.publish('manual-ellipse-orientation-angle-input', this.angleInput.displayedValue);
                 } else {
                   var alertMessage = new Message({
                     message: '<p>The ellipse creation form contains invalid parameters. Please check your Orientation Angle, Major axis and Minor axis contain valid values.</p>'
@@ -356,22 +327,19 @@ define([
             this.angleInput.setValue(number);
             this.dt.set('angle', number);
         },
+        
         /*
          * catch key press in start point
          */
         coordToolKeyWasPressed: function (evt) {
-
             if (evt.keyCode === dojoKeys.ENTER) {
                 this.coordTool.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r) {
                     dojoTopic.publish(
                       'manual-ellipse-center-point-input',
                       this.coordTool.inputCoordinate.coordinateEsriGeometry
                     );
-                    this.dt.addStartGraphic(
-                      r.coordinateEsriGeometry,
-                      this._ptSym
-                    );
-                    //this.createCenterPointGraphic();
+                    this.setCoordLabel(r.inputType);
+                    this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
                 }));
             }
         },
@@ -401,7 +369,9 @@ define([
          */
         lengthUnitDDDidChange: function () {
             this.currentLengthUnit = this.lengthUnitDD.get('value');
-            this.dt.set('lengthUnit', this.currentLengthUnit);            
+            this.dt.set('lengthUnit', this.currentLengthUnit);
+            this.onMajorAxisInputKeyupHandler();
+            this.onMinorAxisInputKeyupHandler();
         },
 
         /*
@@ -414,11 +384,11 @@ define([
             if (this.currentAngleUnit == "degrees")
             {
               this.angleInput.constraints.max = 360;
-            this.angleInput.rangeMessage = "Value must be between than 0 and 360";
+            this.angleInput.rangeMessage = "Value must be between 0 and 360";
               
             } else {
             this.angleInput.constraints.max = 6400;
-            this.angleInput.rangeMessage = "Value must be between than 0 and 6400";
+            this.angleInput.rangeMessage = "Value must be between 0 and 6400";
             }
 
         },
@@ -444,7 +414,7 @@ define([
           this.currentEllipse.graphic.setAttributes({
             'MINOR': dojoDomAttr.get(this.minorAxisInput, 'value').toString() + " " + unitForDistance,
             'MAJOR': majorValue.toString() + " " + unitForDistance,
-            'ORIENTATION_ANGLE': dojoDomAttr.get(this.angleInput, 'value').toString() + " " + unitForAngle,
+            'ORIENTATION_ANGLE': this.angleInput.displayedValue.toString() + " " + unitForAngle,
           });
 
           this._gl.add(this.currentEllipse.graphic);
@@ -454,7 +424,7 @@ define([
           this.map.enableMapNavigation();
           this.dt.deactivate();
           this.dt.removeStartGraphic();
-          dojoDomClass.toggle(this.addPointBtn, 'jimu-state-active');
+          dojoDomClass.remove(this.addPointBtn, 'jimu-state-active');
         },
 
         /*
@@ -464,11 +434,11 @@ define([
           if (this._gl) {
             this._gl.clear();
             this.coordTool.clear();
-            dojoDomAttr.set(this.startPointCoords, 'value', '');
-            dojoDomAttr.set(this.majorAxisInput, 'value', '');
-            dojoDomAttr.set(this.minorAxisInput, 'value', '');
-            dojoDomAttr.set(this.angleInput, 'value', '');
+            this.majorAxisInput.set('value', '');
+            this.minorAxisInput.set('value', '');
+            this.angleInput.set('value', '');
           }
+          dojoDomClass.remove(this.addPointBtn, 'jimu-state-active');
         },
 
         /*
@@ -518,11 +488,23 @@ define([
         *
         */
         setCoordLabel: function (toType) {
-            this.coordInputLabel.innerHTML = dojoString.substitute(
-              'Center Point (${crdType})', {
-                  crdType: toType
-              }
-            );
+          this.coordInputLabel.innerHTML = dojoString.substitute(
+            'Center Point (${crdType})', {
+                crdType: toType
+            }
+          );
+        },
+    
+        /*
+         * Make sure any active tools are deselected to prevent multiple actions being performed
+         */
+        tabSwitched: function () {
+            this.dt.deactivate();
+            this.dt.cleanup();
+            this.dt.disconnectOnMouseMoveHandler();
+            this.map.enableMapNavigation();
+            this.dt.removeStartGraphic();
+            dojoHTML.removeClass(this.addPointBtn, 'jimu-state-active');
         }
     });
 });

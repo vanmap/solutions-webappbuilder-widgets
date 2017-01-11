@@ -502,6 +502,15 @@ define([
         angleUnitDDDidChange: function () {
           this.currentAngleUnit = this.angleUnitDD.get('value');
           this.dt.set('angleUnit', this.currentAngleUnit);
+          if (this.currentAngleUnit == "degrees")
+          {
+            this.angleInput.constraints.max = 360;
+            this.angleInput.rangeMessage = "Value must be between 0 and 360";
+            
+          } else {
+            this.angleInput.constraints.max = 6400;
+            this.angleInput.rangeMessage = "Value must be between 0 and 6400";
+          }
         },
 
         /*
@@ -564,7 +573,14 @@ define([
             
             var l = this.dt._utils.convertToMeters(this.lengthInput.get('value'), this.lengthUnitDD.get('value'));
             
-            var ang = -Math.abs(this.angleInput.get('value'));
+            if (this.angleUnitDD.get('value') === 'mils') {
+              var ang = -Math.abs(this.angleInput.get('value')) / 17.777777778;
+            }
+            else
+            {
+              var ang = -Math.abs(this.angleInput.get('value'));
+            }
+            
 
             var tempcircle = new EsriCircle(stPt, {
               geodesic:true,

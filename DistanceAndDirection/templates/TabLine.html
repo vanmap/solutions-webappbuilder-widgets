@@ -66,9 +66,9 @@
         required="true"
         value="1"
         data-dojo-props="
-          constraints: {min: 0, max: 6283},
-          invalidMessage: 'Please enter a numeric value.',
-          rangeMessage: 'Invalid Angle'"
+          constraints: {min: 0, max: 360},
+          invalidMessage: 'The value entered must be numeric.',
+          rangeMessage: 'Value must be between 0 and 360'"
         data-dojo-attach-point="angleInput">
       </input>
       <select style="width: 100px" class="controlSpace" data-dojo-type="dijit/form/Select" data-dojo-attach-point="angleUnitDD">

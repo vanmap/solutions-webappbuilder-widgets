@@ -78,6 +78,7 @@ Radius1_Input = arcpy.GetParameterAsText(5)
 viewshed = arcpy.GetParameterAsText(6)
 wedge = arcpy.GetParameterAsText(7)
 fullwedge = arcpy.GetParameterAsText(8)
+elevation = arcpy.GetParameterAsText(9)
 
 # elevation = r"d:\GitHub\air-c2-cop\data\Elevation\gtop30"
 # elevation = r"D:\Workspace\Data\n36prj.tif"
@@ -99,7 +100,6 @@ wedges = []
 arcpy.CopyFeatures_management(Point_Input, "in_memory\\tempPoints")
 Point_Input = "in_memory\\tempPoints"
 
-arcpy.CalculateField_management(Point_Input, "RADIUS1", "0", "PYTHON_9.3", "")
 arcpy.CalculateField_management(Point_Input, "OFFSETB", "0", "PYTHON_9.3", "")
 arcpy.CalculateField_management(Point_Input, "RADIUS2", Radius2_Input, "PYTHON_9.3", "")
 arcpy.CalculateField_management(Point_Input, "AZIMUTH1", Azimuth1_Input, "PYTHON_9.3", "")

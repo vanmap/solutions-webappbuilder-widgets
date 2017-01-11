@@ -84,6 +84,10 @@ define([
                 'manual-linestart-point-input',
                 dojoLang.hitch(this, this.onLineStartManualInputHandler)
             );
+            dojoTopic.subscribe(
+                'manual-line-end-point-input',
+                dojoLang.hitch(this, this.onLineEndManualInputHandler)
+            );            
         },
         
         /*
@@ -94,6 +98,11 @@ define([
             this._points.push(centerPoint.offset(0, 0));
             this.set('startPoint', this._points[0]);
             this.map.centerAt(centerPoint);
+        },
+
+        onLineEndManualInputHandler: function (endPoint) {
+            this._points.push(endPoint.offset(0, 0));
+            this.set('endPoint', this._points[1]);
         },
 
         /**
@@ -160,6 +169,7 @@ define([
                   spatialReference: map.spatialReference
                 }), this.lineSymbol), true);
               } else {
+                this.set('endPoint', this._points[1]);
                 this._graphic.geometry._insertPoints([start.offset(0, 0)], 0);
                 // map.graphics.remove(this._tGraphic, true);
                 this._graphic.setGeometry(this._graphic.geometry).setSymbol(this.lineSymbol);

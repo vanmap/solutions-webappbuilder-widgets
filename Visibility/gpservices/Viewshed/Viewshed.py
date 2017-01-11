@@ -80,9 +80,6 @@ wedge = arcpy.GetParameterAsText(7)
 fullwedge = arcpy.GetParameterAsText(8)
 elevation = arcpy.GetParameterAsText(9)
 
-# elevation = r"d:\GitHub\air-c2-cop\data\Elevation\gtop30"
-# elevation = r"D:\Workspace\Data\n36prj.tif"
-# elevation = r"D:\GitHub\military-tools-geoprocessing-toolbox\testdata\Elevation\Source\SRTM30M\n36.dt2"
 
 Output_CS = arcpy.Describe(elevation).spatialReference
 if not Output_CS.type == "Projected":

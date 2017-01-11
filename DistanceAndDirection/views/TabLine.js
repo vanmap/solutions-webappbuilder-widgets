@@ -508,9 +508,6 @@ define([
         lengthUnitDDDidChange: function () {
           this.currentLengthUnit = this.lengthUnitDD.get('value');
           this.dt.set('lengthUnit', this.currentLengthUnit);
-          if (this.currentLine) {
-            this.lengthInput.set('value',this.currentLine.getFormattedLength(this.currentLengthUnit));
-          }
         },
 
         /*
@@ -519,9 +516,6 @@ define([
         angleUnitDDDidChange: function () {
           this.currentAngleUnit = this.angleUnitDD.get('value');
           this.dt.set('angleUnit', this.currentAngleUnit);
-          if (this.currentLine) {
-            this.angleInput.set('value', this.currentLine.getAngle(this.currentAngleUnit));
-          }
         },
 
         /*

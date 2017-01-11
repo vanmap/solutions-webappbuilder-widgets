@@ -23,6 +23,7 @@ define([
     'dojo/dom-class',
     'dojo/dom-style',
     'dojo/topic',
+    'dojo/_base/html',
     'dojo/string',
     'dojo/keys',
     'dojo/number',
@@ -60,6 +61,7 @@ define([
     dojoDomClass,
     dojoDomStyle,
     dojoTopic,
+    dojoHTML,
     dojoString,
     dojoKeys,
     dojoNumber,
@@ -113,8 +115,6 @@ define([
          * dijit post create
          */
         postCreate: function () {
-            console.log('TabRings');
-
             this._util = new Util();
 
             this._ptSym = new EsriSimpleMarkerSymbol(this.pointSymbol);
@@ -146,6 +146,12 @@ define([
          *
          */
         syncEvents: function () {
+          
+            dojoTopic.subscribe('DD_CLEAR_GRAPHICS',dojoLang.hitch(this,this.clearGraphics));
+            //commented out as we want the graphics to remain when the widget is closed
+            /*dojoTopic.subscribe('DD_WIDGET_OPEN',dojoLang.hitch(this, this.setGraphicsShown));
+            dojoTopic.subscribe('DD_WIDGET_CLOSE',dojoLang.hitch(this, this.setGraphicsHidden));*/
+            dojoTopic.subscribe('TAB_SWITCHED', dojoLang.hitch(this, this.tabSwitched));
 
             this.dt.watch('startPoint', dojoLang.hitch(this, function (r, ov, nv) {
                 this.coordTool.inputCoordinate.set('coordinateEsriGeometry', nv);
@@ -202,15 +208,7 @@ define([
                     DijitPopup.close(this.coordinateFormat);
                 })
               )
-            );
-
-            dojoTopic.subscribe(
-              'DD_CLEAR_GRAPHICS',
-              dojoLang.hitch(
-                this,
-                this.clearGraphics
-              )
-            );
+            );            
         },
 
         /*
@@ -247,6 +245,7 @@ define([
                       'manual-rangering-center-point-input',
                       this.coordTool.inputCoordinate.coordinateEsriGeometry
                     );
+                    this.setCoordLabel(r.inputType);
                     this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
                 }));
             }
@@ -407,7 +406,7 @@ define([
               var cGraphic = new EsriGraphic(circlePath,
                 this._lineSym,
                 {
-                  'Interval': dojoNumber.round(this._util.convertMetersToUnits(params.circles[params.c].radius, u))
+                  'Interval': dojoNumber.round(this._util.convertMetersToUnits(params.circles[params.c].radius, u)) + " " + this.ringIntervalUnitsDD.get('value').charAt(0).toUpperCase() + this.ringIntervalUnitsDD.get('value').slice(1)
                 }
               );
               this._gl.add(cGraphic);
@@ -495,6 +494,36 @@ define([
                 this.dt.removeStartGraphic();
                 this.coordTool.clear();
             }
+        },
+        
+        /*
+         *
+         */
+        setGraphicsHidden: function () {
+          if (this._gl) {
+            this._gl.hide();
+          }
+        },
+
+        /*
+         *
+         */
+        setGraphicsShown: function () {
+          if (this._gl) {
+            this._gl.show();
+          }
+        },
+    
+        /*
+         * Make sure any active tools are deselected to prevent multiple actions being performed
+         */
+        tabSwitched: function () {
+          this.dt.deactivate();
+          this.dt.cleanup();
+          this.dt.disconnectOnMouseMoveHandlers();
+          this.map.enableMapNavigation();
+          this.dt.removeStartGraphic();
+          dojoHTML.removeClass(this.addPointBtn, 'jimu-state-active');
         }
     });
 });

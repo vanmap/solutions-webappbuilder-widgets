@@ -20,6 +20,7 @@ define([
   'dojo/_base/lang',
   'dojo/on',
   'dojo/topic',
+  'dojo/_base/html',
   'dojo/dom-attr',
   'dojo/dom-class',
   'dojo/dom-style',
@@ -57,6 +58,7 @@ define([
   dojoLang,
   dojoOn,
   dojoTopic,
+  dojoHTML,
   dojoDomAttr,
   dojoDomClass,
   dojoDomStyle,
@@ -146,7 +148,7 @@ define([
           'geometryType': 'esriGeometryPolygon',
           'fields': [{
               'name': 'RADIUS',
-              'type': 'esriFieldTypeDouble',
+              'type': 'esriFieldTypeString',
               'alias': 'Radius'
             }]
           };
@@ -174,6 +176,12 @@ define([
      * Start up event listeners
      */
     syncEvents: function () {
+      
+      dojoTopic.subscribe('DD_CLEAR_GRAPHICS',dojoLang.hitch(this, this.clearGraphics));
+      //commented out as we want the graphics to remain when the widget is closed
+      /*dojoTopic.subscribe('DD_WIDGET_OPEN',dojoLang.hitch(this, this.setGraphicsShown));
+      dojoTopic.subscribe('DD_WIDGET_CLOSE',dojoLang.hitch(this, this.setGraphicsHidden));*/      
+      dojoTopic.subscribe('TAB_SWITCHED', dojoLang.hitch(this, this.tabSwitched));
 
       this.distCalcControl.watch('open',
         dojoLang.hitch(this, this.distCalcDidExpand)
@@ -181,7 +189,6 @@ define([
 
       this.dt.watch('length', dojoLang.hitch(this, function (n, ov, nv) {
         this.circleLengthDidChange(nv);
-        //this.lengthInput.set('value', nv);
       }));
 
       this.dt.watch(
@@ -204,12 +211,7 @@ define([
             this.coordTool.set('value', nv);
           }
         )
-      );
-
-      dojoTopic.subscribe(
-        'DD_CLEAR_GRAPHICS',
-        dojoLang.hitch(this, this.clearGraphics)
-      );
+      );      
 
       this.own(
         this.dt.on('draw-complete',
@@ -323,6 +325,7 @@ define([
                   'manual-circle-center-point-input',
                   this.coordTool.inputCoordinate.coordinateEsriGeometry
                 );
+                this.setCoordLabel(r.inputType);
                 this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
             }));
         }
@@ -636,7 +639,7 @@ define([
         this.currentCircle.wmGeometry,
         this._circleSym,
         {
-          'RADIUS': results.calculatedDistance
+          'RADIUS': this.lengthInput.value.toString() + " " + this.lengthUnitDD.get('value').charAt(0).toUpperCase() + this.lengthUnitDD.get('value').slice(1)
         }
       );
 
@@ -649,6 +652,7 @@ define([
       }
 
       this.emit('graphic_created', this.currentCircle);
+      this.dt.set('startPoint', null);      
     },
 
     /*
@@ -699,6 +703,19 @@ define([
       if (this._gl) {
         this._gl.show();
       }
+    },
+    
+    /*
+     * Make sure any active tools are deselected to prevent multiple actions being performed
+     */
+    tabSwitched: function () {
+      this.dt.deactivate();
+      this.dt.cleanup();
+      this.dt.disconnectOnMouseMoveHandler();
+      this.dt.set('startPoint', null);
+      this.map.enableMapNavigation();
+      this.dt.removeStartGraphic();
+      dojoHTML.removeClass(this.addPointBtn, 'jimu-state-active');
     }
 
   });

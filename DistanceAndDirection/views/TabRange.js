@@ -406,7 +406,7 @@ define([
               var cGraphic = new EsriGraphic(circlePath,
                 this._lineSym,
                 {
-                  'Interval': dojoNumber.round(this._util.convertMetersToUnits(params.circles[params.c].radius, u))
+                  'Interval': dojoNumber.round(this._util.convertMetersToUnits(params.circles[params.c].radius, u)) + " " + this.ringIntervalUnitsDD.get('value').charAt(0).toUpperCase() + this.ringIntervalUnitsDD.get('value').slice(1)
                 }
               );
               this._gl.add(cGraphic);

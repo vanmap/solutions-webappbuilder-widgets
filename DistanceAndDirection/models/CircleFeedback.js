@@ -232,7 +232,7 @@ define([
       }
 
       var circleGeometry = new EsriCircle(stPt, {
-        radius: unitLength,
+        radius: length,
         geodesic: true
       });
 

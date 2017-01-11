@@ -176,11 +176,11 @@ define([
                   },
                   'fields': [{
                     'name': 'GeoLength',
-                    'type': 'esriFieldTypeDouble',
+                    'type': 'esriFieldTypeString',
                     'alias': 'GeoLength'
                   }, {
                     'name': 'LineAngle',
-                    'type': 'esriFieldTypeDouble',
+                    'type': 'esriFieldTypeString',
                     'alias': 'LineAngle'
                   }]
                 };
@@ -514,8 +514,8 @@ define([
             this.currentLine.graphic = new EsriGraphic(
               this.currentLine.wmGeometry,
               this._lineSym, {
-                'GeoLength': this.currentLine.getFormattedLength(this.currentLengthUnit),
-                'LineAngle': this.currentLine.getAngle(this.currentAngleUnit)
+                'GeoLength': this.currentLine.getFormattedLength(this.currentLengthUnit) .toString() + " " + this.lengthUnitDD.get('value').charAt(0).toUpperCase() + this.lengthUnitDD.get('value').slice(1),
+                'LineAngle': this.currentLine.getAngle(this.currentAngleUnit) + " " + this.angleUnitDD.get('value').charAt(0).toUpperCase() + this.angleUnitDD.get('value').slice(1),
               }
             );
 

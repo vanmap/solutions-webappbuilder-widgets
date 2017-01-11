@@ -148,7 +148,7 @@ define([
           'geometryType': 'esriGeometryPolygon',
           'fields': [{
               'name': 'RADIUS',
-              'type': 'esriFieldTypeDouble',
+              'type': 'esriFieldTypeString',
               'alias': 'Radius'
             }]
           };
@@ -639,7 +639,7 @@ define([
         this.currentCircle.wmGeometry,
         this._circleSym,
         {
-          'RADIUS': results.calculatedDistance
+          'RADIUS': this.lengthInput.value.toString() + " " + this.lengthUnitDD.get('value').charAt(0).toUpperCase() + this.lengthUnitDD.get('value').slice(1)
         }
       );
 

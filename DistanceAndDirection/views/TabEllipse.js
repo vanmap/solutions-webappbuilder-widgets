@@ -20,6 +20,7 @@ define([
     'dojo/_base/lang',
     'dojo/on',
     'dojo/topic',
+    'dojo/_base/html',
     'dojo/dom-attr',
     'dojo/dom-class',
     'dojo/dom-style',
@@ -57,6 +58,7 @@ define([
     dojoLang,
     dojoOn,
     dojoTopic,
+    dojoHTML,
     dojoDomAttr,
     dojoDomClass,
     dojoDomStyle,
@@ -191,6 +193,16 @@ define([
           *
           */
         syncEvents: function () {
+          
+            dojoTopic.subscribe('DD_CLEAR_GRAPHICS',dojoLang.hitch(this, this.clearGraphics));
+            //commented out as we want the graphics to remain when the widget is closed
+            /*dojoTopic.subscribe('DD_WIDGET_OPEN',dojoLang.hitch(this, this.setGraphicsShown));
+            dojoTopic.subscribe('DD_WIDGET_CLOSE',dojoLang.hitch(this, this.setGraphicsHidden));*/              
+            dojoTopic.subscribe('TAB_SWITCHED', dojoLang.hitch(this, this.tabSwitched));
+            dojoTopic.subscribe(DrawFeedBack.DD_ELLIPSE_MINOR_LENGTH_CHANGE,dojoLang.hitch(this,this.minorLengthDidChange));
+            dojoTopic.subscribe(DrawFeedBack.DD_ELLIPSE_MAJOR_LENGTH_CHANGE,dojoLang.hitch(this,this.majorLengthDidChange));            
+            dojoTopic.subscribe(DrawFeedBack.DD_ELLIPSE_ANGLE_CHANGE,dojoLang.hitch(this,this.angleDidChange));
+          
             this.dt.watch('startPoint', dojoLang.hitch(this, function (r, ov, nv) {
                 this.coordTool.inputCoordinate.set('coordinateEsriGeometry', nv);
                 this.dt.addStartGraphic(nv, this._ptSym);
@@ -200,44 +212,7 @@ define([
               'outputString', dojoLang.hitch(
                 this, function (r, ov, nv) {
                 this.coordTool.set('value', nv);
-            }));
-
-            dojoTopic.subscribe(
-              'DD_CLEAR_GRAPHICS',
-              dojoLang.hitch(this, this.clearGraphics)
-            );
-
-            dojoTopic.subscribe(
-              'DD_WIDGET_OPEN',
-              dojoLang.hitch(this, this.setGraphicsShown));
-
-            dojoTopic.subscribe(
-              'DD_WIDGET_CLOSE',
-              dojoLang.hitch(this, this.setGraphicsHidden));
-
-            dojoTopic.subscribe(
-              DrawFeedBack.DD_ELLIPSE_MINOR_LENGTH_CHANGE,
-              dojoLang.hitch(
-                this,
-                this.minorLengthDidChange
-              )
-            );
-
-            dojoTopic.subscribe(
-              DrawFeedBack.DD_ELLIPSE_MAJOR_LENGTH_CHANGE,
-              dojoLang.hitch(
-                this,
-                this.majorLengthDidChange
-              )
-            );
-            
-            dojoTopic.subscribe(
-              DrawFeedBack.DD_ELLIPSE_ANGLE_CHANGE,
-              dojoLang.hitch(
-                this,
-                this.angleDidChange
-              )
-            );
+            }));            
 
             this.own(
               this.dt.on(
@@ -516,6 +491,18 @@ define([
                 crdType: toType
             }
           );
+        },
+    
+        /*
+         * Make sure any active tools are deselected to prevent multiple actions being performed
+         */
+        tabSwitched: function () {
+            this.dt.deactivate();
+            this.dt.cleanup();
+            this.dt.disconnectOnMouseMoveHandler();
+            this.map.enableMapNavigation();
+            this.dt.removeStartGraphic();
+            dojoHTML.removeClass(this.addPointBtn, 'jimu-state-active');
         }
     });
 });

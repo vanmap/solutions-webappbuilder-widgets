@@ -20,6 +20,7 @@ define([
     'dojo/_base/lang',
     'dojo/on',
     'dojo/topic',
+    'dojo/_base/html',
     'dojo/dom-attr',
     'dojo/dom-class',
     'dojo/dom-style',
@@ -61,6 +62,7 @@ define([
     dojoLang,
     dojoOn,
     dojoTopic,
+    dojoHTML,
     dojoDomAttr,
     dojoDomClass,
     dojoDomStyle,
@@ -223,6 +225,15 @@ define([
          * start listening for events
          */
         syncEvents: function () {
+          
+          dojoTopic.subscribe('DD_CLEAR_GRAPHICS',dojoLang.hitch(this, this.clearGraphics));
+          //commented out as we want the graphics to remain when the widget is closed
+          /*dojoTopic.subscribe('DD_WIDGET_OPEN',dojoLang.hitch(this, this.setGraphicsShown));
+          dojoTopic.subscribe('DD_WIDGET_CLOSE',dojoLang.hitch(this, this.setGraphicsHidden));*/
+          dojoTopic.subscribe('TAB_SWITCHED', dojoLang.hitch(this, this.tabSwitched));
+          dojoTopic.subscribe(DrawFeedBack.drawnLineLengthDidChange,dojoLang.hitch(this, this.lineLengthDidChange));
+          dojoTopic.subscribe(DrawFeedBack.drawnLineAngleDidChange,dojoLang.hitch(this, this.lineAngleDidChange));
+                   
           this.dt.watch('startPoint' , dojoLang.hitch(this, function (r, ov, nv) {
             this.coordToolStart.inputCoordinate.set('coordinateEsriGeometry', nv);
             this.dt.addStartGraphic(nv, this._ptSym);
@@ -254,31 +265,6 @@ define([
                 this.coordToolEnd.set('value', nv);
               }
             )
-          );
-
-          dojoTopic.subscribe(
-            'DD_CLEAR_GRAPHICS',
-            dojoLang.hitch(this, this.clearGraphics)
-          );
-
-          dojoTopic.subscribe(
-            'DD_WIDGET_OPEN',
-            dojoLang.hitch(this, this.setGraphicsShown)
-          );
-
-          dojoTopic.subscribe(
-            'DD_WIDGET_CLOSE',
-            dojoLang.hitch(this, this.setGraphicsHidden)
-          );
-
-          dojoTopic.subscribe(
-            DrawFeedBack.drawnLineLengthDidChange,
-            dojoLang.hitch(this, this.lineLengthDidChange)
-          );
-
-          dojoTopic.subscribe(
-            DrawFeedBack.drawnLineAngleDidChange,
-            dojoLang.hitch(this, this.lineAngleDidChange)
           );
 
           this.own(
@@ -633,6 +619,16 @@ define([
           if (this._gl) {
             this._gl.show();
           }
+        },
+    
+        /*
+         * Make sure any active tools are deselected to prevent multiple actions being performed
+         */
+        tabSwitched: function () {
+          this.dt.deactivate();
+          this.map.enableMapNavigation();
+          this.dt.removeStartGraphic();
+          dojoHTML.removeClass(this.addPointBtnLine, 'jimu-state-active');
         }
     });
 });

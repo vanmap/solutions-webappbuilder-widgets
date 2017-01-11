@@ -190,9 +190,7 @@ define([
          *
          **/
         _onDoubleClickHandler: function (evt) {
-            dojoConnect.disconnect(this._onMouseMoveHandler_connect);
-            dojoConnect.disconnect(this._onDoubleClickHandler_connect);
-            this._onDoubleClickHandler_connect = null;
+            this.disconnectOnMouseMoveHandlers();            
             var points = dojoLang.clone(this.circlePoints);
             this.cleanup();
             this._clear();
@@ -201,6 +199,15 @@ define([
                 circlePoints: points
             });
             this._drawEnd(geom);
+        },
+        
+        /*
+         *
+         */
+        disconnectOnMouseMoveHandlers: function (evt) {
+            dojoConnect.disconnect(this._onMouseMoveHandler_connect);
+            dojoConnect.disconnect(this._onDoubleClickHandler_connect);
+            this._onDoubleClickHandler_connect = null;
         },
 
         /*

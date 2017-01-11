@@ -447,17 +447,31 @@ define([
               });
             }
             
-            dojoConnect.disconnect(this._onMouseMoveHandlerConnect);
+            this.disconnectOnMouseMoveHandler();
             this._setTooltipMessage(0);
             this._drawEnd(elipseGeom);
-            this.map.graphics.clear();
-            //this.map.graphics.remove(this._minGraphic);
-            this._majGraphic = null;
-            this._minGraphic = null;
-            majorAxisLength = [];
-            minorAxisLength = [];
+            this.cleanup();
+            
             this.orientationAngle = null;
-            this._clear();
+        },
+        
+        /*
+         *
+         */
+        cleanup: function () {
+          this.map.graphics.clear();
+          //this.map.graphics.remove(this._minGraphic);
+          this._majGraphic = null;
+          this._minGraphic = null;
+          majorAxisLength = [];
+          minorAxisLength = [];
+        },
+        
+        /**
+         *
+         **/
+        disconnectOnMouseMoveHandler: function () {
+          dojoConnect.disconnect(this._onMouseMoveHandlerConnect);
         }
     });
     clz.DD_ELLIPSE_MAJOR_LENGTH_CHANGE = 'DD_ELLIPSE_MAJOR_LENGTH_CHANGE';

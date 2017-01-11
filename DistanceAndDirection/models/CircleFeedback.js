@@ -192,13 +192,20 @@ define([
      *
      **/
     _onDoubleClickHandler: function (evt) {
-      dojoConnect.disconnect(this._onMouseMoveHandlerConnect);
+      this.disconnectOnMouseMoveHandler();
       this.cleanup();
       this._clear();
       this._setTooltipMessage(0);
       this._drawEnd(this.circleGraphic.geometry);
     },
-
+    
+    /**
+     *
+     **/
+    disconnectOnMouseMoveHandler: function () {
+      dojoConnect.disconnect(this._onMouseMoveHandlerConnect);
+    },
+    
     /*
      *
      */

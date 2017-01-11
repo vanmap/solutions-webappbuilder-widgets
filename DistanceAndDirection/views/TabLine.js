@@ -121,7 +121,7 @@ define([
           //Create the directional line symbol with basic polyline params
           var basicOptions = {
               directionSymbol: "arrow1",
-              directionPixelBuffer: 30,
+              directionPixelBuffer: 100000,
               showStartSymbol: true,
               showEndSymbol: true
           };            
@@ -400,6 +400,10 @@ define([
           if (evt.keyCode === dojoKeys.ENTER ) {
             if(this.coordToolEnd.isValid() && this.coordToolStart.isValid() && this.coordToolStart.value != "") {
               this.coordToolEnd.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r) {
+                dojoTopic.publish(
+                  'manual-line-end-point-input',
+                  this.coordToolEnd.inputCoordinate.coordinateEsriGeometry
+                );                
                 this.createManualGraphic();
               }));
             }

@@ -187,6 +187,11 @@ define([
             'INPUTPOINTDIDCHANGE',
             dojoLang.hitch(this, this.mapWasClicked)
           );
+          
+          dojoTopic.subscribe(
+            'INPUTERROR',
+            dojoLang.hitch(this, this.inputError)
+          );
 
           // listen for dijit events
           this.own(dojoOn(
@@ -393,6 +398,7 @@ define([
         geomSrvcDidComplete: function (r) {
             if (r[0].length <= 0) {
                 new JimuMessage({message: 'unable to parse coordinates'});
+                dojoTopic.publish('INPUTERROR');
                 return;
             }
 
@@ -413,6 +419,7 @@ define([
          **/
         geomSrvcDidFail: function () {
           new JimuMessage({message: 'Unable to parse input coordinates'});
+          dojoTopic.publish('INPUTERROR');
         },
 
         /**
@@ -433,6 +440,7 @@ define([
                     this.processCoordTextInput(sanitizedInput, newType[newType.length-1].name);
                 } else {
                     new JimuMessage({message: 'Unable to determine input coordinate type'});
+                    dojoTopic.publish('INPUTERROR');
                 }
                 dojoDomAttr.set(this.coordtext, 'value', sanitizedInput);
             }
@@ -606,6 +614,8 @@ define([
          **/
         setCoordUI: function (withValue) {
             var formattedStr;
+            if(withValue){
+            
             var cntrlid = this.uid.split('_')[1];
 
             // make sure we haven't been removed
@@ -718,12 +728,16 @@ define([
 
                     formattedStr = r.formatResult;
                     break;
-                }
-                this.setSubCoordUI(dojoDomClass.contains(this.coordcontrols, 'expanded'));
+                }                
+            }
+            } else {
+              formattedStr = '';
+              
+            }
+            this.setSubCoordUI(dojoDomClass.contains(this.coordcontrols, 'expanded'));
                 if (this.coordtext) {
                     dojoDomAttr.set(this.coordtext, 'value', formattedStr);
                 }
-            }
         },
 
         /**
@@ -731,8 +745,8 @@ define([
          **/
         getFormattedCoordinates: function () {
             this.util.getCoordValues(this.currentClickPoint, this.type).then(
-                dojoLang.hitch({s: this}, function (r) {
-                    this.s.setCoordUI(r);
+                dojoLang.hitch(this, function (r) {
+                    this.setCoordUI(r);
                 }),
                 dojoLang.hitch(this, function (err) {
                     console.log(err);
@@ -750,6 +764,13 @@ define([
                 this.parentWidget.coordGLayer.clear();
                 this.parentWidget.coordGLayer.add(new EsriGraphic(this.currentClickPoint));
             }
+        },
+        
+        /**
+         *
+         **/
+        inputError: function () {
+            this.setCoordUI();
         }
     });
 });

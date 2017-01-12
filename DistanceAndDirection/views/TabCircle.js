@@ -147,13 +147,13 @@ define([
           'id': 'circleLayer',
           'geometryType': 'esriGeometryPolygon',
           'fields': [{
-              'name': 'RADIUS',
+              'name': 'Label',
               'type': 'esriFieldTypeString',
-              'alias': 'Radius'
+              'alias': 'Label'
             }]
           };
 
-          var lblexp = {'labelExpressionInfo': {'value': 'Radius: {RADIUS}'}};
+          var lblexp = {'labelExpressionInfo': {'value': '{Label}'}};
           var lblClass = new EsriLabelClass(lblexp);
           lblClass.symbol = this._labelSym;
 
@@ -378,17 +378,12 @@ define([
      * Rate Input key up event handler
      */
     distanceInputKeyWasPressed: function (evt) {
+      this.distanceInputDidChange();
       if (evt.keyCode === dojoKeys.ENTER) {
           this.removeManualGraphic();
           this.setGraphic(true);
           //dojoTopic.publish('MANUAL_CIRCLE_RADIUS_INPUT_COMPLETE', this.lengthInput.value);
-      }
-      else {
-          if (this.lengthInput.value !== '') {
-              dojoTopic.publish('MANUAL_CIRCLE_RADIUS_INPUT', this);
-              this.createManualGraphic();
-          }
-      }
+      }      
     },    
 
     /*
@@ -434,17 +429,14 @@ define([
             fr = this.calculatedRadiusInMeters * 0.000539957;
             break;
         }
-        dojoDomAttr.set(
-          this.lengthInput,
-          'value',
-          fr
-        );
+        fr = this.creationType.get('value') === 'Diameter'?fr/2:fr;
+        fr = dojoNumber.format(fr, {places: '4'});
+        dojoDomAttr.set(this.lengthInput,'value',fr);
         //this.setGraphic();
       } else {
         this.calculatedRadiusInMeters = null;
         this.useCalculatedDistance = true;
       }
-
     },
 
     /*
@@ -469,57 +461,21 @@ define([
       this.currentLengthUnit = this.lengthUnitDD.get('value');
       var currentCreateCircleFrom = this.creationType.get('value');
       this.dt.set('lengthUnit', this.currentLengthUnit);
-      if (this.currentCircle) {
-        var currentLength = this.currentCircle.getLength(this.currentLengthUnit);
-        var length = 0;
-        if (this.currentCircle.createCircleFrom === currentCreateCircleFrom) {
-          length = currentLength;  
-        } else {
-          if (currentCreateCircleFrom === "Radius") {
-            length = currentLength / 2;
-          } else {
-            length = currentLength * 2;
-          }
-        }
-        dojoDomAttr.set(
-          this.lengthInput,
-          'value',
-          this.currentCircle.formatLength(length)
-        );
-      }
     },
 
     /*
      *
      */
     creationTypeDidChange: function() {
-      //this.lengthUnitDDDidChange();
       var currentCreateCircleFrom = this.creationType.get('value');
       this.radiusDiameterLabel.innerHTML = currentCreateCircleFrom;
-      if (this.currentCircle) {
-        var currentLength = this.currentCircle.getLength(this.currentLengthUnit);
-        var length = 0;
-        if (this.currentCircle.createCircleFrom === currentCreateCircleFrom) {
-          length = currentLength;  
-        } else {
-          if (currentCreateCircleFrom === "Radius") {
-            length = currentLength / 2;
-          } else {
-            length = currentLength * 2;
-          }
-        }
-        dojoDomAttr.set(
-          this.lengthInput,
-          'value',
-          this.currentCircle.formatLength(length)
-        );
-      }
     },
 
     /*
      *
      */
     feedbackDidComplete: function (results) {
+        if(!results.geometry.center){return;}
         var center = results.geometry.center;
         var edge = new EsriPoint(results.geometry.rings[0][0][0],
           results.geometry.rings[0][0][1],
@@ -544,6 +500,7 @@ define([
      *
      */
     createManualGraphic: function () {
+      if(!this.coordTool.inputCoordinate.coordinateEsriGeometry){return;}
         if (this.tempGraphic != null) {
             this._gl.remove(this.tempGraphic);
         }
@@ -554,6 +511,7 @@ define([
           this.lengthInput.value,
           this.lengthUnitDD.get('value')
         );
+        
 
         var tempCircle = new EsriCircle(stPt, {
             radius: distInMeters,
@@ -564,12 +522,11 @@ define([
           tempCircle,
           this._circleSym,
           {
-            'RADIUS': this.lengthInput.value
+            'Label': this.lengthInput.value
           }
         );
 
         this._gl.add(this.tempGraphic);
-
         this._gl.refresh();
     },
 
@@ -611,37 +568,26 @@ define([
 
       if (!this.lengthInput.value || this.lengthInput.value <= 0) {return;}
 
-      if (this.coordTool.inputCoordinate.isManual && this.creationType.get('value') === 'Diameter') {
-        results.calculatedDistance = dojoNumber.parse(
-          this.lengthInput.value*2, {
-            places:2
-          }
-        );
+      if (this.creationType.get('value') === 'Diameter') {
+        results.calculatedDistance = dojoNumber.parse(this.lengthInput.value, {places: '0,99'})/2;
       } else {
-          results.calculatedDistance = dojoNumber.parse(
-            this.lengthInput.value, {
-              places: '0,99'
-            }
-          );
+        results.calculatedDistance = dojoNumber.parse(this.lengthInput.value, {places: '0,99'});
       }
 
-      results.calculatedDistance = this.utils.convertToMeters(
-        results.calculatedDistance,
-        this.lengthUnitDD.get('value')
-      );
+      results.calculatedDistance = this.utils.convertToMeters(results.calculatedDistance,this.lengthUnitDD.get('value'));
 
       results.geometry = this.coordTool.inputCoordinate.coordinateEsriGeometry;
       results.lineGeometry = lineGeom;
       this.currentCircle = new ShapeModel(results);
-      this.currentCircle.createCircleFrom = this.creationType.get('value');
+      this.currentCircle.createCircleFrom = this.creationType.get('value');      
 
       this.currentCircle.graphic = new EsriGraphic(
         this.currentCircle.wmGeometry,
         this._circleSym,
         {
-          'RADIUS': this.lengthInput.value.toString() + " " + this.lengthUnitDD.get('value').charAt(0).toUpperCase() + this.lengthUnitDD.get('value').slice(1)
+          'Label': this.creationType.get('value') + " " + this.lengthInput.value.toString() + " " + this.lengthUnitDD.get('value').charAt(0).toUpperCase() + this.lengthUnitDD.get('value').slice(1)
         }
-      );
+      );      
 
       this._gl.add(this.currentCircle.graphic);
 

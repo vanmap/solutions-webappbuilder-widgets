@@ -185,7 +185,6 @@ define([
       this.cleanup();
       this.circleGraphic = new EsriGraphic(circleGeometry, this.fillSymbol);
       this.map.graphics.add(this.circleGraphic);
-
     },
 
     /**
@@ -219,17 +218,18 @@ define([
      *
      */
     setCircleGeometry: function (stPt, endPt) {
-
       var geom = new EsriPolyline(this.map.spatialReference);
       geom.addPath([stPt, endPt]);
 
       var length = EsriGeometryEngine.geodesicLength(geom, 9001);
       var unitLength = this._utils.convertMetersToUnits(length, this.lengthUnit);
-      this.set('length', unitLength);
+      
 
       if (this.isDiameter) {
-        unitLength = unitLength / 2;
+        unitLength = unitLength * 2;
       }
+      
+      this.set('length', unitLength);
 
       var circleGeometry = new EsriCircle(stPt, {
         radius: length,

@@ -80,7 +80,7 @@ define([
         this.inputType = tc[tc.length-1].name;
         this.util.getXYNotation(this.inputString, this.inputType).then(
           dojoLang.hitch(this, function (r) {
-            if (r.length <= 0 || !r[0][0]){
+            if (r.length <= 0 || (!r[0][0] && r[0][0] != 0)){
               this.hasError = true;
               this.message = 'Invalid Coordinate';
               this.inputTypeDef.resolve(this);

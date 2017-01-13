@@ -744,7 +744,7 @@ define([
          *
          **/
         getFormattedCoordinates: function () {
-            this.util.getCoordValues(this.currentClickPoint, this.type).then(
+            this.util.getCoordValues(this.currentClickPoint, this.type, 6).then(
                 dojoLang.hitch(this, function (r) {
                     this.setCoordUI(r);
                 }),

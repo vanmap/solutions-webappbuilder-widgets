@@ -161,7 +161,7 @@ define([
             //regexr.com
             var strs = [{
                     name: 'DD',
-                    pattern: /(^[-+]?\d{1,3}[.]?\d*[NnSs]?[\s,]{1}[-+]?\d{1,3}[.]?\d*[EeWw]?){1}$/
+                    pattern: /^([-+]?\d{1,3}[.]?\d*[\s]*[NnSs]?[\s]*[,]?[\s]*[-+]?\d{1,3}[.]?\d*[\s]*[EeWw]?)/
                     }, {
                     name: 'DDM',
                     pattern: /^\s?\d{1,3}[°]?\s[-+]?\d*\.?\d*\'?[NnSs]?[\s,]{1}\d{1,3}[°]?\s[-+]?\d*\.?\d*\'[EeWw]?/

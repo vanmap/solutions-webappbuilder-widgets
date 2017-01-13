@@ -728,8 +728,16 @@ define([
                     formattedStr = r.formatResult;
                     break;
                 case 'UTM (Z)':
+                    r = this.util.getFormattedUTMZStr(withValue, format, as);
+
+                    this['cc_' + cntrlid + 'sub1val'].value = r.zone + r.hemisphere;
+                    this['cc_' + cntrlid + 'sub2val'].value = r.easting;
+                    this['cc_' + cntrlid + 'sub3val'].value = r.westing;
+
+                    formattedStr = r.formatResult;
+                    break;
                 case 'UTM (H)':
-                    r = this.util.getFormattedUTMStr(withValue, format, as);
+                    r = this.util.getFormattedUTMHStr(withValue, format, as);
 
                     this['cc_' + cntrlid + 'sub1val'].value = r.zone + r.hemisphere;
                     this['cc_' + cntrlid + 'sub2val'].value = r.easting;

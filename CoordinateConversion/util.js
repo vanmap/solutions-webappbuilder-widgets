@@ -445,7 +445,30 @@ define([
         /**
          *
          **/
-        getFormattedUTMStr: function (fromValue, withFormatStr, addSignPrefix, addDirSuffix) {
+        getFormattedUTMZStr: function (fromValue, withFormatStr, addSignPrefix, addDirSuffix) {
+            var r = {};
+            r.sourceValue = fromValue;
+            r.sourceFormatString = withFormatStr;
+
+            r.parts = fromValue[0].split(/[ ,]+/);
+            r.zone = r.parts[0].replace(/[A-Z]/,'');
+            r.zoneletter = r.parts[0].slice(-1);
+            r.easting = r.parts[1];
+            r.westing = r.parts[2];
+
+            //ZH Xm Ym'
+            var s = withFormatStr.replace(/Z/, r.zone + r.zoneletter);
+            s = s.replace(/X/, r.easting);
+            s = s.replace(/Y/, r.westing);
+
+            r.formatResult = s;
+            return r;
+        },
+        
+        /**
+         *
+         **/
+        getFormattedUTMHStr: function (fromValue, withFormatStr, addSignPrefix, addDirSuffix) {
             var r = {};
             r.sourceValue = fromValue;
             r.sourceFormatString = withFormatStr;

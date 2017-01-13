@@ -87,7 +87,7 @@ define([
                 useCustom: false
             },
             'UTM (Z)': {
-                defaultFormat: 'ZZ X Y',
+                defaultFormat: 'Z X Y',
                 customFormat: null,
                 useCustom: false
             },

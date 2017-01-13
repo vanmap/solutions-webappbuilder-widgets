@@ -389,7 +389,8 @@ define([
                     params.circle = new EsriCircle({
                         center: params.centerPoint,
                         geodesic: true,
-                        radius: params.radius
+                        radius: params.radius,
+                        numberOfPoints: 360
                     });
                     params.circles.push(params.circle);
                 }
@@ -473,7 +474,8 @@ define([
                     circle = new EsriCircle({
                         center: centerPoint,
                         geodesic: true,
-                        radius: radius
+                        radius: radius,
+                        numberOfPoints: 360
                     });
                     params.circles.push(circle);
                 }

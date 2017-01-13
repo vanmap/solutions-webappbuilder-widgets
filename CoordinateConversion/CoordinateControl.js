@@ -87,7 +87,7 @@ define([
         input: true,
         inputFromText: false,
         hasCustomLabel: false,
-        /**** type: 'dd', Available Types: DD, DDM, DMS, GARS, MGRS, USNG, UTM ****/
+        /**** type: 'dd', Available Types: DD, DDM, DMS, GARS, MGRS, USNG, UTM (Z),UTM (H) ****/
 
         /**
          *
@@ -214,7 +214,7 @@ define([
 
           this.own(
             this.coordName.on(
-              'change',
+              'blur',
               dojoLang.hitch(this, this.coordNameDidChange))
           );
 
@@ -594,8 +594,16 @@ define([
                     this.sub4label.innerHTML = 'Northing';
                     this.setVisible(this.sub4);
                     break;
-                case 'UTM':
+                case 'UTM (Z)':
                     this.sub1label.innerHTML = 'Zone';
+                    this.sub2label.innerHTML = 'Easting';
+                    this.sub3label.innerHTML = 'Northing';
+                    this.setVisible(this.sub3);
+                    this.setHidden(this.sub4);
+                    cntrHeight = '125px';
+                    break;
+                case 'UTM (H)':
+                    this.sub1label.innerHTML = 'Hemisphere';
                     this.sub2label.innerHTML = 'Easting';
                     this.sub3label.innerHTML = 'Northing';
                     this.setVisible(this.sub3);
@@ -719,7 +727,8 @@ define([
 
                     formattedStr = r.formatResult;
                     break;
-                case 'UTM':
+                case 'UTM (Z)':
+                case 'UTM (H)':
                     r = this.util.getFormattedUTMStr(withValue, format, as);
 
                     this['cc_' + cntrlid + 'sub1val'].value = r.zone + r.hemisphere;

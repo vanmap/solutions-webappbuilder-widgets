@@ -87,10 +87,15 @@ define([
                 params.conversionMode = 'mgrsDefault';
                 params.addSpaces = false;
                 params.numOfDigits = 5;
-            } else if (toType === 'UTM') {
+            } else if (toType === 'UTM (H)') {
+                params.conversionType = 'utm';
                 params.conversionMode = 'utmNorthSouth';
                 params.addSpaces = true;
-            } else if (toType === 'GARS') {
+            } else if (toType === 'UTM (Z)') {
+                params.conversionType = 'utm';
+                params.conversionMode = 'utmDefault';
+                params.addSpaces = true;
+            }else if (toType === 'GARS') {
                 params.conversionMode = 'garsDefault';
             } else if (toType === 'USNG') {
                 params.addSpaces = true;
@@ -119,7 +124,8 @@ define([
             } else {
               tt = toType;
             }
-
+            
+            
             var params = {
                 sr: 4326,
                 conversionType: tt,
@@ -139,8 +145,15 @@ define([
                 params.conversionMode = 'mgrsNewStyle';
                 params.strings.push(fromStr);
                 break;
-            case 'UTM':
+            case 'UTM (H)':
+                params.conversionType = 'utm';
                 params.conversionMode = 'utmNorthSouth';
+                a = fromStr.replace(/[mM]/g, '');
+                params.strings.push(a);
+                break;
+            case 'UTM (Z)':
+                params.conversionType = 'utm';
+                params.conversionMode = 'utmDefault';
                 a = fromStr.replace(/[mM]/g, '');
                 params.strings.push(a);
                 break;

@@ -83,7 +83,9 @@ define([
                 addSpaces: false
             };
 
-            if (toType === 'MGRS') {
+            if (toType === 'DD') {
+                params.numOfDigits = 6;
+            } else if(toType === 'MGRS') {
                 params.conversionMode = 'mgrsDefault';
                 params.addSpaces = false;
                 params.numOfDigits = 5;
@@ -137,7 +139,7 @@ define([
             case 'DD':
             case 'DDM':
             case 'DMS':
-                params.numOfDigits = 1;
+                params.numOfDigits = 2;
                 a = fromStr.replace(/['°"]/g, '');
                 params.strings.push(a);
                 break;
@@ -328,14 +330,14 @@ define([
 
             r.latdeg =  this.stripDecimalPlaces(parseFloat(parts[0]).toFixed(1), 1);
             r.latmin =  this.stripDecimalPlaces(parseFloat(parts[1]).toFixed(1), 1);
-            r.latsec =  this.stripDecimalPlaces(parseFloat(parts[2].replace(/[NnSs]/, '')).toFixed(1), 1);
+            r.latsec =  this.stripDecimalPlaces(parseFloat(parts[2].replace(/[NnSs]/, '')).toFixed(2), 2);
 
             var latdegdir = parts[2].slice(-1);
             r.ydir = latdegdir;
 
             r.londeg = this.stripDecimalPlaces(parseFloat(parts[3]).toFixed(1), 1);
             r.lonmin = this.stripDecimalPlaces(parseFloat(parts[4]).toFixed(1), 1);
-            r.lonsec = this.stripDecimalPlaces(parseFloat(parts[5].replace(/[EWew]/, '')).toFixed(1), 1);
+            r.lonsec = this.stripDecimalPlaces(parseFloat(parts[5].replace(/[EWew]/, '')).toFixed(2), 2);
 
             var londegdir = parts[5].slice(-1);
             r.xdir = londegdir;

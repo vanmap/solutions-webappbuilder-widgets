@@ -1,6 +1,9 @@
 ﻿define({
   root: ({
     featureServiceLabel: "Choose the feature service",
+    schemaMapping: "Schema Mapping",
+    addToMap: "Add to map",
+    submit: "Submit to feature service"
   }),
   "ar": 1,
   "cs": 1,

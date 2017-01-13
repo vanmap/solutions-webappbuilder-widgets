@@ -53,6 +53,7 @@ define([
          *
          **/
         getCleanInput: function (fromstr) {
+            fromstr = fromstr.replace(/\n/g,'');
             return fromstr.replace(/\s+/g, ' ').trim();
         },
 
@@ -160,23 +161,28 @@ define([
             //regexr.com
             var strs = [{
                     name: 'DD',
-                    pattern: /([-+]?\d{1,3}[.]?\d*[NnSs]?[\s,]{1}[-+]?\d{1,3}[.]?\d*[EeWw]?){1}/
-                }, {
+                    pattern: /(^[-+]?\d{1,3}[.]?\d*[NnSs]?[\s,]{1}[-+]?\d{1,3}[.]?\d*[EeWw]?){1}$/
+                    }, {
                     name: 'DDM',
                     pattern: /^\s?\d{1,3}[°]?\s[-+]?\d*\.?\d*\'?[NnSs]?[\s,]{1}\d{1,3}[°]?\s[-+]?\d*\.?\d*\'[EeWw]?/
+                    
                 }, {
                     name: 'DMS',
-                    pattern: /([+-]?\d{1,3}[°]?[\s,]\d*[']?[\s,]\d*[.]?\d*['"]?[NnSsEeWw]?){1,2}/
+                    pattern: /^(?!9[1-9])?([0-8]?\d?|90)[\s]*[°]?[\s]*([0]?[0-9]|[0-5]\d){1}[\s]*['"]?[\s]*[0]?[0-9]?[0-5]\d(\.\d+)?[\s]*['"]?[\s]*[NnSs]?[\s]*(180|((1[0-7]\d)|([0]?[0]?[1-9]?\d)))[\s]*[°]?[\s]*([0]?[0-9]|[0-5]\d){1}[\s]*['"]?[\s]*[0]?[0-9]?[0-5]\d(\.\d+)?[\s]*['"]?[\s]*[WwEe]?[\s]*/
+                    //pattern: /([+-]?\d{1,3}[°]?[\s,]\d*[']?[\s,]\d*[.]?\d*['"]?[NnSsEeWw]?){1,2}/
                 }, {
                     name: 'GARS',
                     pattern: /\d{3}[a-zA-Z]{2}\d?\d?/
                 }, {
                     name: 'MGRS',
                     pattern: /^\d{1,2}[c-hj-np-xC-HJ-NP-X][-,;:\s]*[a-hj-np-zA-HJ-NP-Z]{1}[a-hj-np-zA-HJ-NP-Z]{1}[-,;:\s]*\d{0,10}/
-                }, {
-                    name: 'USNG',
-                    pattern: /\d{2}[S,s,N,n]*\s[A-Za-z]*\s\d*/
-                }, {
+                },
+                //commented out for now as USNG should be the same as MGRS
+                //{
+                    //name: 'USNG',
+                    //pattern: /\d{2}[S,s,N,n]*\s[A-Za-z]*\s\d*/
+                //},
+                {
                     name: 'UTM',
                     pattern: /^\d{1,3}[NnSs]{1}([\s,-]\d*\.?\d*[mM]?){2}/
                 }

@@ -315,7 +315,7 @@ define([
                 s = false;
             }
 
-            var t = s ? 'Copy Succesful' : 'Unable to Copy\n use ctrl+c as an alternative';
+            var t = s ? 'Copy Succesful' : 'Unable to Copy\n use ctrl+c as an alternative.';
 
             this.showToolTip(evt.currentTarget.id, t);
         },
@@ -365,7 +365,7 @@ define([
                 }
             }
 
-            t = s ? 'Copy Succesful' : 'Unable to Copy\n use ctrl+c as an alternative';
+            t = s ? 'Copy Succesful' : 'Unable to Copy\n use ctrl+c as an alternative.';
 
             this.showToolTip(this.cpbtn.id, t);
         },
@@ -397,7 +397,7 @@ define([
          **/
         geomSrvcDidComplete: function (r) {
             if (r[0].length <= 0) {
-                new JimuMessage({message: 'unable to parse coordinates'});
+                new JimuMessage({message: 'Unable to parse coordinates please check your input.'});
                 dojoTopic.publish('INPUTERROR');
                 return;
             }
@@ -418,7 +418,7 @@ define([
          *
          **/
         geomSrvcDidFail: function () {
-          new JimuMessage({message: 'Unable to parse input coordinates'});
+          new JimuMessage({message: 'Unable to parse coordinates please check your input.'});
           dojoTopic.publish('INPUTERROR');
         },
 
@@ -439,7 +439,7 @@ define([
                     //this.type = newType[newType.length-1].name;
                     this.processCoordTextInput(sanitizedInput, newType[newType.length-1].name);
                 } else {
-                    new JimuMessage({message: 'Unable to determine input coordinate type'});
+                    new JimuMessage({message: 'Unable to determine input coordinate type please check your input.'});
                     dojoTopic.publish('INPUTERROR');
                 }
                 dojoDomAttr.set(this.coordtext, 'value', sanitizedInput);

@@ -346,6 +346,12 @@ define([
      *
      */
     distCalcDidExpand: function () {
+      this.dt.deactivate();
+      this.dt.cleanup();
+      this.dt.disconnectOnMouseMoveHandler();
+      
+      this.coordTool.inputCoordinate.isManual = true;
+      
       if (this.distCalcControl.get('open')) {
         this.lengthInput.disabled = 'disabled';
       } else {
@@ -390,7 +396,6 @@ define([
      *
      */
     distanceInputDidChange: function () {
-
       var currentRateInMetersPerSecond = (
         this.distanceInput.value *
         this.distanceUnitDD.value.split(';')[0]
@@ -528,6 +533,7 @@ define([
 
         this._gl.add(this.tempGraphic);
         this._gl.refresh();
+        
     },
 
     /*

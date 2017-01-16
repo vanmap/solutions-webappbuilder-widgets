@@ -336,12 +336,15 @@ define([
                 fw = dijitRegistry.toArray().filter(function (w) {
                     return w.baseClass === 'jimu-widget-cc' && !w.input;
                 });
+                
 
                 w = fw.map(function (w) {
                     return w.coordtext.value;
                 }).join('\r\n');
 
                 tv = this.coordtext.value;
+                
+                w = tv + "\r\n" + w;
 
                 this.coordtext.value = w;
 

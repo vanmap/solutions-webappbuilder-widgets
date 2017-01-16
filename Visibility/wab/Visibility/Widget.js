@@ -152,7 +152,6 @@ function(dom, on, declare, _WidgetsInTemplateMixin, lang, dojoDomClass, BaseWidg
       vsDistance.units = "esriMiles";
       var params = {
         "Input_Observer": featureSet,
-        "Elevation_URL": this.config.elevationService.url,
         "Near_Distance__RADIUS1_": parseInt((dom.byId("distanceSlider").noUiSlider.get()[0])*1000),
         "Maximum_Distance__RADIUS2_": parseInt((dom.byId("distanceSlider").noUiSlider.get()[1])*1000),
         "Left_Azimuth__AZIMUTH1_": Azimuth1,

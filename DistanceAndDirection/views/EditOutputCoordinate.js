@@ -71,11 +71,11 @@ define([
                 customFormat: null,
                 useCustom: false
             },
-            GARS: {
-                defaultFormat: 'XYQK',
-                customFormat: null,
-                useCustom: false
-            },
+            // GARS: {
+            //     defaultFormat: 'XYQK',
+            //     customFormat: null,
+            //     useCustom: false
+            // },
             MGRS: {
                 defaultFormat: 'ZSXY',
                 customFormat: null,

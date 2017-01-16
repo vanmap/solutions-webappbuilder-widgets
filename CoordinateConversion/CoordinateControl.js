@@ -87,7 +87,7 @@ define([
         input: true,
         inputFromText: false,
         hasCustomLabel: false,
-        /**** type: 'dd', Available Types: DD, DDM, DMS, GARS, MGRS, USNG, UTM (Z),UTM (H) ****/
+        /**** type: 'dd', Available Types: DD, DDM, DMS, GARS, MGRS, USNG, UTM ****/
 
         /**
          *
@@ -594,7 +594,7 @@ define([
                     this.sub4label.innerHTML = 'Northing';
                     this.setVisible(this.sub4);
                     break;
-                case 'UTM (Z)':
+                case 'UTM':
                     this.sub1label.innerHTML = 'Zone';
                     this.sub2label.innerHTML = 'Easting';
                     this.sub3label.innerHTML = 'Northing';
@@ -602,14 +602,14 @@ define([
                     this.setHidden(this.sub4);
                     cntrHeight = '125px';
                     break;
-                case 'UTM (H)':
-                    this.sub1label.innerHTML = 'Hemisphere';
-                    this.sub2label.innerHTML = 'Easting';
-                    this.sub3label.innerHTML = 'Northing';
-                    this.setVisible(this.sub3);
-                    this.setHidden(this.sub4);
-                    cntrHeight = '125px';
-                    break;
+                //case 'UTM (H)':
+                    //this.sub1label.innerHTML = 'Hemisphere';
+                    //this.sub2label.innerHTML = 'Easting';
+                    //this.sub3label.innerHTML = 'Northing';
+                    //this.setVisible(this.sub3);
+                    //this.setHidden(this.sub4);
+                    //cntrHeight = '125px';
+                    //break;
                 }
                 dojoDomStyle.set(this.coordcontrols, 'height', cntrHeight);
             } else {
@@ -727,24 +727,24 @@ define([
 
                     formattedStr = r.formatResult;
                     break;
-                case 'UTM (Z)':
-                    r = this.util.getFormattedUTMZStr(withValue, format, as);
+                case 'UTM':
+                    r = this.util.getFormattedUTMStr(withValue, format, as);
 
-                    this['cc_' + cntrlid + 'sub1val'].value = r.zone + r.hemisphere;
+                    this['cc_' + cntrlid + 'sub1val'].value = r.zone + r.bandLetter;
                     this['cc_' + cntrlid + 'sub2val'].value = r.easting;
                     this['cc_' + cntrlid + 'sub3val'].value = r.westing;
 
                     formattedStr = r.formatResult;
                     break;
-                case 'UTM (H)':
-                    r = this.util.getFormattedUTMHStr(withValue, format, as);
+                //case 'UTM (H)':
+                    //r = this.util.getFormattedUTMHStr(withValue, format, as);
 
-                    this['cc_' + cntrlid + 'sub1val'].value = r.zone + r.hemisphere;
-                    this['cc_' + cntrlid + 'sub2val'].value = r.easting;
-                    this['cc_' + cntrlid + 'sub3val'].value = r.westing;
+                    //this['cc_' + cntrlid + 'sub1val'].value = r.zone + r.hemisphere;
+                    //this['cc_' + cntrlid + 'sub2val'].value = r.easting;
+                    //this['cc_' + cntrlid + 'sub3val'].value = r.westing;
 
-                    formattedStr = r.formatResult;
-                    break;
+                    //formattedStr = r.formatResult;
+                    //break;
                 }                
             }
             } else {

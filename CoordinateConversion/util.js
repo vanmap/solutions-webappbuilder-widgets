@@ -194,11 +194,10 @@ define([
                     name: 'MGRS',
                     pattern: /^\d{1,2}[c-hj-np-xC-HJ-NP-X][-,;:\s]*[a-hj-np-zA-HJ-NP-Z]{1}[a-hj-np-zA-HJ-NP-Z]{1}[-,;:\s]*\d{0,10}/
                 },
-                //commented out for now as USNG should be the same as MGRS
-                //{
-                    //name: 'USNG',
-                    //pattern: /\d{2}[S,s,N,n]*\s[A-Za-z]*\s\d*/
-                //},
+                {
+                    name: 'USNG',
+                    pattern: /^\d{1,2}[c-hj-np-xC-HJ-NP-X][-,;:\s]{1}[a-hj-np-zA-HJ-NP-Z]{1}[a-hj-np-zA-HJ-NP-Z]{1}[-,;:\s]{1}\d{0,10}[\s]?\d{0,10}/
+                },
                 {
                     name: 'UTM',
                     pattern: /^\d{1,3}[NnSs]{1}([\s,-]\d*\.?\d*[mM]?){2}/
@@ -389,11 +388,11 @@ define([
             r.northing = fromValue[0].match(/\d{5}$/)[0].trim();
 
             //Z S X# Y#
-            var s = withFormatStr.replace(/Z/, r.gzd);
-            s = s.replace(/S/, r.grdsq);
+            var s = withFormatStr.replace(/Y/, r.northing);
             s = s.replace(/X/, r.easting);
-            s = s.replace(/Y/, r.northing);
-
+            s = s.replace(/S/, r.grdsq);
+            s = s.replace(/Z/, r.gzd);          
+            
             r.formatResult = s;
             return r;
         },
@@ -412,11 +411,11 @@ define([
             r.northing = fromValue[0].replace(r.gzd + r.grdsq, '').match(/\d{1,5}$/)[0].trim();
 
             //Z S X# Y#
-            var s = withFormatStr.replace(/Z/, r.gzd);
-            s = s.replace(/S([^S]*)$/, r.grdsq+'$1');
+            var s = withFormatStr.replace(/Y/, r.northing);
             s = s.replace(/X/, r.easting);
-            s = s.replace(/Y/, r.northing);
-
+            s = s.replace(/S/, r.grdsq);
+            s = s.replace(/Z/, r.gzd);      
+            
             r.formatResult = s;
             return r;
         },
@@ -437,10 +436,10 @@ define([
           r.key = q[0][1];
 
           //XYQK
-          var s = withFormatStr.replace(/X/, r.lon);
-          s = s.replace(/Y/, r.lat);
+          var s = withFormatStr.replace(/K/, r.key);
           s = s.replace(/Q/, r.quadrant);
-          s = s.replace(/K/, r.key);
+          s = s.replace(/Y/, r.lat);
+          s = s.replace(/X/, r.lon);
 
           r.formatResult = s;
           return r;
@@ -460,11 +459,12 @@ define([
             r.easting = r.parts[1];
             r.westing = r.parts[2];
 
-            //ZH Xm Ym'
-            var s = withFormatStr.replace(/Z/, r.zone)
-            s = s.replace (/B/, r.bandLetter);
+            //ZB Xm Ym'
+            var s = withFormatStr.replace(/Y/, r.westing);
             s = s.replace(/X/, r.easting);
-            s = s.replace(/Y/, r.westing);
+            s = s.replace (/B/, r.bandLetter);
+            s = s.replace(/Z/, r.zone);
+            
 
             r.formatResult = s;
             return r;

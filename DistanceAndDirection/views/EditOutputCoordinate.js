@@ -82,7 +82,7 @@ define([
                 useCustom: false
             },
             USNG: {
-                defaultFormat: 'Z S X Y',
+                defaultFormat: 'ZSXY',
                 customFormat: null,
                 useCustom: false
             },

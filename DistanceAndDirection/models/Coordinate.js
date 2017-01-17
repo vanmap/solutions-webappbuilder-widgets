@@ -171,10 +171,10 @@ define([
           r = this.util.getFormattedMGRSStr(fromValue, this.formatString, as);
           formattedStr = r.formatResult;
           break;
-      case 'GARS':
-          r = this.util.getFormattedGARSStr(fromValue, this.formatString, as);
-          formattedStr = r.formatResult;
-          break;
+      //case 'GARS':
+          //r = this.util.getFormattedGARSStr(fromValue, this.formatString, as);
+          //formattedStr = r.formatResult;
+          //break;
       case 'UTM':
           r = this.util.getFormattedUTMStr(fromValue, this.formatString, as);
           formattedStr = r.formatResult;

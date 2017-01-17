@@ -8,7 +8,7 @@ The Coordinate Conversion is an Esri Widget for [Web AppBuilder for ArcGIS](http
 
 * Parses WGS1984 input coordinates and outputs multiple formats of the input coordinate. Output coordinate formats can include:
 
-    * DD, DDM, DMS, GARS, MGRS, USNG and UTM
+    * DD, DDM, DMS, MGRS, USNG and UTM
 
 ## Sections
 
@@ -125,12 +125,6 @@ The Coordinate Conversion allows formatting of notations using a custom format s
             - "X" = Longitude Band
             - "Y" = Latitude Band
             - Example: "ZH Xm Ym" = "19N 414639m 4428236m"
-        - GARS
-            - "X" = Easting
-            - "Q" = Quadrant
-            - "Y" = Northing
-            - "K" = Key
-            - Example: "XYQK" = "221LW37"
 
 ## General Help
 

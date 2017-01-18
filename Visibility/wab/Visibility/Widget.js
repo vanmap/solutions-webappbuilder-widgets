@@ -33,7 +33,7 @@ define([
 function(dom, on, declare, _WidgetsInTemplateMixin, lang, dojoDomClass, BaseWidget, HorizontalSlider, 
   HorizontalRule, HorizontalRuleLabels, VerticalSlider, VerticalRule, VerticalRuleLabels, knob, Map, 
   GraphicsLayer, Geoprocessor, FeatureSet, LinearUnit, graphicsUtils,SimpleFillSymbol, SimpleLineSymbol, 
-  SimpleMarkerSymbol, esriConfig, Color, jsonUtils, noUiSlider, JimuMessage){
+  SimpleMarkerSymbol, esriConfig, Color, jsonUtils, noUiSlider, Message){
 	return declare([BaseWidget, _WidgetsInTemplateMixin], {    
 		FOV: 180,
 		LA: 180,
@@ -158,7 +158,7 @@ function(dom, on, declare, _WidgetsInTemplateMixin, lang, dojoDomClass, BaseWidg
         "Right_Azimuth__AZIMUTH2_": Azimuth2,
         "Observer_Offset__OFFSETA_": parseInt(dom.byId("obsHeightSlider").noUiSlider.get())
       };
-      gp.execute(params, lang.hitch(this, this.drawViewshed));
+      gp.execute(params, lang.hitch(this, this.drawViewshed), lang.hitch(this, this.gpError));
     },
     
     drawViewshed: function (results, messages) {         
@@ -203,7 +203,15 @@ function(dom, on, declare, _WidgetsInTemplateMixin, lang, dojoDomClass, BaseWidg
 		  
       this.map.setExtent(graphicsUtils.graphicsExtent(this.graphicsLayer.graphics), true);
 		  this.map.setMapCursor("default");
-    },        
+    },
+
+    gpError: function () {
+      var alertMessage = new Message({
+                    message: 'An error occured whilst creating visibility. Please ensure your observer location falls within the extent of your elevation surface.</p>'
+                  });
+      this.map.setMapCursor("default");
+      this.drawBox.clear();      
+    },   
 
     onClearBtnClicked: function () {
       this.graphicsLayer.clear();  

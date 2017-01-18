@@ -55,6 +55,9 @@ define([
          *
          **/
         postCreate: function () {
+            if(!this.config.feedback) {
+                this.config.feedback = {};
+            }
 
             this.lineTab = new TabLine({
                 map: this.map,

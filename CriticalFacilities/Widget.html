@@ -1,10 +1,11 @@
 <div>
-    <section>
-      <!--need to move away from the id usage-->
-        <fieldset id="fieldsetForm" class="fieldset-form" data-dojo-type="dijit/Fieldset" data-dojo-attach-point="fieldsetForm">   
-            <legend>${nls.schemaMapping}</legend>
-            <input id="btnAddToMap" data-dojo-attach-point="addToMap" data-dojo-attach-event="onclick:onAddClick" type="button" value="${nls.addToMap}"/>
-            <input id="btnSubmitData" data-dojo-attach-point="submitData" data-dojo-attach-event="onclick:onSubmitClick" type="button" value="${nls.submit}"/>
-        </fieldset>
-    </section>    
+  <section>
+    <!--need to move away from the id usage-->
+    <fieldset class="fieldset-form" data-dojo-type="dijit/Fieldset" data-dojo-attach-point="fieldsetForm">   
+      <legend>${nls.schemaMapping}</legend>
+      <!--should use style from jimu-->
+      <input class="btnAddToMap" data-dojo-attach-point="addToMap" data-dojo-attach-event="onclick:onAddClick" type="button" value="${nls.addToMap}"/>
+      <input class="btnSubmitData" data-dojo-attach-point="submitData" data-dojo-attach-event="onclick:onSubmitClick" type="button" value="${nls.submit}"/>
+    </fieldset>
+  </section>    
 </div>

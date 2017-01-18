@@ -18,14 +18,14 @@ define(
     Table,
     Popup) {
     return declare([BaseWidgetSetting, _TemplatedMixin], {
-      baseClass: "jimu-widget-edit-setting-fields",
+      baseClass: "jimu-widget-setting-fields-critical-facilities",
       templateString: template,
       _layerInfo: null,
 
       postCreate: function() {
         this.inherited(arguments);
         this.nls = lang.mixin(this.nls, window.jimuNls.common);
-       // this._initFieldsTable();
+        this._initFieldsTable();
         this._setFiedsTabele(this._layerInfo.fieldInfos);
       },
 
@@ -56,16 +56,11 @@ define(
 
       _initFieldsTable: function() {
         var fields2 = [{
-          /*name: 'visible',
+          name: 'visible',
           title: this.nls.display,
           type: 'checkbox',
           'class': 'display'
         }, {
-          name: 'isEditable',
-          title: this.nls.edit,
-          type: 'checkbox',
-          'class': 'editable'
-        },{
           name: 'fieldName',
           title: this.nls.editpageName,
           type: 'text'
@@ -79,8 +74,7 @@ define(
           title: this.nls.actions,
           type: 'actions',
           actions: ['up', 'down'],
-          'class': 'actions'
-        */}];
+          'class': 'actions'}];
         var args2 = {
           fields: fields2,
           selectable: false,
@@ -98,39 +92,15 @@ define(
         array.forEach(fieldInfos, function(fieldInfo) {
           this._fieldsTable.addRow({
             fieldName: fieldInfo.fieldName,
-            isEditable: fieldInfo.isEditable,
             label: fieldInfo.label,
             visible: fieldInfo.visible
           });
-
         }, this);
-
-        // Bind 'onChange' events for visble and isEditable.
-        setTimeout(lang.hitch(this, function() {
-          array.forEach(this._fieldsTable.fields, function(field) {
-            if(field.name === 'visible') {
-              field.onChange = lang.hitch(this, this._onDisplayFieldChanged);
-            } else if(field.name === 'isEditable') {
-              field.onChange = lang.hitch(this, this._onIsEditableFieldChanged);
-            }
-          }, this);
-        }), 300);
       },
 
       _onDisplayFieldChanged: function(tr) {
         var rowData = this._fieldsTable.getRowData(tr);
-        var display = rowData.visible;
-        if(!display && rowData.isEditable) {
-          rowData.isEditable = false;
-          this._fieldsTable.editRow(tr, rowData);
-        }
-      },
-
-      _onIsEditableFieldChanged: function(tr) {
-        var rowData = this._fieldsTable.getRowData(tr);
-        var isEditable  = rowData.isEditable;
-        if(isEditable && !rowData.visible) {
-          rowData.visible = true;
+        if (!rowData.visible) {
           this._fieldsTable.editRow(tr, rowData);
         }
       },
@@ -142,13 +112,10 @@ define(
           newFieldInfos.push({
             "fieldName": fieldData.fieldName,
             "label": fieldData.label,
-            "isEditable": fieldData.isEditable,
             "visible": fieldData.visible
           });
         });
-
         this._layerInfo.fieldInfos = newFieldInfos;
       }
-
     });
   });

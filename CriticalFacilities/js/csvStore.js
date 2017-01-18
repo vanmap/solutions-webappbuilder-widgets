@@ -15,12 +15,9 @@ define([
     'esri/renderers/SimpleRenderer',
     'esri/layers/FeatureLayer',
     'jimu/loaderplugins/jquery-loader!https://code.jquery.com/jquery-git1.min.js'
-], 
-
-
+],
 function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, webMercatorUtils, Multipoint, Point, Color, SimpleMarkerSymbol, SimpleRenderer, FeatureLayer, $) {
     return declare([], {
-
       constructor: function (options) {
         this.inFile = options.inFile;
         this.inMap = options.inMap;
@@ -161,8 +158,8 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
 
         this.inMap.addLayers([this.featureLayer]);
         this.onZoomToData(this.featureLayer);
-        document.getElementById('btnSubmitData').disabled = false;
-        document.getElementById('btnAddToMap').disabled = true;
+        this.submitData.disabled = false;
+        this.addToMap.disabled = true;
 
       },
 

@@ -1,5 +1,6 @@
 # Import arcpy module
 import arcpy, math
+import os
 
 ####
 ########Script Parameters##################
@@ -19,11 +20,7 @@ fullwedge = arcpy.GetParameterAsText(8)
 elevation = r'D:\Workspace\Data\n36prj.tif'
 
 
-####
-########Draw Wedge Function##################
-####
-
-DEBUG = True
+DEBUG = False
 
 def drawWedge(cx,cy,r1,r2,start,end):
     point = arcpy.Point()
@@ -82,15 +79,43 @@ def drawWedge(cx,cy,r1,r2,start,end):
 
     return polygon
 
-####
-########End of Draw Wedge Function##################
-####
+def surfaceContainsPoint(pointFeature, surfRaster):
+    '''
+    Check if point extent falls within surface extent, return True or False
+    '''
+    surfDesc = arcpy.Describe(surfRaster)
+    surfaceExtentPoly = extentToPoly(surfDesc.extent, surfDesc.spatialReference)
+    
+    pointDesc = arcpy.Describe(pointFeature)
+    pointExtent = pointDesc.extent
+    pointFeature = extentToPoly(pointExtent, pointDesc.spatialReference)
+    #project poly to same sr as surface
+    pointFeatProj = pointFeature.projectAs(surfDesc.spatialReference)
+    
+    isWithin = pointFeatProj.within(surfaceExtentPoly)
+    
+    if DEBUG: arcpy.AddMessage("Within: {0}".format(isWithin))
+    return isWithin
+    
+def extentToPoly(extent, sr):
+    '''
+    Extent object returns arcpy.Polygon or arcpy.Point
+    '''
+    if extent.height == 0.0 and extent.width == 0.0:
+        if DEBUG: arcpy.AddMessage("point: {0}\n sr: {1}".format(extent, sr.name)) 
+        return arcpy.PointGeometry(extent.lowerLeft, sr)
+    else:
+        if DEBUG: arcpy.AddMessage("poly: {0}\n sr: {1}".format(extent, sr.name))
+        return extent.polygon
 
 def main():
     elevDesc = arcpy.Describe(elevation)
     Output_CS = elevDesc.spatialReference
+    
     if not Output_CS.type == "Projected":
-        arcpy.AddError("Data Error: Input elevation raster must be in a projected coordinate system. Existing elevation raster is in {0}.".format(Output_CS.name))
+        msgErrorNonProjectedSurface = "Error: Input elevation raster must be in a projected coordinate system. Existing elevation raster is in {0}.".format(Output_CS.name)
+        arcpy.AddError(msgErrorNonProjectedSurface)
+        raise Exception(msgErrorNonProjectedSurface)
     
     arcpy.env.outputCoordinateSystem = Output_CS
     
@@ -103,6 +128,13 @@ def main():
     
     Point_Input = "in_memory\\tempPoints"
     arcpy.CopyFeatures_management(inputPoints, Point_Input)
+    
+    #Check if point extent falls within surface extent
+    isWithin = surfaceContainsPoint(Point_Input, elevation)
+    if not isWithin:
+        msgErrorPointNotInSurface = "Error: Input Observer(s) does not fall within the extent of the input surface: {0}!".format(os.path.basename(elevation))
+        arcpy.AddError(msgErrorPointNotInSurface)
+        raise Exception(msgErrorPointNotInSurface)
     
     arcpy.CalculateField_management(Point_Input, "OFFSETB", "0", "PYTHON_9.3", "")
     arcpy.CalculateField_management(Point_Input, "RADIUS2", Radius2_Input, "PYTHON_9.3", "")

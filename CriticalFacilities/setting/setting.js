@@ -22,6 +22,7 @@ define([
     'jimu/dijit/TabContainer3',
     'jimu/LayerInfos/LayerInfos',
     'jimu/utils',
+    'jimu/dijit/Message',
     'dojo/_base/lang',
     'dojo/_base/html',
     'dojo/on',
@@ -30,7 +31,6 @@ define([
     'dojo/_base/array',
     "../locatorUtils",
     "./EditFields",
-    "../js/utils",
     "./LocatorSourceSetting",
     'dijit/form/NumberSpinner',
     "jimu/dijit/CheckBox",
@@ -45,6 +45,7 @@ define([
     TabContainer3,
     LayerInfos,
     utils,
+    Message,
     lang,
     html,
     on,
@@ -53,7 +54,6 @@ define([
     array,
     _utils,
     EditFields,
-    editUtils,
     LocatorSourceSetting,
     NumberSpinner,
     CheckBox,
@@ -62,14 +62,15 @@ define([
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
       baseClass: 'jimu-widget-setting-critical-facilities',
 
-      _jimuLayerInfos: null,
+      //TODO step through the fieldInfo stuff...seems like there is way more work going on for that than is necessary
+      //TODO ask team about "is recognized if named list" idea
+      //TODO disable OK when no layer is selected or no editable layers in map or if all locators have been removed
+      //TODO fix css issue with row highlight not lining up with row
+
+      _operLayerInfos: null,
       _layersTable: null,
       _editableLayerInfos: null,
-      _featureService: null,
       _arrayOfFields: null,
-      _layerForFields: null,
-      _latField: null,
-      _longField: null,
       _layerInfos: [],
 
       startup: function () {
@@ -81,13 +82,11 @@ define([
 
         LayerInfos.getInstance(this.map, this.map.itemInfo)
           .then(lang.hitch(this, function (operLayerInfos) {
-            this._featureService = operLayerInfos.getLayerInfoArray()[0].getUrl(); //this currently gets the first layer, need to change to get the selected layer
-            this.layerForFields = operLayerInfos.getLayerInfoArray()[0];
-            this._jimuLayerInfos = operLayerInfos;
+            this._operLayerInfos = operLayerInfos;
             this._editableLayerInfos = this._getEditableLayerInfos();
             this._initUI();
             _utils.setMap(this.map);
-            _utils.setLayerInfosObj(this._jimuLayerInfos);
+            _utils.setLayerInfosObj(this._operLayerInfos);
             _utils.setAppConfig(this.appConfig);
             when(_utils.getConfigInfo(this.config)).then(lang.hitch(this, function (config) {
               if (!this.domNode) {
@@ -153,42 +152,6 @@ define([
         this._addLayerRows();
       },
 
-      _onRowSelected: function (tr) {
-        var radio = query('input', tr.firstChild)[0];
-        var config = this._getRowConfig(tr);
-        config._editFlag = radio.checked
-        this._setRowConfig(tr, config);
-      },
-
-      _addLayerRows: function () {
-        if (this._editableLayerInfos) {
-          array.forEach(this._editableLayerInfos, lang.hitch(this, function (layerInfo) {
-            var addRowResult = this._layersTable.addRow({
-              txtLayerLabel: layerInfo.featureLayer.title,
-              rdoLayer: layerInfo._editFlag
-            });
-            if (addRowResult && addRowResult.success) {
-              this._setRowConfig(addRowResult.tr, layerInfo);
-            } else {
-              console.error("add row failed ", addRowResult);
-            }
-          }));
-        } else {
-          alert("Handle no editable layers here.");
-        }
-      },
-
-      _onEditFieldsClick: function (tr) {
-        var rowData = this._layersTable.getRowData(tr);
-        if (rowData && rowData.rdoLayer) {
-          var editFields = new EditFields({
-            nls: this.nls,
-            _layerInfo: this._getRowConfig(tr)
-          });
-          editFields.popupEditPage();
-        }
-      },
-
       _initLocationOptions: function () {
         this.sourceList = new SimpleTable({
           autoHeight: false,
@@ -211,144 +174,45 @@ define([
         this.sourceList.startup();
         this.own(on(this.sourceList, 'row-select', lang.hitch(this, this._onSourceItemSelected)));
         this.own(on(this.sourceList, 'row-delete', lang.hitch(this, this._onSourceItemRemoved)));
-
-        this.showInfoWindowOnSelect = new CheckBox({
-          checked: true,
-          label: this.nls.showInfoWindowOnSelect
-        }, this.showInfoWindowOnSelect);
       },
 
-      _createNewLocatorSourceSettingFromMenuItem: function (setting, definition) {
-        var locatorSetting = new LocatorSourceSetting({
-          nls: this.nls,
-          map: this.map
-        });
-        locatorSetting.setDefinition(definition);
-        locatorSetting.setConfig({
-          url: setting.url || "",
-          name: setting.name || "",
-          singleLineFieldName: setting.singleLineFieldName || "",
-          placeholder: setting.placeholder || "",
-          countryCode: setting.countryCode || "",
-          zoomScale: setting.zoomScale || 50000,
-          maxSuggestions: setting.maxSuggestions || 6,
-          maxResults: setting.maxResults || 6,
-          searchInCurrentMapExtent: !!setting.searchInCurrentMapExtent,
-          type: "locator"
-        });
-        locatorSetting._openLocatorChooser();
+      _onRowSelected: function (tr) {
+        var radio = query('input', tr.firstChild)[0];
+        var config = this._getRowConfig(tr);
+        config._editFlag = radio.checked;
+        this._setRowConfig(tr, config);
+      },
 
-        locatorSetting.own(
-          on(locatorSetting, 'select-locator-url-ok', lang.hitch(this, function (item) {
-            var addResult = this.sourceList.addRow({
-              name: item.name || "New Geocoder"
-            }, this.sourceList.getRows().length);
-            if (addResult && addResult.success) {
-              if (this._currentSourceSetting) {
-                this._closeSourceSetting();
-              }
-              locatorSetting.setRelatedTr(addResult.tr);
-              locatorSetting.placeAt(this.sourceSettingNode);
-              this.sourceList.selectRow(addResult.tr);
-
-              this._currentSourceSetting = locatorSetting;
-            }
-          }))
-        );
-        locatorSetting.own(
-          on(locatorSetting, 'reselect-locator-url-ok', lang.hitch(this, function (item) {
-            var tr = this._currentSourceSetting.getRelatedTr();
-            this.sourceList.editRow(tr, {
-              name: item.name
+      _addLayerRows: function () {
+        if (this._editableLayerInfos) {
+          array.forEach(this._editableLayerInfos, lang.hitch(this, function (layerInfo) {
+            var addRowResult = this._layersTable.addRow({
+              txtLayerLabel: layerInfo.featureLayer.title,
+              rdoLayer: layerInfo._editFlag,
+              url: layerInfo.url
             });
-          }))
-        );
-        locatorSetting.own(
-          on(locatorSetting, 'select-locator-url-cancel', lang.hitch(this, function () {
-            if (this._currentSourceSetting !== locatorSetting) {// locator doesn't display in UI
-              locatorSetting.destroy();
-              locatorSetting = null;
+            if (addRowResult && addRowResult.success) {
+              this._setRowConfig(addRowResult.tr, layerInfo);
+            } else {
+              console.error("add row failed ", addRowResult);
             }
-          }))
-        );
+          }));
+        } else {
+          new Message({
+            message: this.nls.needsEditableLayers
+          });
+        }
       },
 
-      onFieldClick: function (click) {
-        console.log("on Field click");
-
-        var layersTableData = this._layersTable.getData();
-        var selected = null;
-
-        console.log("length +++++++++++ " + layersTableData.length);
-
-        //this can tell you what feature service is selected via the radio button
-
-        var label = null;
-        array.forEach(layersTableData, function (layerInfo, index) {
-
-          if (layersTableData[index].rdoLayer == true) {
-
-            console.log("____+_+" + layersTableData[index].rdoLayer, layersTableData[index].txtLayerLabel);
-            selected = index;
-            label = layersTableData[index].txtLayerLabel;
-
-          }
-          //need to:
-          //1) populate the drop down fields according to the feature service that is selected
-          //2) set the config to reflect the feature service
-
-        });
-
-        var count = 0;
-        var latNode = document.getElementById('selectLatitude');
-        var longNode = document.getElementById('selectLongitude');
-
-        latNode.innerHTML = "";
-        longNode.innerHTML = "";
-
-        // var info = this._jimuLayerInfos.getLayerInfoArray()[selected];
-
-
-        this._jimuLayerInfos.traversalLayerInfosOfWebmap(function (layerInfo) {
-          layerInfo.getLayerObject().then(function (lo) {
-
-            if (label == layerInfo.title) {
-              console.log("++++ " + layerInfo.id, layerInfo.title);
-
-              if (lo.fields) {
-
-                array.forEach(lo.fields, function (field) {
-                  console.log("fields Names " + field.name);
-
-                  var option = document.createElement('option');
-                  option.text = field.name;
-                  option.value = count;
-                  latNode.add(option);
-
-                  var longOption = document.createElement('option');
-                  longOption.text = field.name;
-                  longOption.value = count;
-                  longNode.add(longOption);
-                  count++;
-                });
-
-              }
-            }
-          })
-
-        });
-
-
-        console.log("fields button press " + this._jimuLayerInfos);
-        this._featureService = this._jimuLayerInfos.getLayerInfoArray()[selected].getUrl();
-        this.layerForFields = this._jimuLayerInfos.getLayerInfoArray()[selected];
-        selected = null;
-        console.log(this._featureService, this.layerForFields);
-
-        this.getConfig();
-
-        //this.setConfig();
-
+      _onEditFieldsClick: function (tr) {
+        var rowData = this._layersTable.getRowData(tr);
+        if (rowData && rowData.rdoLayer) {
+          var editFields = new EditFields({
+            nls: this.nls,
+            _layerInfo: this._getRowConfig(tr)
+          });
+          editFields.popupEditPage();
+        }
       },
 
       setConfig: function (config) {
@@ -358,10 +222,8 @@ define([
           var addResult = this.sourceList.addRow({
             name: source.name || ""
           });
-
           if (addResult && addResult.success) {
             this._setRowConfig(addResult.tr, source);
-
             if (index === 0) {
               var firstTr = addResult.tr;
               setTimeout(lang.hitch(this, function () {
@@ -404,13 +266,9 @@ define([
               break;
             }
           }
-
           if (layerInfo) {
-            // update fieldInfos.
-            layerInfo.fieldInfos = this._getSimpleFieldInfos(layerObject, layerInfo);
-            // set _editFlag to true
+            layerInfo.fieldInfos = this._getFieldInfos(layerObject, layerInfo);
             layerInfo._editFlag = true;
-
           }
         }
         return layerInfo;
@@ -421,27 +279,26 @@ define([
           'featureLayer': {
             'id': layerObject.id,
             'fields': layerObject.fields,
-            'title': layerObject.name
+            'title': layerObject.name,
+            'url': layerObject.url
           },
-          'fieldInfos': this._getSimpleFieldInfos(layerObject),
+          'fieldInfos': this._getFieldInfos(layerObject),
           '_editFlag': this.config.layerInfos &&
                         this.config.layerInfos.length === 0 ? true : false
         };
         return layerInfo;
       },
 
-      _getDefaultSimpleFieldInfos: function (layerObject) {
+      _getDefaultFieldInfos: function (layerObject) {
         var fieldInfos = [];
         for (var i = 0; i < layerObject.fields.length; i++) {
           if (layerObject.fields[i].editable ||
             layerObject.fields[i].name.toLowerCase() === "globalid" ||
-            //layerObject.fields[i].name.toLowerCase() === "objectid" ||
             layerObject.fields[i].name === layerObject.objectIdField) {
             fieldInfos.push({
               fieldName: layerObject.fields[i].name,
               label: layerObject.fields[i].alias || layerObject.fields[i].name,
               isEditable: (layerObject.fields[i].name.toLowerCase() === "globalid" ||
-                          //layerObject.fields[i].name.toLowerCase() === "objectid" ||
                           layerObject.fields[i].name === layerObject.objectIdField) &&
                           !layerObject.fields[i].editable ?
                           null :
@@ -453,90 +310,94 @@ define([
         return fieldInfos;
       },
 
-      _getWebmapSimpleFieldInfos: function (layerObject) {
-        var webmapSimpleFieldInfos = [];
-        var webmapFieldInfos =
-          editUtils.getFieldInfosFromWebmap(layerObject.id, this._jimuLayerInfos);
-        if (webmapFieldInfos) {
-          array.forEach(webmapFieldInfos, function (webmapFieldInfo) {
-            if (webmapFieldInfo.isEditableOnLayer !== undefined &&
-              (webmapFieldInfo.isEditableOnLayer ||
-              webmapFieldInfo.fieldName.toLowerCase() === "globalid" ||
-              //webmapFieldInfo.fieldName.toLowerCase() === "objectid" ||
-              webmapFieldInfo.fieldName === layerObject.objectIdField)) {
-              webmapSimpleFieldInfos.push({
-                fieldName: webmapFieldInfo.fieldName,
-                label: webmapFieldInfo.label,
-                isEditable: (webmapFieldInfo.fieldName.toLowerCase() === "globalid" ||
-                            //webmapFieldInfo.fieldName.toLowerCase() === "objectid" ||
-                            webmapFieldInfo.fieldName === layerObject.objectIdField) &&
-                            !webmapFieldInfo.isEditable ?
-                            null :
-                            webmapFieldInfo.isEditable,
-                visible: webmapFieldInfo.visible
+      _getWebmapFieldInfos: function (layerObject) {
+        var fieldInfos = [];
+        var wFieldInfos = this.getFieldInfosFromWebmap(layerObject.id, this._operLayerInfos);
+        if (wFieldInfos) {
+          array.forEach(wFieldInfos, function (fi) {
+            if (fi.isEditableOnLayer !== undefined &&
+              (fi.isEditableOnLayer || fi.fieldName === layerObject.globalIdField ||
+              fi.fieldName === layerObject.objectIdField)) {
+              fieldInfos.push({
+                fieldName: fi.fieldName,
+                label: fi.label,
+                isEditable: (fi.fieldName === layerObject.globalIdField || fi.fieldName === layerObject.objectIdField)
+                  && !fi.isEditable ? null : fi.isEditable,
+                visible: fi.visible
               });
             }
           });
-          if (webmapSimpleFieldInfos.length === 0) {
-            webmapSimpleFieldInfos = null;
+          if (fieldInfos.length === 0) {
+            fieldInfos = null;
           }
         } else {
-          webmapSimpleFieldInfos = null;
+          fieldInfos = null;
         }
-        return webmapSimpleFieldInfos;
+        return fieldInfos;
       },
 
-      _getSimpleFieldInfos: function (layerObject, layerInfo) {
-        var baseSimpleFieldInfos;
-        var simpleFieldInfos = [];
-        var defautlSimpleFieldInfos = this._getDefaultSimpleFieldInfos(layerObject);
-        var webmapSimpleFieldInfos = this._getWebmapSimpleFieldInfos(layerObject);
+      getFieldInfosFromWebmap: function(layerId, jimuLayerInfos) {
+        var fieldInfos = null;
+        var jimuLayerInfo = jimuLayerInfos.getLayerInfoByTopLayerId(layerId);
+        if(jimuLayerInfo) {
+          var popupInfo = jimuLayerInfo.getPopupInfo();
+          if(popupInfo && popupInfo.fieldInfos) {
+            fieldInfos = lang.clone(popupInfo.fieldInfos);
+          }
+        }
 
-        baseSimpleFieldInfos =
-          webmapSimpleFieldInfos ? webmapSimpleFieldInfos : defautlSimpleFieldInfos;
+        if(fieldInfos) {
+          array.forEach(fieldInfos, function(fieldInfo) {
+            if(fieldInfo.format &&
+              fieldInfo.format.dateFormat &&
+              fieldInfo.format.dateFormat.toLowerCase() &&
+              fieldInfo.format.dateFormat.toLowerCase().indexOf('time') >= 0
+              ) {
+              fieldInfo.format.time = true;
+            }
+          });
+        }
 
+        return fieldInfos;
+      },
+
+      _getFieldInfos: function (layerObject, layerInfo) {
+        var fieldInfos = [];
+        var wFieldInfos = this._getWebmapFieldInfos(layerObject);
+        var bFieldInfos =  wFieldInfos ? wFieldInfos : this._getDefaultFieldInfos(layerObject);
         if (layerInfo && layerInfo.fieldInfos) {
-          // Edit widget had been configured
-
-          // keep order of config fieldInfos and add new fieldInfos at end.
-          array.forEach(layerInfo.fieldInfos, function (configuredFieldInfo) {
-            // Compatible with old version fieldInfo that does not defined
-            // the visible attribute. Init visible according to webmap field infos.
-            if (configuredFieldInfo.visible === undefined) {
-              if (webmapSimpleFieldInfos) {
-                for (var j = 0; j < webmapSimpleFieldInfos.length; j++) {
-                  if (configuredFieldInfo.fieldName === webmapSimpleFieldInfos[j].fieldName) {
-                    configuredFieldInfo.visible = webmapSimpleFieldInfos[j].visible ||
-                                                  webmapSimpleFieldInfos[j].isEditable;
+          array.forEach(layerInfo.fieldInfos, function (fi) {
+            if (typeof(fi.visible) === 'undefined') {
+              if (wFieldInfos) {
+                for (var j = 0; j < wFieldInfos.length; j++) {
+                  if (fi.fieldName === wFieldInfos[j].fieldName) {
+                    fi.visible = wFieldInfos[j].visible || wFieldInfos[j].isEditable;
                   }
                 }
-                // if configuredFieldInfo.name is not matching any field of webmapSimpleFieldInfos,
-                // this configured field will not display in field setting popup.
               } else {
-                configuredFieldInfo.visible = true;
+                fi.visible = true;
               }
             }
 
             // keep order.
-            for (var i = 0; i < baseSimpleFieldInfos.length; i++) {
-              if (configuredFieldInfo.fieldName === baseSimpleFieldInfos[i].fieldName) {
-                simpleFieldInfos.push(configuredFieldInfo);
-                baseSimpleFieldInfos[i]._exit = true;
+            for (var i = 0; i < bFieldInfos.length; i++) {
+              if (fi.fieldName === bFieldInfos[i].fieldName) {
+                fieldInfos.push(fi);
+                bFieldInfos[i]._exit = true;
                 break;
               }
             }
           });
           // add new fieldInfos at end.
-          array.forEach(baseSimpleFieldInfos, function (baseSimpleFieldInfo) {
-            //      console.log("_getSimpleFieldInfos");
-            if (!baseSimpleFieldInfo._exit) {
-              simpleFieldInfos.push(baseSimpleFieldInfo);
+          array.forEach(bFieldInfos, function (fi) {
+            if (!fi._exit) {
+              fieldInfos.push(fi);
             }
           });
         } else {
-          simpleFieldInfos = baseSimpleFieldInfos;
+          fieldInfos = bFieldInfos;
         }
-        return simpleFieldInfos;
+        return fieldInfos;
       },
 
       getConfig: function () {
@@ -560,7 +421,7 @@ define([
         array.forEach(trs, lang.hitch(this, function (tr) {
           var layerInfo = this._getRowConfig(tr);
           if (layerInfo._editFlag) {
-            delete layerInfo._editFlag;
+            //delete layerInfo._editFlag;
             checkedLayerInfos.push(layerInfo);
           }
         }));
@@ -568,16 +429,11 @@ define([
           delete this.config.layerInfos;
         } else {
           this.config.layerInfos = checkedLayerInfos;
-          this.config.selectedFeatureService = this._featureService;
         }
         return this.config;
       },
 
       _onAddClick: function (evt) {
-        this._addNewLocator();
-      },
-
-      _addNewLocator: function () {
         this._createNewLocatorSourceSettingFromMenuItem({}, {});
       },
 
@@ -680,7 +536,6 @@ define([
         if (!this._currentSourceSetting) {
           return;
         }
-
         var currentTr = this._currentSourceSetting.getRelatedTr();
         if (currentTr === tr) {
           this._currentSourceSetting.destroy();
@@ -694,14 +549,11 @@ define([
         if (!config || tr === currentTr) {
           return;
         }
-
-        // check fields
         if (this._currentSourceSetting && !this._currentSourceSetting.isValidConfig()) {
           this._currentSourceSetting.showValidationTip();
           this.sourceList.selectRow(currentTr);
           return;
         }
-
         this._createNewLocatorSourceSettingFromSourceList(config, config._definition || {}, tr);
       },
 

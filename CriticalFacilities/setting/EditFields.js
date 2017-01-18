@@ -1,22 +1,41 @@
+///////////////////////////////////////////////////////////////////////////
+// Copyright 2016 Esri. All Rights Reserved.
+//
+// Licensed under the Apache License Version 2.0 (the 'License');
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an 'AS IS' BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+///////////////////////////////////////////////////////////////////////////
 define(
   ["dojo/_base/declare",
     "dojo/_base/lang",
     "dojo/_base/array",
+    'dojo/on',
     "dojo/text!./EditFields.html",
     'dijit/_TemplatedMixin',
     'jimu/BaseWidgetSetting',
     'jimu/dijit/SimpleTable',
-    "jimu/dijit/Popup"
+    "jimu/dijit/Popup",
+    "./LookupList"
   ],
   function(
     declare,
     lang,
     array,
+    on,
     template,
     _TemplatedMixin,
     BaseWidgetSetting,
     Table,
-    Popup) {
+    Popup,
+    LookupList) {
     return declare([BaseWidgetSetting, _TemplatedMixin], {
       baseClass: "jimu-widget-setting-fields-critical-facilities",
       templateString: template,
@@ -73,7 +92,7 @@ define(
           name: 'actions',
           title: this.nls.actions,
           type: 'actions',
-          actions: ['up', 'down'],
+          actions: ['up', 'down', 'edit'],
           'class': 'actions'}];
         var args2 = {
           fields: fields2,
@@ -86,6 +105,9 @@ define(
         this._fieldsTable = new Table(args2);
         this._fieldsTable.placeAt(this.fieldsTable);
         this._fieldsTable.startup();
+
+        this.own(on(this._fieldsTable, 'actions-edit',
+          lang.hitch(this, this._onEditFieldsClick)));
       },
 
       _setFiedsTabele: function(fieldInfos) {
@@ -116,6 +138,34 @@ define(
           });
         });
         this._layerInfo.fieldInfos = newFieldInfos;
+      },
+
+      _onEditFieldsClick: function (tr) {
+        var sourceDijit = new LookupList({
+          nls: this.nls,
+          row: tr
+        });
+
+        var popup = new Popup({
+          width: 420,
+          autoHeight: true,
+          content: sourceDijit,
+          titleLabel: this.nls.lookupList,
+          buttons: [{
+            label: this.nls.ok,
+            onClick: lang.hitch(this, function () {
+              popup.close();
+            })
+          }, {
+            label: this.nls.cancel,
+            classNames: ['jimu-btn-vacation'],
+            onClick: lang.hitch(this, function () {
+              popup.close();
+            })
+          }],
+          onClose: lang.hitch(this, function () {
+          })
+        });
       }
     });
   });

@@ -34,6 +34,8 @@
     geocodeTab: {
       geocodeTabLabel: "Geocode Settings"
     },
+    lookupList: "Is recognized if named",
+    needsEditableLayers: "The webmap must contain at least 1 editable layer.",
     layerInfos: [],
     featureServiceLabel: "Choose the feature service",
     enableUndoRedo: "Enable Undo/Redo",

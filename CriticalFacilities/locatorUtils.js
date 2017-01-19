@@ -23,7 +23,10 @@ define([
   'jimu/portalUtils',
   'esri/lang',
   'esri/request'
-], function(lang, array, Deferred, when, all, portalUtils, esriLang, esriRequest) {
+], function (lang, array, Deferred, when, all, portalUtils, esriLang, esriRequest) {
+
+  //TODO cleanup...some of this is not necessary for our use
+
   var mo = {
     map: null,
     layerInfosObj: null,

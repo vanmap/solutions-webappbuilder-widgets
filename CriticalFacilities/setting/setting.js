@@ -64,8 +64,11 @@ define([
 
       //TODO step through the fieldInfo stuff...seems like there is way more work going on for that than is necessary
       //TODO ask team about "is recognized if named list" idea
+      //TODO should we support an option for configure user to mark certain fields as required or optional?
       //TODO disable OK when no layer is selected or no editable layers in map or if all locators have been removed
       //TODO fix css issue with row highlight not lining up with row
+      //TODO need a way to handle lat lon in addition to geocode...thinking about a checkbox on the Location tab...
+      // would then need widget to handle if it's enabled
 
       _operLayerInfos: null,
       _layersTable: null,

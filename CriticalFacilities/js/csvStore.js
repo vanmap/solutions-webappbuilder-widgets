@@ -6,6 +6,7 @@ define([
     'dojo/on',
     'dojo/dom',
     'dojo/dom-construct',
+    'dojo/Deferred',
     'dojox/data/CsvStore',
     'esri/geometry/webMercatorUtils',
     'esri/geometry/Multipoint',
@@ -14,9 +15,11 @@ define([
     'esri/symbols/SimpleMarkerSymbol',
     'esri/renderers/SimpleRenderer',
     'esri/layers/FeatureLayer',
+    'esri/tasks/locator',
+    'jimu/utils',
     'jimu/loaderplugins/jquery-loader!https://code.jquery.com/jquery-git1.min.js'
 ],
-function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, webMercatorUtils, Multipoint, Point, Color, SimpleMarkerSymbol, SimpleRenderer, FeatureLayer, $) {
+function (declare, array, lang, query, on, dom, domConstruct, Deferred, CsvStore, webMercatorUtils, Multipoint, Point, Color, SimpleMarkerSymbol, SimpleRenderer, FeatureLayer, Locator, jimuUtils, $) {
     return declare([], {
       constructor: function (options) {
         this.inFile = options.inFile;
@@ -35,90 +38,61 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
         this.mappedArrayFields = null;
         this.latField = null;
         this.longField = null;
+        this.geocodeSources = options.geocodeSources;
       },
 
       onHandleCsv: function () {
-        console.log("onHandleCsv");
         console.log("Processing CSV: ", this.inFile, ", ", this.inFile.name, ", ", this.inFile.type, ", ", this.inFile.size);
-        if (this.inFile.data) {
-          console.log('file.data');
-        }
-        else {
-          console.log("not file data");
+        var def = new Deferred();
+        if (this.inFile && !this.inFile.data) {
           var reader = new FileReader();
           reader.onload = lang.hitch(this, function () {
-            console.log("Finished reading CSV data");
-
             this.fileData = reader.result;
-
-            this.onProcessCsvData();
+            this.onProcessCsvData().then(function (a) { def.resolve(a) })
           });
           reader.readAsText(this.inFile);
         }
+        return def;
       },
 
       onProcessCsvData: function () {
-        console.log("onProcessCsvData");
-
-        // Get the separator
-        this.onGetSeparator();
-
-        // Get the store and fetch the items
-        this.onGetCsvStore();
-
+        var def = new Deferred();
+        this._convertSources().then(lang.hitch(this, function (source) {
+          this.onGetSeparator();
+          this.onGetCsvStore().then(function (a) { def.resolve(a) });
+        }));
+        return def;
       },
 
       onGetFeatureCollection: function () {
-        console.log("onGetFeatureCollection");
+
       },
 
       onProcessForm: function () {
-        console.log("processForm");
-
         var objectId = 0;
         var counter = 0;
-
         this.featureCollection = this.onGenerateFeatureCollectionTemplateCSV();
-
-
-        console.log("++++ mappedArrayFields " + this.mappedArrayFields.length);
-
-
-        arrayUtils.forEach(this.storeItems, lang.hitch(this, function (item) {
-
+        array.forEach(this.storeItems, lang.hitch(this, function (item) {
           var attrs = this.csvStore.getAttributes(item),
-
           attributes = {};
-
           //this is a nasty hack. It assumes that the spatial object is the first field, not sure that this is always true.
           //it should look for the spatial object type and disregard it, rather than by position
           var count = 1;
-
-          arrayUtils.forEach(attrs, lang.hitch(this, function (attr) {
-
-
+          array.forEach(attrs, lang.hitch(this, function (attr) {
             var value = Number(this.csvStore.getValue(item, this.mappedArrayFields[count][0]));
-
             attributes[this.mappedArrayFields[count][1]] = isNaN(value) ? this.csvStore.getValue(item, this.mappedArrayFields[count][0]) : value;
-
             count++;
-
           }));
-
 
           attributes["ObjectID"] = objectId;
           objectId++;
 
-
           var latitude = parseFloat(attributes[this.latField]);
           var longitude = parseFloat(attributes[this.longField]);
-
 
           if (isNaN(latitude) || isNaN(longitude)) {
             return;
           }
-
-          //setup new set of attributes
 
           var geometry = webMercatorUtils
               .geographicToWebMercator(new Point(longitude, latitude));
@@ -127,40 +101,30 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
             "attributes": attributes
           };
 
-
           JSON.stringify(feature);
-
           this.featureCollection.featureSet.features.push(feature);
-
         }));
 
         var orangeRed = new Color([238, 69, 0, 0.5]); // hex is #ff4500
         var marker = new SimpleMarkerSymbol("solid", 10, null, orangeRed);
         var renderer = new SimpleRenderer(marker);
-        //var tempName = 
 
         this.featureLayer = new FeatureLayer(this.featureCollection, {
-
           id: this.inFile.name,
           editable: true,
           outFields: ["*"]
         });
         this.featureLayer.setRenderer(renderer);
-
-
         on(this.featureLayer, "click", function (e) {
           console.log("FL clicked");
           console.log(e.graphic);
           console.log(e.graphic.attributes);
           console.log("X: " + e.graphic.geometry.x + ", Y: " + e.graphic.geometry.y);
-
         });
-
         this.inMap.addLayers([this.featureLayer]);
         this.onZoomToData(this.featureLayer);
         this.submitData.disabled = false;
         this.addToMap.disabled = true;
-
       },
 
       onGenerateFeatureCollectionTemplateCSV: function () {
@@ -197,38 +161,22 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
           ]
         };
 
-
-
-
-
         var tempArray = [];
-
         for (i = 1; i < this.mappedArrayFields.length; i++) {
           var entry = this.mappedArrayFields[i][1];
-
           tempArray.push(entry)
         }
 
-
         var count = 0;
-
-        arrayUtils.forEach(tempArray, function (temp) {
+        array.forEach(tempArray, function (temp) {
 
         });
 
-        console.log("tempArray " + tempArray.length);
-
-        arrayUtils.forEach(tempArray, lang.hitch(this, function (csvFieldName) {
+        array.forEach(tempArray, lang.hitch(this, function (csvFieldName) {
           console.log("csvFieldName " + csvFieldName);
-
           var value = this.csvStore.getValue(this.storeItems[0], csvFieldName);
           var parsedValue = Number(value);
-
-
           var correctFieldName = this.mappedArrayFields[count][1];
-
-          console.log("    " + this.mappedArrayFields[count][1]);
-
           if (isNaN(parsedValue)) { //check first value and see if it is a number
             this.featureCollection.layerDefinition.fields.push({
               "name": correctFieldName,
@@ -245,25 +193,21 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
               "type": "esriFieldTypeDouble",
               "editable": true,
               "domain": null
-
             });
             count += 1;
           }
-
         }));
-
         return this.featureCollection;
       },
 
       onGetSeparator: function () {
-
         console.log("onGetSeparator");
         var newLineIndex = this.fileData.indexOf("\n");
         var firstLine = lang.trim(this.fileData.substr(0, newLineIndex));
         var separators = [",", "      ", ";", "|"];
         var maxSeparatorLength = 0;
         var maxSeparatorValue = "";
-        arrayUtils.forEach(separators, function (separator) {
+        array.forEach(separators, function (separator) {
           var length = firstLine.split(separator).length;
           if (length > maxSeparatorLength) {
             maxSeparatorLength = length;
@@ -274,67 +218,55 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
       },
 
       onGetCsvStore: function () {
-        console.log("onGetCsvStore");
-        // Create the store and update the class property
+        var def = new Deferred();
         this.csvStore = new CsvStore({
           data: this.fileData,
           separator: this.separatorCharacter
         });
-
-        // Fetch the items and update the items property
         this.csvStore.fetch({
           onComplete: lang.hitch(this, function (items) {
             this.storeItems = items;
-
-            // Get the fields and add to the widget
-            this.onFetchFieldsAndUpdateForm();
-
+            this.onFetchFieldsAndUpdateForm().then(function (a) { def.resolve(a) });
           }),
           onError: function (error) {
             console.error("Error fetching items from CSV store: ", error);
+            def.reject(error);
           }
         });
+        return def;
       },
 
       onFetchFieldsAndUpdateForm: function () {
-        console.log("onFetchFieldsAndUpdateForm");
-        // Update the class property
+        var def = new Deferred();
         this.csvFieldNames = this.csvStore.getAttributes(this.storeItems[0]);
-        console.log("   s: " + this.csvFieldNames);
+        def.resolve(this.csvFieldNames);
+        return def;
+        //query('select[id^="select"]').forEach(lang.hitch(this, function (node, index, arr) {
+        //  console.log("+++++++ " + node.name + " " + node.value);
+        //  array.forEach(this.csvFieldNames, lang.hitch(this, function (csvFieldName, i) {
+        //    //use   domconstruct here to create html elements -- lookup how this works -- look for sample code. Use to create html node and insert into widget.html element
+        //    //declarative code vs constructed via dom-construct
+        //    //get field names from REST endpoint
+        //    //need way to determine type before the field is created.
+        //    domConstruct.create("option", {
+        //      value: i,
+        //      innerHTML: csvFieldName,
+        //      selected: false
+        //    }, node);
+        //  }));
 
-        // Add the string of options to the form's select controls
-        query('select[id^="select"]').forEach(lang.hitch(this, function (node, index, arr) {
-          console.log("+++++++ " + node.name + " " + node.value);
-          //arrayUtils.forEach(this.csvFieldNames, lang.hitch(this, function(csvFieldName, i) {
-          arrayUtils.forEach(this.csvFieldNames, lang.hitch(this, function (csvFieldName, i) {
-            // console.log(node.name + ": " + csvFieldName);
-
-            //use   domconstruct here to create html elements -- lookup how this works -- look for sample code. Use to create html node and insert into widget.html element
-            //declarative code vs constructed via dom-construct
-            //get field names from REST endpoint
-            //need way to determine type before the field is created.
-
-            domConstruct.create("option", {
-              value: i,
-              innerHTML: csvFieldName,
-              selected: false
-            }, node);
-          }));
-
-          // Select the first option that matches one of the configuration field names
-          var values = this.findValueByKeyValue(this.inArrayFields, "name", node.name.replace('select', 'array'));
-          if (values) {
-
-            arrayUtils.forEach(node.options, function (optionItem) {
-              if (values.includes(optionItem.text)) {
-                // TODO: Use dojo not jQuery
-                $("#" + node.name).val(optionItem.value);
-                return false;
-              }
-            });
-          }
-
-        }));
+        //  // Select the first option that matches one of the configuration field names
+        //  var values = this.findValueByKeyValue(this.inArrayFields, "name", node.name.replace('select', 'array'));
+        //  if (values) {
+        //    array.forEach(node.options, function (optionItem) {
+        //      if (values.includes(optionItem.text)) {
+        //        // TODO: Use dojo not jQuery
+        //        $("#" + node.name).val(optionItem.value);
+        //        return false;
+        //      }
+        //    });
+        //  }
+        //}));
       },
 
       findValueByKeyValue: function (arraytosearch, key, valuetosearch) {
@@ -343,15 +275,13 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
             return arraytosearch[i].value;
           }
         }
-        console.log("Unable to find key-value: " + key + "-" + valuetosearch)
         return null;
       },
 
       onZoomToData: function (featureLayer) {
         console.log("onZoomToData");
-        // Zoom to the collective extent of the data
         var multipoint = new Multipoint(this.inMap.spatialReference);
-        arrayUtils.forEach(featureLayer.graphics, function (graphic) {
+        array.forEach(featureLayer.graphics, function (graphic) {
           var geometry = graphic.geometry;
           if (geometry) {
             multipoint.addPoint({
@@ -364,6 +294,41 @@ function (declare, arrayUtils, lang, query, on, dom, domConstruct, CsvStore, web
         if (multipoint.points.length > 0) {
           this.inMap.setExtent(multipoint.getExtent().expand(1.25), true);
         }
-      }
+      },
+
+      _convertSources: function () {
+        var def = new Deferred();
+        if (this.geocodeSources && this.geocodeSources.length > 0) {
+          this._geocodeSources = array.map(this.geocodeSources, lang.hitch(this, function (source) {       
+            if (source && source.url && source.type === 'locator') {
+              var _source = {
+                locator: new Locator(source.url || ""),
+                outFields: ["*"],
+                singleLineFieldName: source.singleLineFieldName || "",
+                name: jimuUtils.stripHTML(source.name || ""),
+                placeholder: jimuUtils.stripHTML(source.placeholder || ""),
+                countryCode: source.countryCode || "",
+                maxSuggestions: source.maxSuggestions,
+                maxResults: source.maxResults || 6,
+                zoomScale: source.zoomScale || 50000,
+                useMapExtent: !!source.searchInCurrentMapExtent
+              };
+
+              if (source.enableLocalSearch) {
+                _source.localSearchOptions = {
+                  minScale: source.localSearchMinScale,
+                  distance: source.localSearchDistance
+                };
+              }
+              def.resolve(_source);
+            } else {
+              def.resolve(null);
+            }         
+          }));
+        } else {
+          def.resolve(null);
+        }
+        return def;
+      },
   });
 });

@@ -3,7 +3,8 @@
     featureServiceLabel: "Choose the feature service",
     schemaMapping: "Schema Mapping",
     addToMap: "Add to map",
-    submit: "Submit to feature service"
+    submit: "Submit",
+    schemaMappingInstructions: "Please drag/drop a CSV onto the map.\nThis widget will assist with processing the CSV data when it is made avalible."
   }),
   "ar": 1,
   "cs": 1,

@@ -1,11 +1,18 @@
-<div>
-  <section>
-    <!--need to move away from the id usage-->
-    <fieldset class="fieldset-form" data-dojo-type="dijit/Fieldset" data-dojo-attach-point="fieldsetForm">   
-      <legend>${nls.schemaMapping}</legend>
-      <!--should use style from jimu-->
-      <input class="btnAddToMap" data-dojo-attach-point="addToMap" data-dojo-attach-event="onclick:onAddClick" type="button" value="${nls.addToMap}"/>
-      <input class="btnSubmitData" data-dojo-attach-point="submitData" data-dojo-attach-event="onclick:onSubmitClick" type="button" value="${nls.submit}"/>
-    </fieldset>
-  </section>    
+<div style="width: 100%; height: 100%;">
+  <div class="schema-map-container" data-dojo-attach-point="schemaMapContainer">
+    <div class="schema-map-title"><span>${nls.schemaMapping}</span></div>
+    <div class="schema-map-body" data-dojo-attach-point="schemaMapBody">
+      <table class="schema-map-table">
+        <tbody class="schema-map-table-body" data-dojo-attach-point="schemaMapTable"></tbody>
+      </table>
+    </div>
+    <div class="footer" data-dojo-attach-point="footer">
+      <div class="jimu-btn" data-dojo-attach-point="addToMap" data-dojo-attach-event="onclick:onAddClick">${nls.addToMap}</div>
+      <div class="jimu-btn" data-dojo-attach-point="submitData" data-dojo-attach-event="onclick:onSubmitClick">${nls.submit}</div>
+    </div>
+  </div>
+  <!--will use this to show something before CSV is dragged onto map-->
+  <div class="schema-map-instructions" data-dojo-attach-point="schemaMapInstructions">
+    <span>${nls.schemaMappingInstructions}</span>
+  </div>
 </div>

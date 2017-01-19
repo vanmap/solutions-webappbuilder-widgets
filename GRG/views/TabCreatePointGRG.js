@@ -171,6 +171,12 @@ define([
             this.createPointGRGButton, 
             'click', dojoLang.hitch(this, this.createPointGRG)
           ));
+          
+          this.own(dojoOn(
+            this.pointCellShape, 
+            'change',
+            dojoLang.hitch(this, this.cellPointShapeChange)
+          ));
 
           this.own(dojoOn(
             this.pointCellUnits, 
@@ -192,9 +198,14 @@ define([
           html.addClass(this.saveGRGPointButton, 'controlGroupHidden');
         },
         
+        cellPointShapeChange: function () {
+          this.pointCellShape.value == "default"?this.pointCellHeight.set('disabled', false):this.pointCellHeight.set('disabled', true);
+          this.pointCellShape.value == "default"?this.pointCellHeight.setValue(this.pointCellWidth.value):this.pointCellHeight.setValue(0);
+        },
+        
         cellPointUnitsChange: function () {
           this.pointCellWidth.setValue(drawGRG.convertUnits(this.currentPointUnit,this.pointCellUnits.value,this.pointCellWidth.value));
-          this.pointCellHeight.setValue(drawGRG.convertUnits(this.currentPointUnit,this.pointCellUnits.value,this.pointCellHeight.value));
+          this.pointCellShape.value == "default"?this.pointCellHeight.setValue(drawGRG.convertUnits(this.currentPointUnit,this.pointCellUnits.value,this.pointCellHeight.value)):this.pointCellHeight.setValue(0);
           this.currentPointUnit = this.pointCellUnits.value;
         },
         
@@ -230,7 +241,7 @@ define([
           
           if(drawGRG.checkGridSize(this.pointCellHorizontal.value,this.pointCellVertical.value))
           {
-            var features = drawGRG.createGRG(this.pointCellHorizontal.value,this.pointCellVertical.value,centerPoint,cellWidth,cellHeight,this.gridAnglePoint.value,this.pointLabelStartPosition.value,this.pointLabelStyle.value); 
+            var features = drawGRG.createGRG(this.pointCellHorizontal.value,this.pointCellVertical.value,centerPoint,cellWidth,cellHeight,this.gridAnglePoint.value,this.pointLabelStartPosition.value,this.pointLabelStyle.value,this.pointCellShape.value); 
             //apply the edits to the feature layer
             this.GRGPoint.applyEdits(features, null, null);
             this.deleteGRGPointButtonClicked();

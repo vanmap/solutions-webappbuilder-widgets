@@ -5,7 +5,7 @@
     <div class="controlGroup">
       <label>Published GRG Layer Name</label>
       <div class="controlItem">
-        <input class="jimu-input textInput" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="addGRGName" 
+        <input class="jimu-input textInput" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="addGRGName"
            data-dojo-props="regExp:'[a-zA-Z0-9_]*', invalidMessage:'Layer name must only contain alpha-numeric characters and underscores', missingMessage:'You must enter a name for the GRG.'" required="true"></input>
       </div>
     </div>
@@ -52,14 +52,21 @@
     </div>
     
     <div class="controlGroup">
+      <label>Cell Shape</label>
+      <select class="controlSpace" data-dojo-type="dijit/form/Select" data-dojo-attach-point="cellShape" >
+          <option selected="selected"  value="default">Default</option>
+          <option value="hexagon">Hexagon</option>
+      </select> 
+    </div>
+    
+    <div class="controlGroup">
       <label>Cell Units</label>
       <select class="controlSpace" data-dojo-type="dijit/form/Select" data-dojo-attach-point="cellUnits" >
           <option selected="selected" value="meters">Meters</option>
           <option value="feet">Feet</option>
           <option value="kilometers">Kilometers</option>
           <option value="miles">Miles</option>
-      </select>
- 
+      </select> 
     </div>
     
     <div class="controlGroup">

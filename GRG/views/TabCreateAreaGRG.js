@@ -197,6 +197,12 @@ define([
             dojoLang.hitch(this, this.cellUnitsChange)
           ));
           
+          this.own(dojoOn(
+            this.cellShape, 
+            'change',
+            dojoLang.hitch(this, this.cellShapeChange)
+          ));
+          
           this.own(
             this.dt.on(
               'draw-complete',
@@ -229,8 +235,13 @@ define([
         
         cellUnitsChange: function () {
           this.cellWidth.setValue(drawGRG.convertUnits(this.currentUnit,this.cellUnits.value,this.cellWidth.value));
-          this.cellHeight.setValue(drawGRG.convertUnits(this.currentUnit,this.cellUnits.value,this.cellHeight.value));
+          this.cellShape.value == "default"?this.cellHeight.setValue(drawGRG.convertUnits(this.currentUnit,this.cellUnits.value,this.cellHeight.value)):this.cellHeight.setValue(0);
           this.currentUnit = this.cellUnits.value;
+        },
+        
+        cellShapeChange: function () {
+          this.cellShape.value == "default"?this.cellHeight.set('disabled', false):this.cellHeight.set('disabled', true);
+          this.cellShape.value == "default"?this.cellHeight.setValue(this.cellWidth.value):this.cellHeight.setValue(0);
         },
         
         deleteGRGAreaButtonClicked: function () {
@@ -268,7 +279,7 @@ define([
           this.dt.deactivate();
           
           this.cellWidth.setValue((geometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,1), this.cellUnits.value))/9);
-          this.cellHeight.setValue((geometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,3), this.cellUnits.value))/9);
+          this.cellShape.value == "default"?this.cellHeight.setValue((geometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,3), this.cellUnits.value))/9):this.cellHeight.setValue(0);
           
                     
           dojoClass.toggle(this.addGRGArea, "controlGroupHidden");
@@ -290,14 +301,16 @@ define([
    
             //work out how many cells are needed horizontally & Vertically to cover the whole canvas area
             var numCellsHorizontal = Math.ceil(GRGAreaWidth/cellWidth);
-            var numCellsVertical = Math.ceil(GRGAreaHeight/cellHeight);
+            
+            var numCellsVertical;
+            this.cellShape.value == "default"?numCellsVertical = Math.ceil(GRGAreaHeight/cellHeight):numCellsVertical = Math.ceil(GRGAreaHeight/(cellWidth)/Math.cos(30* Math.PI/180)) + 1;
             
             if(drawGRG.checkGridSize(numCellsHorizontal,numCellsVertical))
             {
               
               //get center point of AOI
               var centerPoint = geom.getCentroid();              
-              var features = drawGRG.createGRG(numCellsHorizontal,numCellsVertical,centerPoint,cellWidth,cellHeight,this.angle,this.labelStartPosition.value,this.labelStyle.value); 
+              var features = drawGRG.createGRG(numCellsHorizontal,numCellsVertical,centerPoint,cellWidth,cellHeight,this.angle,this.labelStartPosition.value,this.labelStyle.value,this.cellShape.value); 
               //apply the edits to the feature layer
               this.GRGArea.applyEdits(features, null, null);
               this.deleteGRGAreaButtonClicked();              

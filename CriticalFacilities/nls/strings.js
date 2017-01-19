@@ -2,9 +2,15 @@
   root: ({
     featureServiceLabel: "Choose the feature service",
     schemaMapping: "Schema Mapping",
+    locationMapping: "Location Mapping",
     addToMap: "Add to map",
     submit: "Submit",
-    schemaMappingInstructions: "Please drag/drop a CSV onto the map.\nThis widget will assist with processing the CSV data when it is made avalible."
+    schemaMappingInstructions: "Please drag/drop a CSV onto the map.\nThis widget will assist with processing the CSV data when it is made avalible.",
+    addressFieldLabel: "Address",
+    useAddress: "Use Address",
+    xyFieldsLabelX: "X",
+    xyFieldsLabelY: "Y",
+    useXY: "Use X/Y"
   }),
   "ar": 1,
   "cs": 1,

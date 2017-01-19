@@ -425,6 +425,16 @@ define([
           var layerInfo = this._getRowConfig(tr);
           if (layerInfo._editFlag) {
             //delete layerInfo._editFlag;
+            array.forEach(layerInfo.fieldInfos, lang.hitch(this, function (fi) {
+              var name = fi.fieldName;
+              for (var i = 0; i < layerInfo.featureLayer.fields.length; i++) {
+                var f = layerInfo.featureLayer.fields[i];
+                if (f.name === name) {
+                  fi.type = f.type;
+                  break;
+                }
+              }
+            }));
             checkedLayerInfos.push(layerInfo);
           }
         }));

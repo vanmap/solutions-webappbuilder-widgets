@@ -39,6 +39,10 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, CsvStore
         this.latField = null;
         this.longField = null;
         this.geocodeSources = options.geocodeSources;
+        this.useAddr = true;
+        this.addrFieldName = "";
+        this.xFieldName = "";
+        this.yFieldName = "";
       },
 
       onHandleCsv: function () {
@@ -58,6 +62,7 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, CsvStore
       onProcessCsvData: function () {
         var def = new Deferred();
         this._convertSources().then(lang.hitch(this, function (source) {
+          this.locatorSource = source;
           this.onGetSeparator();
           this.onGetCsvStore().then(function (a) { def.resolve(a) });
         }));
@@ -71,60 +76,110 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, CsvStore
       onProcessForm: function () {
         var objectId = 0;
         var counter = 0;
-        this.featureCollection = this.onGenerateFeatureCollectionTemplateCSV();
-        array.forEach(this.storeItems, lang.hitch(this, function (item) {
-          var attrs = this.csvStore.getAttributes(item),
-          attributes = {};
-          //this is a nasty hack. It assumes that the spatial object is the first field, not sure that this is always true.
-          //it should look for the spatial object type and disregard it, rather than by position
-          var count = 1;
-          array.forEach(attrs, lang.hitch(this, function (attr) {
-            var value = Number(this.csvStore.getValue(item, this.mappedArrayFields[count][0]));
-            attributes[this.mappedArrayFields[count][1]] = isNaN(value) ? this.csvStore.getValue(item, this.mappedArrayFields[count][0]) : value;
-            count++;
-          }));
+        this.locateData().then(lang.hitch(this, function (data) {
+          this.featureCollection = this.onGenerateFeatureCollectionTemplateCSV();
 
-          attributes["ObjectID"] = objectId;
-          objectId++;
+          var attributes = {};
+          
+          //TODO I have no idea if this is really safe...are the items gaurenteed to be returned in the same order as they were sent?
+          // Has to be a safer way to do this.
+          for (var i = 0; i < this.storeItems.length; i++) {
+            var si = this.storeItems[i];
+            var di = data[i];
+            array.forEach(this.inArrayFields, lang.hitch(this, function (f) {
+              attributes[f.name] = this.csvStore.getValue(si, this.mappedArrayFields[f.name]);
+            }));
+            attributes["ObjectID"] = objectId;
+            objectId++;
 
-          var latitude = parseFloat(attributes[this.latField]);
-          var longitude = parseFloat(attributes[this.longField]);
+            var feature = {
+              "geometry": di.location,
+              "attributes": attributes
+            };
 
-          if (isNaN(latitude) || isNaN(longitude)) {
-            return;
+            //var geometry = webMercatorUtils.geographicToWebMercator(new Point(di.location.x, di.location.y));
+            //var geometry = new Point(di.location.x, di.location.y, di.location.spatialReference);
+
+              //var feature = {
+              //  "geometry": geometry.toJson(),
+              //  "attributes": attributes
+              //};
+
+              //JSON.stringify(feature);
+              this.featureCollection.featureSet.features.push(feature);
           }
 
-          var geometry = webMercatorUtils
-              .geographicToWebMercator(new Point(longitude, latitude));
-          var feature = {
-            "geometry": geometry.toJson(),
-            "attributes": attributes
-          };
+          var orangeRed = new Color([238, 69, 0, 0.5]); // hex is #ff4500
+          var marker = new SimpleMarkerSymbol("solid", 10, null, orangeRed);
+          var renderer = new SimpleRenderer(marker);
 
-          JSON.stringify(feature);
-          this.featureCollection.featureSet.features.push(feature);
+          this.featureLayer = new FeatureLayer(this.featureCollection, {
+            id: this.inFile.name,
+            editable: true,
+            outFields: ["*"]
+          });
+          this.featureLayer.setRenderer(renderer);
+          on(this.featureLayer, "click", function (e) {
+            console.log("FL clicked");
+            console.log(e.graphic);
+            console.log(e.graphic.attributes);
+            console.log("X: " + e.graphic.geometry.x + ", Y: " + e.graphic.geometry.y);
+          });
+          this.inMap.addLayers([this.featureLayer]);
+          this.onZoomToData(this.featureLayer);
+          //this.submitData.disabled = false;
+          //this.addToMap.disabled = true;
         }));
+      },
 
-        var orangeRed = new Color([238, 69, 0, 0.5]); // hex is #ff4500
-        var marker = new SimpleMarkerSymbol("solid", 10, null, orangeRed);
-        var renderer = new SimpleRenderer(marker);
+      locateData: function () {
+        //TODO handle geocode or Lat Lon
+        var def = new Deferred();
+        if (this.useAddr) {
+          this._geocodeData().then(function (data) {
+            def.resolve(data);
+          });
+        } else {
+          this._xyData().then(function (data) {
+            def.resolve(data);
+          });  
+        }
+        return def;
+      },
 
-        this.featureLayer = new FeatureLayer(this.featureCollection, {
-          id: this.inFile.name,
-          editable: true,
-          outFields: ["*"]
+      _xyData: function () {
+        var def = new Deferred();
+
+        //TODO structure the current data in the store to match what comes from the locator
+        // so both can be used in the same way further downstream
+
+        def.resolve(null);
+        return def;
+      },
+
+      _geocodeData: function () {
+        //TODO understand the limits of this and handle chunking the requests if necessary
+        //TODO pass additional user configured parameters
+        var def = new Deferred();
+        var fName = this.locatorSource.singleLineFieldName;
+        //var attributes = this.csvStore._attributes;
+        var addresses = [];
+        var x = 0;
+        array.forEach(this.storeItems, lang.hitch(this, function (i) {
+          x += 1;
+          var addr = { "OBJECTID": x };
+          addr[fName] = this.csvStore.getValue(i, this.addrFieldName);
+          //array.forEach(attributes, lang.hitch(this, function (a) {
+          //  addr[a] = this.csvStore.getValue(i, a);
+          //}));
+          addresses.push(addr);
+        }));
+        var locator = this.locatorSource.locator;
+        locator.outSpatialReference = this.inMap.spatialReference;
+        locator.addressesToLocations({ addresses: addresses }).then(function (data) {
+          def.resolve(data);
         });
-        this.featureLayer.setRenderer(renderer);
-        on(this.featureLayer, "click", function (e) {
-          console.log("FL clicked");
-          console.log(e.graphic);
-          console.log(e.graphic.attributes);
-          console.log("X: " + e.graphic.geometry.x + ", Y: " + e.graphic.geometry.y);
-        });
-        this.inMap.addLayers([this.featureLayer]);
-        this.onZoomToData(this.featureLayer);
-        this.submitData.disabled = false;
-        this.addToMap.disabled = true;
+        return def;
       },
 
       onGenerateFeatureCollectionTemplateCSV: function () {
@@ -161,42 +216,49 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, CsvStore
           ]
         };
 
-        var tempArray = [];
-        for (i = 1; i < this.mappedArrayFields.length; i++) {
-          var entry = this.mappedArrayFields[i][1];
-          tempArray.push(entry)
-        }
 
-        var count = 0;
-        array.forEach(tempArray, function (temp) {
+        //var tempArray = [];
+        //for (i = 1; i < this.mappedArrayFields.length; i++) {
+        //  var entry = this.mappedArrayFields[i][1];
+        //  tempArray.push(entry)
+        //}
 
-        });
-
-        array.forEach(tempArray, lang.hitch(this, function (csvFieldName) {
-          console.log("csvFieldName " + csvFieldName);
-          var value = this.csvStore.getValue(this.storeItems[0], csvFieldName);
-          var parsedValue = Number(value);
-          var correctFieldName = this.mappedArrayFields[count][1];
-          if (isNaN(parsedValue)) { //check first value and see if it is a number
-            this.featureCollection.layerDefinition.fields.push({
-              "name": correctFieldName,
-              "alias": correctFieldName,
-              "type": "esriFieldTypeString",
-              "editable": true,
-              "domain": null
-            });
-            count += 1;
-          } else {
-            this.featureCollection.layerDefinition.fields.push({
-              "name": correctFieldName,
-              "alias": correctFieldName,
-              "type": "esriFieldTypeDouble",
-              "editable": true,
-              "domain": null
-            });
-            count += 1;
-          }
+        //var count = 0;
+        array.forEach(this.inArrayFields, lang.hitch(this, function (af) {
+          this.featureCollection.layerDefinition.fields.push({
+                  "name": af.name,
+                  "alias": af.name,
+                  "type": af.value,
+                  "editable": true,
+                  "domain": null
+                });
         }));
+
+        //array.forEach(tempArray, lang.hitch(this, function (csvFieldName) {
+        //  console.log("csvFieldName " + csvFieldName);
+        //  var value = this.csvStore.getValue(this.storeItems[0], csvFieldName);
+        //  var parsedValue = Number(value);
+        //  var correctFieldName = this.mappedArrayFields[count][1];
+        //  if (isNaN(parsedValue)) { //check first value and see if it is a number
+        //    this.featureCollection.layerDefinition.fields.push({
+        //      "name": correctFieldName,
+        //      "alias": correctFieldName,
+        //      "type": "esriFieldTypeString",
+        //      "editable": true,
+        //      "domain": null
+        //    });
+        //    count += 1;
+        //  } else {
+        //    this.featureCollection.layerDefinition.fields.push({
+        //      "name": correctFieldName,
+        //      "alias": correctFieldName,
+        //      "type": "esriFieldTypeDouble",
+        //      "editable": true,
+        //      "domain": null
+        //    });
+        //    count += 1;
+        //  }
+        //}));
         return this.featureCollection;
       },
 

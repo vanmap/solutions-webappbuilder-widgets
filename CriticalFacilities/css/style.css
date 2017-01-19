@@ -167,15 +167,15 @@
 
 }
 
-.jimu-widget-critical-facilities .schema-map-title{
+.jimu-widget-critical-facilities .title{
   text-align: center;
   font-size: 14px;
   font-weight: bold;
-  color: #2b2d39;   
+  color: #86909c;
 }
 
 .jimu-widget-critical-facilities .schema-map-body{
-  margin-top: 20px;
+  margin-bottom: 10px;
 }
 
 .jimu-widget-critical-facilities .schema-map-table{
@@ -200,11 +200,11 @@
 }
 
 .jimu-widget-critical-facilities .field-node-tr{
-
+  margin-top: 10px;
 }
 
 .jimu-widget-critical-facilities .field-label-node-td{
-
+  width: 45%;
 }
 
 .jimu-widget-critical-facilities .field-control-node-td{
@@ -212,10 +212,152 @@
 }
 
 .jimu-widget-critical-facilities .field-select-node{
+  font-family: 'Avenir', LT;
   width: 100%;
   height: 28px;
+  padding: 2px;
+  margin: 3px;
+  color: #4A4866;
+  font-family: Arial;
+  font-size: 10pt;
+  font-style: normal;
+  font-weight: bold;
+  border-color: #e0e0e0;
 }
 
+.jimu-widget-critical-facilities .location-map-container{
+  margin-bottom: 30px;
+}
+
+.jimu-widget-critical-facilities .location-body{
+  padding-left: 20px;
+}
+
+.jimu-rtl .jimu-widget-critical-facilities .location-body{
+  padding-right: 20px;
+}
+
+.dijitSelect {
+    /*font-weight: 600;
+    font-family: "Open Sans","Helvetica Neue",Arial,Helvetica,Verdana,sans-serif;
+    text-align: center;
+    vertical-align: middle;
+    text-transform: capitalize;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    white-space: nowrap;
+    overflow: hidden;
+    padding: 0 18px;
+    margin-right: 18px;
+    border: 0 none;
+    border-radius: 3px;
+    display: inline-block;
+    color: #484848;
+    background-color: #e0e0e0;
+    border-color: #e0e0e0;
+    -ms-transition: background-color 0.2s ease-in-out 0s, opacity 0.2s ease-in-out 0s;
+    transition: background-color 0.2s ease-in-out 0s, opacity 0.2s ease-in-out 0s;
+    cursor: pointer;
+    position: relative;
+    margin-bottom: 30px;
+    padding: 0 !important;
+    border-color: #f0f0f0;*/
+
+        /*-webkit-appearance: none;
+    position: relative;
+    height: 32px;
+    border: none;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: .01em;
+    border-collapse: separate;
+    padding: 0 39px 0 18px;
+    background: url(/release/11.7.285/images/dropdown.svg) no-repeat right center #e0e0e0;
+    background-size: 30px auto;
+    width: 100%;
+    max-width: 635px;
+    color: #484848;
+    background-color: #e0e0e0;
+    -ms-transition: background-color 0.2s ease-in-out 0s, opacity 0.2s ease-in-out 0s;
+    transition: background-color 0.2s ease-in-out 0s, opacity 0.2s ease-in-out 0s;*/
 
 
+}
 
+/*.dijitSelect:focus {
+  outline: 1px dotted rgba(72,72,72,0.6);
+  outline-offset: -4px;
+}
+
+.dijitSelect:hover, .dijitSelect:focus {
+  cursor: pointer;
+  color: #484848;
+  background-color: #d3d3d3;
+}
+
+.dijitSelectFocused {
+  outline: 0;
+}
+
+.dijitSelect:active {
+  color: #373737;
+  background-color: #c7c7c7;
+}
+
+.dijitSelect .dijitButtonContents {
+    vertical-align: middle;
+    padding: 0 36px 0 18px;
+    border-width: 0px;
+}
+
+.dijitButtonContents {
+    display: table-cell;
+}
+
+.dijitStretch {
+    white-space: nowrap;
+}
+
+.dijitReset {
+    border: 0;
+    line-height: unset;
+    outline: 0 none;
+}
+
+.dijitSelect .dijitArrowButtonContainer, .dijitSelect .dijitValidationContainer {
+    display: none;
+}
+
+.dijitSelect .dijitButtonContents::after {
+    font-family: "freddicons";
+    content: "\e024";
+    font-size: 20px;
+    display: inline-block;
+    margin: 0 0 0 3px;
+    line-height: 32px;
+    font-weight: normal !important;
+    font-style: normal !important;
+    position: absolute;
+    right: 11px;
+    top: 0;
+}
+
+.dijitSelectSelected option .dijitMenuItemLabel{
+  background-color: #b1e0ec;
+}
+
+.dijitMenuItemLabel {
+  cursor: pointer;
+  font-weight:600;
+  font-size: 13px;
+  line-height: 24px;
+  padding: 12px 18px;
+}
+
+.dijitMenuItem td {
+  border-color: #e0e0e0;
+}
+
+.dijitMenuItemSelected td {
+  border-color: #e0e0e0;
+}*/

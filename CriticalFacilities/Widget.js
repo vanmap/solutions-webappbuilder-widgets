@@ -24,6 +24,7 @@ define(['dojo/_base/declare',
   "dojo/html",
   "dojo/dom-construct",
   'dojo/dom-style',
+  'dojo/dom-class',
   'dojo/DeferredList',
   "dijit/registry",
   'dijit/form/Select',
@@ -36,8 +37,9 @@ define(['dojo/_base/declare',
   "esri/layers/FeatureLayer",
   "esri/request",
   'jimu/LayerInfos/LayerInfos',
-  './js/csvStore'
-], function (declare, BaseWidget, lang, on, dom, array, CsvStore, query, html, domConstruct, domStyle, DeferredList, registry, Select, webMercatorUtils, Point, Color, esriConfig, SimpleMarkerSymbol, SimpleRenderer, FeatureLayer, esriRequest, layerInfos, hCsvStore) {
+  './js/csvStore',
+  'jimu/dijit/RadioBtn'
+], function (declare, BaseWidget, lang, on, dom, array, CsvStore, query, html, domConstruct, domStyle, domClass, DeferredList, registry, Select, webMercatorUtils, Point, Color, esriConfig, SimpleMarkerSymbol, SimpleRenderer, FeatureLayer, esriRequest, layerInfos, hCsvStore, RadioBtn) {
   return declare([BaseWidget], {
 
     baseClass: 'jimu-widget-critical-facilities',
@@ -51,13 +53,24 @@ define(['dojo/_base/declare',
     _url: null,
     _geocodeSources: null,
     _configLayerInfo: null,
+    _useAddr: true,
 
     postCreate: function () {
       this.inherited(arguments);
+
+      this.own(on(this.map.container, "dragenter", this.onDragEnter));
+      this.own(on(this.map.container, "dragover", this.onDragOver));
+      this.own(on(this.map.container, "drop", lang.hitch(this, this.onDrop)));
+
+      this.own(on(this.useAddrNode, 'click', lang.hitch(this, this.onChooseType, 'addr')));
+      this.own(on(this.useXYNode, 'click', lang.hitch(this, this.onChooseType, 'xy')));
+
+      domStyle.set(this.addressBodyContainer, "display", "block");
+      domStyle.set(this.xyBodyContainer, "display", "none");
     },
 
     startup: function () {
-      domStyle.set(this.schemaMapContainer, "display", "none");
+      domStyle.set(this.mainContainer, "display", "none");
 
       this._configLayerInfo = this.config.layerInfos[0];
       this._url = this._configLayerInfo.featureLayer.url;
@@ -69,15 +82,17 @@ define(['dojo/_base/declare',
       if (this._configLayerInfo) {
         array.forEach(this._configLayerInfo.fieldInfos, lang.hitch(this, function (field) {
           if (field && field.visible) {
-            _fsFields.push({ "name": field.fieldName, "value": field.fieldName });
-            this.addFieldRow(this.schemaMapTable, field.fieldName, []);
+            _fsFields.push({ "name": field.fieldName, "value": field.type });
+            this.addFieldRow(this.schemaMapTable, field.fieldName);
           }
         }));
 
+        this.addFieldRow(this.addressTable, this.nls.addressFieldLabel);
+        this.addFieldRow(this.xyTable, this.nls.xyFieldsLabelX);
+        this.addFieldRow(this.xyTable, this.nls.xyFieldsLabelY);
+
         this.submitData.disabled = true;
-        this.own(on(this.map.container, "dragenter", this.onDragEnter));
-        this.own(on(this.map.container, "dragover", this.onDragOver));
-        this.own(on(this.map.container, "drop", lang.hitch(this, this.onDrop)));
+
 
       } else {
         //TODO will need to handle this here if we allow config with no layer defined...really I think this should be 
@@ -85,7 +100,6 @@ define(['dojo/_base/declare',
       }
     },
 
-    //keyField is the field to map to....fields are the list of potential fields from the CSV
     addFieldRow: function (tableNode, keyField) {
       var tr = domConstruct.create('tr', {
         'class': 'field-node-tr'
@@ -101,7 +115,8 @@ define(['dojo/_base/declare',
       }, tr);
 
       var selectFields = new Select({
-        'class': "field-select-node"
+        'class': "field-select-node",
+        'maxheight': "-1" 
       });
       selectFields.placeAt(c);
       selectFields.startup();
@@ -140,31 +155,36 @@ define(['dojo/_base/declare',
               geocodeSources: this._geocodeSources
             });
             this.myCsvStore.onHandleCsv().then(lang.hitch(this, function (d) {
-              this._updateFieldControls(d);
+              this._updateFieldControls(d, this.schemaMapTable);
+              this._updateFieldControls(d, this.xyTable);
+              this._updateFieldControls(d, this.addressTable);
               console.log(d);
               domStyle.set(this.schemaMapInstructions, "display", "none");
-              domStyle.set(this.schemaMapContainer, "display", "block");
+              domStyle.set(this.mainContainer, "display", "block");
             }));
           }
         //}
       }
     },
 
-    _updateFieldControls: function (fields) {
-      var controlNodes = query('.field-node-tr', this.schemaMapTable);
+    onChooseType: function (type, node) {
+      this._useAddr = type === "addr" ? true : false;
+      domStyle.set(this.addressBodyContainer, "display", type === "addr" ? "block" : "none");
+      domStyle.set(this.xyBodyContainer, "display", type === "xy" ? "block" : "none");
+    },
+
+    _updateFieldControls: function (fields, table) {
+      var controlNodes = query('.field-node-tr', table);
       array.forEach(controlNodes, function (node) {
         //clear old options here also
         array.forEach(fields, function (f) {
           node.selectFields.addOption({ label: f, value: f });
         });
-        //for (var i = 0; i < fields.length; i++) {
-        //  node.selectFields.addOption({ label: fields[i], value: fields[i] });
-        //}      
       });
     },
 
     onAddClick: function () {
-      var arrayMappedFields = [[]];
+      var mappedFields = {};
       array.forEach(_fsFields, lang.hitch(this, function (setField) {
         if (setField != null && setField.value != "objectid" && setField.value != "objectid_1") {
           var fieldName = setField.value;
@@ -177,11 +197,26 @@ define(['dojo/_base/declare',
               break;
             }
           }
-          arrayMappedFields.push([mappedField, fieldName]);
+          mappedFields[fieldName] = mappedField;
+        }
+      }));     
+      var controlNodes = query('.field-node-tr', this._useAddr ? this.addressTable : this.xyTable);
+      array.forEach(controlNodes, lang.hitch(this, function (node) {
+        switch (node.keyField) {
+          case this.nls.addressFieldLabel:
+            this.myCsvStore.addrFieldName = node.selectFields.value;
+            break;
+          case this.nls.xyFieldsLabelX:
+            this.myCsvStore.xFieldName = node.selectFields.value;
+            break;
+          case this.nls.xyFieldsLabelY:
+            this.myCsvStore.yFieldName = node.selectFields.value;
+            break;
         }
       }));
+      this.myCsvStore.useAddr = this._useAddr;
       this.myCsvStore.correctFieldNames = _fsFields;
-      this.myCsvStore.mappedArrayFields = arrayMappedFields;
+      this.myCsvStore.mappedArrayFields = mappedFields;
       this.myCsvStore.onProcessForm();
     },
 

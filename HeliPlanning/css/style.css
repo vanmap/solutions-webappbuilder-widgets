@@ -1,0 +1,113 @@
+.widget-heli-planning{
+  position:relative;
+  min-width:857px;
+  min-height:340px;
+}
+
+.esriMeasurement .esriButton .dijitButtonNode {
+  height: 32px;
+}
+
+.LaunchpadTheme .esriMeasurement .esriButton + .esriButton .dijitButtonNode {
+  border: 1px solid #DDD  !important;
+}
+
+.LaunchpadTheme .esriMeasurement:first-child .dijitButtonNode {
+  border-radius: 2px  !important;
+}
+
+.LaunchpadTheme .esriMeasurement .esriMeasurementSeparator {
+  display: inline-block !important;
+}
+
+.LaunchpadTheme .esriMeasurement .esriToggleButton {
+  display: inline-block !important;
+}
+
+.LaunchpadTheme .esriMeasurement {
+  top: 5px !important;
+}
+
+.LaunchpadTheme .esriMeasurement {  
+  position: inherit !important;    
+}
+
+.LaunchpadTheme .esriMeasurement .esriButton {
+    width: 50px !important;
+}
+
+.LaunchpadTheme .esriMeasurement .esriMeasurementResultLabel {
+    display: inline-block !important;
+    padding-bottom: 10px !important;
+    border-bottom: none !important;
+    text-align: left !important;
+    width: 150px !important;
+    color: #000 !important;
+}
+
+.LaunchpadTheme .esriMeasurement .esriMeasurementResultValue {
+    color: !important;
+    display: inline-block !important;
+    font-size: small !important;
+    font-weight: !important;
+    letter-spacing: !important;
+    padding: 0px !important;
+    padding-bottom: 15px !important;
+    text-align: left !important;
+}
+
+.esriMeasurement .esriMeasurementResultValue {
+    color: !important;
+    display: inline-block !important;
+    font-size: small !important;
+    font-weight: !important;
+    letter-spacing: !important;
+    padding: 0px !important;
+    padding-bottom: 15px !important;
+    text-align: left !important;
+}
+
+.esriMeasurement .esriMeasurementResultLabel {
+    display: inline-block !important;
+    border-bottom: none !important;
+    padding-bottom: 10px !important;
+    text-align: left !important;
+    width: 150px !important;
+    color: #000 !important;
+}
+
+.esriMeasurement .esriButton {
+    width: 50px !important;
+}
+
+.esriMeasurement .esriButton + .esriButton .dijitButtonNode {
+  border: 1px solid #DDD  !important;
+}
+
+.esriMeasurement:first-child .dijitButtonNode {
+  border-radius: 2px  !important;
+}
+
+.esriMeasurement .esriMeasurementSeparator {
+  display: inline-block !important;
+}
+
+.esriMeasurement .esriToggleButton {
+  display: inline-block !important;
+}
+
+.esriMeasurement {
+  top: 5px !important;
+}
+
+.esriMeasurement {  
+  position: inherit !important;    
+} 
+
+.jimu-simple-table .table {
+    text-align: center;
+}
+
+.jimu-simple-table .simple-table-field {
+    text-align: center;
+}

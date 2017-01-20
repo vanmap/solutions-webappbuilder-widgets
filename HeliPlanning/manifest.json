@@ -1,0 +1,25 @@
+{
+  "name": "HeliPlanning",
+  "label": "Helicopter Planning",
+  "platform": "HTML",
+  "type": "widget",
+  "version": "1.3.0.1",
+  "wabVersion": "1.4",
+  "author": "Helyx SIS",
+  "description": "This is the widget that will derive flying times for Helicoptor Planning",
+  "copyright": "",
+  "license": "http://www.apache.org/licenses/LICENSE-2.0",
+  "properties": {
+    "hasVersionManager": false,
+    "inPanel":true,
+    "hasLocale": true,
+    "hasStyle":true,
+    "hasConfig":true,
+    "hasUIFile":true,
+    "hasSettingPage":true,
+    "hasSettingUIFile":true,
+    "hasSettingLocale":true,
+    "hasSettingStyle":true,
+    "IsController":false
+  }
+}

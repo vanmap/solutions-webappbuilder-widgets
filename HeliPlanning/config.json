@@ -1,0 +1,15 @@
+{
+  "HeliParams": [{
+    "vehicle": "Chinook CH-47",
+    "maxSpeed": "170",
+    "cruiseSpeed": "130"
+  }, {
+    "vehicle": "Apache",
+    "maxSpeed": "158",
+    "cruiseSpeed": "143"
+  }, {
+    "vehicle": "Merlin",
+    "maxSpeed": "167",
+    "cruiseSpeed": "150"
+  }]
+}

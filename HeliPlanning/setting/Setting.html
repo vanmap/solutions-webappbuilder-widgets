@@ -1,0 +1,10 @@
+<div style="width:100%;height:auto;">
+  <div class="tip" style="margin-bottom:10px;">${nls.defineAirframe}</div>
+	<div class="query-setting-content" data-dojo-attach-point="content">		
+			<div class="add-with-icon"  data-dojo-attach-point="btnAddAirframe">
+				<span class="jimu-icon jimu-icon-add" data-dojo-attach-point="btnAirframeIcon"></span>
+				<span class="add-label">${nls.addAirframe}</span>
+			</div>
+			<div data-dojo-attach-point="airframeTable" data-dojo-type="jimu/dijit/SimpleTable" data-dojo-props='fields:[{name:"vehicle",title:"${nls.vehicle}","class":"vehicle",type:"text",editable:true},{name:"maxSpeed",title:"${nls.maxSpeed}","class":"maxSpeed",type:"text",editable:true},{name:"cruiseSpeed",title:"${nls.cruiseSpeed}","class":"cruiseSpeed",type:"text",editable:true},{name:"actions",title:"${nls.actions}","class":"actions",type:"actions",actions:["up","down","delete"]}]'></div>
+	</div>
+</div>

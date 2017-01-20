@@ -736,6 +736,8 @@ define([
                     this['cc_' + cntrlid + 'sub1val'].value = r.zone + r.bandLetter;
                     this['cc_' + cntrlid + 'sub2val'].value = r.easting;
                     this['cc_' + cntrlid + 'sub3val'].value = r.westing;
+                    
+                    r.bandLetter.match(/^[AaBbYyZz]/)?this.coordName.set('value','UPS'):this.coordName.set('value','UTM');
 
                     formattedStr = r.formatResult;
                     break;

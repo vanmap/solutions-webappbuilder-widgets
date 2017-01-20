@@ -7,20 +7,22 @@ define([
     'dojo/dom',
     'dojo/dom-construct',
     'dojo/Deferred',
+    'dojo/Evented',
     'dojox/data/CsvStore',
+    'esri/graphicsUtils',
     'esri/geometry/webMercatorUtils',
-    'esri/geometry/Multipoint',
     'esri/geometry/Point',
     'esri/Color',
     'esri/symbols/SimpleMarkerSymbol',
     'esri/renderers/SimpleRenderer',
     'esri/layers/FeatureLayer',
     'esri/tasks/locator',
-    'jimu/utils',
-    'jimu/loaderplugins/jquery-loader!https://code.jquery.com/jquery-git1.min.js'
+    'jimu/utils'
 ],
-function (declare, array, lang, query, on, dom, domConstruct, Deferred, CsvStore, webMercatorUtils, Multipoint, Point, Color, SimpleMarkerSymbol, SimpleRenderer, FeatureLayer, Locator, jimuUtils, $) {
-    return declare([], {
+function (declare, array, lang, query, on, dom, domConstruct, Deferred, Evented, CsvStore,
+  graphicsUtils, webMercatorUtils, Point, Color, SimpleMarkerSymbol, SimpleRenderer, FeatureLayer, Locator,
+  jimuUtils) {
+  return declare([Evented], {
       constructor: function (options) {
         this.inFile = options.inFile;
         this.inMap = options.inMap;
@@ -69,66 +71,43 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, CsvStore
         return def;
       },
 
-      onGetFeatureCollection: function () {
-
-      },
-
       onProcessForm: function () {
-        var objectId = 0;
-        var counter = 0;
         this.locateData().then(lang.hitch(this, function (data) {
-          this.featureCollection = this.onGenerateFeatureCollectionTemplateCSV();
-
-          var attributes = {};
+          this.featureCollection = this._generateFeatureCollection();
           
           //TODO I have no idea if this is really safe...are the items gaurenteed to be returned in the same order as they were sent?
           // Has to be a safer way to do this.
           for (var i = 0; i < this.storeItems.length; i++) {
+            var attributes = {};
             var si = this.storeItems[i];
             var di = data[i];
             array.forEach(this.inArrayFields, lang.hitch(this, function (f) {
               attributes[f.name] = this.csvStore.getValue(si, this.mappedArrayFields[f.name]);
             }));
-            attributes["ObjectID"] = objectId;
-            objectId++;
-
-            var feature = {
+            attributes["ObjectID"] = i;
+            this.featureCollection.featureSet.features.push({
               "geometry": di.location,
-              "attributes": attributes
-            };
-
-            //var geometry = webMercatorUtils.geographicToWebMercator(new Point(di.location.x, di.location.y));
-            //var geometry = new Point(di.location.x, di.location.y, di.location.spatialReference);
-
-              //var feature = {
-              //  "geometry": geometry.toJson(),
-              //  "attributes": attributes
-              //};
-
-              //JSON.stringify(feature);
-              this.featureCollection.featureSet.features.push(feature);
+              "attributes": lang.clone(attributes)
+            });
           }
-
-          var orangeRed = new Color([238, 69, 0, 0.5]); // hex is #ff4500
-          var marker = new SimpleMarkerSymbol("solid", 10, null, orangeRed);
-          var renderer = new SimpleRenderer(marker);
 
           this.featureLayer = new FeatureLayer(this.featureCollection, {
             id: this.inFile.name,
             editable: true,
             outFields: ["*"]
           });
-          this.featureLayer.setRenderer(renderer);
+
+          var orangeRed = new Color([238, 69, 0, 0.5]); // hex is #ff4500
+          this.featureLayer.setRenderer(new SimpleRenderer(new SimpleMarkerSymbol("solid", 10, null, orangeRed)));
           on(this.featureLayer, "click", function (e) {
             console.log("FL clicked");
             console.log(e.graphic);
-            console.log(e.graphic.attributes);
             console.log("X: " + e.graphic.geometry.x + ", Y: " + e.graphic.geometry.y);
           });
           this.inMap.addLayers([this.featureLayer]);
           this.onZoomToData(this.featureLayer);
-          //this.submitData.disabled = false;
-          //this.addToMap.disabled = true;
+
+          this.emit('complete');
         }));
       },
 
@@ -150,10 +129,38 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, CsvStore
       _xyData: function () {
         var def = new Deferred();
 
+        this.isGeographic = undefined;
+        var data = [];
         //TODO structure the current data in the store to match what comes from the locator
         // so both can be used in the same way further downstream
+        array.forEach(this.storeItems, lang.hitch(this, function (i) {
+          var attributes = {};
+          var _attrs = this.csvStore.getAttributes(i);
+          array.forEach(_attrs, lang.hitch(this, function (a) {
+            attributes[a] = this.csvStore.getValue(i, a);
+          }));
 
-        def.resolve(null);
+          var xCoord = this.csvStore.getValue(i, this.xFieldName);
+          var yCoord = this.csvStore.getValue(i, this.yFieldName);
+          
+          if (typeof (this.isGeographic) === 'undefined') {
+            this.isGeographic = /([-]?\d{1,3}[.]?\d*)/.exec(xCoord) ? true : false;
+          }
+          var geometry = new Point(parseFloat(xCoord), parseFloat(yCoord));
+          if (this.isGeographic) {
+            geometry = webMercatorUtils.geographicToWebMercator(geometry);
+          } else {
+            geometry.spatialReference = new SpatialReference({ wkid: this.inMap.spatialReference.wkid });
+          }
+
+          data.push({
+            attributes: attributes,
+            location: geometry
+          })
+        }));
+
+
+        def.resolve(data);
         return def;
       },
 
@@ -182,48 +189,39 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, CsvStore
         return def;
       },
 
-      onGenerateFeatureCollectionTemplateCSV: function () {
-        console.log("onGenerateFeatureCollectionTemplateCSV");
+      _generateFeatureCollection: function () {
         //create a feature collection for the input csv file
         this.featureCollection = {
-          "layerDefinition": null,
+          "layerDefinition": {
+            "geometryType": "esriGeometryPoint",
+            "objectIdField": "ObjectID",
+            "type": "Feature Layer",
+            "drawingInfo": {
+              "renderer": {
+                "type": "simple",
+                "symbol": {
+                  "type": "esriPMS",
+                  "url": "https://static.arcgis.com/images/Symbols/Basic/RedSphere.png",
+                  "contentType": "image/png",
+                  "width": 15,
+                  "height": 15
+                }
+              }
+            },
+            "fields": [
+                {
+                  "name": "ObjectID",
+                  "alias": "ObjectID",
+                  "type": "esriFieldTypeOID"
+                }
+            ]
+          },
           "featureSet": {
             "features": [],
             "geometryType": "esriGeometryPoint"
           }
         };
-        this.featureCollection.layerDefinition = {
-          "geometryType": "esriGeometryPoint",
-          "objectIdField": "ObjectID",
-          "drawingInfo": {
-            "renderer": {
-              "type": "simple",
-              "symbol": {
-                "type": "esriPMS",
-                "url": "https://static.arcgis.com/images/Symbols/Basic/RedSphere.png",
-                "contentType": "image/png",
-                "width": 15,
-                "height": 15
-              }
-            }
-          },
-          "fields": [
-              {
-                "name": "ObjectID",
-                "alias": "ObjectID",
-                "type": "esriFieldTypeOID"
-              }
-          ]
-        };
 
-
-        //var tempArray = [];
-        //for (i = 1; i < this.mappedArrayFields.length; i++) {
-        //  var entry = this.mappedArrayFields[i][1];
-        //  tempArray.push(entry)
-        //}
-
-        //var count = 0;
         array.forEach(this.inArrayFields, lang.hitch(this, function (af) {
           this.featureCollection.layerDefinition.fields.push({
                   "name": af.name,
@@ -233,32 +231,6 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, CsvStore
                   "domain": null
                 });
         }));
-
-        //array.forEach(tempArray, lang.hitch(this, function (csvFieldName) {
-        //  console.log("csvFieldName " + csvFieldName);
-        //  var value = this.csvStore.getValue(this.storeItems[0], csvFieldName);
-        //  var parsedValue = Number(value);
-        //  var correctFieldName = this.mappedArrayFields[count][1];
-        //  if (isNaN(parsedValue)) { //check first value and see if it is a number
-        //    this.featureCollection.layerDefinition.fields.push({
-        //      "name": correctFieldName,
-        //      "alias": correctFieldName,
-        //      "type": "esriFieldTypeString",
-        //      "editable": true,
-        //      "domain": null
-        //    });
-        //    count += 1;
-        //  } else {
-        //    this.featureCollection.layerDefinition.fields.push({
-        //      "name": correctFieldName,
-        //      "alias": correctFieldName,
-        //      "type": "esriFieldTypeDouble",
-        //      "editable": true,
-        //      "domain": null
-        //    });
-        //    count += 1;
-        //  }
-        //}));
         return this.featureCollection;
       },
 
@@ -302,33 +274,8 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, CsvStore
         var def = new Deferred();
         this.csvFieldNames = this.csvStore.getAttributes(this.storeItems[0]);
         def.resolve(this.csvFieldNames);
+        this.emit('fields complete', this.csvFieldNames);
         return def;
-        //query('select[id^="select"]').forEach(lang.hitch(this, function (node, index, arr) {
-        //  console.log("+++++++ " + node.name + " " + node.value);
-        //  array.forEach(this.csvFieldNames, lang.hitch(this, function (csvFieldName, i) {
-        //    //use   domconstruct here to create html elements -- lookup how this works -- look for sample code. Use to create html node and insert into widget.html element
-        //    //declarative code vs constructed via dom-construct
-        //    //get field names from REST endpoint
-        //    //need way to determine type before the field is created.
-        //    domConstruct.create("option", {
-        //      value: i,
-        //      innerHTML: csvFieldName,
-        //      selected: false
-        //    }, node);
-        //  }));
-
-        //  // Select the first option that matches one of the configuration field names
-        //  var values = this.findValueByKeyValue(this.inArrayFields, "name", node.name.replace('select', 'array'));
-        //  if (values) {
-        //    array.forEach(node.options, function (optionItem) {
-        //      if (values.includes(optionItem.text)) {
-        //        // TODO: Use dojo not jQuery
-        //        $("#" + node.name).val(optionItem.value);
-        //        return false;
-        //      }
-        //    });
-        //  }
-        //}));
       },
 
       findValueByKeyValue: function (arraytosearch, key, valuetosearch) {
@@ -341,20 +288,9 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, CsvStore
       },
 
       onZoomToData: function (featureLayer) {
-        console.log("onZoomToData");
-        var multipoint = new Multipoint(this.inMap.spatialReference);
-        array.forEach(featureLayer.graphics, function (graphic) {
-          var geometry = graphic.geometry;
-          if (geometry) {
-            multipoint.addPoint({
-              x: geometry.x,
-              y: geometry.y
-            });
-          }
-        });
-
-        if (multipoint.points.length > 0) {
-          this.inMap.setExtent(multipoint.getExtent().expand(1.25), true);
+        if (featureLayer.graphics && featureLayer.graphics.length > 0) {
+          var ext = graphicsUtils.graphicsExtent(featureLayer.graphics);
+          this.inMap.setExtent(ext.expand(1.25), true)
         }
       },
 

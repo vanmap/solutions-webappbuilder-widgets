@@ -55,6 +55,8 @@ define(['dojo/_base/declare',
     _configLayerInfo: null,
     _useAddr: true,
 
+    //TODO need a way to clear and Update temp map results
+
     postCreate: function () {
       this.inherited(arguments);
 
@@ -79,6 +81,7 @@ define(['dojo/_base/declare',
       _fsFields = [];
       var p = this.getPanel();
 
+      //TODO need to clear the rows here
       if (this._configLayerInfo) {
         array.forEach(this._configLayerInfo.fieldInfos, lang.hitch(this, function (field) {
           if (field && field.visible) {
@@ -176,7 +179,10 @@ define(['dojo/_base/declare',
     _updateFieldControls: function (fields, table) {
       var controlNodes = query('.field-node-tr', table);
       array.forEach(controlNodes, function (node) {
-        //clear old options here also
+        var options = node.selectFields.getOptions();
+        array.forEach(options, function (option) {
+          node.selectFields.removeOption(option);
+        });
         array.forEach(fields, function (f) {
           node.selectFields.addOption({ label: f, value: f });
         });
@@ -186,8 +192,8 @@ define(['dojo/_base/declare',
     onAddClick: function () {
       var mappedFields = {};
       array.forEach(_fsFields, lang.hitch(this, function (setField) {
-        if (setField != null && setField.value != "objectid" && setField.value != "objectid_1") {
-          var fieldName = setField.value;
+        if (setField) {
+          var fieldName = setField.name;
           var controlNodes = query('.field-node-tr', this.schemaMapTable);
           var mappedField = "";
           for (var i = 0; i < controlNodes.length; i++) {

@@ -188,15 +188,15 @@
 }
 
 .jimu-widget-critical-facilities .footer{
-  position: absolute;
-  bottom: 0px;
-  right: 0px;
+  position: relative;
+  float: right;
+  margin-bottom: 10px;
 }
 
 .jimu-rtl .jimu-widget-critical-facilities .footer{
-  position: absolute;
-  bottom: 0px;
-  left: 0px;
+  position: relative;
+  float: left;
+  margin-bottom: 10px;
 }
 
 .jimu-widget-critical-facilities .field-node-tr{

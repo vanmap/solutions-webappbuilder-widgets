@@ -69,6 +69,10 @@ define([
       //TODO fix css issue with row highlight not lining up with row
       //TODO need a way to handle lat lon in addition to geocode...thinking about a checkbox on the Location tab...
       // would then need widget to handle if it's enabled
+      //TODO reloading after save is not working
+      //TODO reloading the widget needs to handle fields that have been added or removed
+
+      //TODO clicking the edit action should prompt the user about it only being avalible for the selected layer
 
       _operLayerInfos: null,
       _layersTable: null,
@@ -149,9 +153,6 @@ define([
         this.own(on(this._layersTable, 'actions-edit',
           lang.hitch(this, this._onEditFieldsClick)));
 
-        this.own(on(this._layersTable, 'row-select',
-          lang.hitch(this, this._onRowSelected)));
-
         this._addLayerRows();
       },
 
@@ -179,19 +180,11 @@ define([
         this.own(on(this.sourceList, 'row-delete', lang.hitch(this, this._onSourceItemRemoved)));
       },
 
-      _onRowSelected: function (tr) {
-        var radio = query('input', tr.firstChild)[0];
-        var config = this._getRowConfig(tr);
-        config._editFlag = radio.checked;
-        this._setRowConfig(tr, config);
-      },
-
       _addLayerRows: function () {
         if (this._editableLayerInfos) {
           array.forEach(this._editableLayerInfos, lang.hitch(this, function (layerInfo) {
             var addRowResult = this._layersTable.addRow({
               txtLayerLabel: layerInfo.featureLayer.title,
-              rdoLayer: layerInfo._editFlag,
               url: layerInfo.url
             });
             if (addRowResult && addRowResult.success) {
@@ -238,6 +231,18 @@ define([
             console.error("add row failed ", addResult);
           }
         }));
+
+        var configLayerInfo = this.config.layerInfos[0];
+        var trs = this._layersTable.getRows();
+        for (var i = 0; i < trs.length; i++) {
+          var tr = trs[i];
+          var rc = this._getRowConfig(tr);
+          if (rc.featureLayer.id === configLayerInfo.featureLayer.id) {
+            var radio = query('input', tr.firstChild)[0];
+            radio.checked = true;
+            break;
+          }
+        }
       },
 
       _getEditableLayerInfos: function () {
@@ -271,7 +276,6 @@ define([
           }
           if (layerInfo) {
             layerInfo.fieldInfos = this._getFieldInfos(layerObject, layerInfo);
-            layerInfo._editFlag = true;
           }
         }
         return layerInfo;
@@ -285,9 +289,7 @@ define([
             'title': layerObject.name,
             'url': layerObject.url
           },
-          'fieldInfos': this._getFieldInfos(layerObject),
-          '_editFlag': this.config.layerInfos &&
-                        this.config.layerInfos.length === 0 ? true : false
+          'fieldInfos': this._getFieldInfos(layerObject)
         };
         return layerInfo;
       },
@@ -423,8 +425,8 @@ define([
         trs = this._layersTable.getRows();
         array.forEach(trs, lang.hitch(this, function (tr) {
           var layerInfo = this._getRowConfig(tr);
-          if (layerInfo._editFlag) {
-            //delete layerInfo._editFlag;
+          var radio = query('input', tr.firstChild)[0];
+          if (radio.checked) {
             array.forEach(layerInfo.fieldInfos, lang.hitch(this, function (fi) {
               var name = fi.fieldName;
               for (var i = 0; i < layerInfo.featureLayer.fields.length; i++) {

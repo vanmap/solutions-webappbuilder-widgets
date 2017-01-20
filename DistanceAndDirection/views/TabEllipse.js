@@ -397,11 +397,7 @@ define([
          *
          */
         feedbackDidComplete: function (results) {
-          this.currentEllipse = new ShapeModel(results);
-          this.currentEllipse.graphic = new EsriGraphic(
-            this.currentEllipse.geodesicGeometry,
-            this._ellipseSym
-          );
+          var currentEllipse = new EsriGraphic(results.geometry.geometry,this._ellipseSym);
           
           var unitForDistance = dijit.byId('lengthUnitDD').get('displayedValue');
           var unitForAngle = dijit.byId('angleUnitDD').get('displayedValue');
@@ -411,16 +407,15 @@ define([
               majorValue = majorValue * 2;
           }
 
-          this.currentEllipse.graphic.setAttributes({
+          currentEllipse.setAttributes({
             'MINOR': dojoDomAttr.get(this.minorAxisInput, 'value').toString() + " " + unitForDistance,
             'MAJOR': majorValue.toString() + " " + unitForDistance,
             'ORIENTATION_ANGLE': this.angleInput.displayedValue.toString() + " " + unitForAngle,
           });
 
-          this._gl.add(this.currentEllipse.graphic);
+          this._gl.add(currentEllipse);
           this._gl.refresh();
-          this.emit('graphic_created', this.currentEllipse);
-
+          
           this.map.enableMapNavigation();
           this.dt.deactivate();
           this.dt.removeStartGraphic();

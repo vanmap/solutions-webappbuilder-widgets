@@ -172,7 +172,8 @@ define([
 
             var circleGeometry = new EsriCircle(start, {
                 radius: length,
-                geodesic: true
+                geodesic: true,
+                numberOfPoints: 360
             });
 
             if (this.circleGraphic) {

@@ -43,6 +43,7 @@ define([
   'esri/units',
   'esri/geometry/webMercatorUtils',
   'esri/geometry/Polyline',
+  'esri/geometry/Polygon',
   'esri/geometry/Point',
   'esri/geometry/Circle',
   'esri/tasks/FeatureSet',
@@ -81,6 +82,7 @@ define([
   esriUnits,
   esriWMUtils,
   EsriPolyline,
+  EsriPolygon,
   EsriPoint,
   EsriCircle,
   EsriFeatureSet,
@@ -346,6 +348,12 @@ define([
      *
      */
     distCalcDidExpand: function () {
+      this.dt.deactivate();
+      this.dt.cleanup();
+      this.dt.disconnectOnMouseMoveHandler();
+      
+      this.coordTool.inputCoordinate.isManual = true;
+      
       if (this.distCalcControl.get('open')) {
         this.lengthInput.disabled = 'disabled';
       } else {
@@ -390,7 +398,6 @@ define([
      *
      */
     distanceInputDidChange: function () {
-
       var currentRateInMetersPerSecond = (
         this.distanceInput.value *
         this.distanceUnitDD.value.split(';')[0]
@@ -528,6 +535,7 @@ define([
 
         this._gl.add(this.tempGraphic);
         this._gl.refresh();
+        
     },
 
     /*
@@ -578,21 +586,32 @@ define([
 
       results.geometry = this.coordTool.inputCoordinate.coordinateEsriGeometry;
       results.lineGeometry = lineGeom;
-      this.currentCircle = new ShapeModel(results);
-      this.currentCircle.createCircleFrom = this.creationType.get('value');      
-
-      this.currentCircle.graphic = new EsriGraphic(
-        this.currentCircle.wmGeometry,
+      
+      var centerPoint = esriWMUtils.geographicToWebMercator(results.geometry);
+      
+      var newCurrentCircle = new EsriCircle({
+          center: centerPoint,
+          radius: results.calculatedDistance,
+          geodesic: true,
+          numberOfPoints: 360
+      });
+      
+      var newPolygon  = new EsriPolygon(this.map.spatialReference);
+      
+      newPolygon.addRing(newCurrentCircle.rings[0]);
+ 
+      var cGraphic = new EsriGraphic(
+        newPolygon,
         this._circleSym,
         {
           'Label': this.creationType.get('value') + " " + this.lengthInput.value.toString() + " " + this.lengthUnitDD.get('value').charAt(0).toUpperCase() + this.lengthUnitDD.get('value').slice(1)
         }
       );      
 
-      this._gl.add(this.currentCircle.graphic);
+      this._gl.add(cGraphic);
 
       if (this.coordTool.inputCoordinate.isManual) {
-        this.map.setExtent(this.currentCircle.wmGeometry.getExtent().expand(3));
+        this.map.setExtent(newPolygon.getExtent().expand(3));
       } else {
         this._gl.refresh();
       }

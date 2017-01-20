@@ -37,7 +37,7 @@ define([
                 this.config = config;
                 if (config.viewshedService.url !== undefined) {
                     this.viewshedServiceUrl.set('value', config.viewshedService.url);
-                }
+                }             
             },
 
             getConfig: function () {

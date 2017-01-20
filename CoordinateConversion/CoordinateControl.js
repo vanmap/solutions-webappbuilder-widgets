@@ -214,7 +214,7 @@ define([
 
           this.own(
             this.coordName.on(
-              'change',
+              'blur',
               dojoLang.hitch(this, this.coordNameDidChange))
           );
 
@@ -315,7 +315,7 @@ define([
                 s = false;
             }
 
-            var t = s ? 'Copy Succesful' : 'Unable to Copy\n use ctrl+c as an alternative';
+            var t = s ? 'Copy Succesful' : 'Unable to Copy\n use ctrl+c as an alternative.';
 
             this.showToolTip(evt.currentTarget.id, t);
         },
@@ -336,12 +336,15 @@ define([
                 fw = dijitRegistry.toArray().filter(function (w) {
                     return w.baseClass === 'jimu-widget-cc' && !w.input;
                 });
+                
 
                 w = fw.map(function (w) {
                     return w.coordtext.value;
                 }).join('\r\n');
 
                 tv = this.coordtext.value;
+                
+                w = tv + "\r\n" + w;
 
                 this.coordtext.value = w;
 
@@ -365,7 +368,7 @@ define([
                 }
             }
 
-            t = s ? 'Copy Succesful' : 'Unable to Copy\n use ctrl+c as an alternative';
+            t = s ? 'Copy Succesful' : 'Unable to Copy\n use ctrl+c as an alternative.';
 
             this.showToolTip(this.cpbtn.id, t);
         },
@@ -397,7 +400,7 @@ define([
          **/
         geomSrvcDidComplete: function (r) {
             if (r[0].length <= 0) {
-                new JimuMessage({message: 'unable to parse coordinates'});
+                new JimuMessage({message: 'Unable to parse coordinates please check your input.'});
                 dojoTopic.publish('INPUTERROR');
                 return;
             }
@@ -418,7 +421,7 @@ define([
          *
          **/
         geomSrvcDidFail: function () {
-          new JimuMessage({message: 'Unable to parse input coordinates'});
+          new JimuMessage({message: 'Unable to parse coordinates please check your input.'});
           dojoTopic.publish('INPUTERROR');
         },
 
@@ -439,7 +442,7 @@ define([
                     //this.type = newType[newType.length-1].name;
                     this.processCoordTextInput(sanitizedInput, newType[newType.length-1].name);
                 } else {
-                    new JimuMessage({message: 'Unable to determine input coordinate type'});
+                    new JimuMessage({message: 'Unable to determine input coordinate type please check your input.'});
                     dojoTopic.publish('INPUTERROR');
                 }
                 dojoDomAttr.set(this.coordtext, 'value', sanitizedInput);
@@ -602,6 +605,14 @@ define([
                     this.setHidden(this.sub4);
                     cntrHeight = '125px';
                     break;
+                //case 'UTM (H)':
+                    //this.sub1label.innerHTML = 'Hemisphere';
+                    //this.sub2label.innerHTML = 'Easting';
+                    //this.sub3label.innerHTML = 'Northing';
+                    //this.setVisible(this.sub3);
+                    //this.setHidden(this.sub4);
+                    //cntrHeight = '125px';
+                    //break;
                 }
                 dojoDomStyle.set(this.coordcontrols, 'height', cntrHeight);
             } else {
@@ -722,12 +733,21 @@ define([
                 case 'UTM':
                     r = this.util.getFormattedUTMStr(withValue, format, as);
 
-                    this['cc_' + cntrlid + 'sub1val'].value = r.zone + r.hemisphere;
+                    this['cc_' + cntrlid + 'sub1val'].value = r.zone + r.bandLetter;
                     this['cc_' + cntrlid + 'sub2val'].value = r.easting;
                     this['cc_' + cntrlid + 'sub3val'].value = r.westing;
 
                     formattedStr = r.formatResult;
                     break;
+                //case 'UTM (H)':
+                    //r = this.util.getFormattedUTMHStr(withValue, format, as);
+
+                    //this['cc_' + cntrlid + 'sub1val'].value = r.zone + r.hemisphere;
+                    //this['cc_' + cntrlid + 'sub2val'].value = r.easting;
+                    //this['cc_' + cntrlid + 'sub3val'].value = r.westing;
+
+                    //formattedStr = r.formatResult;
+                    //break;
                 }                
             }
             } else {
@@ -744,7 +764,7 @@ define([
          *
          **/
         getFormattedCoordinates: function () {
-            this.util.getCoordValues(this.currentClickPoint, this.type).then(
+            this.util.getCoordValues(this.currentClickPoint, this.type, 4).then(
                 dojoLang.hitch(this, function (r) {
                     this.setCoordUI(r);
                 }),

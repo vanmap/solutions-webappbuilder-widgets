@@ -54,6 +54,7 @@ define([
          **/
         getCleanInput: function (fromstr) {
             fromstr = fromstr.replace(/\n/g,'');
+            fromstr = fromstr.replace(/\s+/g, '');
             return fromstr.replace(/\s+/g, ' ').trim();
         },
 
@@ -241,17 +242,19 @@ define([
                 }
             }
 
-            var londeg = parts[1].replace(/[eEwW]/, '');
-            r.xvalue = londeg;
+            if (parts.length == 2) {
+                    var londeg = parts[1].replace(/[eEwW]/, '');
+                    r.xvalue = londeg;
 
-            var londegdir = parts[1].slice(-1);
-            r.xdir = londegdir;
-            if (addSignPrefix) {
-                if (r.xdir === 'W') {
-                    r.xvalue = '-' + londeg;
-                } else {
-                    r.xvalue = '+' + londeg;
-                }
+                    var londegdir = parts[1].slice(-1);
+                    r.xdir = londegdir;
+                    if (addSignPrefix) {
+                        if (r.xdir === 'W') {
+                            r.xvalue = '-' + londeg;
+                        } else {
+                            r.xvalue = '+' + londeg;
+                        }
+                    }                    
             }
 
             var s = withFormatStr.replace(/X/, r.xvalue);
@@ -405,10 +408,18 @@ define([
             r.sourceValue = fromValue;
             r.sourceFormatString = withFormatStr;
 
-            r.gzd = fromValue[0].match(/\d{1,2}[C-HJ-NP-X]/)[0].trim();
-            r.grdsq = fromValue[0].replace(r.gzd, '').match(/[a-hJ-zA-HJ-Z]{2}/)[0].trim();
-            r.easting = fromValue[0].replace(r.gzd + r.grdsq, '').match(/^\d{1,5}/)[0].trim();
-            r.northing = fromValue[0].replace(r.gzd + r.grdsq, '').match(/\d{1,5}$/)[0].trim();
+            if (fromValue[0].match(/\d{1,2}[C-HJ-NP-X]/) !== null) {
+                r.gzd = fromValue[0].match(/\d{1,2}[C-HJ-NP-X]/)[0].trim();
+            }   
+            if (fromValue[0].replace(r.gzd, '').match(/[a-hJ-zA-HJ-Z]{2}/) !== null) {
+                r.grdsq = fromValue[0].replace(r.gzd, '').match(/[a-hJ-zA-HJ-Z]{2}/)[0].trim();
+            }   
+            if (fromValue[0].replace(r.gzd + r.grdsq, '').match(/^\d{1,5}/) !== null) {
+                r.easting = fromValue[0].replace(r.gzd + r.grdsq, '').match(/^\d{1,5}/)[0].trim();
+            }   
+            if (fromValue[0].replace(r.gzd + r.grdsq, '').match(/\d{1,5}$/) !== null) {
+                r.northing = fromValue[0].replace(r.gzd + r.grdsq, '').match(/\d{1,5}$/)[0].trim();
+            }                                        
 
             //Z S X# Y#
             var s = withFormatStr.replace(/Y/, r.northing);

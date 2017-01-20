@@ -57,6 +57,11 @@ define(['dojo/_base/declare',
 
     //TODO need a way to clear and Update temp map results
 
+    //TODO need a way to handle field validation between to/from fields
+    //TODO edits need to be applied to the layer instance in the map
+    //TODO need to handle geocode errors...for example they choose a field that is not addresses or they have bad addressed
+    //TODO need a way for the user to process the results prior to submit
+
     postCreate: function () {
       this.inherited(arguments);
 
@@ -229,7 +234,8 @@ define(['dojo/_base/declare',
     onSubmitClick: function () {
       var featureLayer = this.myCsvStore.featureLayer;
 
-      //only need to get the configured fields really
+      //TODO this needs to update the map layer
+
       var flayer = new esri.layers.FeatureLayer(this._url, {
         mode: esri.layers.FeatureLayer.MODE_ONDEMAND,
         outFields: ['*']

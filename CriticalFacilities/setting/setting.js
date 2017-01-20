@@ -74,6 +74,8 @@ define([
 
       //TODO clicking the edit action should prompt the user about it only being avalible for the selected layer
 
+      //TODO only add editable point layers to the list and handle no editable point layers
+
       _operLayerInfos: null,
       _layersTable: null,
       _editableLayerInfos: null,

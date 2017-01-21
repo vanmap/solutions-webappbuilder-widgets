@@ -273,6 +273,31 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, Evented,
       onFetchFieldsAndUpdateForm: function () {
         var def = new Deferred();
         this.csvFieldNames = this.csvStore.getAttributes(this.storeItems[0]);
+
+        //TODO...this is a thought in progress for a way to do some high level validation of
+        // value types to know what fields should/could be exposed to each dropdown
+        this.fieldTypes = {};
+        array.forEach(this.csvFieldNames, lang.hitch(this, function (attr) {
+          var type = null;
+          array.forEach(this.storeItems, lang.hitch(this, function (si) {
+            var val = this.csvStore.getValue(si, attr);
+            var supportsInt = (parseInt(val) !== NaN) && parseInt(val).length === val.length;
+            var supportsFloat = (parseFloat(val) !== NaN) && parseFloat(val).toString().length === val.length;
+            var supportsString = val.toString && typeof (val.toString()) === 'string';
+            if (this.fieldTypes.hasOwnProperty(attr)) {
+              var fieldType = this.fieldTypes[attr];
+              supportsInt = ((parseInt(val) !== NaN) && parseInt(val).length === val.length) && fieldType.supportsInt;
+              supportsFloat = ((parseFloat(val) !== NaN) && parseFloat(val).toString().length === val.length) && fieldType.supportsFloat;
+              supportsString = (val.toString && typeof (val.toString()) === 'string') && fieldType.supportsString;
+            }
+            this.fieldTypes[attr] = {
+              supportsInt: supportsInt,
+              supportsFloat: supportsFloat,
+              supportsString: supportsString
+            }
+          }));
+        }));
+
         def.resolve(this.csvFieldNames);
         this.emit('fields complete', this.csvFieldNames);
         return def;

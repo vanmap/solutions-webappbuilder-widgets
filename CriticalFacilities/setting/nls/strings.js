@@ -37,7 +37,7 @@
       enableDisableGeocode: "Allow batch geocoding"
     },
     lookupList: "Is recognized if named",
-    needsEditableLayers: "The webmap must contain at least 1 editable layer.",
+    needsEditablePointLayers: "The webmap must contain at least 1 editable point layer.",
     actions: "Actions",
     editpageName: "Name",
     editpageAlias: "Alias",

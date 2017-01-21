@@ -35,7 +35,7 @@ define([
     'dijit/form/NumberSpinner',
     "jimu/dijit/CheckBox",
     'dojo/dom-construct',
-    'dojo/dom'
+    'dojo/dom-style'
 ],
   function (
     declare,
@@ -58,27 +58,24 @@ define([
     NumberSpinner,
     CheckBox,
     domConstruct,
-    dom) {
+    domStyle) {
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
       baseClass: 'jimu-widget-setting-critical-facilities',
 
       //TODO step through the fieldInfo stuff...seems like there is way more work going on for that than is necessary
       //TODO ask team about "is recognized if named list" idea
       //TODO should we support an option for configure user to mark certain fields as required or optional?
-      //TODO disable OK when no layer is selected or no editable layers in map or if all locators have been removed
+      //TODO disable OK when no layer is selected or if all locators have been removed
       //TODO fix css issue with row highlight not lining up with row
       //TODO need a way to handle lat lon in addition to geocode...thinking about a checkbox on the Location tab...
       // would then need widget to handle if it's enabled
-      //TODO reloading after save is not working
-      //TODO reloading the widget needs to handle fields that have been added or removed
+      //TODO understand the fee vs paid loacting options https://developers.arcgis.com/rest/geocode/api-reference/geocoding-free-vs-paid.htm#ESRI_SECTION1_B9D659BA26584F26A65CBA24E59AFE6E
 
       //TODO clicking the edit action should prompt the user about it only being avalible for the selected layer
 
-      //TODO only add editable point layers to the list and handle no editable point layers
-
       _operLayerInfos: null,
       _layersTable: null,
-      _editableLayerInfos: null,
+      _editablePointLayerInfos: null,
       _arrayOfFields: null,
       _layerInfos: [],
 
@@ -92,7 +89,7 @@ define([
         LayerInfos.getInstance(this.map, this.map.itemInfo)
           .then(lang.hitch(this, function (operLayerInfos) {
             this._operLayerInfos = operLayerInfos;
-            this._editableLayerInfos = this._getEditableLayerInfos();
+            this._editablePointLayerInfos = this._getEditablePointLayerInfos();
             this._initUI();
             _utils.setMap(this.map);
             _utils.setLayerInfosObj(this._operLayerInfos);
@@ -183,8 +180,8 @@ define([
       },
 
       _addLayerRows: function () {
-        if (this._editableLayerInfos) {
-          array.forEach(this._editableLayerInfos, lang.hitch(this, function (layerInfo) {
+        if (this._editablePointLayerInfos) {
+          array.forEach(this._editablePointLayerInfos, lang.hitch(this, function (layerInfo) {
             var addRowResult = this._layersTable.addRow({
               txtLayerLabel: layerInfo.featureLayer.title,
               url: layerInfo.url
@@ -196,8 +193,9 @@ define([
             }
           }));
         } else {
+          this._disableOk();
           new Message({
-            message: this.nls.needsEditableLayers
+            message: this.nls.needsEditablePointLayers
           });
         }
       },
@@ -247,14 +245,15 @@ define([
         }
       },
 
-      _getEditableLayerInfos: function () {
+      _getEditablePointLayerInfos: function () {
         var editableLayerInfos = [];
         for (var i = this.map.graphicsLayerIds.length - 1; i >= 0; i--) {
           var layerObject = this.map.getLayer(this.map.graphicsLayerIds[i]);
           if (layerObject.type === "Feature Layer" &&
               layerObject.url &&
               layerObject.isEditable &&
-              layerObject.isEditable()) {
+              layerObject.isEditable() &&
+              layerObject.geometryType === "esriGeometryPoint") {
             var layerInfo = this._getLayerInfoFromConfiguration(layerObject);
             if (!layerInfo) {
               layerInfo = this._getDefaultLayerInfo(layerObject);

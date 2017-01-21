@@ -61,6 +61,9 @@ define(['dojo/_base/declare',
     //TODO edits need to be applied to the layer instance in the map
     //TODO need to handle geocode errors...for example they choose a field that is not addresses or they have bad addressed
     //TODO need a way for the user to process the results prior to submit
+    //TODO widget should open onDrop if it is closed
+    //TODO control button visibility and or enabled state depending upon where we are in the workflow
+    //TODO if no schema map fields then that section should not draw
 
     postCreate: function () {
       this.inherited(arguments);

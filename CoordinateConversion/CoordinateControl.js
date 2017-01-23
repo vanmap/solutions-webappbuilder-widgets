@@ -399,16 +399,10 @@ define([
          *
          **/
         geomSrvcDidComplete: function (r) {
-            if (r.length > 0) {
-                if (r[0].length <= 0) {
-                    new JimuMessage({message: 'Unable to parse coordinates please check your input.'});
-                    dojoTopic.publish('INPUTERROR');
-                    return;
-                }
-            } else {
+            if (r[0].length <= 0) {
                 new JimuMessage({message: 'Unable to parse coordinates please check your input.'});
-                //dojoTopic.publish('INPUTERROR');
-                return;                
+                dojoTopic.publish('INPUTERROR');
+                return;
             }
 
             var newpt = new EsriPoint(r[0][0], r[0][1], new EsriSpatialReference({wkid: 4326}));
@@ -660,17 +654,13 @@ define([
 
                     r = this.util.getFormattedDDStr(withValue, format, as);
 
-                    if (r.xvalue) {
-                        this['cc_' + cntrlid + 'sub1val'].value = dojoString.substitute('${xcrd}', {
-                            xcrd: r.xvalue
-                        });                        
-                    }
+                    this['cc_' + cntrlid + 'sub1val'].value = dojoString.substitute('${xcrd}', {
+                        xcrd: r.xvalue
+                    });
 
-                    if (r.yvalue) {
-                        this['cc_' + cntrlid + 'sub2val'].value = dojoString.substitute('${ycrd}', {
-                            ycrd: r.yvalue
-                        });                        
-                    }
+                    this['cc_' + cntrlid + 'sub2val'].value = dojoString.substitute('${ycrd}', {
+                        ycrd: r.yvalue
+                    });
 
                     formattedStr = r.formatResult;
                     break;

@@ -58,12 +58,15 @@ define(['dojo/_base/declare',
     //TODO need a way to clear and Update temp map results
 
     //TODO need a way to handle field validation between to/from fields
+
     //TODO edits need to be applied to the layer instance in the map
     //TODO need to handle geocode errors...for example they choose a field that is not addresses or they have bad addressed
     //TODO need a way for the user to process the results prior to submit
     //TODO widget should open onDrop if it is closed
     //TODO control button visibility and or enabled state depending upon where we are in the workflow
     //TODO if no schema map fields then that section should not draw
+
+    //TODO add 2 fields...change layer in settings and add 1 field...the old fields were not cleared
 
     postCreate: function () {
       this.inherited(arguments);
@@ -89,7 +92,6 @@ define(['dojo/_base/declare',
       _fsFields = [];
       var p = this.getPanel();
 
-      //TODO need to clear the rows here
       if (this._configLayerInfo) {
         array.forEach(this._configLayerInfo.fieldInfos, lang.hitch(this, function (field) {
           if (field && field.visible) {
@@ -109,6 +111,11 @@ define(['dojo/_base/declare',
         //TODO will need to handle this here if we allow config with no layer defined...really I think this should be 
         // prevented at the Settings level by not allowing the OK button when some required parts are missing
       }
+
+      layerInfos.getInstance(this.map, this.map.itemInfo).then(lang.hitch(this, function (operLayerInfos) {
+        this.opLayers = operLayerInfos;
+        this.editLayer = operLayerInfos.getLayerInfoById(this._configLayerInfo.featureLayer.id).layerObject;
+      }));
     },
 
     addFieldRow: function (tableNode, keyField) {
@@ -165,11 +172,11 @@ define(['dojo/_base/declare',
               arraySelectedFields: this.arraySelectedFields,
               geocodeSources: this._geocodeSources
             });
-            this.myCsvStore.onHandleCsv().then(lang.hitch(this, function (d) {
-              this._updateFieldControls(d, this.schemaMapTable);
-              this._updateFieldControls(d, this.xyTable);
-              this._updateFieldControls(d, this.addressTable);
-              console.log(d);
+            this.myCsvStore.onHandleCsv().then(lang.hitch(this, function (obj) {
+              this._updateFieldControls(this.schemaMapTable, obj, true, true);
+              this._updateFieldControls(this.xyTable, obj, true, false);
+              this._updateFieldControls(this.addressTable, obj, false, false);
+
               domStyle.set(this.schemaMapInstructions, "display", "none");
               domStyle.set(this.mainContainer, "display", "block");
             }));
@@ -184,15 +191,62 @@ define(['dojo/_base/declare',
       domStyle.set(this.xyBodyContainer, "display", type === "xy" ? "block" : "none");
     },
 
-    _updateFieldControls: function (fields, table) {
+    _updateFieldControls: function (table, obj, checkFieldTypes, checkArrayFields) {
+      var fields = obj.fields;
+      var fieldTypes = obj.fieldTypes;
+      var arrayFields = obj.arrayFields;
       var controlNodes = query('.field-node-tr', table);
       array.forEach(controlNodes, function (node) {
         var options = node.selectFields.getOptions();
         array.forEach(options, function (option) {
           node.selectFields.removeOption(option);
         });
+
+        var ftInt = ["esriFieldTypeSmallInteger", "esriFieldTypeInteger", "esriFieldTypeSingle"];
+        var ftFloat = ["esriFieldTypeDouble"];
+        var test = {};
+        var keyFieldType;
+        if (checkArrayFields) {
+          array.forEach(arrayFields, function (f) {
+            var type;
+            if (ftInt.indexOf(f.value) > -1) {
+              type = "int";
+            } else if (ftFloat.indexOf(f.value) > -1) {
+              type = "float";
+            } else {
+              type = "other";
+            }
+            test[f.name] = type;
+          });
+          keyFieldType = test[node.keyField];
+        }
+
         array.forEach(fields, function (f) {
-          node.selectFields.addOption({ label: f, value: f });
+          var add = false;
+          if (checkArrayFields) {
+            //Schema Map fields         
+            if (keyFieldType === "int" && fieldTypes[f].supportsInt) {
+              add = true;
+            } else if (keyFieldType === "float" && fieldTypes[f].supportsFloat) {
+              add = true;
+            } else if (keyFieldType === "other") {
+              add = true;
+            }
+          } else {
+            //XY or Address
+            if (checkFieldTypes) {
+              //XY
+              if (fieldTypes[f].supportsFloat || fieldTypes[f].supportsInt) {
+                add = true;
+              }
+            } else {
+              //Address
+              add = true;
+            }
+          }
+          if (add) {
+            node.selectFields.addOption({ label: f, value: f });
+          }
         });
       });
     },
@@ -236,27 +290,26 @@ define(['dojo/_base/declare',
 
     onSubmitClick: function () {
       var featureLayer = this.myCsvStore.featureLayer;
-
-      //TODO this needs to update the map layer
-
-      var flayer = new esri.layers.FeatureLayer(this._url, {
-        mode: esri.layers.FeatureLayer.MODE_ONDEMAND,
-        outFields: ['*']
+      var flayer = this.editLayer;
+      var features = [];
+      array.forEach(featureLayer.graphics, function (feature) {
+        if (feature.attributes.hasOwnProperty("ObjectID")) {
+          delete feature.attributes.ObjectID;
+        }
+        if (feature.attributes.hasOwnProperty("_graphicsLayer")) {
+          delete feature._graphicsLayer;
+        }
+        if (feature.attributes.hasOwnProperty("_layer")) {
+          delete feature._layer;
+        }
+        features.push(feature);
       });
-
-      var features = featureLayer.graphics;
-      var theExtent = null;
-
-      for (var f = 0, fl = features.length; f < fl; f++) {
-        var feature = features[f];
-        var attribs = feature.attributes;
-
-        feature.setInfoTemplate(flayer.infoTemplate);//??
-        flayer.add(feature);
-
-        //TODO handle errors
-        flayer.applyEdits([feature], null, null);
-      }
+      //TODO handle errors
+      flayer.applyEdits(features, null, null, function (e) {
+        console.log(e);
+      }, function (ee) {
+        console.log(ee);
+      });
     }
   });
 });

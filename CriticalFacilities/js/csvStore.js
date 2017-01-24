@@ -38,8 +38,6 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, Evented,
         this.featureLayer = null;
         this.correctFieldNames = null;
         this.mappedArrayFields = null;
-        this.latField = null;
-        this.longField = null;
         this.geocodeSources = options.geocodeSources;
         this.useAddr = true;
         this.addrFieldName = "";
@@ -131,8 +129,6 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, Evented,
 
         this.isGeographic = undefined;
         var data = [];
-        //TODO structure the current data in the store to match what comes from the locator
-        // so both can be used in the same way further downstream
         array.forEach(this.storeItems, lang.hitch(this, function (i) {
           var attributes = {};
           var _attrs = this.csvStore.getAttributes(i);
@@ -144,7 +140,7 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, Evented,
           var yCoord = this.csvStore.getValue(i, this.yFieldName);
           
           if (typeof (this.isGeographic) === 'undefined') {
-            this.isGeographic = /([-]?\d{1,3}[.]?\d*)/.exec(xCoord) ? true : false;
+            this.isGeographic = /(?=^[-]?\d{1,3}\.)^[-]?\d{1,3}\.\d+|(?=^[-]?\d{4,})|^[-]?\d{1,3}/.exec(xCoord) ? true : false;
           }
           var geometry = new Point(parseFloat(xCoord), parseFloat(yCoord));
           if (this.isGeographic) {
@@ -158,7 +154,6 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, Evented,
             location: geometry
           })
         }));
-
 
         def.resolve(data);
         return def;
@@ -273,33 +268,35 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, Evented,
       onFetchFieldsAndUpdateForm: function () {
         var def = new Deferred();
         this.csvFieldNames = this.csvStore.getAttributes(this.storeItems[0]);
-
-        //TODO...this is a thought in progress for a way to do some high level validation of
-        // value types to know what fields should/could be exposed to each dropdown
         this.fieldTypes = {};
         array.forEach(this.csvFieldNames, lang.hitch(this, function (attr) {
           var type = null;
           array.forEach(this.storeItems, lang.hitch(this, function (si) {
-            var val = this.csvStore.getValue(si, attr);
-            var supportsInt = (parseInt(val) !== NaN) && parseInt(val).length === val.length;
-            var supportsFloat = (parseFloat(val) !== NaN) && parseFloat(val).toString().length === val.length;
-            var supportsString = val.toString && typeof (val.toString()) === 'string';
+            var checkVal = true;
+            var fTypeInt = true;
+            var fTypeFloat = true;
             if (this.fieldTypes.hasOwnProperty(attr)) {
-              var fieldType = this.fieldTypes[attr];
-              supportsInt = ((parseInt(val) !== NaN) && parseInt(val).length === val.length) && fieldType.supportsInt;
-              supportsFloat = ((parseFloat(val) !== NaN) && parseFloat(val).toString().length === val.length) && fieldType.supportsFloat;
-              supportsString = (val.toString && typeof (val.toString()) === 'string') && fieldType.supportsString;
+              fTypeInt = this.fieldTypes[attr].supportsInt;
+              fTypeFloat = this.fieldTypes[attr].supportsFloat;
+              if (!(fTypeInt) && !(fTypeFloat)) {
+                checkVal = false;
+              } 
             }
-            this.fieldTypes[attr] = {
-              supportsInt: supportsInt,
-              supportsFloat: supportsFloat,
-              supportsString: supportsString
+            if (checkVal) {
+              var v = this.csvStore.getValue(si, attr);
+              this.fieldTypes[attr] = {
+                supportsInt: ((parseInt(v) !== NaN) && parseInt(v).toString().length === v.toString().length) && fTypeInt,
+                supportsFloat: ((parseFloat(v) !== NaN) && parseFloat(v).toString().length === v.toString().length) && fTypeFloat
+              }
             }
           }));
         }));
-
-        def.resolve(this.csvFieldNames);
-        this.emit('fields complete', this.csvFieldNames);
+        def.resolve({
+          fields: this.csvFieldNames,
+          fieldTypes: this.fieldTypes,
+          arrayFields: this.inArrayFields
+        });
+        //this.emit('fields complete', this.csvFieldNames);
         return def;
       },
 

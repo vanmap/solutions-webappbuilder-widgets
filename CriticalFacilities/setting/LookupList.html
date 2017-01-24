@@ -1,8 +1,10 @@
-﻿<div style="width: 100%; height: 100%; background-color:antiquewhite;">
-  Could put stuff here for the configure user to define a schema mapping field list
-  <!--Footer-->
-  <div class="footer padTop20">
-    <div class="jimu-btn ok" data-dojo-attach-point="btnOk"></div>
-    <div class="jimu-btn cancel" data-dojo-attach-point="btnCancel"></div>
+﻿<div style="width: 100%; height: 100%;">
+  <div class="is-recognized-add-button" role="button">
+    <div class="button" data-dojo-attach-event="click:_onAddClick">
+      <span class="button-text">${nls.add}</span>
+    </div>
+  </div>
+  <div class="is-recognized-source-list jimu-float-leading">
+    <div class="source-list-table" data-dojo-attach-point="sourceList"></div>
   </div>
 </div>

@@ -249,3 +249,17 @@
   box-shadow: 0 0 0;
 }
 
+.jimu-widget-setting-critical-facilities .is-recognized-add-button {
+  margin: 8px 0;
+  display: block;
+  position: relative;
+  padding-left: 16px;
+  color: #518dca;
+  background: url(images/add_icon.png) no-repeat left;
+  cursor: pointer;
+}
+
+.jimu-widget-setting-critical-facilities .is-recognized-source-list{
+  height: 300px;
+}
+

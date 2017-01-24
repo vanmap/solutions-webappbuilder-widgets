@@ -1,11 +1,23 @@
-define([
-    'dojo/_base/declare',
+///////////////////////////////////////////////////////////////////////////
+// Copyright 2016 Esri. All Rights Reserved.
+//
+// Licensed under the Apache License Version 2.0 (the 'License');
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//    http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an 'AS IS' BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+///////////////////////////////////////////////////////////////////////////
+define(['dojo/_base/declare',
     'dojo/_base/array',
     'dojo/_base/lang',
     'dojo/query',
     'dojo/on',
-    'dojo/dom',
-    'dojo/dom-construct',
     'dojo/Deferred',
     'dojo/Evented',
     'dojox/data/CsvStore',
@@ -19,7 +31,7 @@ define([
     'esri/tasks/locator',
     'jimu/utils'
 ],
-function (declare, array, lang, query, on, dom, domConstruct, Deferred, Evented, CsvStore,
+function (declare, array, lang, query, on, Deferred, Evented, CsvStore,
   graphicsUtils, webMercatorUtils, Point, Color, SimpleMarkerSymbol, SimpleRenderer, FeatureLayer, Locator,
   jimuUtils) {
   return declare([Evented], {
@@ -27,13 +39,11 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, Evented,
         this.inFile = options.inFile;
         this.inMap = options.inMap;
         this.inArrayFields = options.inArrayFields;
-        this.arraySelectedFields = null;
         this.fileData = null;
         this.separatorCharacter = null;
         this.csvStore = null;
         this.csvFieldNames = null;
         this.storeItems = null;
-        this.fullpath = null;
         this.featureCollection = null;
         this.featureLayer = null;
         this.correctFieldNames = null;
@@ -43,6 +53,7 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, Evented,
         this.addrFieldName = "";
         this.xFieldName = "";
         this.yFieldName = "";
+        this.objectIdField = "ObjectID";
       },
 
       onHandleCsv: function () {
@@ -104,13 +115,11 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, Evented,
           });
           this.inMap.addLayers([this.featureLayer]);
           this.onZoomToData(this.featureLayer);
-
           this.emit('complete');
         }));
       },
 
       locateData: function () {
-        //TODO handle geocode or Lat Lon
         var def = new Deferred();
         if (this.useAddr) {
           this._geocodeData().then(function (data) {
@@ -171,14 +180,11 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, Evented,
           x += 1;
           var addr = { "OBJECTID": x };
           addr[fName] = this.csvStore.getValue(i, this.addrFieldName);
-          //array.forEach(attributes, lang.hitch(this, function (a) {
-          //  addr[a] = this.csvStore.getValue(i, a);
-          //}));
           addresses.push(addr);
         }));
         var locator = this.locatorSource.locator;
         locator.outSpatialReference = this.inMap.spatialReference;
-        locator.addressesToLocations({ addresses: addresses }).then(function (data) {
+        locator.addressesToLocations({ addresses: addresses, countryCode: this.locatorSource.countryCode}).then(function (data) {
           def.resolve(data);
         });
         return def;
@@ -189,7 +195,7 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, Evented,
         this.featureCollection = {
           "layerDefinition": {
             "geometryType": "esriGeometryPoint",
-            "objectIdField": "ObjectID",
+            "objectIdField": this.objectIdField,
             "type": "Feature Layer",
             "drawingInfo": {
               "renderer": {
@@ -205,8 +211,8 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, Evented,
             },
             "fields": [
                 {
-                  "name": "ObjectID",
-                  "alias": "ObjectID",
+                  "name": this.objectIdField,
+                  "alias": this.objectIdField,
                   "type": "esriFieldTypeOID"
                 }
             ]
@@ -227,6 +233,26 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, Evented,
                 });
         }));
         return this.featureCollection;
+      },
+
+      clear: function () {
+        this.inMap.removeLayer(this.featureLayer);
+        this.featureLayer.clear();
+        this.inFile = undefined;
+        this.inArrayFields = undefined;
+        this.fileData = undefined;
+        this.separatorCharacter = undefined;
+        this.csvStore = undefined;
+        this.csvFieldNames = undefined;
+        this.storeItems = undefined;
+        this.featureCollection = undefined;
+        this.featureLayer = undefined;
+        this.correctFieldNames = undefined;
+        this.mappedArrayFields = undefined;
+        this.useAddr = true;
+        this.addrFieldName = "";
+        this.xFieldName = "";
+        this.yFieldName = "";
       },
 
       onGetSeparator: function () {
@@ -296,7 +322,6 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, Evented,
           fieldTypes: this.fieldTypes,
           arrayFields: this.inArrayFields
         });
-        //this.emit('fields complete', this.csvFieldNames);
         return def;
       },
 
@@ -312,7 +337,7 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, Evented,
       onZoomToData: function (featureLayer) {
         if (featureLayer.graphics && featureLayer.graphics.length > 0) {
           var ext = graphicsUtils.graphicsExtent(featureLayer.graphics);
-          this.inMap.setExtent(ext.expand(1.25), true)
+          this.inMap.setExtent(ext.expand(1.5), true)
         }
       },
 
@@ -330,8 +355,7 @@ function (declare, array, lang, query, on, dom, domConstruct, Deferred, Evented,
                 countryCode: source.countryCode || "",
                 maxSuggestions: source.maxSuggestions,
                 maxResults: source.maxResults || 6,
-                zoomScale: source.zoomScale || 50000,
-                useMapExtent: !!source.searchInCurrentMapExtent
+                zoomScale: source.zoomScale || 50000
               };
 
               if (source.enableLocalSearch) {

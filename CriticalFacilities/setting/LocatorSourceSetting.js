@@ -82,11 +82,6 @@ define(
         this.exampleHint = this.nls.locatorExample +
           ": http://&lt;myServerName&gt;/arcgis/rest/services/World/GeocodeServer";
 
-        this.searchInCurrentMapExtent = new CheckBox({
-          checked: false,
-          label: this.nls.searchInCurrentMapExtent
-        }, this.searchInCurrentMapExtent);
-
         this.enableLocalSearch = new CheckBox({
           checked: false,
           label: this.nls.enableLocalSearch
@@ -180,7 +175,6 @@ define(
           zoomScale: this.zoomScale.get('value') || 50000,
           maxSuggestions: this.maxSuggestions.get('value') || 6,
           maxResults: this.maxResults.get('value') || 6,
-          searchInCurrentMapExtent: this.searchInCurrentMapExtent.checked,
           enableLocalSearch: this.enableLocalSearch.getValue(),
           localSearchMinScale: this.localSearchMinScale.get('value'),
           localSearchDistance: this.localSearchDistance.get('value'),
@@ -261,8 +255,6 @@ define(
         } else {
           this._hideSuggestibleTips();
         }
-
-        this.searchInCurrentMapExtent.setValue(!!config.searchInCurrentMapExtent);
 
         this.zoomScale.set('value', config.zoomScale || 50000);
 

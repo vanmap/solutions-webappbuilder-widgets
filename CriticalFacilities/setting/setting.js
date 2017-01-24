@@ -63,15 +63,16 @@ define([
       baseClass: 'jimu-widget-setting-critical-facilities',
 
       //TODO step through the fieldInfo stuff...seems like there is way more work going on for that than is necessary
-      //TODO ask team about "is recognized if named list" idea
-      //TODO should we support an option for configure user to mark certain fields as required or optional?
+
       //TODO disable OK when no layer is selected or if all locators have been removed
       //TODO fix css issue with row highlight not lining up with row
-      //TODO need a way to handle lat lon in addition to geocode...thinking about a checkbox on the Location tab...
-      // would then need widget to handle if it's enabled
       //TODO understand the fee vs paid loacting options https://developers.arcgis.com/rest/geocode/api-reference/geocoding-free-vs-paid.htm#ESRI_SECTION1_B9D659BA26584F26A65CBA24E59AFE6E
 
-      //TODO clicking the edit action should prompt the user about it only being avalible for the selected layer
+      //Questions
+      //TODO ask team about "is recognized if named list" idea
+      //TODO should we support an option for configure user to mark certain fields as required or optional?
+      //TODO should lat/lon input be a configurable choice
+
 
       _operLayerInfos: null,
       _layersTable: null,
@@ -208,6 +209,10 @@ define([
             _layerInfo: this._getRowConfig(tr)
           });
           editFields.popupEditPage();
+        } else {
+          new Message({
+            message: this.nls.noSelectField
+          });
         }
       },
 
@@ -468,7 +473,6 @@ define([
           zoomScale: setting.zoomScale || 50000,
           maxSuggestions: setting.maxSuggestions || 6,
           maxResults: setting.maxResults || 6,
-          searchInCurrentMapExtent: !!setting.searchInCurrentMapExtent,
           type: "locator"
         });
         locatorSetting._openLocatorChooser();
@@ -527,7 +531,6 @@ define([
           zoomScale: setting.zoomScale || 50000,
           maxSuggestions: setting.maxSuggestions || 6,
           maxResults: setting.maxResults || 6,
-          searchInCurrentMapExtent: !!setting.searchInCurrentMapExtent,
           enableLocalSearch: !!setting.enableLocalSearch,
           localSearchMinScale: setting.localSearchMinScale,
           localSearchDistance: setting.localSearchDistance,

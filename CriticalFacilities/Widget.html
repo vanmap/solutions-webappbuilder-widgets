@@ -4,7 +4,7 @@
       <div class="title"><span>${nls.locationMapping}</span></div>
       <div class="" data-dojo-attach-point="useAddrNode">
         <input class="esriCTDownloadRadioButton" name="downloadOption" type="radio" data-dojo-type="jimu/dijit/RadioBtn" value="addr"
-               checked=true data-dojo-attach-point="useAddrNode">
+               checked=true data-dojo-attach-point="useAddrNode1">
         <label>${nls.useAddress}</label>
       </div>
       <div class="location-body" data-dojo-attach-point="addressBodyContainer">
@@ -35,12 +35,14 @@
           <tbody class="schema-map-table-body" data-dojo-attach-point="schemaMapTable"></tbody>
         </table>
       </div>
-
-      <div class="footer" data-dojo-attach-point="footer">
-        <div class="jimu-btn" data-dojo-attach-point="addToMap" data-dojo-attach-event="onclick:onAddClick">${nls.addToMap}</div>
-        <div class="jimu-btn" data-dojo-attach-point="submitData" data-dojo-attach-event="onclick:onSubmitClick">${nls.submit}</div>
-      </div>
     </div>
+
+    <div class="footer" data-dojo-attach-point="footer">
+      <div class="jimu-btn btn" data-dojo-attach-point="addToMap" data-dojo-attach-event="onclick:onAddClick">${nls.addToMap}</div>
+      <div class="jimu-btn btn" data-dojo-attach-point="clearMapData" data-dojo-attach-event="onclick:onClearClick">${nls.clear}</div>
+      <div class="jimu-btn btn" data-dojo-attach-point="submitData" data-dojo-attach-event="onclick:onSubmitClick">${nls.submit}</div>
+    </div>
+
   </div>
   <!--will use this to show something before CSV is dragged onto map-->
   <div class="schema-map-instructions" data-dojo-attach-point="schemaMapInstructions">

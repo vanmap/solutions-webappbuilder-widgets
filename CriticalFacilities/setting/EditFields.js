@@ -13,39 +13,30 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 ///////////////////////////////////////////////////////////////////////////
-define(
-  ["dojo/_base/declare",
-    "dojo/_base/lang",
-    "dojo/_base/array",
+define(['dojo/_base/declare',
+    'dojo/_base/lang',
+    'dojo/_base/array',
+    'dojo/query',
     'dojo/on',
-    "dojo/text!./EditFields.html",
+    'dojo/text!./EditFields.html',
     'dijit/_TemplatedMixin',
     'jimu/BaseWidgetSetting',
     'jimu/dijit/SimpleTable',
-    "jimu/dijit/Popup",
-    "./LookupList"
+    'jimu/dijit/Popup',
+    './LookupList'
   ],
-  function(
-    declare,
-    lang,
-    array,
-    on,
-    template,
-    _TemplatedMixin,
-    BaseWidgetSetting,
-    Table,
-    Popup,
-    LookupList) {
+  function(declare, lang, array, query, on, template, _TemplatedMixin, BaseWidgetSetting, Table, Popup, LookupList) {
     return declare([BaseWidgetSetting, _TemplatedMixin], {
       baseClass: "jimu-widget-setting-fields-critical-facilities",
       templateString: template,
       _layerInfo: null,
+      isRecognizedValues: null,
 
       postCreate: function() {
         this.inherited(arguments);
         this.nls = lang.mixin(this.nls, window.jimuNls.common);
         this._initFieldsTable();
-        this._setFiedsTabele(this._layerInfo.fieldInfos);
+        this._setFieldsTable(this._layerInfo.fieldInfos);
       },
 
       popupEditPage: function() {
@@ -92,8 +83,15 @@ define(
           name: 'actions',
           title: this.nls.actions,
           type: 'actions',
-          actions: ['up', 'down', 'edit'],
-          'class': 'actions'}];
+          actions: ['up', 'down'], //actions: ['up', 'down', 'edit'],
+          'class': 'actions'
+        }, {
+          name: 'type',
+          title: '',
+          type: 'text',
+          editable: true,
+          hidden: true
+        }];
         var args2 = {
           fields: fields2,
           selectable: false,
@@ -110,13 +108,17 @@ define(
           lang.hitch(this, this._onEditFieldsClick)));
       },
 
-      _setFiedsTabele: function(fieldInfos) {
-        array.forEach(fieldInfos, function(fieldInfo) {
-          this._fieldsTable.addRow({
-            fieldName: fieldInfo.fieldName,
-            label: fieldInfo.label,
-            visible: fieldInfo.visible
-          });
+      _setFieldsTable: function(fieldInfos) {
+        var skipFields = ['esriFieldTypeOID', 'esriFieldTypeGlobalID'];
+        array.forEach(fieldInfos, function (fieldInfo) {
+          if (fieldInfo.type && skipFields.indexOf(fieldInfo.type) === -1) {
+            this._fieldsTable.addRow({
+              fieldName: fieldInfo.fieldName,
+              label: fieldInfo.label,
+              visible: fieldInfo.visible,
+              type: fieldInfo.type
+            });
+          }
         }, this);
       },
 
@@ -134,7 +136,8 @@ define(
           newFieldInfos.push({
             "fieldName": fieldData.fieldName,
             "label": fieldData.label,
-            "visible": fieldData.visible
+            "visible": fieldData.visible,
+            "type": fieldData.type
           });
         });
         this._layerInfo.fieldInfos = newFieldInfos;
@@ -143,17 +146,24 @@ define(
       _onEditFieldsClick: function (tr) {
         var sourceDijit = new LookupList({
           nls: this.nls,
-          row: tr
+          row: tr,
+          fieldName: tr.childNodes[1].innerText,
+          isRecognizedValues: this.isRecognizedValues
         });
 
         var popup = new Popup({
-          width: 420,
+          width: 400,
           autoHeight: true,
           content: sourceDijit,
           titleLabel: this.nls.lookupList,
           buttons: [{
             label: this.nls.ok,
             onClick: lang.hitch(this, function () {
+              //var sourceListRows = popup.content.sourceList.getRows();
+              //this.isRecognizedValues = [];
+              //array.forEach(sourceListRows, lang.hitch(this, function (tr) {
+              //  this.isRecognizedValues.push(query(tr).data('config')[0]);
+              //}));
               popup.close();
             })
           }, {

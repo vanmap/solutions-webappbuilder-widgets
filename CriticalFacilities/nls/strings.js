@@ -4,12 +4,14 @@
     locationMapping: "Location Mapping",
     addToMap: "Add to map",
     submit: "Submit",
+    clear: "Clear",
     schemaMappingInstructions: "Please drag/drop a CSV onto the map.\nThis widget will assist with processing the CSV data when it is made avalible.",
     addressFieldLabel: "Address",
     useAddress: "Use Address",
     xyFieldsLabelX: "X",
     xyFieldsLabelY: "Y",
-    useXY: "Use X/Y"
+    useXY: "Use X/Y",
+    saveError: "Error saving features."
   }),
   "ar": 0,
   "cs": 0,

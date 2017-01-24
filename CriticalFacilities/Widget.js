@@ -15,36 +15,26 @@
 ///////////////////////////////////////////////////////////////////////////
 define(['dojo/_base/declare',
   'jimu/BaseWidget',
+  'jimu/LayerInfos/LayerInfos',
+  'jimu/dijit/RadioBtn',
+  'jimu/PanelManager',
+  'jimu/dijit/Message',
   'dojo/_base/lang',
   'dojo/on',
-  'dojo/dom',
   'dojo/_base/array',
-  "dojox/data/CsvStore",
-  "dojo/query",
-  "dojo/html",
-  "dojo/dom-construct",
+  'dojo/query',
+  'dojo/dom-construct',
   'dojo/dom-style',
-  'dojo/dom-class',
-  'dojo/DeferredList',
-  "dijit/registry",
   'dijit/form/Select',
-  "esri/geometry/webMercatorUtils",
-  "esri/geometry/Point",
-  "esri/Color",
-  "esri/config",
-  "esri/symbols/SimpleMarkerSymbol",
-  "esri/renderers/SimpleRenderer",
-  "esri/layers/FeatureLayer",
-  "esri/request",
-  'jimu/LayerInfos/LayerInfos',
-  './js/csvStore',
-  'jimu/dijit/RadioBtn'
-], function (declare, BaseWidget, lang, on, dom, array, CsvStore, query, html, domConstruct, domStyle, domClass, DeferredList, registry, Select, webMercatorUtils, Point, Color, esriConfig, SimpleMarkerSymbol, SimpleRenderer, FeatureLayer, esriRequest, layerInfos, hCsvStore, RadioBtn) {
+  'esri/geometry/webMercatorUtils',
+  'esri/geometry/Point',
+  'esri/Color',
+  './js/csvStore'
+], function (declare, BaseWidget, LayerInfos, RadioBtn, PanelManager, Message, lang, on, array, query, domConstruct, domStyle, Select, webMercatorUtils, Point, Color, CsvStore) {
   return declare([BaseWidget], {
 
     baseClass: 'jimu-widget-critical-facilities',
 
-    arraySelectedFields: null,
     arrayFields: null,
     myCsvStore: null,
     csvStores: [],
@@ -55,18 +45,12 @@ define(['dojo/_base/declare',
     _configLayerInfo: null,
     _useAddr: true,
 
-    //TODO need a way to clear and Update temp map results
-
-    //TODO need a way to handle field validation between to/from fields
-
-    //TODO edits need to be applied to the layer instance in the map
-    //TODO need to handle geocode errors...for example they choose a field that is not addresses or they have bad addressed
+    //TODO need a way to update map results
     //TODO need a way for the user to process the results prior to submit
-    //TODO widget should open onDrop if it is closed
-    //TODO control button visibility and or enabled state depending upon where we are in the workflow
-    //TODO if no schema map fields then that section should not draw
 
-    //TODO add 2 fields...change layer in settings and add 1 field...the old fields were not cleared
+    //TODO need to handle geocode errors...for example they choose a field that is not addresses or they have bad addressed
+    //TODO test web mercator points in CSV 
+    //TODO test a larger CSV
 
     postCreate: function () {
       this.inherited(arguments);
@@ -80,39 +64,35 @@ define(['dojo/_base/declare',
 
       domStyle.set(this.addressBodyContainer, "display", "block");
       domStyle.set(this.xyBodyContainer, "display", "none");
+
+      this.panalManager = PanelManager.getInstance();
     },
 
     startup: function () {
       domStyle.set(this.mainContainer, "display", "none");
+      domStyle.set(this.clearMapData, "display", "none");
+      domStyle.set(this.submitData, "display", "none");
 
       this._configLayerInfo = this.config.layerInfos[0];
       this._url = this._configLayerInfo.featureLayer.url;
       this._geocodeSources = this.config.sources;
 
-      _fsFields = [];
-      var p = this.getPanel();
-
+      this._fsFields = [];
       if (this._configLayerInfo) {
         array.forEach(this._configLayerInfo.fieldInfos, lang.hitch(this, function (field) {
           if (field && field.visible) {
-            _fsFields.push({ "name": field.fieldName, "value": field.type });
+            this._fsFields.push({ "name": field.fieldName, "value": field.type });
             this.addFieldRow(this.schemaMapTable, field.fieldName);
           }
         }));
+        domStyle.set(this.schemaMapContainer, "display", this._fsFields.length === 0 ? "none" : "block");
 
         this.addFieldRow(this.addressTable, this.nls.addressFieldLabel);
         this.addFieldRow(this.xyTable, this.nls.xyFieldsLabelX);
         this.addFieldRow(this.xyTable, this.nls.xyFieldsLabelY);
-
-        this.submitData.disabled = true;
-
-
-      } else {
-        //TODO will need to handle this here if we allow config with no layer defined...really I think this should be 
-        // prevented at the Settings level by not allowing the OK button when some required parts are missing
       }
 
-      layerInfos.getInstance(this.map, this.map.itemInfo).then(lang.hitch(this, function (operLayerInfos) {
+      LayerInfos.getInstance(this.map, this.map.itemInfo).then(lang.hitch(this, function (operLayerInfos) {
         this.opLayers = operLayerInfos;
         this.editLayer = operLayerInfos.getLayerInfoById(this._configLayerInfo.featureLayer.id).layerObject;
       }));
@@ -159,29 +139,24 @@ define(['dojo/_base/declare',
         types = dataTransfer.types;
 
       if (files && files.length > 0) {
-        //TODO think through and update to handle multiple files
-        //for (var i = 0; i < files.length; i++) {
-        //var file = files[i];
+        var file = files[0];//single file for the moment
+        if (file.name.indexOf(".csv") !== -1) {
+          this.myCsvStore = new CsvStore({
+            inFile: file,
+            inArrayFields: this._fsFields,
+            inMap: this.map,
+            geocodeSources: this._geocodeSources
+          });
+          this.myCsvStore.onHandleCsv().then(lang.hitch(this, function (obj) {
+            this._updateFieldControls(this.schemaMapTable, obj, true, true);
+            this._updateFieldControls(this.xyTable, obj, true, false);
+            this._updateFieldControls(this.addressTable, obj, false, false);
 
-          var file = files[0];//single file for the moment
-          if (file.name.indexOf(".csv") !== -1) {
-            this.myCsvStore = new hCsvStore({
-              inFile: file,
-              inArrayFields: _fsFields,
-              inMap: this.map,
-              arraySelectedFields: this.arraySelectedFields,
-              geocodeSources: this._geocodeSources
-            });
-            this.myCsvStore.onHandleCsv().then(lang.hitch(this, function (obj) {
-              this._updateFieldControls(this.schemaMapTable, obj, true, true);
-              this._updateFieldControls(this.xyTable, obj, true, false);
-              this._updateFieldControls(this.addressTable, obj, false, false);
-
-              domStyle.set(this.schemaMapInstructions, "display", "none");
-              domStyle.set(this.mainContainer, "display", "block");
-            }));
-          }
-        //}
+            domStyle.set(this.schemaMapInstructions, "display", "none");
+            domStyle.set(this.mainContainer, "display", "block");
+          }));
+        }
+        this.panalManager.openPanel(this.getPanel());
       }
     },
 
@@ -252,8 +227,12 @@ define(['dojo/_base/declare',
     },
 
     onAddClick: function () {
+      domStyle.set(this.clearMapData, "display", "block");
+      domStyle.set(this.submitData, "display", "block");
+      domStyle.set(this.addToMap, "display", "none");
+
       var mappedFields = {};
-      array.forEach(_fsFields, lang.hitch(this, function (setField) {
+      array.forEach(this._fsFields, lang.hitch(this, function (setField) {
         if (setField) {
           var fieldName = setField.name;
           var controlNodes = query('.field-node-tr', this.schemaMapTable);
@@ -283,18 +262,30 @@ define(['dojo/_base/declare',
         }
       }));
       this.myCsvStore.useAddr = this._useAddr;
-      this.myCsvStore.correctFieldNames = _fsFields;
+      this.myCsvStore.correctFieldNames = this._fsFields;
       this.myCsvStore.mappedArrayFields = mappedFields;
       this.myCsvStore.onProcessForm();
     },
 
+    onClearClick: function () {
+      domStyle.set(this.clearMapData, "display", "none");
+      domStyle.set(this.submitData, "display", "none");
+      domStyle.set(this.addToMap, "display", "block");
+
+      domStyle.set(this.mainContainer, "display", "none");
+      domStyle.set(this.schemaMapInstructions, "display", "block");
+
+      this.myCsvStore.clear();
+    },
+
     onSubmitClick: function () {
       var featureLayer = this.myCsvStore.featureLayer;
+      var oidField = this.myCsvStore.objectIdField;
       var flayer = this.editLayer;
       var features = [];
       array.forEach(featureLayer.graphics, function (feature) {
-        if (feature.attributes.hasOwnProperty("ObjectID")) {
-          delete feature.attributes.ObjectID;
+        if (feature.attributes.hasOwnProperty(oidField)) {
+          delete feature.attributes[oidField];
         }
         if (feature.attributes.hasOwnProperty("_graphicsLayer")) {
           delete feature._graphicsLayer;
@@ -304,11 +295,13 @@ define(['dojo/_base/declare',
         }
         features.push(feature);
       });
-      //TODO handle errors
       flayer.applyEdits(features, null, null, function (e) {
         console.log(e);
-      }, function (ee) {
-        console.log(ee);
+      }, function (err) {
+        console.log(err);
+        new Message({
+          message: this.nls.saveError
+        });
       });
     }
   });

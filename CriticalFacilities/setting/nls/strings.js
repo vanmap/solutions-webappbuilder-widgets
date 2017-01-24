@@ -25,7 +25,6 @@
     locatorTips: "Suggestions are not available because the geocoding service doesn't support suggest capability.",
     zoomScale: "Zoom Scale",
     invalidUrlTip: "The URL ${URL} is invalid or inaccessible.",
-    searchInCurrentMapExtent: "Only search in current map extent",
     name: "Name",
     add: "Add",
     layerTab: {
@@ -36,13 +35,15 @@
       enableDisableXY: "Allow input from XY",
       enableDisableGeocode: "Allow batch geocoding"
     },
-    lookupList: "Is recognized if named",
+    lookupList: "Is Recognized if Named",
     needsEditablePointLayers: "The webmap must contain at least 1 editable point layer.",
     actions: "Actions",
     editpageName: "Name",
     editpageAlias: "Alias",
     configureFields: "Configure Layer Fields",
-    display: "Display"
+    display: "Display",
+    noSelectField: "Please select the Feature Layer option first",
+    newNamePlaceholder: "Double-click the row to edit"
   }),
   "ar": 0,
   "cs": 0,

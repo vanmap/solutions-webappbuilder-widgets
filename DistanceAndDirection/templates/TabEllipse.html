@@ -14,8 +14,14 @@
         <label data-dojo-attach-point="coordInputLabel">Center Point</label>
         <div class="controlItem">
             <input class="jimu-input coordInput" data-dojo-attach-point="startPointCoords" placeholder="Enter Coordinates" />
-            <span class="frmtBtn" data-dojo-attach-point="coordinateFormatButton"></span>
-            <span class="addPointBtn" data-dojo-attach-point="addPointBtn"></span>
+            <div class="controlItem paddedLeft">
+              <div class='add-with-icon'>
+                <span title="Format Input" class="jimu-icon jimu-icon-setting" data-dojo-attach-point="coordinateFormatButton"></span>
+              </div>
+              <div class='add-with-icon'>
+                <div title="Draw Ellipse" class="draw" data-dojo-attach-point="addPointBtn"></div>
+              </div>
+            </div>            
         </div>
     </div>
 

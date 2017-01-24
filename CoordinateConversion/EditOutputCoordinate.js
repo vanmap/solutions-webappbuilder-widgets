@@ -71,11 +71,11 @@ define([
                 customFormat: null,
                 useCustom: false
             },
-            //GARS: {
-                //defaultFormat: 'XYQK',
-                //customFormat: null,
-                //useCustom: false
-            //},
+            GARS: {
+                defaultFormat: 'XYQK',
+                customFormat: null,
+                useCustom: false
+            },
             MGRS: {
                 defaultFormat: 'ZSXY',
                 customFormat: null,
@@ -90,13 +90,12 @@ define([
                 defaultFormat: 'ZB X Y',
                 customFormat: null,
                 useCustom: false
+            },
+            'UTM (H)': {
+                defaultFormat: 'ZH X Y',
+                customFormat: null,
+                useCustom: false
             }
-            //,
-            //'UTM (H)': {
-                //defaultFormat: 'ZH X Y',
-                //customFormat: null,
-                //useCustom: false
-            //}
           };
 
           dojoDomAttr.set(this.frmtVal, 'value', this.formats[this.ct].defaultFormat);

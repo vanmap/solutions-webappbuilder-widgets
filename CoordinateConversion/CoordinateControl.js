@@ -87,7 +87,7 @@ define([
         input: true,
         inputFromText: false,
         hasCustomLabel: false,
-        /**** type: 'dd', Available Types: DD, DDM, DMS, GARS, MGRS, USNG, UTM ****/
+        /**** type: 'dd', Available Types: DD, DDM, DMS, GARS, MGRS, USNG, UTM, UTM (H)****/
 
         /**
          *
@@ -584,8 +584,8 @@ define([
                     this.sub1label.innerHTML = 'Lon';
                     this.sub2label.innerHTML = 'Lat';
                     this.sub3label.innerHTML = 'Quadrant';
-                    this.setVisible(this.sub3);
                     this.sub4label.innerHTML = 'Key';
+                    this.setVisible(this.sub3);
                     this.setVisible(this.sub4);
                     break;
                 case 'USNG':
@@ -593,26 +593,26 @@ define([
                     this.sub1label.innerHTML = 'GZD';
                     this.sub2label.innerHTML = 'Grid Sq';
                     this.sub3label.innerHTML = 'Easting';
-                    this.setVisible(this.sub3);
                     this.sub4label.innerHTML = 'Northing';
+                    this.setVisible(this.sub3);
                     this.setVisible(this.sub4);
                     break;
                 case 'UTM':
                     this.sub1label.innerHTML = 'Zone';
-                    this.sub2label.innerHTML = 'Easting';
-                    this.sub3label.innerHTML = 'Northing';
+                    this.sub2label.innerHTML = 'Band';
+                    this.sub3label.innerHTML = 'Easting';
+                    this.sub4label.innerHTML = 'Northing';
                     this.setVisible(this.sub3);
-                    this.setHidden(this.sub4);
-                    cntrHeight = '125px';
+                    this.setVisible(this.sub4);
                     break;
-                //case 'UTM (H)':
-                    //this.sub1label.innerHTML = 'Hemisphere';
-                    //this.sub2label.innerHTML = 'Easting';
-                    //this.sub3label.innerHTML = 'Northing';
-                    //this.setVisible(this.sub3);
-                    //this.setHidden(this.sub4);
-                    //cntrHeight = '125px';
-                    //break;
+                case 'UTM (H)':
+                    this.sub1label.innerHTML = 'Zone';
+                    this.sub2label.innerHTML = 'Hemisphere';
+                    this.sub3label.innerHTML = 'Easting';
+                    this.sub4label.innerHTML = 'Northing';
+                    this.setVisible(this.sub3);
+                    this.setVisible(this.sub4);
+                    break;
                 }
                 dojoDomStyle.set(this.coordcontrols, 'height', cntrHeight);
             } else {
@@ -733,21 +733,27 @@ define([
                 case 'UTM':
                     r = this.util.getFormattedUTMStr(withValue, format, as);
 
-                    this['cc_' + cntrlid + 'sub1val'].value = r.zone + r.bandLetter;
-                    this['cc_' + cntrlid + 'sub2val'].value = r.easting;
-                    this['cc_' + cntrlid + 'sub3val'].value = r.westing;
+                    this['cc_' + cntrlid + 'sub1val'].value = r.zone;
+                    this['cc_' + cntrlid + 'sub2val'].value = r.bandLetter;
+                    this['cc_' + cntrlid + 'sub3val'].value = r.easting;
+                    this['cc_' + cntrlid + 'sub4val'].value = r.westing;
+                    
+                    r.bandLetter.match(/^[AaBbYyZz]/)?this.coordName.set('value','UPS'):this.coordName.set('value','UTM');
 
                     formattedStr = r.formatResult;
                     break;
-                //case 'UTM (H)':
-                    //r = this.util.getFormattedUTMHStr(withValue, format, as);
+                case 'UTM (H)':
+                    r = this.util.getFormattedUTMHStr(withValue, format, as);
+                    
+                    this['cc_' + cntrlid + 'sub1val'].value = r.zone;
+                    this['cc_' + cntrlid + 'sub2val'].value = r.hemisphere;
+                    this['cc_' + cntrlid + 'sub3val'].value = r.easting;
+                    this['cc_' + cntrlid + 'sub4val'].value = r.westing;
+                    
+                    r.hemisphere.match(/^[AaBbYyZz]/)?this.coordName.set('value','UPS'):this.coordName.set('value','UTM (H)');
 
-                    //this['cc_' + cntrlid + 'sub1val'].value = r.zone + r.hemisphere;
-                    //this['cc_' + cntrlid + 'sub2val'].value = r.easting;
-                    //this['cc_' + cntrlid + 'sub3val'].value = r.westing;
-
-                    //formattedStr = r.formatResult;
-                    //break;
+                    formattedStr = r.formatResult;
+                    break;
                 }                
             }
             } else {

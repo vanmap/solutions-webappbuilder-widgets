@@ -8,7 +8,8 @@
 }
 
 .jimu-widget-critical-facilities .schema-map-container{
-
+  margin-top: 20px;
+  margin-bottom: 30px;
 }
 
 .jimu-widget-critical-facilities .title{
@@ -35,12 +36,15 @@
   position: relative;
   float: right;
   margin-bottom: 10px;
+  margin-top: 20px;
+  width: 100%;
 }
 
 .jimu-rtl .jimu-widget-critical-facilities .footer{
   position: relative;
   float: left;
   margin-bottom: 10px;
+  width: 100%;
 }
 
 .jimu-widget-critical-facilities .field-node-tr{
@@ -70,8 +74,14 @@
 }
 
 .jimu-widget-critical-facilities .location-map-container{
+  margin-top: 20px;
   margin-bottom: 30px;
+  /*padding:10px;*/
 }
+
+/*.jimu-widget-critical-facilities .location-map-container:hover {
+  box-shadow: 0 -10px 16px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);
+}*/
 
 .jimu-widget-critical-facilities .location-body{
   padding-left: 20px;
@@ -91,6 +101,45 @@
   margin-right: 10px;
 }
 
+.jimu-widget-critical-facilities .credit-warning{
+  color: #86909c;
+  margin-bottom: 10px;
+}
+
+.jimu-widget-critical-facilities .credit-warning-container{
+  margin-top: 20px;
+}
+
+.jimu-widget-critical-facilities .location-radio-btn{
+
+}
+
+.jimu-widget-critical-facilities .processing {
+  background-image: url('images/loading.gif');
+  background-repeat: no-repeat;
+  background-position: center center;
+  height: 22px;
+  width: 100%;
+}
+
+/*start accordion*/
+.accordion-btn{border:none;display:inline-block;outline:0;padding:6px 16px;vertical-align:middle;overflow:hidden;text-decoration:none!important;color:#fff;text-align:center;cursor:pointer;white-space:nowrap}
+
+.accordion-btn:hover{box-shadow:0 8px 16px 0 rgba(0,0,0,0.2),0 6px 20px 0 rgba(0,0,0,0.19);transition:background-color .95s,color .95s,box-shadow .15s,opacity .25s,filter .25s,border .15s}
+
+.accordion-btn{-webkit-touch-callout:none;-webkit-user-select:none;-khtml-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none} 
+.accordion-btn{width:100%;text-align:left!important}
+.accordion-btn {-webkit-transition:background-color .25s,color .15s,box-shadow .25s,opacity 0.25s,filter 0.25s,border 0.15s;transition:background-color .95s,color .15s,box-shadow .15s,opacity .25s,filter .25s,border .15s}
+
+.content-show {
+  display: block;
+}
+
+.content-hide{
+  display: none;
+}
+
+/*end accordion*/
 
 .dijitSelect {
     /*font-weight: 600;

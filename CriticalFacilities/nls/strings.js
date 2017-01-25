@@ -7,11 +7,14 @@
     clear: "Clear",
     schemaMappingInstructions: "Please drag/drop a CSV onto the map.\nThis widget will assist with processing the CSV data when it is made avalible.",
     addressFieldLabel: "Address",
-    useAddress: "Use Address",
+    useAddress: "Single Field Address",
+    useMultiAddress: "Multi Field Address",
     xyFieldsLabelX: "X",
     xyFieldsLabelY: "Y",
-    useXY: "Use X/Y",
-    saveError: "Error saving features."
+    useXY: "X/Y Fields",
+    saveError: "Error saving features.",
+    noValue: "Select a Value",
+    consumesCredits: "This tool consumes credits when used with the ArcGIS Online World Geocoding Service"
   }),
   "ar": 0,
   "cs": 0,

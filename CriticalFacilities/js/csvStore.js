@@ -54,6 +54,7 @@ function (declare, array, lang, query, on, Deferred, Evented, CsvStore,
         this.xFieldName = "";
         this.yFieldName = "";
         this.objectIdField = "ObjectID";
+        this.nls = options.nls;
       },
 
       onHandleCsv: function () {
@@ -81,42 +82,52 @@ function (declare, array, lang, query, on, Deferred, Evented, CsvStore,
       },
 
       onProcessForm: function () {
+        var def = new Deferred();
         this.locateData().then(lang.hitch(this, function (data) {
-          this.featureCollection = this._generateFeatureCollection();
+          try{
+            this.featureCollection = this._generateFeatureCollection();
           
-          //TODO I have no idea if this is really safe...are the items gaurenteed to be returned in the same order as they were sent?
-          // Has to be a safer way to do this.
-          for (var i = 0; i < this.storeItems.length; i++) {
-            var attributes = {};
-            var si = this.storeItems[i];
-            var di = data[i];
-            array.forEach(this.inArrayFields, lang.hitch(this, function (f) {
-              attributes[f.name] = this.csvStore.getValue(si, this.mappedArrayFields[f.name]);
-            }));
-            attributes["ObjectID"] = i;
-            this.featureCollection.featureSet.features.push({
-              "geometry": di.location,
-              "attributes": lang.clone(attributes)
+            //TODO I have no idea if this is really safe...are the items gaurenteed to be returned in the same order as they were sent?
+            // Has to be a safer way to do this.
+            for (var i = 0; i < this.storeItems.length; i++) {
+              var attributes = {};
+              var si = this.storeItems[i];
+              var di = data[i];
+              if (di) { //TODO this is a crappy workaround until the chunking is done properly
+                array.forEach(this.inArrayFields, lang.hitch(this, function (f) {
+                  attributes[f.name] = this.csvStore.getValue(si, this.mappedArrayFields[f.name]);
+                }));
+                attributes["ObjectID"] = i;
+                this.featureCollection.featureSet.features.push({
+                  "geometry": di.location,
+                  "attributes": lang.clone(attributes)
+                });
+              }
+            }
+
+            this.featureLayer = new FeatureLayer(this.featureCollection, {
+              id: this.inFile.name,
+              editable: true,
+              outFields: ["*"]
             });
+
+            var orangeRed = new Color([238, 69, 0, 0.5]); // hex is #ff4500
+            this.featureLayer.setRenderer(new SimpleRenderer(new SimpleMarkerSymbol("solid", 10, null, orangeRed)));
+            on(this.featureLayer, "click", function (e) {
+              console.log("FL clicked");
+              console.log(e.graphic);
+              console.log("X: " + e.graphic.geometry.x + ", Y: " + e.graphic.geometry.y);
+            });
+            this.inMap.addLayers([this.featureLayer]);
+            this.onZoomToData(this.featureLayer);
+            this.emit('complete');
+            def.resolve('complete');
+          } catch (err) {
+            console.log(err);
+            def.reject(err)
           }
-
-          this.featureLayer = new FeatureLayer(this.featureCollection, {
-            id: this.inFile.name,
-            editable: true,
-            outFields: ["*"]
-          });
-
-          var orangeRed = new Color([238, 69, 0, 0.5]); // hex is #ff4500
-          this.featureLayer.setRenderer(new SimpleRenderer(new SimpleMarkerSymbol("solid", 10, null, orangeRed)));
-          on(this.featureLayer, "click", function (e) {
-            console.log("FL clicked");
-            console.log(e.graphic);
-            console.log("X: " + e.graphic.geometry.x + ", Y: " + e.graphic.geometry.y);
-          });
-          this.inMap.addLayers([this.featureLayer]);
-          this.onZoomToData(this.featureLayer);
-          this.emit('complete');
         }));
+        return def;
       },
 
       locateData: function () {
@@ -173,13 +184,47 @@ function (declare, array, lang, query, on, Deferred, Evented, CsvStore,
         //TODO pass additional user configured parameters
         var def = new Deferred();
         var fName = this.locatorSource.singleLineFieldName;
-        //var attributes = this.csvStore._attributes;
+
+        var addrField, cityField, stateField, zipField;
+        if (this.useMultiFields) {
+          array.forEach(this.multiFields, lang.hitch(this, function (f) {
+            switch (f.keyField) {
+              case "Address"://TODO NLS
+                addrField = f.value;
+              case "City"://TODO NLS
+                cityField = f.value;
+              case "State"://TODO NLS
+                stateField = f.value;
+              case "Zip"://TODO NLS
+                zipField = f.value;
+            }
+          }));
+        }
+
         var addresses = [];
         var x = 0;
         array.forEach(this.storeItems, lang.hitch(this, function (i) {
           x += 1;
           var addr = { "OBJECTID": x };
-          addr[fName] = this.csvStore.getValue(i, this.addrFieldName);
+          if (this.useMultiFields) {
+            var addrValue, cityValue, stateValue, zipValue;
+            var concatAddr = "";
+            if(addrField !== this.nls.noValue){
+              concatAddr += this.csvStore.getValue(i, addrField);
+            }
+            if(cityField !== this.nls.noValue){
+              concatAddr += ", " + this.csvStore.getValue(i, cityField);
+            }
+            if(stateField !== this.nls.noValue){
+              concatAddr += ", " + this.csvStore.getValue(i, stateField);
+            }
+            if(zipField !== this.nls.noValue){
+              concatAddr += " " + this.csvStore.getValue(i, zipField);
+            }
+            addr[fName] = concatAddr;
+          } else {
+            addr[fName] = this.csvStore.getValue(i, this.addrFieldName);
+          }
           addresses.push(addr);
         }));
         var locator = this.locatorSource.locator;

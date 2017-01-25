@@ -24,13 +24,14 @@ define(['dojo/_base/declare',
   'dojo/_base/array',
   'dojo/query',
   'dojo/dom-construct',
+  'dojo/dom-class',
   'dojo/dom-style',
   'dijit/form/Select',
   'esri/geometry/webMercatorUtils',
   'esri/geometry/Point',
   'esri/Color',
   './js/csvStore'
-], function (declare, BaseWidget, LayerInfos, RadioBtn, PanelManager, Message, lang, on, array, query, domConstruct, domStyle, Select, webMercatorUtils, Point, Color, CsvStore) {
+], function (declare, BaseWidget, LayerInfos, RadioBtn, PanelManager, Message, lang, on, array, query, domConstruct, domClass, domStyle, Select, webMercatorUtils, Point, Color, CsvStore) {
   return declare([BaseWidget], {
 
     baseClass: 'jimu-widget-critical-facilities',
@@ -52,6 +53,10 @@ define(['dojo/_base/declare',
     //TODO test web mercator points in CSV 
     //TODO test a larger CSV
 
+    //TODO fields need a way to pass a empty value...where user does not have something they would like to specify
+
+    //TODO need to handle the chunking of geocode requests
+
     postCreate: function () {
       this.inherited(arguments);
 
@@ -60,10 +65,13 @@ define(['dojo/_base/declare',
       this.own(on(this.map.container, "drop", lang.hitch(this, this.onDrop)));
 
       this.own(on(this.useAddrNode, 'click', lang.hitch(this, this.onChooseType, 'addr')));
+      this.own(on(this.useMultiAddrNode, 'click', lang.hitch(this, this.onChooseType, 'multi-addr')));
       this.own(on(this.useXYNode, 'click', lang.hitch(this, this.onChooseType, 'xy')));
 
       domStyle.set(this.addressBodyContainer, "display", "block");
       domStyle.set(this.xyBodyContainer, "display", "none");
+      domStyle.set(this.addressMultiBodyContainer, "display", "none");
+      domStyle.set(this.processingNode, 'display', 'none');
 
       this.panalManager = PanelManager.getInstance();
     },
@@ -85,7 +93,12 @@ define(['dojo/_base/declare',
             this.addFieldRow(this.schemaMapTable, field.fieldName);
           }
         }));
-        domStyle.set(this.schemaMapContainer, "display", this._fsFields.length === 0 ? "none" : "block");
+        //domStyle.set(this.schemaMapContainer, "display", this._fsFields.length === 0 ? "none" : "block");
+
+        var multiAddrFields = ["Address", "City", "State", "Zip"];
+        array.forEach(multiAddrFields, lang.hitch(this, function (addr) {
+          this.addFieldRow(this.addressMultiTable, addr);//TODO NLS
+        }));
 
         this.addFieldRow(this.addressTable, this.nls.addressFieldLabel);
         this.addFieldRow(this.xyTable, this.nls.xyFieldsLabelX);
@@ -145,12 +158,14 @@ define(['dojo/_base/declare',
             inFile: file,
             inArrayFields: this._fsFields,
             inMap: this.map,
-            geocodeSources: this._geocodeSources
+            geocodeSources: this._geocodeSources,
+            nls: this.nls
           });
           this.myCsvStore.onHandleCsv().then(lang.hitch(this, function (obj) {
             this._updateFieldControls(this.schemaMapTable, obj, true, true);
             this._updateFieldControls(this.xyTable, obj, true, false);
             this._updateFieldControls(this.addressTable, obj, false, false);
+            this._updateFieldControls(this.addressMultiTable, obj, false, false);
 
             domStyle.set(this.schemaMapInstructions, "display", "none");
             domStyle.set(this.mainContainer, "display", "block");
@@ -161,8 +176,10 @@ define(['dojo/_base/declare',
     },
 
     onChooseType: function (type, node) {
-      this._useAddr = type === "addr" ? true : false;
+      this._useAddr = type === "addr" || type === "multi-addr" ? true : false;
+      this.addrType = type;
       domStyle.set(this.addressBodyContainer, "display", type === "addr" ? "block" : "none");
+      domStyle.set(this.addressMultiBodyContainer, "display", type === "multi-addr" ? "block" : "none");
       domStyle.set(this.xyBodyContainer, "display", type === "xy" ? "block" : "none");
     },
 
@@ -171,11 +188,14 @@ define(['dojo/_base/declare',
       var fieldTypes = obj.fieldTypes;
       var arrayFields = obj.arrayFields;
       var controlNodes = query('.field-node-tr', table);
+      var noValue = this.nls.noValue;
       array.forEach(controlNodes, function (node) {
         var options = node.selectFields.getOptions();
         array.forEach(options, function (option) {
           node.selectFields.removeOption(option);
         });
+
+        node.selectFields.addOption({ label: noValue, value: noValue });
 
         var ftInt = ["esriFieldTypeSmallInteger", "esriFieldTypeInteger", "esriFieldTypeSingle"];
         var ftFloat = ["esriFieldTypeDouble"];
@@ -231,6 +251,8 @@ define(['dojo/_base/declare',
       domStyle.set(this.submitData, "display", "block");
       domStyle.set(this.addToMap, "display", "none");
 
+      var useMultiFields = false;
+      var multiFields = [];
       var mappedFields = {};
       array.forEach(this._fsFields, lang.hitch(this, function (setField) {
         if (setField) {
@@ -247,11 +269,12 @@ define(['dojo/_base/declare',
           mappedFields[fieldName] = mappedField;
         }
       }));     
-      var controlNodes = query('.field-node-tr', this._useAddr ? this.addressTable : this.xyTable);
+      var controlNodes = query('.field-node-tr', this._useAddr ? this.addrType === "addr" ? this.addressTable : this.addressMultiTable : this.xyTable);
       array.forEach(controlNodes, lang.hitch(this, function (node) {
         switch (node.keyField) {
           case this.nls.addressFieldLabel:
             this.myCsvStore.addrFieldName = node.selectFields.value;
+            multiFields.push({ keyField: node.keyField, value: node.selectFields.value });
             break;
           case this.nls.xyFieldsLabelX:
             this.myCsvStore.xFieldName = node.selectFields.value;
@@ -259,12 +282,34 @@ define(['dojo/_base/declare',
           case this.nls.xyFieldsLabelY:
             this.myCsvStore.yFieldName = node.selectFields.value;
             break;
+          default:
+            useMultiFields = true;
+            multiFields.push({ keyField: node.keyField, value: node.selectFields.value });
+            break;
         }
       }));
+      domStyle.set(this.processingNode, 'display', 'block');
+      this.myCsvStore.useMultiFields = useMultiFields;
+      this.myCsvStore.multiFields = multiFields;
       this.myCsvStore.useAddr = this._useAddr;
       this.myCsvStore.correctFieldNames = this._fsFields;
       this.myCsvStore.mappedArrayFields = mappedFields;
-      this.myCsvStore.onProcessForm();
+      this.myCsvStore.onProcessForm().then(lang.hitch(this, function () {
+        domStyle.set(this.processingNode, 'display', 'none');
+      }));
+    },
+
+    toggleContainer: function (e) {
+      var container = this[e.currentTarget.dataset.clickParams];
+      var removeClass = domClass.contains(container, 'content-show') ? 'content-show' : 'content-hide';
+      domClass.remove(container, removeClass);
+      domClass.add(container, removeClass === 'content-show' ? 'content-hide' : 'content-show');
+
+      //if (container.className.indexOf("content-show") == -1) {
+      //  x.className += " w3-show";
+      //} else {
+      //  x.className = x.className.replace(" w3-show", "");
+      //}
     },
 
     onClearClick: function () {
@@ -274,6 +319,8 @@ define(['dojo/_base/declare',
 
       domStyle.set(this.mainContainer, "display", "none");
       domStyle.set(this.schemaMapInstructions, "display", "block");
+
+      domStyle.set(this.processingNode, 'display', 'none');
 
       this.myCsvStore.clear();
     },

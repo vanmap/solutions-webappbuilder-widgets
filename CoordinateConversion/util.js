@@ -16,19 +16,29 @@
 
 /*global define*/
 define([
+    './dialogConfirm',
     'dojo/_base/declare',
     'dojo/_base/array',
     'dojo/_base/lang',
     'dojo/sniff',
+    'dojo/_base/Deferred',
     'esri/tasks/GeometryService',
-    'esri/request'
+    'esri/request',
+    'dijit/registry',
+    'dijit/popup',
+    './ConfirmNotation'    
 ], function (
+    dialogConfirm,
     dojoDeclare,
     dojoArray,
     dojoLang,
     dojoSniff,
+    Deferred,
     EsriGeometryService,
-    EsriRequest
+    EsriRequest,
+    dijitRegistry,
+    dijitPopup,
+    ConfirmNotation
 ) {
     'use strict';
     return dojoDeclare(null, {
@@ -39,7 +49,8 @@ define([
             if (!gs) {
               gs = '//utility.arcgisonline.com/arcgis/rest/services/Geometry/GeometryServer';
             }
-            this.geomService = new EsriGeometryService(gs);
+            this.geomService = new EsriGeometryService(gs);  
+            
         },
 
         /**
@@ -118,15 +129,13 @@ define([
          *
          **/
         getXYNotation: function (fromStr, toType) {
-
             var a;
             var tt;
             if (toType.name) {
               tt = toType.name;
             } else {
               tt = toType;
-            }
-            
+            }            
             
             var params = {
                 sr: 4326,
@@ -140,7 +149,7 @@ define([
             case 'DDM':
             case 'DMS':
                 params.numOfDigits = 2;
-                a = fromStr.replace(/['°˚º"¨˝]/g, '');
+                a = fromStr.replace(/[°˚º^~*"'′¨˝]/g, '');
                 params.strings.push(a);
                 break;
             case 'USNG':
@@ -170,41 +179,57 @@ define([
             return this.geomService.fromGeoCoordinateString(params);
         },
 
-        /**
-         *
-         **/
         getCoordinateType: function (fromInput) {
 
             var clnInput = this.getCleanInput(fromInput);
+            var deferred = new Deferred();
             //regexr.com
-            var strs = [{
+            var strs = [
+                {
                     name: 'DD',
-                    pattern: /([-+]?\d{1,3}[.]?\d*[\s]*[°˚º^~*]?[\s]*[NnSs]?[\s]*[,]?[\s]*[-+]?\d{1,3}[.]?\d*[\s]*[EeWw]?[\s]*)/
-                    }, {
+                    pattern: /^([NnSs+-])?([0-8]?\d|90)(\.\d*)?([°˚º^~*NnSs+-])*[,:;\s|\/\\]+([EeWw+-])*([0]?\d?\d|1[0-7]\d|180)(\.\d*)?[°˚º^~*]*([EeWw+-])*$/,
+                    notationType: "DD - Latitude/Longitude"
+                }, {
+                    name: 'DDrev',
+                    pattern: /^(([EeWw+-])*([0]?\d?\d|1[0-7]\d|180)(\.\d*)?[°˚º^~*]*([EeWw+-])*)([,:;\s|\/\\]+)(([NnSs+-])?([0-8]?\d|90)(\.\d*)?([°˚º^~*NnSs+-])*)$/,
+                    notationType: "DD - Longitude/Latitude"
+                }, {
                     name: 'DDM',
-                    pattern: /\s?\d{1,3}[°˚º^~*]?[\s]*[-+]?\d*\.?\d*['']?[\s]*[NnSs]?[\s]*[,]?[\s]*\d{1,3}[°˚º^~*]?\s[-+]?\d*\.?\d*['']?[\s]*[EeWw]?[\s]*/
-                    
+                    pattern: /\s?\d{1,3}[°˚º^~*]?[\s]*[-+]?\d*\.?\d*['′]?[\s]*[NnSs]?[\s]*[,]?[\s]+\d{1,3}[°˚º^~*]?\s[-+]?\d*\.?\d*['′]?[\s]*[EeWw]?[\s]*$/,
+                    notationType: "DDM - Latitude/Longitude"                    
                 }, {
                     name: 'DMS',
-                    pattern: /([+-]?\d{1,3}[°˚º^~*]?[\s,]\d*['']?[\s,]\d*[.]?\d*["¨˝]?[\s]*[NnSsEeWw]?[\s]*){1,2}/
+                    pattern: /^[+-]*([NnSs])?([0-8]?\d|90)[°˚º^~*\s\-_]+([0-5]?\d|\d)['′\s\-_]+([0-5]?\d|\d)([.]\d*)?["¨˝\s\-_]*([NnSs])?([\s\-_:|,;]*)[+-]*([EeWw])?([0]?\d?\d|1[0-7]\d|180)[°˚º^~*\s\-_]+([0-5]\d|\d)['′\s\-_]+([0-5]?\d|\d)([.]\d*)?["¨˝\s\-_]*([EeWw])?[\s]*/,
+                    notationType: "DMS - Latitude/Longitude" 
                 }, {
+                    name: 'DMSrev',
+                    pattern: /^([+-]*([EeWw])?([0]?\d?\d|1[0-7]\d|180)[°˚º^~*\s\-_]+([0-5]\d|\d)['′\s\-_]+([0-5]?\d|\d)([.]\d*)?["¨˝\s\-_]*([EeWw])?)([\s\-_:|,;]*)([+-]*([NnSs])?([0-8]?\d|90)[°˚º^~*\s\-_]+([0-5]?\d|\d)['′\s\-_]+([0-5]?\d|\d)([.]\d*)?["¨˝\s\-_]*([NnSs])?)[\s]*/,
+                    notationType: "DMS - Longitude/Latitude" 
+                },
+
+                {
                     name: 'GARS',
-                    pattern: /\d{3}[a-zA-Z]{2}[1,4]?[1,9]?/
+                    pattern: /\d{3}[a-zA-Z]{2}[1,4]?[1,9]?/,
+                    notationType: "GARS"
                 }, {
                     name: 'MGRS',
-                    pattern: /^\d{1,2}[-,;:\s]*[c-hj-np-xC-HJ-NP-X][-,;:\s]*[a-hj-np-zA-HJ-NP-Z]{2}[-,;:\s]*\d{1,5}[-,;:\s]*\d{1,5}/
+                    pattern: /^\d{1,2}[-,;:\s]*[c-hj-np-xC-HJ-NP-X][-,;:\s]*[a-hj-np-zA-HJ-NP-Z]{2}[-,;:\s]*\d{1,5}[-,;:\s]*\d{1,5}/,
+                    notationType: "MGRS"
                 },
                 {
                     name: 'USNG',
-                    pattern: /^\d{1,2}[-,;:\s]*[c-hj-np-xC-HJ-NP-X][-,;:\s]*[a-hj-np-zA-HJ-NP-Z]{2}[-,;:\s]*\d{1,5}[-,;:\s]*\d{1,5}/
+                    pattern: /^\d{1,2}[-,;:\s]*[c-hj-np-xC-HJ-NP-X][-,;:\s]*[a-hj-np-zA-HJ-NP-Z]{2}[-,;:\s]*\d{1,5}[-,;:\s]*\d{1,5}/,
+                    notationType: "USNG"
                 },
                 {
                     name: 'UTM',
-                    pattern: /^\d{1,2}[-,;:\s]*[c-hj-np-xC-HJ-NP-X]{1}[-,;:\s]*\d{1,6}.?\d*[mM]?[-,;:\s]*\d{1,7}.?\d*[mM]?$/
+                    pattern: /^\d{1,2}[-,;:\s]*[c-hj-np-xC-HJ-NP-X]{1}[-,;:\s]*\d{1,6}.?\d*[mM]?[-,;:\s]+\d{1,7}.?\d*[mM]?$/,
+                    notationType: "UTM - Band Letter"
                 },
                 {
                     name: 'UTM (H)',
-                    pattern: /^\d{1,2}[-,;:\s]*[NnSs]{1}[-,;:\s]*\d{1,6}.?\d*[mM]?[-,;:\s]*\d{1,7}.?\d*[mM]?$/
+                    pattern: /^\d{1,2}[-,;:\s]*[NnSs]{1}[-,;:\s]*\d{1,6}.?\d*[mM]?[-,;:\s]+\d{1,7}.?\d*[mM]?$/,
+                    notationType: "UTM - Hemisphere (N/S)"
                 }
             ];
 
@@ -214,12 +239,30 @@ define([
               t:this,
               v:clnInput
             });
-
+            
             if (matchedtype.length > 0) {
-                return matchedtype;
+                if (matchedtype.length == 1) {
+                  deferred.resolve(matchedtype);
+                } else {                  
+                  var dialog = new dialogConfirm({
+                     title: 'Confirm Input Notation',
+                     content: new ConfirmNotation(matchedtype),
+                     style: "width: 400px",
+                     hasSkipCheckBox: false
+                  });
+                  dialog.show().then(dojoLang.hitch(this, function() {                    
+                        var singleMatch = dojoArray.filter(matchedtype, function (itm) {
+                          return itm.name == dialog.content.comboOptions.get('value');
+                        });
+                        deferred.resolve(singleMatch);                     
+                  }, function() {
+                     deferred.reject();
+                  }));
+                }
+            } else {
+                deferred.resolve(null);
             }
-
-            return null;
+            return deferred.promise;          
         },
 
         /**
@@ -238,7 +281,7 @@ define([
             var latdegdir = parts[0].slice(-1);
             r.ydir = latdegdir;
             if (addSignPrefix) {
-                if (r.ydir === 'N') {
+                if (r.ydir == "N") {
                     r.yvalue = '+' + latdeg;
                 } else {
                     r.yvalue = '-' + latdeg;
@@ -251,7 +294,7 @@ define([
             var londegdir = parts[1].slice(-1);
             r.xdir = londegdir;
             if (addSignPrefix) {
-                if (r.xdir === 'W') {
+                if (r.xdir == "W") {
                     r.xvalue = '-' + londeg;
                 } else {
                     r.xvalue = '+' + londeg;
@@ -285,12 +328,12 @@ define([
             r.yvalue = this.stripDecimalPlaces(parseFloat(r.latmin,1), 1);
 
             r.latdegdir = r.parts[1].slice(-1);
-            r.ydir = r.latdegdir;
+            
             if (addSignPrefix) {
-                if (r.ydir === 'N') {
-                    r.yvalue = '+' + r.yvalue;
+                if (r.latdegdir === 'N') {
+                    r.latdegvalue = '+' + r.latdegvalue;
                 } else {
-                    r.yvalue = '-' + r.yvalue;
+                    r.latdegvalue = '-' + r.latdegvalue;
                 }
             }
 
@@ -301,19 +344,19 @@ define([
             r.xvalue =  this.stripDecimalPlaces(parseFloat(r.lonmin, 1), 1);
 
             r.londegdir = r.parts[3].slice(-1);
-            r.xdir = r.londegdir;
+            
             if (addSignPrefix) {
-                if (r.xdir === 'W') {
-                    r.xvalue = '-' + r.lonmin;
+                if (r.londegdir === 'W') {
+                    r.londegvalue = '-' + r.londegvalue;
                 } else {
-                    r.xvalue = '+' + r.lonmin;
+                    r.londegvalue = '+' + r.londegvalue;
                 }
             }
 
             //A° B'N X° Y'E
             var s = withFormatStr.replace(/A/, r.latdegvalue);
-            s = s.replace(/[NnSs]/, r.ydir);
-            s = s.replace(/[EeWw]/, r.xdir);
+            s = s.replace(/[NnSs]/, r.latdegdir);
+            s = s.replace(/[EeWw]/, r.londegdir);
             s = s.replace(/X/, r.londegvalue);
             s = s.replace(/B/, r.yvalue);
             s = s.replace(/Y/, r.xvalue);

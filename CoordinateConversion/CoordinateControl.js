@@ -437,14 +437,14 @@ define([
         coordTextInputKeyWasPressed: function (evt) {
             if (evt.keyCode === dojoKeys.ENTER) {
                 var sanitizedInput = this.util.getCleanInput(evt.currentTarget.value);
-                var newType = this.util.getCoordinateType(sanitizedInput);
-                if (newType) {
-                    //this.type = newType[newType.length-1].name;
-                    this.processCoordTextInput(sanitizedInput, newType[newType.length-1].name);
-                } else {
-                    new JimuMessage({message: 'Unable to determine input coordinate type please check your input.'});
-                    dojoTopic.publish('INPUTERROR');
-                }
+                this.util.getCoordinateType(sanitizedInput).then(dojoLang.hitch(this, function(itm){
+                  if (itm) {
+                      this.processCoordTextInput(sanitizedInput, itm[0]);
+                  } else {
+                      new JimuMessage({message: 'Unable to determine input coordinate type please check your input.'});
+                      dojoTopic.publish('INPUTERROR');
+                  }
+                }));
                 dojoDomAttr.set(this.coordtext, 'value', sanitizedInput);
             }
         },
@@ -453,6 +453,18 @@ define([
          *
          **/
         processCoordTextInput: function (withStr, asType) {
+            if(asType.name == "DDrev")
+            {
+              var match = asType.pattern.exec(withStr);
+              withStr = match[7]+" "+match[1];
+              asType = 'DD';
+            }
+            if(asType.name == "DMSrev")
+            {
+              var match = asType.pattern.exec(withStr);
+              withStr = match[9]+" "+match[1];
+              asType = 'DD';
+            }
             this.util.getXYNotation(withStr, asType).then(
                 dojoLang.hitch(this, this.geomSrvcDidComplete),
                 dojoLang.hitch(this, this.geomSrvcDidFail)

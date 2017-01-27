@@ -93,27 +93,35 @@ define([
                 rounding: true,
                 addSpaces: false
             };
-
-            if (toType === 'DD') {
-                params.numOfDigits = 6;
-            } else if(toType === 'MGRS') {
-                params.conversionMode = 'mgrsDefault';
-                params.addSpaces = false;
-                params.numOfDigits = 5;
-            } else if (toType === 'UTM') {
-                params.conversionType = 'utm';
-                params.conversionMode = 'utmDefault';
-                params.addSpaces = true;
-            } else if (toType === 'UTM (H)') {
-                params.conversionType = 'utm';
-                params.conversionMode = 'utmNorthSouth';
-                params.addSpaces = true;
-            } else if (toType === 'GARS') {
-                params.conversionMode = 'garsDefault';
-            } else if (toType === 'USNG') {
-                params.addSpaces = true;
-                params.numOfDigits = 5;
-            }
+            
+            switch (toType) {
+              case 'DD':
+                  params.numOfDigits = 6;
+                  break;
+              case 'USNG':
+                  params.addSpaces = true;
+                  params.numOfDigits = 5;
+                  break;            
+              case 'MGRS':            
+                  params.conversionMode = 'mgrsDefault';
+                  params.addSpaces = false;
+                  params.numOfDigits = 5;
+                  break;
+              case 'UTM (H)':
+                  params.conversionType = 'utm';
+                  params.conversionMode = 'utmNorthSouth';
+                  a = fromStr.replace(/[mM]/g, '');
+                  params.strings.push(a);
+                  break;
+              case 'UTM':
+                  params.conversionType = 'utm';
+                  params.conversionMode = 'utmDefault';
+                  params.addSpaces = true;
+                  break;
+              case 'GARS':
+                  params.conversionMode = 'garsDefault';
+                  break;
+            }          
 
             return this.geomService.toGeoCoordinateString(params);
         },
@@ -186,39 +194,45 @@ define([
             //regexr.com
             var strs = [
                 {
+                    //https://regex101.com/r/SphKKS/1
                     name: 'DD',
-                    pattern: /^([NnSs+-])?([0-8]?\d|90)(\.\d*)?([°˚º^~*NnSs+-])*[,:;\s|\/\\]+([EeWw+-])*([0]?\d?\d|1[0-7]\d|180)(\.\d*)?[°˚º^~*]*([EeWw+-])*$/,
+                    pattern: /^(([NnSs\+-])?([0-8]?\d(\.\d*)?|90)([°˚º^~*]*)([NnSs\+-])*)([,:;\s|\/\\-]+)(([EeWw\+-]*)([0]?\d?\d(\.\d*)?|1[0-7]\d(\.\d*)?|180)([°˚º^~*]*)([EeWw\+-]*))$/,
                     notationType: "DD - Latitude/Longitude"
                 }, {
                     name: 'DDrev',
-                    pattern: /^(([EeWw+-])*([0]?\d?\d|1[0-7]\d|180)(\.\d*)?[°˚º^~*]*([EeWw+-])*)([,:;\s|\/\\]+)(([NnSs+-])?([0-8]?\d|90)(\.\d*)?([°˚º^~*NnSs+-])*)$/,
+                    pattern: /^(([EeWw\+-]*)([0]?\d?\d(\.\d*)?|1[0-7]\d(\.\d*)?|180)([°˚º^~*]*)([EeWw\+-]*))([,:;\s|\/\\-]+)(([NnSs\+-])?([0-8]?\d(\.\d*)?|90)([°˚º^~*]*)([NnSs\+-])*)$/,
                     notationType: "DD - Longitude/Latitude"
                 }, {
+                    //https://regex101.com/r/gpzqMv/1
                     name: 'DDM',
-                    pattern: /\s?\d{1,3}[°˚º^~*]?[\s]*[-+]?\d*\.?\d*['′]?[\s]*[NnSs]?[\s]*[,]?[\s]+\d{1,3}[°˚º^~*]?\s[-+]?\d*\.?\d*['′]?[\s]*[EeWw]?[\s]*$/,
+                    pattern: /^(([\+\-NnSs])?([0-8]?\d|90)[°˚º^~*\s\-_]+([0-5]?\d|\d)([.]\d*)?['′\s\-_]*([\+\-NnSs])?)([,:;\s|\/\\-]+)(([\+\-EeWw])?([0]?\d?\d|1[0-7]\d|180)[°˚º^~*\s\-_]+([0-5]\d|\d)([.]\d*)?['′\s_]*([\+\-EeWw])?)[\s]*$/,
                     notationType: "DDM - Latitude/Longitude"                    
                 }, {
+                    name: 'DDMrev',
+                    pattern: /^(([\+\-EeWw])?([0]?\d?\d|1[0-7]\d|180)[°˚º^~*\s\-_]+([0-5]\d|\d)([.]\d*)?['′\s_]*([\+\-EeWw])?)([,:;\s|\/\\-]+)(([\+\-NnSs])?([0-8]?\d|90)[°˚º^~*\s\-_]+([0-5]?\d|\d)([.]\d*)?['′\s\-_]*([\+\-NnSs])?)[\s]*$/, 
+                    notationType: "DDM - Longitude/Latitude"                    
+                },{
+                    //https://regex101.com/r/whyoG3/1
                     name: 'DMS',
-                    pattern: /^[+-]*([NnSs])?([0-8]?\d|90)[°˚º^~*\s\-_]+([0-5]?\d|\d)['′\s\-_]+([0-5]?\d|\d)([.]\d*)?["¨˝\s\-_]*([NnSs])?([\s\-_:|,;]*)[+-]*([EeWw])?([0]?\d?\d|1[0-7]\d|180)[°˚º^~*\s\-_]+([0-5]\d|\d)['′\s\-_]+([0-5]?\d|\d)([.]\d*)?["¨˝\s\-_]*([EeWw])?[\s]*/,
+                    pattern: /^(([\+\-NnSs])?([0-8]?\d|90)[°˚º^~*\s\-_]+([0-5]?\d|\d)['′\s\-_]+([0-5]?\d|\d)([.]\d*)?["¨˝\s\-_]*([\+\-NnSs])?)([,:;\s|\/\\-]+)(([\+\-EeWw])?([0]?\d?\d|1[0-7]\d|180)[°˚º^~*\s\-_]+([0-5]\d|\d)['′\s\-_]+([0-5]?\d|\d)([.]\d*)?["¨˝\s_]*([\+\-EeWw])?)[\s]*$/,
                     notationType: "DMS - Latitude/Longitude" 
                 }, {
+                    //https://regex101.com/r/lxQcI3/1
                     name: 'DMSrev',
-                    pattern: /^([+-]*([EeWw])?([0]?\d?\d|1[0-7]\d|180)[°˚º^~*\s\-_]+([0-5]\d|\d)['′\s\-_]+([0-5]?\d|\d)([.]\d*)?["¨˝\s\-_]*([EeWw])?)([\s\-_:|,;]*)([+-]*([NnSs])?([0-8]?\d|90)[°˚º^~*\s\-_]+([0-5]?\d|\d)['′\s\-_]+([0-5]?\d|\d)([.]\d*)?["¨˝\s\-_]*([NnSs])?)[\s]*/,
+                    pattern: /^(([\+\-EeWw])?([0]?\d?\d|1[0-7]\d|180)[°˚º^~*\s\-_]+([0-5]\d|\d)['′\s\-_]+([0-5]?\d|\d)([.]\d*)?["¨˝\s_]*([\+\-EeWw])?)([,:;\s|\/\\-]+)(([\+\-NnSs])?([0-8]?\d|90)[°˚º^~*\s\-_]+([0-5]?\d|\d)['′\s\-_]+([0-5]?\d|\d)([.]\d*)?["¨˝\s\-_]*([\+\-NnSs])?)[\s]*$/,
                     notationType: "DMS - Longitude/Latitude" 
-                },
-
-                {
+                }, {
                     name: 'GARS',
                     pattern: /\d{3}[a-zA-Z]{2}[1,4]?[1,9]?/,
                     notationType: "GARS"
                 }, {
                     name: 'MGRS',
-                    pattern: /^\d{1,2}[-,;:\s]*[c-hj-np-xC-HJ-NP-X][-,;:\s]*[a-hj-np-zA-HJ-NP-Z]{2}[-,;:\s]*\d{1,5}[-,;:\s]*\d{1,5}/,
+                    pattern: /^(\d{1,2}[-,;:\s]*[c-hj-np-xC-HJ-NP-X][-,;:\s]*[a-hj-np-zA-HJ-NP-Z]{2}[-,;:\s]*\d{1,5}[-,;:\s]*\d{1,5})|([AaBbYyZz][-,;:\s]*[a-hj-np-zA-HJ-NP-Z]{2}[-,;:\s]*\d{1,5}[-,;:\s]*\d{1,5})/,
                     notationType: "MGRS"
                 },
                 {
                     name: 'USNG',
-                    pattern: /^\d{1,2}[-,;:\s]*[c-hj-np-xC-HJ-NP-X][-,;:\s]*[a-hj-np-zA-HJ-NP-Z]{2}[-,;:\s]*\d{1,5}[-,;:\s]*\d{1,5}/,
+                    pattern: /^(\d{1,2}[-,;:\s]*[c-hj-np-xC-HJ-NP-X][-,;:\s]*[a-hj-np-zA-HJ-NP-Z]{2}[-,;:\s]*\d{1,5}[-,;:\s]*\d{1,5})|([AaBbYyZz][-,;:\s]*[a-hj-np-zA-HJ-NP-Z]{2}[-,;:\s]*\d{1,5}[-,;:\s]*\d{1,5})/,
                     notationType: "USNG"
                 },
                 {

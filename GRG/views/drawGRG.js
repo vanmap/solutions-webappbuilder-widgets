@@ -15,18 +15,22 @@
 ///////////////////////////////////////////////////////////////////////////
 
 define([
+  'esri/geometry/Point',
   'esri/geometry/Polygon',  
   'esri/geometry/geometryEngine',
   'esri/graphic',
   'esri/SpatialReference',
+  'esri/geometry/Circle',
   'jimu/dijit/Message',
   'esri/request',
   'dojo/json'
 ], function(
+  Point,
   Polygon,
   geometryEngine,
   Graphic,
   SpatialReference,
+  EsriCircle,
   Message,
   esriRequest,
   JSON
@@ -34,7 +38,7 @@ define([
   
   var grg = {};
   
-  grg.createGRG = function(HorizontalCells,VerticalCells,centerPoint,cellWidth,cellHeight,angle,labelStartPosition,labelStyle) {
+  grg.createGRG = function(HorizontalCells,VerticalCells,centerPoint,cellWidth,cellHeight,angle,labelStartPosition,labelStyle,gridStyle) {
     
     //set up variables
     var letterIndex = 0;
@@ -46,11 +50,24 @@ define([
     var features = [];    
     var startX = 0;
     var startY = 0;
+    var radius = (cellWidth/2)/Math.cos(30* Math.PI/180);
     
     //work out required off set for first point
     var offsetX = (HorizontalCells*cellWidth)/2;
-    var offsetY = (VerticalCells*cellHeight)/2; 
+    if(gridStyle == "hexagon") {
+      if(VerticalCells%2 == 1){
+        var offsetY = ((((VerticalCells-1)/2) * (radius*3)) + radius)/2;
+      } else {
+        var offsetY = (((VerticalCells/2) * (radius*3)) + (radius/3))/2;
+      }
+    }else{
+      var offsetY = (VerticalCells*cellHeight)/2;
+    }
+     
     
+    var hexHorizontalCells = HorizontalCells
+    
+       
     for (var i = 0; i < VerticalCells; i++)
     {       
       for (var j = 0; j < HorizontalCells; j++)
@@ -60,29 +77,60 @@ define([
         switch (labelStartPosition) {
           case 'Upper-Left':
             startX = centerPoint.x - offsetX;
-            startY = centerPoint.y + offsetY;
-            polygon.addRing([
-              [startX + (j * cellWidth) , startY - (i * cellHeight)],[startX + ((j+1) * cellWidth) , startY - (i * cellHeight)],[startX + ((j+1) * cellWidth) , startY - ((i+1) * cellHeight)],[startX + (j * cellWidth) , startY - ((i+1) * cellHeight)],[startX + (j * cellWidth) , startY - (i * cellHeight)]]);
+            startY = centerPoint.y + offsetY;            
+            if(gridStyle == "hexagon") {              
+              hexHorizontalCells == HorizontalCells?startX = startX + (j * (cellWidth)) + (cellWidth/2):startX = startX + (j * (cellWidth));
+              startY = (startY - radius)- (i * (radius*1.5));              
+              var hexagonCenter = new Point([startX,startY],new SpatialReference({ wkid:102100 }));  
+            } else {
+              polygon.addRing([
+                [startX + (j * cellWidth) , startY - (i * cellHeight)],[startX + ((j+1) * cellWidth) , startY - (i * cellHeight)],[startX + ((j+1) * cellWidth) , startY - ((i+1) * cellHeight)],[startX + (j * cellWidth) , startY - ((i+1) * cellHeight)],[startX + (j * cellWidth) , startY - (i * cellHeight)]]);
+            }
             break;
           case 'Upper-Right':
             startX = centerPoint.x + offsetX;
             startY = centerPoint.y + offsetY;
-            polygon.addRing([
-              [startX - (j * cellWidth) , startY - (i * cellHeight)],[startX - (j * cellWidth) , startY - ((i+1) * cellHeight)],[startX - ((j+1) * cellWidth) , startY - ((i+1) * cellHeight)],[startX - ((j+1) * cellWidth) , startY - (i * cellHeight)],[startX - (j * cellWidth) , startY - (i * cellHeight)]]);
+            if(gridStyle == "hexagon") {              
+              hexHorizontalCells == HorizontalCells?startX = startX - (j * (cellWidth)) - (cellWidth/2):startX = startX - (j * (cellWidth));
+              startY = (startY - radius)- (i * (radius*1.5));              
+              var hexagonCenter = new Point([startX,startY],new SpatialReference({ wkid:102100 }));  
+            } else {
+              polygon.addRing([
+                [startX - (j * cellWidth) , startY - (i * cellHeight)],[startX - (j * cellWidth) , startY - ((i+1) * cellHeight)],[startX - ((j+1) * cellWidth) , startY - ((i+1) * cellHeight)],[startX - ((j+1) * cellWidth) , startY - (i * cellHeight)],[startX - (j * cellWidth) , startY - (i * cellHeight)]]);
+            }
             break;
           case 'Lower-Right':
             startX = centerPoint.x + offsetX;
             startY = centerPoint.y - offsetY;
-            polygon.addRing([
-              [startX - (j * cellWidth) , startY + (i * cellHeight)],[startX - ((j+1) * cellWidth) , startY + (i * cellHeight)],[startX - ((j+1) * cellWidth) , startY + ((i+1) * cellHeight)],[startX - (j * cellWidth) , startY + ((i+1) * cellHeight)],[startX - (j * cellWidth) , startY + (i * cellHeight)]]);
+            if(gridStyle == "hexagon") {              
+              hexHorizontalCells == HorizontalCells?startX = startX - (j * (cellWidth)) - (cellWidth/2):startX = startX - (j * (cellWidth));
+              startY = (startY + radius) + (i * (radius*1.5));              
+              var hexagonCenter = new Point([startX,startY],new SpatialReference({ wkid:102100 }));  
+            } else {
+              polygon.addRing([
+                [startX - (j * cellWidth) , startY + (i * cellHeight)],[startX - ((j+1) * cellWidth) , startY + (i * cellHeight)],[startX - ((j+1) * cellWidth) , startY + ((i+1) * cellHeight)],[startX - (j * cellWidth) , startY + ((i+1) * cellHeight)],[startX - (j * cellWidth) , startY + (i * cellHeight)]]);
+            }
             break;
           case 'Lower-Left':
             startX = centerPoint.x - offsetX;
             startY = centerPoint.y - offsetY;
-            polygon.addRing([
-              [startX + (j * cellWidth) , startY + (i * cellHeight)],[startX + (j * cellWidth) , startY + ((i+1) * cellHeight)],[startX + ((j+1) * cellWidth) , startY + ((i+1) * cellHeight)],[startX + ((j+1) * cellWidth) , startY + (i * cellHeight)],[startX + (j * cellWidth) , startY + (i * cellHeight)]]);
+            if(gridStyle == "hexagon") {              
+              hexHorizontalCells == HorizontalCells?startX = startX + (j * (cellWidth)) + (cellWidth/2):startX = startX + (j * (cellWidth));
+              startY = (startY + radius) + (i * (radius*1.5));              
+              var hexagonCenter = new Point([startX,startY],new SpatialReference({ wkid:102100 }));  
+            } else {
+              polygon.addRing([
+                [startX + (j * cellWidth) , startY + (i * cellHeight)],[startX + (j * cellWidth) , startY + ((i+1) * cellHeight)],[startX + ((j+1) * cellWidth) , startY + ((i+1) * cellHeight)],[startX + ((j+1) * cellWidth) , startY + (i * cellHeight)],[startX + (j * cellWidth) , startY + (i * cellHeight)]]);
+            }
             break;              
         }
+        
+        if(gridStyle == "hexagon"){
+          var hexagon = new EsriCircle(hexagonCenter, {radius: radius,numberOfPoints: 6});
+          var hexagonRotated =  geometryEngine.rotate(hexagon,90,hexagonCenter);
+          polygon.addRing(hexagonRotated.rings[0]);
+        }
+        
         
         //rotate the graphics as required
         var polygonRotated =  geometryEngine.rotate(polygon, (angle * -1),  centerPoint);
@@ -109,7 +157,10 @@ define([
         
         graphic.setAttributes(attr);
         features.push(graphic);
-      }  
+      }
+      
+      if(gridStyle == "hexagon"){hexHorizontalCells == HorizontalCells?HorizontalCells++:HorizontalCells--;}
+      
       letterIndex += 1;
       letter = grg.convertNumberToLetters(letterIndex);
       if (labelStyle != 'Numeric')
@@ -121,6 +172,8 @@ define([
     }
     return features    
   },
+  
+  
   
   grg.convertNumberToLetters = function (n) {          
     var ordA = 'A'.charCodeAt(0);

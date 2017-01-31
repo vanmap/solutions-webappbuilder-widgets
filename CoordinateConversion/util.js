@@ -16,19 +16,27 @@
 
 /*global define*/
 define([
+    './dialogConfirm',
     'dojo/_base/declare',
     'dojo/_base/array',
     'dojo/_base/lang',
     'dojo/sniff',
+    'dojo/_base/Deferred',
     'esri/tasks/GeometryService',
-    'esri/request'
+    'esri/request',
+    'dijit/popup',
+    './ConfirmNotation'    
 ], function (
+    dialogConfirm,
     dojoDeclare,
     dojoArray,
     dojoLang,
     dojoSniff,
+    Deferred,
     EsriGeometryService,
-    EsriRequest
+    EsriRequest,
+    dijitPopup,
+    ConfirmNotation
 ) {
     'use strict';
     return dojoDeclare(null, {
@@ -39,7 +47,8 @@ define([
             if (!gs) {
               gs = '//utility.arcgisonline.com/arcgis/rest/services/Geometry/GeometryServer';
             }
-            this.geomService = new EsriGeometryService(gs);
+            this.geomService = new EsriGeometryService(gs);  
+            
         },
 
         /**
@@ -62,7 +71,7 @@ define([
          **/
         getCoordValues: function (fromInput, toType, numDigits) {
 
-            var nd = numDigits || 2;
+            var nd = numDigits || 6;
 
             var tt;
             if (toType.name) {
@@ -82,29 +91,34 @@ define([
                 rounding: true,
                 addSpaces: false
             };
-
-            if (toType === 'DD') {
-                params.numOfDigits = 6;
-            } else if(toType === 'MGRS') {
-                params.conversionMode = 'mgrsDefault';
-                params.addSpaces = false;
-                params.numOfDigits = 5;
-            } else if (toType === 'UTM') {
-                params.conversionType = 'utm';
-                params.conversionMode = 'utmDefault';
-                params.addSpaces = true;
-            } //else if (toType === 'UTM (Z)') {
-                //params.conversionType = 'utm';
-                //params.conversionMode = 'utmNorthSouth';
-                //params.addSpaces = true;
-            //}
-            //else if (toType === 'GARS') {
-                //params.conversionMode = 'garsDefault';
-            //}
-            else if (toType === 'USNG') {
-                params.addSpaces = true;
-                params.numOfDigits = 5;
-            }
+            
+            switch (toType) {
+              case 'DD':
+                  params.numOfDigits = 6;
+                  break;
+              case 'USNG':
+                  params.addSpaces = true;
+                  params.numOfDigits = 5;
+                  break;            
+              case 'MGRS':            
+                  params.conversionMode = 'mgrsDefault';
+                  params.addSpaces = false;
+                  params.numOfDigits = 5;
+                  break;
+              case 'UTM (H)':
+                  params.conversionType = 'utm';
+                  params.conversionMode = 'utmNorthSouth';
+                  params.addSpaces = true;
+                  break;
+              case 'UTM':
+                  params.conversionType = 'utm';
+                  params.conversionMode = 'utmDefault';
+                  params.addSpaces = true;
+                  break;
+              case 'GARS':
+                  params.conversionMode = 'garsDefault';
+                  break;
+            }          
 
             return this.geomService.toGeoCoordinateString(params);
         },
@@ -120,15 +134,13 @@ define([
          *
          **/
         getXYNotation: function (fromStr, toType) {
-
             var a;
             var tt;
             if (toType.name) {
               tt = toType.name;
             } else {
               tt = toType;
-            }
-            
+            }            
             
             var params = {
                 sr: 4326,
@@ -142,80 +154,129 @@ define([
             case 'DDM':
             case 'DMS':
                 params.numOfDigits = 2;
-                a = fromStr.replace(/['°˚º"¨˝]/g, '');
+                a = fromStr.replace(/[°˚º^~*"'′¨˝]/g, '');
                 params.strings.push(a);
                 break;
-            case 'MGRS':
+            case 'USNG':
+                params.strings.push(fromStr);
+                break;            
+            case 'MGRS':            
                 params.conversionMode = 'mgrsNewStyle';
                 params.strings.push(fromStr);
                 break;
-            //case 'UTM (H)':
-                //params.conversionType = 'utm';
-                //params.conversionMode = 'utmNorthSouth';
-                //a = fromStr.replace(/[mM]/g, '');
-                //params.strings.push(a);
-                //break;
+            case 'UTM (H)':
+                params.conversionType = 'utm';
+                params.conversionMode = 'utmNorthSouth';
+                a = fromStr.replace(/[mM]/g, '');
+                params.strings.push(a);
+                break;
             case 'UTM':
                 params.conversionType = 'utm';
                 params.conversionMode = 'utmDefault';
                 a = fromStr.replace(/[mM]/g, '');
                 params.strings.push(a);
                 break;
-            //case 'GARS':
-               // params.conversionMode = 'garsCenter';
-               // params.strings.push(fromStr);
-               // break;
+            case 'GARS':
+                params.conversionMode = 'garsCenter';
+                params.strings.push(fromStr);
+                break;
+            case 'GEOREF':
+               params.strings.push(fromStr);
+               break;
             }
             return this.geomService.fromGeoCoordinateString(params);
         },
-
-        /**
-         *
-         **/
+        
         getCoordinateType: function (fromInput) {
 
             var clnInput = this.getCleanInput(fromInput);
+            var deferred = new Deferred();
             //regexr.com
-            var strs = [{
+            var strs = [
+                {
+                    //https://regex101.com/r/SphKKS/1
                     name: 'DD',
-                    pattern: /([-+]?\d{1,3}[.]?\d*[\s]*[°˚º^~*]?[\s]*[NnSs]?[\s]*[,]?[\s]*[-+]?\d{1,3}[.]?\d*[\s]*[EeWw]?[\s]*)/
-                    }, {
+                    pattern: /^(([NnSs\+-])?([0-8]?\d(\.\d*)?|90)([°˚º^~*]*)([NnSs\+-])*)([,:;\s|\/\\]+)(([EeWw\+-]*)([0]?\d?\d(\.\d*)?|1[0-7]\d(\.\d*)?|180)([°˚º^~*]*)([EeWw\+-]*))$/,
+                    notationType: "DD - Latitude/Longitude"
+                }, {
+                    name: 'DDrev',
+                    pattern: /^(([EeWw\+-]*)([0]?\d?\d(\.\d*)?|1[0-7]\d(\.\d*)?|180)([°˚º^~*]*)([EeWw\+-]*))([,:;\s|\/\\]+)(([NnSs\+-])?([0-8]?\d(\.\d*)?|90)([°˚º^~*]*)([NnSs\+-])*)$/,
+                    notationType: "DD - Longitude/Latitude"
+                }, {
+                    //https://regex101.com/r/gpzqMv/1
                     name: 'DDM',
-                    pattern: /\s?\d{1,3}[°˚º^~*]?[\s]*[-+]?\d*\.?\d*['']?[\s]*[NnSs]?[\s]*[,]?[\s]*\d{1,3}[°˚º^~*]?\s[-+]?\d*\.?\d*['']?[\s]*[EeWw]?[\s]*/
-                    
+                    pattern: /^(([\+\-NnSs])?([0-8]?\d|90)[°˚º^~*\s\-_]+(([0-5]?\d|\d)([.]\d*)?)['′\s_]*([\+\-NnSs])?)([,:;\s|\/\\]+)(([\+\-EeWw])?([0]?\d?\d|1[0-7]\d|180)[°˚º^~*\s\-_]+(([0-5]\d|\d)([.]\d*)?)['′\s_]*([\+\-EeWw])?)[\s]*$/,
+                    notationType: "DDM - Latitude/Longitude"                    
                 }, {
+                    name: 'DDMrev',
+                    pattern: /^(([\+\-EeWw])?([0]?\d?\d|1[0-7]\d|180)[°˚º^~*\s\-_]+(([0-5]\d|\d)([.]\d*)?)['′\s_]*([\+\-EeWw])?)([,:;\s|\/\\]+)(([\+\-NnSs])?([0-8]?\d|90)[°˚º^~*\s\-_]+(([0-5]?\d|\d)([.]\d*)?)['′\s_]*([\+\-NnSs])?)[\s]*$/, 
+                    notationType: "DDM - Longitude/Latitude"                    
+                }, {
+                    //https://regex101.com/r/whyoG3/1
                     name: 'DMS',
-                    //pattern: /^(?!9[1-9])?([0-8]?\d?|90)[\s]*[°]?[\s]*([0]?[0-9]|[0-5]\d){1}[\s]*['"]?[\s]*[0]?[0-9]?[0-5]\d(\.\d+)?[\s]*['"]?[\s]*[NnSs]?[\s]*(180|((1[0-7]\d)|([0]?[0]?[1-9]?\d)))[\s]*[°]?[\s]*([0]?[0-9]|[0-5]\d){1}[\s]*['"]?[\s]*[0]?[0-9]?[0-5]\d(\.\d+)?[\s]*['"]?[\s]*[WwEe]?[\s]*/
-                    pattern: /([+-]?\d{1,3}[°˚º^~*]?[\s,]\d*['']?[\s,]\d*[.]?\d*["¨˝]?[\s]*[NnSsEeWw]?[\s]*){1,2}/
+                    pattern: /^(([\+\-NnSs])?([0-8]?\d|90)[°˚º^~*\s\-_]+([0-5]?\d|\d)['′\s\-_]+(([0-5]?\d|\d)([.]\d*)?)["¨˝\s\-_]*([\+\-NnSs])?)([,:;\s|\/\\]+)(([\+\-EeWw])?([0]?\d?\d|1[0-7]\d|180)[°˚º^~*\s\-_]+([0-5]\d|\d)['′\s\-_]+(([0-5]?\d|\d)([.]\d*)?)["¨˝\s_]*([\+\-EeWw])?)[\s]*$/,
+                    notationType: "DMS - Latitude/Longitude" 
                 }, {
-                //    name: 'GARS',
-                //    pattern: /\d{3}[a-zA-Z]{2}\d?\d?/
-                //}, {
+                    //https://regex101.com/r/lxQcI3/1
+                    name: 'DMSrev',
+                    pattern: /^(([\+\-EeWw])?([0]?\d?\d|1[0-7]\d|180)[°˚º^~*\s\-_]+([0-5]\d|\d)['′\s\-_]+(([0-5]?\d|\d)([.]\d*)?)["¨˝\s_]*([\+\-EeWw])?)([,:;\s|\/\\]+)(([\+\-NnSs])?([0-8]?\d|90)[°˚º^~*\s\-_]+([0-5]?\d|\d)['′\s\-_]+(([0-5]?\d|\d)([.]\d*)?)["¨˝\s\-_]*([\+\-NnSs])?)[\s]*$/,
+                    notationType: "DMS - Longitude/Latitude" 
+                }, {
+                    name: 'GARS',
+                    pattern: /\d{3}[a-zA-Z]{2}[1,4]?[1,9]?$/,
+                    notationType: "GARS"
+                }, {
+                    name: 'GEOREF',
+                    pattern: /[a-zA-Z]{4}\d{1,8}$/,
+                    notationType: "GEOREF"
+                }, {
                     name: 'MGRS',
-                    pattern: /^\d{1,2}[c-hj-np-xC-HJ-NP-X][-,;:\s]*[a-hj-np-zA-HJ-NP-Z]{1}[a-hj-np-zA-HJ-NP-Z]{1}[-,;:\s]*\d{0,10}/
-                },
-                {
+                    pattern: /^(\d{1,2}[-,;:\s]*[c-hj-np-xC-HJ-NP-X][-,;:\s]*[a-hj-np-zA-HJ-NP-Z]{2}[-,;:\s]*\d{1,5}[-,;:\s]*\d{1,5}$)|([AaBbYyZz][-,;:\s]*[a-hj-np-zA-HJ-NP-Z]{2}[-,;:\s]*\d{1,5}[-,;:\s]*\d{1,5})$/,
+                    notationType: "MGRS"
+                }, {
                     name: 'USNG',
-                    pattern: /^\d{1,2}[c-hj-np-xC-HJ-NP-X][-,;:\s]{1}[a-hj-np-zA-HJ-NP-Z]{1}[a-hj-np-zA-HJ-NP-Z]{1}[-,;:\s]{1}\d{0,10}[\s]?\d{0,10}/
-                },
-                {
+                    pattern: /^(\d{1,2}[-,;:\s]*[c-hj-np-xC-HJ-NP-X][-,;:\s]*[a-hj-np-zA-HJ-NP-Z]{2}[-,;:\s]*\d{1,5}[-,;:\s]*\d{1,5}$)|([AaBbYyZz][-,;:\s]*[a-hj-np-zA-HJ-NP-Z]{2}[-,;:\s]*\d{1,5}[-,;:\s]*\d{1,5})$/,
+                    notationType: "USNG"
+                }, {
                     name: 'UTM',
-                    pattern: /^\d{1,3}[NnSs]{1}([\s,-]\d*\.?\d*[mM]?){2}/
+                    pattern: /^\d{1,2}[-,;:\s]*[c-hj-np-xC-HJ-NP-X]{1}[-,;:\s]*\d{1,6}.?\d*[mM]?[-,;:\s]+\d{1,7}.?\d*[mM]?$/,
+                    notationType: "UTM - Band Letter"
+                }, {
+                    name: 'UTM (H)',
+                    pattern: /^\d{1,2}[-,;:\s]*[NnSs]{1}[-,;:\s]*\d{1,6}.?\d*[mM]?[-,;:\s]+\d{1,7}.?\d*[mM]?$/,
+                    notationType: "UTM - Hemisphere (N/S)"
                 }
             ];
 
             var matchedtype = dojoArray.filter(strs, function (itm) {
-                return itm.pattern.test(this.v);
+                return itm.pattern.test(this.v)               
             }, {
-              t:this,
               v:clnInput
             });
-
+            
             if (matchedtype.length > 0) {
-                return matchedtype;
+                if (matchedtype.length == 1) {
+                  deferred.resolve(matchedtype);
+                } else {                  
+                  var dialog = new dialogConfirm({
+                     title: 'Confirm Input Notation',
+                     content: new ConfirmNotation(matchedtype),
+                     style: "width: 400px",
+                     hasSkipCheckBox: false
+                  });
+                  dialog.show().then(dojoLang.hitch(this, function() {                    
+                        var singleMatch = dojoArray.filter(matchedtype, function (itm) {
+                          return itm.name == dialog.content.comboOptions.get('value');
+                        });
+                        deferred.resolve(singleMatch);                     
+                  }, function() {
+                     deferred.reject();
+                  }));
+                }
+            } else {
+                deferred.resolve(null);
             }
-
-            return null;
+            return deferred.promise;          
         },
 
         /**
@@ -228,36 +289,18 @@ define([
 
             var parts = fromValue[0].split(/[ ,]+/);
 
-            var latdeg = parts[0].replace(/[nNsS]/, '');
-            r.yvalue = latdeg;
-
-            var latdegdir = parts[0].slice(-1);
-            r.ydir = latdegdir;
+            r.latdeg = parts[0].replace(/[nNsS]/, '');
+            r.londeg = parts[1].replace(/[eEwW]/, '');
+            
             if (addSignPrefix) {
-                if (r.ydir === 'N') {
-                    r.yvalue = '+' + latdeg;
-                } else {
-                    r.yvalue = '-' + latdeg;
-                }
+              parts[0].slice(-1) === 'N'?r.latdeg = '+' + r.latdeg:r.latdeg = '-' + r.latdeg;         
+              parts[1].slice(-1) === "W"?r.londeg = '-' + r.londeg:r.londeg = '+' + r.londeg;
             }
 
-            var londeg = parts[1].replace(/[eEwW]/, '');
-            r.xvalue = londeg;
-
-            var londegdir = parts[1].slice(-1);
-            r.xdir = londegdir;
-            if (addSignPrefix) {
-                if (r.xdir === 'W') {
-                    r.xvalue = '-' + londeg;
-                } else {
-                    r.xvalue = '+' + londeg;
-                }
-            }
-
-            var s = withFormatStr.replace(/X/, r.xvalue);
-            s = s.replace(/[eEwW]/, r.xdir);
-            s = s.replace(/[nNsS]/, r.ydir);
-            s = s.replace(/Y/, r.yvalue);
+            var s = withFormatStr.replace(/X/, r.londeg);
+            s = s.replace(/[eEwW]/, parts[1].slice(-1));
+            s = s.replace(/[nNsS]/, parts[0].slice(-1));
+            s = s.replace(/Y/, r.latdeg);
 
             r.formatResult = s;
             return r;
@@ -267,56 +310,32 @@ define([
          *
          **/
         getFormattedDDMStr: function (fromValue, withFormatStr, addSignPrefix) {
-
             var r = {};
             r.sourceValue = fromValue;
             r.sourceFormatString = withFormatStr;
 
             r.parts = fromValue[0].split(/[ ,]+/);
 
-            r.latdeg = r.parts[0];
-            r.latdegvalue = this.stripDecimalPlaces(parseFloat(r.latdeg, 1), 1);
-
+            r.latdeg = r.parts[0];            
             r.latmin = r.parts[1].replace(/[nNsS]/, '');
-            r.yvalue = this.stripDecimalPlaces(parseFloat(r.latmin,1), 1);
-
-            r.latdegdir = r.parts[1].slice(-1);
-            r.ydir = r.latdegdir;
-            if (addSignPrefix) {
-                if (r.ydir === 'N') {
-                    r.yvalue = '+' + r.yvalue;
-                } else {
-                    r.yvalue = '-' + r.yvalue;
-                }
-            }
-
             r.londeg = r.parts[2];
-            r.londegvalue =  this.stripDecimalPlaces(parseFloat(r.londeg, 1), 1);
-
             r.lonmin = r.parts[3].replace(/[eEwW]/, '');
-            r.xvalue =  this.stripDecimalPlaces(parseFloat(r.lonmin, 1), 1);
-
-            r.londegdir = r.parts[3].slice(-1);
-            r.xdir = r.londegdir;
+                        
             if (addSignPrefix) {
-                if (r.xdir === 'W') {
-                    r.xvalue = '-' + r.lonmin;
-                } else {
-                    r.xvalue = '+' + r.lonmin;
-                }
+              r.parts[1].slice(-1) === 'N'?r.latdeg = '+' + r.latdeg:r.latdeg = '-' + r.latdeg;
+              r.parts[3].slice(-1) === 'W'?r.londeg = '-' + r.londeg:r.londeg = '+' + r.londeg;
             }
 
             //A° B'N X° Y'E
-            var s = withFormatStr.replace(/A/, r.latdegvalue);
-            s = s.replace(/[NnSs]/, r.ydir);
-            s = s.replace(/[EeWw]/, r.xdir);
-            s = s.replace(/X/, r.londegvalue);
-            s = s.replace(/B/, r.yvalue);
-            s = s.replace(/Y/, r.xvalue);
+            var s = withFormatStr.replace(/[EeWw]/, r.parts[3].slice(-1));
+            s = s.replace(/Y/, r.lonmin);
+            s = s.replace(/X/, r.londeg);            
+            s = s.replace(/[NnSs]/, r.parts[1].slice(-1));
+            s = s.replace(/B/, r.latmin);
+            s = s.replace(/A/, r.latdeg);
 
             r.formatResult = s;
             return r;
-
         },
 
         /**
@@ -327,22 +346,22 @@ define([
             r.sourceValue = fromValue;
             r.sourceFormatString = withFormatStr;
 
-            var parts = fromValue[0].split(/[ ,]+/);
+            r.parts = fromValue[0].split(/[ ,]+/);
 
-            r.latdeg =  this.stripDecimalPlaces(parseFloat(parts[0]).toFixed(1), 1);
-            r.latmin =  this.stripDecimalPlaces(parseFloat(parts[1]).toFixed(1), 1);
-            r.latsec =  this.stripDecimalPlaces(parseFloat(parts[2].replace(/[NnSs]/, '')).toFixed(2), 2);
+            r.latdeg =  r.parts[0];
+            r.latmin =  r.parts[1];
+            r.latsec =  r.parts[2].replace(/[NnSs]/, '');
 
-            var latdegdir = parts[2].slice(-1);
-            r.ydir = latdegdir;
-
-            r.londeg = this.stripDecimalPlaces(parseFloat(parts[3]).toFixed(1), 1);
-            r.lonmin = this.stripDecimalPlaces(parseFloat(parts[4]).toFixed(1), 1);
-            r.lonsec = this.stripDecimalPlaces(parseFloat(parts[5].replace(/[EWew]/, '')).toFixed(2), 2);
-
-            var londegdir = parts[5].slice(-1);
-            r.xdir = londegdir;
-
+            
+            r.londeg = r.parts[3];
+            r.lonmin = r.parts[4];
+            r.lonsec = r.parts[5].replace(/[EWew]/, ''); 
+            
+            if (addSignPrefix) {
+              r.parts[2].slice(-1) === 'N'?r.latdeg = '+' + r.latdeg:r.latdeg = '-' + r.latdeg;
+              r.parts[5].slice(-1) ==='W'?r.londeg = '-' + r.londeg:r.londeg = '+' + r.londeg;            
+            }
+           
             //A° B' C''N X° Y' Z''E
             var s = withFormatStr.replace(/A/, r.latdeg);
             s = s.replace(/B/, r.latmin);
@@ -350,17 +369,17 @@ define([
             s = s.replace(/X/, r.londeg);
             s = s.replace(/Y/, r.lonmin);
             s = s.replace(/Z/, r.lonsec);
-            s = s.replace(/[NnSs]/, r.ydir);
-            s = s.replace(/[EeWw]/, r.xdir);
+            s = s.replace(/[NnSs]/, r.parts[2].slice(-1));
+            s = s.replace(/[EeWw]/, r.parts[5].slice(-1));
 
             r.formatResult = s;
             return r;
 
         },
 
-        /*
+        /**
          *
-         */
+         **/
         stripDecimalPlaces: function (num, dplaces) {
           var v = '';
           var tString = num.toString();
@@ -405,7 +424,11 @@ define([
             r.sourceValue = fromValue;
             r.sourceFormatString = withFormatStr;
 
-            r.gzd = fromValue[0].match(/\d{1,2}[C-HJ-NP-X]/)[0].trim();
+            if(fromValue[0].match(/^[ABYZ]/)) {
+              r.gzd = fromValue[0].match(/[ABYZ]/)[0].trim();            
+            } else {
+              r.gzd = fromValue[0].match(/\d{1,2}[C-HJ-NP-X]/)[0].trim(); 
+            }
             r.grdsq = fromValue[0].replace(r.gzd, '').match(/[a-hJ-zA-HJ-Z]{2}/)[0].trim();
             r.easting = fromValue[0].replace(r.gzd + r.grdsq, '').match(/^\d{1,5}/)[0].trim();
             r.northing = fromValue[0].replace(r.gzd + r.grdsq, '').match(/\d{1,5}$/)[0].trim();
@@ -423,7 +446,7 @@ define([
         /**
          *
          **/
-        /*getFormattedGARSStr: function (fromValue, withFormatStr, addSignPrefix) {
+        getFormattedGARSStr: function (fromValue, withFormatStr, addSignPrefix) {
           var r = {};
           r.sourceValue = fromValue;
           r.sourceFormatString = withFormatStr;
@@ -443,7 +466,37 @@ define([
 
           r.formatResult = s;
           return r;
-        },*/
+        },
+        
+        /**
+         *
+         **/
+        getFormattedGEOREFStr: function (fromValue, withFormatStr, addSignPrefix) {
+          var r = {};
+          r.sourceValue = fromValue;
+          r.sourceFormatString = withFormatStr;
+
+          r.lon = fromValue[0].match(/[a-zA-Z]{1}/)[0].trim();
+          r.lat = fromValue[0].replace(r.lon, '').match(/[a-zA-Z]{1}/)[0].trim();
+          r.quadrant15lon = fromValue[0].replace(r.lon + r.lat, '').match(/[a-zA-Z]{1}/)[0].trim();
+          r.quadrant15lat = fromValue[0].replace(r.lon + r.lat + r.quadrant15lon, '').match(/[a-zA-Z]{1}/)[0].trim();
+          
+          var q = fromValue[0].replace(r.lon + r.lat + r.quadrant15lon + r.quadrant15lat, '');
+          
+          r.quadrant1lon = q.substr(0,q.length/2);
+          r.quadrant1lat = q.substr(q.length/2, q.length);
+         
+          //ABCDXY
+          var s = withFormatStr.replace(/Y/, r.quadrant1lat);
+          s = s.replace(/X/, r.quadrant1lon);
+          s = s.replace(/D/, r.quadrant15lat);
+          s = s.replace(/C/, r.quadrant15lon);
+          s = s.replace(/B/, r.lat);
+          s = s.replace(/A/, r.lon);
+          
+          r.formatResult = s;
+          return r;
+        },
 
         /**
          *
@@ -465,33 +518,33 @@ define([
             s = s.replace (/B/, r.bandLetter);
             s = s.replace(/Z/, r.zone);
             
-
             r.formatResult = s;
             return r;
-        }
+        },
         
         /**
          *
          **/
-        /*getFormattedUTMHStr: function (fromValue, withFormatStr, addSignPrefix, addDirSuffix) {
+        getFormattedUTMHStr: function (fromValue, withFormatStr, addSignPrefix, addDirSuffix) {
             var r = {};
             r.sourceValue = fromValue;
             r.sourceFormatString = withFormatStr;
 
             r.parts = fromValue[0].split(/[ ,]+/);
-            r.zone = r.parts[0].replace(/[NSEW]/,'');
+            r.zone = r.parts[0].replace(/[A-Z]/,'');
             r.hemisphere = r.parts[0].slice(-1);
+            
             r.easting = r.parts[1];
             r.westing = r.parts[2];
 
             //ZH Xm Ym'
-            var s = withFormatStr.replace(/Z/, r.zone);
-            s = s.replace(/H/, r.hemisphere);
+            var s = withFormatStr.replace(/Y/, r.westing);
             s = s.replace(/X/, r.easting);
-            s = s.replace(/Y/, r.westing);
+            s = s.replace (/H/, r.hemisphere);
+            s = s.replace(/Z/, r.zone);
 
             r.formatResult = s;
             return r;
-        }*/
+        }
     });
 });

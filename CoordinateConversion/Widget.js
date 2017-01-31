@@ -63,7 +63,8 @@ define([
               'DD',
               'DDM',
               'DMS',
-              // 'GARS',
+              'GARS',
+              'GEOREF',
               'MGRS',
               'USNG',
               'UTM'

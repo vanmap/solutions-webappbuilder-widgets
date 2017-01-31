@@ -87,7 +87,7 @@ define([
         input: true,
         inputFromText: false,
         hasCustomLabel: false,
-        /**** type: 'dd', Available Types: DD, DDM, DMS, GARS, MGRS, USNG, UTM ****/
+        /**** type: 'dd', Available Types: DD, DDM, DMS, GARS, GEOREF, MGRS, USNG, UTM, UTM (H)****/
 
         /**
          *
@@ -437,14 +437,14 @@ define([
         coordTextInputKeyWasPressed: function (evt) {
             if (evt.keyCode === dojoKeys.ENTER) {
                 var sanitizedInput = this.util.getCleanInput(evt.currentTarget.value);
-                var newType = this.util.getCoordinateType(sanitizedInput);
-                if (newType) {
-                    //this.type = newType[newType.length-1].name;
-                    this.processCoordTextInput(sanitizedInput, newType[newType.length-1].name);
-                } else {
-                    new JimuMessage({message: 'Unable to determine input coordinate type please check your input.'});
-                    dojoTopic.publish('INPUTERROR');
-                }
+                this.util.getCoordinateType(sanitizedInput).then(dojoLang.hitch(this, function(itm){
+                  if (itm) {
+                      this.processCoordTextInput(sanitizedInput, itm[0]);
+                  } else {
+                      new JimuMessage({message: 'Unable to determine input coordinate type please check your input.'});
+                      dojoTopic.publish('INPUTERROR');
+                  }
+                }));
                 dojoDomAttr.set(this.coordtext, 'value', sanitizedInput);
             }
         },
@@ -453,6 +453,134 @@ define([
          *
          **/
         processCoordTextInput: function (withStr, asType) {
+            
+            var match = asType.pattern.exec(withStr);            
+            
+            var northSouthPrefix, northSouthSuffix, eastWestPrefix, eastWestSuffix, latDeg, longDeg, latMin, longMin, latSec, longSec;
+            
+            var prefixSuffixError = false;
+            
+            switch (asType.name) {
+              case 'DD':
+                northSouthPrefix = match[2];
+                northSouthSuffix = match[6];
+                eastWestPrefix = match[9];
+                eastWestSuffix = match[14];
+                latDeg = match[3];
+                longDeg = match[10];             
+                break; 
+              case 'DDrev':
+                northSouthPrefix = match[10];
+                northSouthSuffix = match[14];
+                eastWestPrefix = match[2];
+                eastWestSuffix = match[7];
+                latDeg = match[11];
+                longDeg = match[3];  
+                asType.name = 'DD';            
+                break;            
+              case 'DDM':            
+                northSouthPrefix = match[2];
+                northSouthSuffix = match[7];
+                eastWestPrefix = match[10];
+                eastWestSuffix = match[15];
+                latDeg = match[3];
+                latMin = match[4];
+                longDeg = match[11];
+                longMin = match[12];                
+                break;
+              case 'DDMrev':
+                northSouthPrefix = match[10];
+                northSouthSuffix = match[15];
+                eastWestPrefix = match[2];
+                eastWestSuffix = match[7];
+                latDeg = match[11];
+                latMin = match[12];
+                longDeg = match[3];
+                longMin = match[4];                
+                asType.name = 'DDM';            
+                break;
+              case 'DMS':
+                northSouthPrefix = match[2];
+                northSouthSuffix = match[8];
+                eastWestPrefix = match[11];
+                eastWestSuffix = match[17];
+                latDeg = match[3];
+                latMin = match[4];
+                latSec = match[5];
+                longDeg = match[12];
+                longMin = match[13];
+                longSec = match[14];
+                asType.name = 'DMS';               
+                break;
+              case 'DMSrev':
+                northSouthPrefix = match[11];
+                northSouthSuffix = match[17];
+                eastWestPrefix = match[2];
+                eastWestSuffix = match[8];
+                latDeg = match[12];
+                latMin = match[13];
+                latSec = match[14];
+                longDeg = match[3];
+                longMin = match[4];
+                longSec = match[5];
+                asType.name = 'DMS';               
+                break;
+            }
+            
+            //check for north/south prefix/suffix
+            if(northSouthPrefix && northSouthSuffix) {
+                  prefixSuffixError = true;                    
+                  new RegExp(/[Ss-]/).test(northSouthPrefix)?northSouthPrefix = '-':northSouthPrefix = '';
+                } else {
+                  if(northSouthPrefix && new RegExp(/[Ss-]/).test(northSouthPrefix)){
+                    northSouthPrefix = '-';
+                  } else {
+                    if(northSouthSuffix && new RegExp(/[Ss-]/).test(northSouthSuffix)){
+                      northSouthPrefix = '-';
+                    } else {
+                      northSouthPrefix = '+';
+                    }
+                  }
+                }
+                
+            //check for east/west prefix/suffix
+            if(eastWestPrefix && eastWestSuffix) {
+              prefixSuffixError = true;                    
+              new RegExp(/[Ww-]/).test(eastWestPrefix)?eastWestPrefix = '-':eastWestPrefix = '';
+            } else {
+              if(eastWestPrefix && new RegExp(/[Ww-]/).test(eastWestPrefix)){
+                eastWestPrefix = '-';
+              } else {
+                if(eastWestSuffix && new RegExp(/[Ww-]/).test(eastWestSuffix)){
+                  eastWestPrefix = '-';
+                } else {
+                  eastWestPrefix = '+';
+                }
+              }
+            }
+            
+            //give user warning if lat or long is determined as having a prefix and suffix 
+            if(prefixSuffixError) {
+              new JimuMessage({message: 'The input coordinate has been detected as having both a prefix and suffix for the latitude or longitude value, returned coordinate is based on the prefix.'});
+            }            
+            
+            switch (asType.name) {
+              case 'DD':               
+              case 'DDrev':
+                withStr = northSouthPrefix + latDeg + "," + eastWestPrefix + longDeg;
+                break;              
+              case 'DDM':
+              case 'DDMrev':
+                withStr = northSouthPrefix + latDeg + " " + latMin + "," + eastWestPrefix + longDeg + " " + longMin;
+                break;
+              case 'DMS':
+              case 'DMSrev':
+                withStr = northSouthPrefix + latDeg + " " + latMin + " " + latSec + "," + eastWestPrefix + longDeg + " " + longMin + " " + longSec;
+                break;default:
+                withStr = withStr;              
+                break;
+            }
+            
             this.util.getXYNotation(withStr, asType).then(
                 dojoLang.hitch(this, this.geomSrvcDidComplete),
                 dojoLang.hitch(this, this.geomSrvcDidFail)
@@ -584,8 +712,16 @@ define([
                     this.sub1label.innerHTML = 'Lon';
                     this.sub2label.innerHTML = 'Lat';
                     this.sub3label.innerHTML = 'Quadrant';
-                    this.setVisible(this.sub3);
                     this.sub4label.innerHTML = 'Key';
+                    this.setVisible(this.sub3);
+                    this.setVisible(this.sub4);
+                    break;
+                case 'GEOREF':
+                    this.sub1label.innerHTML = '15° Quad';
+                    this.sub2label.innerHTML = '1° Quad';
+                    this.sub3label.innerHTML = 'Easting';
+                    this.setVisible(this.sub3);
+                    this.sub4label.innerHTML = 'Northing';
                     this.setVisible(this.sub4);
                     break;
                 case 'USNG':
@@ -593,26 +729,26 @@ define([
                     this.sub1label.innerHTML = 'GZD';
                     this.sub2label.innerHTML = 'Grid Sq';
                     this.sub3label.innerHTML = 'Easting';
-                    this.setVisible(this.sub3);
                     this.sub4label.innerHTML = 'Northing';
+                    this.setVisible(this.sub3);
                     this.setVisible(this.sub4);
                     break;
                 case 'UTM':
                     this.sub1label.innerHTML = 'Zone';
-                    this.sub2label.innerHTML = 'Easting';
-                    this.sub3label.innerHTML = 'Northing';
+                    this.sub2label.innerHTML = 'Band';
+                    this.sub3label.innerHTML = 'Easting';
+                    this.sub4label.innerHTML = 'Northing';
                     this.setVisible(this.sub3);
-                    this.setHidden(this.sub4);
-                    cntrHeight = '125px';
+                    this.setVisible(this.sub4);
                     break;
-                //case 'UTM (H)':
-                    //this.sub1label.innerHTML = 'Hemisphere';
-                    //this.sub2label.innerHTML = 'Easting';
-                    //this.sub3label.innerHTML = 'Northing';
-                    //this.setVisible(this.sub3);
-                    //this.setHidden(this.sub4);
-                    //cntrHeight = '125px';
-                    //break;
+                case 'UTM (H)':
+                    this.sub1label.innerHTML = 'Zone';
+                    this.sub2label.innerHTML = 'Hemisphere';
+                    this.sub3label.innerHTML = 'Easting';
+                    this.sub4label.innerHTML = 'Northing';
+                    this.setVisible(this.sub3);
+                    this.setVisible(this.sub4);
+                    break;
                 }
                 dojoDomStyle.set(this.coordcontrols, 'height', cntrHeight);
             } else {
@@ -655,11 +791,11 @@ define([
                     r = this.util.getFormattedDDStr(withValue, format, as);
 
                     this['cc_' + cntrlid + 'sub1val'].value = dojoString.substitute('${xcrd}', {
-                        xcrd: r.xvalue
+                        xcrd: r.latdeg
                     });
 
                     this['cc_' + cntrlid + 'sub2val'].value = dojoString.substitute('${ycrd}', {
-                        ycrd: r.yvalue
+                        ycrd: r.londeg
                     });
 
                     formattedStr = r.formatResult;
@@ -669,13 +805,13 @@ define([
                     r = this.util.getFormattedDDMStr(withValue, format, as);
 
                     this['cc_' + cntrlid + 'sub1val'].value = dojoString.substitute('${latd} ${latm}', {
-                        latd: r.latdegvalue,
-                        latm: r.yvalue
+                        latd: r.latdeg,
+                        latm: r.latmin
                     });
 
                     this['cc_' + cntrlid + 'sub2val'].value = dojoString.substitute('${lond} ${lonm}', {
-                        lond: r.londegvalue,
-                        lonm: r.xvalue
+                        lond: r.londeg,
+                        lonm: r.lonmin
                     });
 
                     formattedStr = r.formatResult;
@@ -730,24 +866,40 @@ define([
 
                     formattedStr = r.formatResult;
                     break;
-                case 'UTM':
-                    r = this.util.getFormattedUTMStr(withValue, format, as);
+                case 'GEOREF':
+                    r = this.util.getFormattedGEOREFStr(withValue, format, as);
 
-                    this['cc_' + cntrlid + 'sub1val'].value = r.zone + r.bandLetter;
-                    this['cc_' + cntrlid + 'sub2val'].value = r.easting;
-                    this['cc_' + cntrlid + 'sub3val'].value = r.westing;
+                    this['cc_' + cntrlid + 'sub1val'].value = r.lon + r.lat;
+                    this['cc_' + cntrlid + 'sub2val'].value = r.quadrant15lon + r.quadrant15lat;
+                    this['cc_' + cntrlid + 'sub3val'].value = r.quadrant1lon;
+                    this['cc_' + cntrlid + 'sub4val'].value = r.quadrant1lat;
 
                     formattedStr = r.formatResult;
                     break;
-                //case 'UTM (H)':
-                    //r = this.util.getFormattedUTMHStr(withValue, format, as);
+                case 'UTM':
+                    r = this.util.getFormattedUTMStr(withValue, format, as);
 
-                    //this['cc_' + cntrlid + 'sub1val'].value = r.zone + r.hemisphere;
-                    //this['cc_' + cntrlid + 'sub2val'].value = r.easting;
-                    //this['cc_' + cntrlid + 'sub3val'].value = r.westing;
+                    this['cc_' + cntrlid + 'sub1val'].value = r.zone;
+                    this['cc_' + cntrlid + 'sub2val'].value = r.bandLetter;
+                    this['cc_' + cntrlid + 'sub3val'].value = r.easting;
+                    this['cc_' + cntrlid + 'sub4val'].value = r.westing;
+                    
+                    r.bandLetter.match(/^[AaBbYyZz]/)?this.coordName.set('value','UPS'):this.coordName.set('value','UTM');
 
-                    //formattedStr = r.formatResult;
-                    //break;
+                    formattedStr = r.formatResult;
+                    break;
+                case 'UTM (H)':
+                    r = this.util.getFormattedUTMHStr(withValue, format, as);
+                    
+                    this['cc_' + cntrlid + 'sub1val'].value = r.zone;
+                    this['cc_' + cntrlid + 'sub2val'].value = r.hemisphere;
+                    this['cc_' + cntrlid + 'sub3val'].value = r.easting;
+                    this['cc_' + cntrlid + 'sub4val'].value = r.westing;
+                    
+                    r.hemisphere.match(/^[AaBbYyZz]/)?this.coordName.set('value','UPS'):this.coordName.set('value','UTM (H)');
+
+                    formattedStr = r.formatResult;
+                    break;
                 }                
             }
             } else {

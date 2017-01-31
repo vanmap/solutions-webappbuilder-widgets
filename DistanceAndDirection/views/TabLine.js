@@ -271,7 +271,8 @@ define([
               dojoLang.hitch(this, this.feedbackDidComplete)
             ),
 
-            dojoOn(this.coordinateFormatButtonLine, 'click',
+            dojoOn(
+              this.coordinateFormatButtonLine, 'click',
               dojoLang.hitch(this, this.coordinateFormatButtonLineWasClicked)
             ),
 
@@ -348,17 +349,9 @@ define([
               dojoLang.hitch(this, this.lineTypeDDDidChange)
             ),
 
-            this.coordToolStart.on('blur',
-              dojoLang.hitch(this, this.coordToolStartDidLoseFocus)
-            ),
-            
             this.coordToolStart.on('keyup',
               dojoLang.hitch(this, this.coordToolKeyWasPressed)
-            ),
-
-            this.coordToolEnd.on('blur',
-              dojoLang.hitch(this, this.coordToolEndDidLoseFocus)
-            )
+            )            
           );
         },
 
@@ -374,21 +367,30 @@ define([
         },
 
         /*
-         * catch key press in start point
+         * catch key press in end point
          */
         coordToolEndKeyWasPressed: function (evt) {
           if (this.lineTypeDD.get('value') !== 'Points') {
             return;
           }
-
           if (evt.keyCode === dojoKeys.ENTER ) {
-            if(this.coordToolEnd.isValid() && this.coordToolStart.isValid() && this.coordToolStart.value != "") {
+            if(this.coordToolStart.value != "") {
               this.coordToolEnd.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r) {
-                dojoTopic.publish(
-                  'manual-line-end-point-input',
-                  this.coordToolEnd.inputCoordinate.coordinateEsriGeometry
-                );                
-                this.createManualGraphic();
+                if(r.inputType == "UNKNOWN"){
+                  var alertMessage = new Message({
+                    message: 'Unable to determine input coordinate type please check your input.'
+                  });
+                } else {
+                  dojoTopic.publish(
+                    'manual-line-end-point-input',
+                    this.coordToolEnd.inputCoordinate.coordinateEsriGeometry
+                  );
+                  this.setCoordLabelEnd(r.inputType);
+                  var fs = this.coordinateFormatStart.content.formats[r.inputType];
+                  this.coordToolEnd.inputCoordinate.set('formatString', fs.defaultFormat);
+                  this.coordToolEnd.inputCoordinate.set('formatType', r.inputType);
+                  this.createManualGraphic();
+                }                  
               }));
             }
             else {
@@ -397,46 +399,32 @@ define([
               });
             }
           }
-        },
-
-        /*
-         * get formatted coordinate type
-         */
-        coordToolStartDidLoseFocus: function () {
-          this.coordToolStart.inputCoordinate.isManual = true;
-          this.coordToolStart.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r){
-           this.setCoordLabelStart(r.inputType);
-           this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
-         }));
-        },
+        },       
         
         /*
          * catch key press in start point
          */
         coordToolKeyWasPressed: function (evt) {
-          if (evt.keyCode === dojoKeys.ENTER) {              
+          if (evt.keyCode === dojoKeys.ENTER) {
             this.coordToolStart.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r) {
-              dojoTopic.publish(
-                'manual-linestart-point-input',
-                this.coordToolStart.inputCoordinate.coordinateEsriGeometry
-              );
-              this.setCoordLabelStart(r.inputType);
-              this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
+              if(r.inputType == "UNKNOWN"){
+                var alertMessage = new Message({
+                  message: 'Unable to determine input coordinate type please check your input.'
+                });
+              } else {
+                dojoTopic.publish(
+                  'manual-linestart-point-input',
+                  this.coordToolStart.inputCoordinate.coordinateEsriGeometry
+                );
+                this.setCoordLabelStart(r.inputType);
+                var fs = this.coordinateFormatStart.content.formats[r.inputType];
+                this.coordToolStart.inputCoordinate.set('formatString', fs.defaultFormat);
+                this.coordToolStart.inputCoordinate.set('formatType', r.inputType);
+                this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
+              }
             }));
           }
-        },
-
-        /*
-         *
-         */
-        coordToolEndDidLoseFocus: function () {
-          this.coordToolEnd.inputCoordinate.isManual = true;
-          this.coordToolEnd.inputCoordinate.getInputType().then(
-            dojoLang.hitch(this, function (r) {
-              this.setCoordLabelEnd(r.inputType);
-            }
-          ));
-        },
+        },        
 
         /*
          *
@@ -480,6 +468,7 @@ define([
          * Button click event, activate feedback tool
          */
         pointButtonWasClicked: function () {
+          dojoTopic.publish('clear-points');          
           this.map.disableMapNavigation();
           this.dt.activate('polyline');
           dojoDomClass.toggle(this.addPointBtnLine, 'jimu-state-active');

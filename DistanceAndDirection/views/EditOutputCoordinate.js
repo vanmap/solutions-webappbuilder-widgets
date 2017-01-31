@@ -71,11 +71,16 @@ define([
                 customFormat: null,
                 useCustom: false
             },
-            // GARS: {
-            //     defaultFormat: 'XYQK',
-            //     customFormat: null,
-            //     useCustom: false
-            // },
+            GARS: {
+                defaultFormat: 'XYQK',
+                customFormat: null,
+                useCustom: false
+            },
+            GEOREF: {
+                defaultFormat: 'ABCDXY',
+                customFormat: null,
+                useCustom: false
+            },
             MGRS: {
                 defaultFormat: 'ZSXY',
                 customFormat: null,
@@ -87,6 +92,11 @@ define([
                 useCustom: false
             },
             UTM: {
+                defaultFormat: 'ZB X Y',
+                customFormat: null,
+                useCustom: false
+            },
+            'UTM (H)': {
                 defaultFormat: 'ZH X Y',
                 customFormat: null,
                 useCustom: false

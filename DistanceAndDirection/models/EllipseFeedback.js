@@ -94,8 +94,20 @@ define([
                 'manual-ellipse-center-point-input',
                 dojoLang.hitch(this, this.onCenterPointManualInputHandler)
             );
+            
+            dojoTopic.subscribe(
+                'clear-points',
+                dojoLang.hitch(this, this.clearPoints)
+            ); 
         },
-
+        
+        /*
+        Handler for clearing out points
+        */
+        clearPoints: function (centerPoint) {
+            this._points = [];
+            this.map.graphics.clear();
+        },
         /*
         Handler for major axis manual input
         */

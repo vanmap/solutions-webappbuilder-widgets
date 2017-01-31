@@ -149,6 +149,7 @@ define([
         if (this.startGraphic) {
           this.map.graphics.remove(this.startGraphic);
         }
+        this.startGraphic = null;
       }
 
   });

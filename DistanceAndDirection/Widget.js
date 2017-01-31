@@ -268,11 +268,11 @@ define([
                       content: this.rangeTab
                   }
                 ]
-            }, this.tabContainer);
+            }, this.DDTabContainer);
             
             this.tab.selectTab('Lines');
             
-            var tabContainer1 = dijitRegistry.byId('tabContainer');
+            var tabContainer1 = dijitRegistry.byId('DDTabContainer');
     
             dojoAspect.after(tabContainer1, "selectTab", function() {
                 dojoTopic.publish('TAB_SWITCHED');        

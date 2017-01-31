@@ -162,11 +162,11 @@ define([
             content: this.createPointGRGTab
           }
         ]
-      }, this.tabContainer);
+      }, this.GRGTabContainer);
      
       this.tab.selectTab('Create GRG By Area');
       
-      var tabContainer1 = registry.byId('tabContainer');
+      var tabContainer1 = registry.byId('GRGTabContainer');
     
       aspect.after(tabContainer1, "selectTab", function() {
           dojoTopic.publish('TAB_SWITCHED');        

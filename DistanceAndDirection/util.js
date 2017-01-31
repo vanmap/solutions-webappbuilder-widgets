@@ -97,7 +97,7 @@ define([
               case 'DD':
                   break;
               case 'USNG':
-                  params.addSpaces = true;
+                  params.addSpaces = false;
                   params.numOfDigits = 5;
                   break;            
               case 'MGRS':            
@@ -118,6 +118,9 @@ define([
               case 'GARS':
                   params.conversionMode = 'garsDefault';
                   break;
+              case 'GEOREF':
+               params.strings.push(fromStr);
+               break;
             }
 
             return this.geomService.toGeoCoordinateString(params);
@@ -391,8 +394,12 @@ define([
             r.sourceValue = fromValue;
             r.sourceFormatString = withFormatStr;
 
-            r.gzd = fromValue[0].match(/\d{1,2}[C-HJ-NP-X]/)[0].trim();
-            r.grdsq = fromValue[0].match(/\s[a-zA-Z]{2}/)[0].trim();
+            if(fromValue[0].match(/^[ABYZ]/)) {
+              r.gzd = fromValue[0].match(/[ABYZ]/)[0].trim();            
+            } else {
+              r.gzd = fromValue[0].match(/\d{1,2}[C-HJ-NP-X]/)[0].trim(); 
+            }
+            r.grdsq = fromValue[0].replace(r.gzd, '').match(/[a-hJ-zA-HJ-Z]{2}/)[0].trim();
             r.easting = fromValue[0].replace(r.gzd + r.grdsq, '').match(/^\d{1,5}/)[0].trim();
             r.northing = fromValue[0].replace(r.gzd + r.grdsq, '').match(/\d{1,5}$/)[0].trim();
 

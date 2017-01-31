@@ -76,6 +76,11 @@ define([
                 customFormat: null,
                 useCustom: false
             },
+            GEOREF: {
+                defaultFormat: 'ABCDXY',
+                customFormat: null,
+                useCustom: false
+            },
             MGRS: {
                 defaultFormat: 'ZSXY',
                 customFormat: null,

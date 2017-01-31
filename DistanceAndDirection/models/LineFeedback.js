@@ -87,7 +87,19 @@ define([
             dojoTopic.subscribe(
                 'manual-line-end-point-input',
                 dojoLang.hitch(this, this.onLineEndManualInputHandler)
-            );            
+            ); 
+            dojoTopic.subscribe(
+                'clear-points',
+                dojoLang.hitch(this, this.clearPoints)
+            ); 
+        },
+        
+        /*
+        Handler for clearing out points
+        */
+        clearPoints: function (centerPoint) {
+            this._points = [];
+            this.map.graphics.clear();
         },
         
         /*

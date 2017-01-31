@@ -26,8 +26,14 @@
       <label data-dojo-attach-point="lineStartPointLabel">Start Point</label>
       <div class="controlItem">
         <input class="jimu-input coordInput" data-dojo-attach-point="startPointCoordsLine" />
-        <span class="frmtBtn" data-dojo-attach-point="coordinateFormatButtonLine"></span>
-        <div class="addPointBtn" data-dojo-attach-point="addPointBtnLine"></div>
+        <div class="controlItem paddedLeft">
+          <div class='add-with-icon'>
+            <span title="Format Input" class="jimu-icon jimu-icon-setting" data-dojo-attach-point="coordinateFormatButtonLine"></span>
+          </div>
+          <div class='add-with-icon'>
+            <div title="Draw Line" class="draw" data-dojo-attach-point="addPointBtnLine"></div>
+          </div>
+        </div>
     </div>
   </div>
 

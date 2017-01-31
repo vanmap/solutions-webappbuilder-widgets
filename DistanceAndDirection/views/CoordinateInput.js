@@ -49,13 +49,13 @@ define([
       //if (this.get('value').length < 4) return false;
 
       this.inputCoordinate.set('inputString', value);
+      
       //this.inputCoordinate.set('formatString', 'YN XE');
 
       this.set('invalidMessage', this.inputCoordinate.message);
       this.set('promptMessage', this.inputCoordinate.message);
-
-      //this.displayMessage();
-      return this.inputCoordinate.gettInputTypeSync();
+      
+      return true;
     }
   });
 

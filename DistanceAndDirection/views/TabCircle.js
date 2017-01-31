@@ -33,6 +33,7 @@ define([
   'dijit/TitlePane',
   'dijit/TooltipDialog',
   'dijit/popup',
+  'jimu/dijit/Message',
   'esri/layers/FeatureLayer',
   'esri/graphicsUtils',
   'esri/geometry/geometryEngine',
@@ -72,6 +73,7 @@ define([
   dijitTitlePane,
   DijitTooltipDialog,
   DijitPopup,
+  Message,
   EsriFeatureLayer,
   esriGraphicsUtils,
   esriGeometryEngine,
@@ -219,10 +221,6 @@ define([
         this.dt.on('draw-complete',
           dojoLang.hitch(this, this.feedbackDidComplete)
         ),
-
-        this.coordTool.on('blur',
-          dojoLang.hitch(this, this.coordToolDidLoseFocus)
-        ),
         
         dojoOn(this.coordTool, 'keyup',
           dojoLang.hitch(this, this.coordToolKeyWasPressed)
@@ -304,33 +302,30 @@ define([
         fl
       );
     },
-
-    /*
-     *
-     */
-    coordToolDidLoseFocus: function () {
-      this.coordTool.inputCoordinate.isManual = true;
-      //this.coordTool.set('validateOnInput', true);
-      this.coordTool.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r){
-       this.setCoordLabel(r.inputType);
-       this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
-     }));
-    },
     
     /*
      * catch key press in start point
      */
     coordToolKeyWasPressed: function (evt) {
-        if (evt.keyCode === dojoKeys.ENTER) {              
-            this.coordTool.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r) {
-                dojoTopic.publish(
-                  'manual-circle-center-point-input',
-                  this.coordTool.inputCoordinate.coordinateEsriGeometry
-                );
-                this.setCoordLabel(r.inputType);
-                this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
-            }));
-        }
+      if (evt.keyCode === dojoKeys.ENTER) {
+        this.coordTool.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r) {
+          if(r.inputType == "UNKNOWN"){
+            var alertMessage = new Message({
+              message: 'Unable to determine input coordinate type please check your input.'
+            });
+          } else {
+            dojoTopic.publish(
+              'manual-linestart-point-input',
+              this.coordTool.inputCoordinate.coordinateEsriGeometry
+            );
+            this.setCoordLabel(r.inputType);
+            var fs = this.coordinateFormat.content.formats[r.inputType];
+            this.coordTool.inputCoordinate.set('formatString', fs.defaultFormat);
+            this.coordTool.inputCoordinate.set('formatType', r.inputType);
+            this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
+          }
+        }));
+      }
     },
 
     /*
@@ -450,6 +445,7 @@ define([
      * Button click event, activate feedback tool
      */
     pointButtonWasClicked: function () {
+      dojoTopic.publish('clear-points');
       this.map.disableMapNavigation();
       this.dt.set('isDiameter', this.creationType.get('value') === 'Diameter');
       if (this.distCalcControl.get('open')) {

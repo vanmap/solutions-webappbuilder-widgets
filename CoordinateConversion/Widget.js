@@ -67,7 +67,8 @@ define([
               'GEOREF',
               'MGRS',
               'USNG',
-              'UTM'
+              'UTM',
+              'UTM (H)'
             ];
 
             if (this.config.coordinateconversion.initialCoords &&

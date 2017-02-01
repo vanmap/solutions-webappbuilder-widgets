@@ -164,6 +164,7 @@ define([
             var cPt = this.parentWidget.map.extent.getCenter();
             this.parentWidget.coordGLayer.add(new EsriGraphic(cPt));
             this.currentClickPoint = this.getDDPoint(cPt);
+            this.formatButton.title = 'Format Input';
           } else {
             dojoDomClass.add(this.cpbtn, 'outputCopyBtn');
             this.setHidden(this.addNewCoordinateNotationBtn);

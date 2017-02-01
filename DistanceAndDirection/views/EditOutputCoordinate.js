@@ -18,6 +18,7 @@
 define([
     'dojo/_base/declare',
     'dojo/_base/lang',
+    'dojo/dom-style',
     'dojo/on',
     'dojo/topic',
     'dojo/dom-attr',
@@ -30,6 +31,7 @@ define([
 ], function (
     dojoDeclare,
     dojoLang,
+    dojoDomStyle,
     dojoOn,
     dojoTopic,
     dojoDomAttr,
@@ -116,6 +118,8 @@ define([
             'change',
             dojoLang.hitch(this, this.formatValDidChange)
           ));
+          
+          this.displayPrefixContainer();
         },
 
         /**
@@ -141,6 +145,23 @@ define([
               : this.formats[curval].defaultFormat;
             this.ct = curval;
             dojoDomAttr.set(this.frmtVal, 'value', selval);
+            this.displayPrefixContainer();
+        },
+        
+        /**
+         *
+         **/
+        displayPrefixContainer: function () {
+          switch(this.frmtSelect.get('value')){
+            case 'DD':
+            case 'DDM':
+            case 'DMS':
+              dojoDomStyle.set(this.prefixContainer, {display: ""});
+              break;
+            default:
+              dojoDomStyle.set(this.prefixContainer, {display: "none"});
+              break;
+          }
         }
 
     });

@@ -97,12 +97,10 @@ define([
                   params.numOfDigits = 6;
                   break;
               case 'USNG':
-                  params.addSpaces = false;
                   params.numOfDigits = 5;
                   break;            
               case 'MGRS':            
                   params.conversionMode = 'mgrsDefault';
-                  params.addSpaces = false;
                   params.numOfDigits = 5;
                   break;
               case 'UTM (H)':
@@ -145,7 +143,6 @@ define([
             var params = {
                 sr: 4326,
                 conversionType: tt,
-
                 strings: []
             };
 
@@ -404,10 +401,9 @@ define([
             } else {
               r.gzd = fromValue[0].match(/\d{1,2}[C-HJ-NP-X]/)[0].trim(); 
             }
-            
-            r.grdsq = fromValue[0].match(/\s[a-zA-Z]{2}/)[0].trim();
-            r.easting = fromValue[0].match(/\s\d*\s/)[0].trim();
-            r.northing = fromValue[0].match(/\d{5}$/)[0].trim();
+            r.grdsq = fromValue[0].replace(r.gzd, '').match(/[a-hJ-zA-HJ-Z]{2}/)[0].trim();
+            r.easting = fromValue[0].replace(r.gzd + r.grdsq, '').match(/^\d{1,5}/)[0].trim();
+            r.northing = fromValue[0].replace(r.gzd + r.grdsq, '').match(/\d{1,5}$/)[0].trim();
 
             //Z S X# Y#
             var s = withFormatStr.replace(/Y/, r.northing);

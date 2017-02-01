@@ -53,7 +53,8 @@ define([
   '../views/EditOutputCoordinate',
   '../util',
   '../models/RangeRingFeedback',
-  'dijit/form/NumberTextBox'
+  'dijit/form/NumberTextBox',
+  'dijit/form/ValidationTextBox'
 ], function (
   dojoDeclare,
   dojoLang,
@@ -215,6 +216,8 @@ define([
         
         this.dt.on('draw-complete',dojoLang.hitch(this, this.feedbackDidComplete)),
         
+        dojoOn(this.ringIntervalInput, 'keyup',dojoLang.hitch(this, this.ringIntervalInputKeyWasPressed)),
+        
         dojoOn(this.numRadialsInput, 'keyup',dojoLang.hitch(this, this.numRadialsInputKeyWasPressed)),
         
         dojoOn(this.ringIntervalUnitsDD, 'change',dojoLang.hitch(this, this.ringIntervalUnitsDidChange)),
@@ -319,12 +322,39 @@ define([
     /*
      *
      */
+    ringIntervalInputKeyWasPressed: function (evt) {
+      // validate input
+      if(this.ringIntervalInput.get('value').indexOf(",") != -1)
+      {
+        this.numRingsInput.set('value','0'),
+        this.numRingsInput.set('disabled', true);
+      } else {
+        this.numRingsInput.set('value','3'),
+        this.numRingsInput.set('disabled', false);
+      }      
+    },    
+    
+    /*
+     *
+     */
     numRadialsInputKeyWasPressed: function (evt) {
       // validate input
-      if (evt.keyCode === dojoKeys.ENTER && this.getInputsValid()) {
+      if (evt.keyCode === dojoKeys.ENTER && this.getInputsValid()) {       
+          var numRings;
+          var ringInterval;
+          
+          if(this.ringIntervalInput.get('value').indexOf(",") != -1)
+          {
+            ringInterval = this.ringIntervalInput.get('value').split(",");
+            numRings = ringInterval.length;
+          } else {
+            ringInterval = this.ringIntervalInput.get('value');
+            numRings = this.numRingsInput.get('value');
+          }
+          
           var params = {
               centerPoint: this.dt.get('startPoint') || this.coordTool.inputCoordinate.coordinateEsriGeometry,
-              numRings: this.numRingsInput.get('value'),
+              numRings: numRings,
               numRadials: this.numRadialsInput.get('value'),
               radius: 0,
               circle: null,
@@ -333,7 +363,7 @@ define([
               r: 0,
               c: 0,
               radials: 0,
-              ringInterval: this.ringIntervalInput.get('value'),
+              ringInterval: ringInterval,
               ringIntervalUnitsDD: this.ringIntervalUnitsDD.get('value'),
               circleSym: this._circleSym
           };
@@ -345,93 +375,115 @@ define([
     /*
      *
      */
-    getInputsValid: function () {
-      return this.coordTool.isValid() &&
-      this.numRingsInput.isValid() &&
-      this.ringIntervalInput.isValid() &&
-      this.numRadialsInput.isValid();
+    getInputsValid: function () {      
+      if(this.numRingsInput.disabled)
+      {
+        return this.coordTool.isValid() && this.ringIntervalInput.isValid() && this.numRadialsInput.isValid();        
+      } else {
+        return this.coordTool.isValid() && this.numRingsInput.isValid() && this.ringIntervalInput.isValid() && this.numRadialsInput.isValid();
+      }
     },
 
     /*
      *
      */
     createRangeRings: function (params) {
-
-      if (params.centerPoint.spatialReference.wkid !== this.map.spatialReference.wkid) {
-        params.centerPoint = EsriWMUtils.geographicToWebMercator(
-          params.centerPoint
-        );
-      }
-
-      if (params.ringInterval && params.ringIntervalUnitsDD) {
-        params.ringDistance = this._util.convertToMeters(
-          params.ringInterval, params.ringIntervalUnitsDD);
-      }
-
-      this.dt.removeStartGraphic();
-      // create rings
-      if (params.circles.length === 0) {                
-        for (params.r = 0; params.r < params.numRings; params.r++) {
-          params.radius += params.ringDistance;
-          params.circle = new EsriCircle({
-              center: params.centerPoint,
-              geodesic: true,
-              radius: params.radius,
-              numberOfPoints: 360
-          });
-          params.circles.push(params.circle);
-        }          
-      }
-
-      var u = this.ringIntervalUnitsDD.get('value');
-      for (params.c = 0; params.c < params.circles.length; params.c++) {
-        var p = {
-          'paths': [params.circles[params.c].rings[0]],
-          'spatialReference': this.map.spatialReference
-        };
-        var circlePath = new EsriPolyline(p);
-        var cGraphic = new EsriGraphic(circlePath,
-          this._lineSym,
-          {
-            'Interval': dojoNumber.round(this._util.convertMetersToUnits(params.circles[params.c].radius, u)) + " " + this.ringIntervalUnitsDD.get('value').charAt(0).toUpperCase() + this.ringIntervalUnitsDD.get('value').slice(1)
-          }
-        );
-        this._gl.add(cGraphic);
-      }
-
-      // create radials
-      
-      //need to find largest radius
-      params.largestRadius = 0;            
-      for (var i = 0; i < params.circles.length; i++) {
-        if(params.circles[i].radius > params.largestRadius) {
-            params.largestRadius = params.circles[i].radius;
+      if(params.centerPoint)
+      {
+        if (params.centerPoint.spatialReference.wkid !== this.map.spatialReference.wkid) {
+          params.centerPoint = EsriWMUtils.geographicToWebMercator(
+            params.centerPoint
+          );
         }
-      }           
-                  
-      //create a new geodesic circle with the radius the same as the largest circle and only the same amount of points as radials
-      //if radials are 0 this will create a circle with the default value of 60
-      var radialCircle = new EsriCircle({
-        center: params.centerPoint,
-        geodesic: true,
-        radius: params.largestRadius,
-        numberOfPoints: params.numRadials
-      });
-      
-      //if no radials we dont need to draw
         
-      if(params.numRadials != 0) {        
-        //loop through each of the points of the new circle creating a line from the center point
-        for (var j = 0; j < radialCircle.rings[0].length - 1; j++) {              
-          var pLine = new EsriPolyline(params.centerPoint.spatialReference);  
-          pLine.addPath([dojoLang.clone(params.centerPoint),radialCircle.getPoint(0, j)]);                
-          var newline = new EsriPolyline(EsriGeometryEngine.geodesicDensify(pLine, 10000),params.centerPoint.spatialReference);              
-          this._gl.add(new EsriGraphic(newline, this._lineSym, {'Interval': ''}));
-        };
+        if (params.ringInterval && params.ringIntervalUnitsDD) {
+          if(params.ringInterval.constructor === Array) {
+            for (i = 0; i < params.ringInterval.length; i++) {
+              params.ringInterval[i] = this._util.convertToMeters(parseFloat(params.ringInterval[i]), params.ringIntervalUnitsDD);  
+            }            
+          } else {
+            params.ringDistance = this._util.convertToMeters(parseFloat(params.ringInterval), params.ringIntervalUnitsDD);
+          }
+        }
+
+        this.dt.removeStartGraphic();
+        // create rings
+        if (params.circles.length === 0) {
+          if(params.ringInterval.constructor === Array) {
+            for (i = 0; i < params.ringInterval.length; i++) {
+              params.radius += params.ringDistance;
+              params.circle = new EsriCircle({
+                  center: params.centerPoint,
+                  geodesic: true,
+                  radius: params.ringInterval[i],
+                  numberOfPoints: 360
+              });
+              params.circles.push(params.circle);  
+            }            
+          } else {
+            for (params.r = 0; params.r < params.numRings; params.r++) {
+              params.radius += params.ringDistance;
+              params.circle = new EsriCircle({
+                  center: params.centerPoint,
+                  geodesic: true,
+                  radius: params.radius,
+                  numberOfPoints: 360
+              });
+              params.circles.push(params.circle);
+            }
+          }                   
+        }
+
+        var u = this.ringIntervalUnitsDD.get('value');
+        for (params.c = 0; params.c < params.circles.length; params.c++) {
+          var p = {
+            'paths': [params.circles[params.c].rings[0]],
+            'spatialReference': this.map.spatialReference
+          };
+          var circlePath = new EsriPolyline(p);
+          var cGraphic = new EsriGraphic(circlePath,
+            this._lineSym,
+            {
+              'Interval': dojoNumber.round(this._util.convertMetersToUnits(params.circles[params.c].radius, u)) + " " + this.ringIntervalUnitsDD.get('value').charAt(0).toUpperCase() + this.ringIntervalUnitsDD.get('value').slice(1)
+            }
+          );
+          this._gl.add(cGraphic);
+        }
+
+        // create radials
+        
+        //need to find largest radius
+        params.largestRadius = 0;            
+        for (var i = 0; i < params.circles.length; i++) {
+          if(params.circles[i].radius > params.largestRadius) {
+              params.largestRadius = params.circles[i].radius;
+          }
+        }           
+                    
+        //create a new geodesic circle with the radius the same as the largest circle and only the same amount of points as radials
+        //if radials are 0 this will create a circle with the default value of 60
+        var radialCircle = new EsriCircle({
+          center: params.centerPoint,
+          geodesic: true,
+          radius: params.largestRadius,
+          numberOfPoints: params.numRadials
+        });
+        
+        //if no radials we dont need to draw
+          
+        if(params.numRadials != 0) {        
+          //loop through each of the points of the new circle creating a line from the center point
+          for (var j = 0; j < radialCircle.rings[0].length - 1; j++) {              
+            var pLine = new EsriPolyline(params.centerPoint.spatialReference);  
+            pLine.addPath([dojoLang.clone(params.centerPoint),radialCircle.getPoint(0, j)]);                
+            var newline = new EsriPolyline(EsriGeometryEngine.geodesicDensify(pLine, 10000),params.centerPoint.spatialReference);              
+            this._gl.add(new EsriGraphic(newline, this._lineSym, {'Interval': ''}));
+          };
+        }
+        
+        this._gl.redraw();
+        this.map.setExtent(radialCircle.getExtent().expand(3));
       }
-      
-      this._gl.redraw();
-      this.map.setExtent(radialCircle.getExtent().expand(3));
     },
 
     /*

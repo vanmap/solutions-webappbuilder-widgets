@@ -45,18 +45,12 @@
             <div class="controlItem">
                 <input data-dojo-attach-point="ringIntervalInput"
                        type="text"
-                       data-dojo-type="dijit/form/NumberTextBox"
+                       data-dojo-type="dijit/form/ValidationTextBox"
                        name="ringInterval"
-                       required="true" ,
-                       value="1000"
-                       data-dojo-props="constraints:{
-                  min:1,
-                  max: 100000,
-                  places: 0
-                },
-                 rangeMessage:'Invalid Distance Between Rings',
-                 invalidMessage: 'Enter a numeric value'
-               " />
+                       required="true"
+                       value="1000"                       
+                       regExp="[0-9]*|([0-9]+[,][0-9]+)*"
+                       invalidMessage='Enter a single numeric value or multiple comma seperated values (1000,2000,3000)'/>
                 <select data-dojo-attach-point="ringIntervalUnitsDD"
                         style="width: 100px"
                         class="controlSpace"

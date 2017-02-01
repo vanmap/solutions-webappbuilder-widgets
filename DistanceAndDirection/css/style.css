@@ -18,6 +18,7 @@
 
 .claro .dijitTextBox .dijitInputInner {
   height: 20px;
+  text-align: right;
 }
 
 .jimu-widget-DistanceAndDirection .tabPanel {

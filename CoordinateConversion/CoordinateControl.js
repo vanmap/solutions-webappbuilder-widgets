@@ -463,18 +463,18 @@ define([
             switch (asType.name) {
               case 'DD':
                 northSouthPrefix = match[2];
-                northSouthSuffix = match[6];
-                eastWestPrefix = match[9];
-                eastWestSuffix = match[14];
+                northSouthSuffix = match[7];
+                eastWestPrefix = match[10];
+                eastWestSuffix = match[16];
                 latDeg = match[3];
-                longDeg = match[10];             
+                longDeg = match[11];             
                 break; 
               case 'DDrev':
-                northSouthPrefix = match[10];
-                northSouthSuffix = match[14];
+                northSouthPrefix = match[11];
+                northSouthSuffix = match[16];
                 eastWestPrefix = match[2];
-                eastWestSuffix = match[7];
-                latDeg = match[11];
+                eastWestSuffix = match[8];
+                latDeg = match[12];
                 longDeg = match[3];  
                 asType.name = 'DD';            
                 break;            

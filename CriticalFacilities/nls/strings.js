@@ -6,6 +6,7 @@
     submit: "Submit",
     clear: "Clear",
     schemaMappingInstructions: "Please drag/drop a CSV onto the map.\nThis widget will assist with processing the CSV data when it is made avalible.",
+    loadWarning: "This widget requires a Feature Service datasource. Please configure the widget to define a datasource.",
     addressFieldLabel: "Address",
     useAddress: "Single Field Address",
     useMultiAddress: "Multi Field Address",
@@ -14,7 +15,11 @@
     useXY: "X/Y Fields",
     saveError: "Error saving features.",
     noValue: "Select a Value",
-    consumesCredits: "This tool consumes credits when used with the ArcGIS Online World Geocoding Service"
+    consumesCredits: "This tool consumes credits when used with the ArcGIS Online World Geocoding Service",
+    address: "Address",
+    city: "City",
+    state: "State",
+    zip: "Zip"
   }),
   "ar": 0,
   "cs": 0,

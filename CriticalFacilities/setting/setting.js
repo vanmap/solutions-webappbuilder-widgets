@@ -237,16 +237,23 @@ define([
           }
         }));
 
-        var configLayerInfo = this.config.layerInfos[0];
         var trs = this._layersTable.getRows();
-        for (var i = 0; i < trs.length; i++) {
-          var tr = trs[i];
-          var rc = this._getRowConfig(tr);
-          if (rc.featureLayer.id === configLayerInfo.featureLayer.id) {
-            var radio = query('input', tr.firstChild)[0];
-            radio.checked = true;
-            break;
+        var tr;
+        if (this.config.layerInfos && this.config.layerInfos.hasOwnProperty(0)) {
+          var configLayerInfo = this.config.layerInfos[0];       
+          for (var i = 0; i < trs.length; i++) {
+            tr = trs[i];
+            var rc = this._getRowConfig(tr);
+            if (rc.featureLayer.id === configLayerInfo.featureLayer.id) {
+              break;
+            }
           }
+        } else {
+          tr = trs[0];
+        }
+        if (tr) {
+          var radio = query('input', tr.firstChild)[0];
+          radio.checked = true;
         }
       },
 
@@ -303,18 +310,15 @@ define([
       _getDefaultFieldInfos: function (layerObject) {
         var fieldInfos = [];
         for (var i = 0; i < layerObject.fields.length; i++) {
-          if (layerObject.fields[i].editable ||
-            layerObject.fields[i].name.toLowerCase() === "globalid" ||
-            layerObject.fields[i].name === layerObject.objectIdField) {
+          if (layerObject.fields[i].editable &&
+            layerObject.fields[i].name !== layerObject.globalIdField &&
+            layerObject.fields[i].name !== layerObject.objectIdField) {
             fieldInfos.push({
               fieldName: layerObject.fields[i].name,
               label: layerObject.fields[i].alias || layerObject.fields[i].name,
-              isEditable: (layerObject.fields[i].name.toLowerCase() === "globalid" ||
-                          layerObject.fields[i].name === layerObject.objectIdField) &&
-                          !layerObject.fields[i].editable ?
-                          null :
-                          true,
-              visible: true
+              isEditable: layerObject.fields[i].editable,
+              visible: true,
+              type: layerObject.fields[i].type
             });
           }
         }
@@ -326,15 +330,15 @@ define([
         var wFieldInfos = this.getFieldInfosFromWebmap(layerObject.id, this._operLayerInfos);
         if (wFieldInfos) {
           array.forEach(wFieldInfos, function (fi) {
-            if (fi.isEditableOnLayer !== undefined &&
-              (fi.isEditableOnLayer || fi.fieldName === layerObject.globalIdField ||
-              fi.fieldName === layerObject.objectIdField)) {
+            if ((fi.isEditableOnLayer !== undefined && fi.isEditableOnLayer) &&
+              fi.fieldName !== layerObject.globalIdField &&
+              fi.fieldName !== layerObject.objectIdField) {
               fieldInfos.push({
                 fieldName: fi.fieldName,
                 label: fi.label,
-                isEditable: (fi.fieldName === layerObject.globalIdField || fi.fieldName === layerObject.objectIdField)
-                  && !fi.isEditable ? null : fi.isEditable,
-                visible: fi.visible
+                isEditable: fi.isEditable,
+                visible: fi.visible,
+                type: fi.fieldType
               });
             }
           });

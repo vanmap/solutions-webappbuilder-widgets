@@ -45,6 +45,8 @@ define(['dojo/_base/declare',
     _geocodeSources: null,
     _configLayerInfo: null,
     _useAddr: true,
+    _valid: false,
+    addrType: "addr",
 
     //TODO need a way to update map results
     //TODO need a way for the user to process the results prior to submit
@@ -81,34 +83,43 @@ define(['dojo/_base/declare',
       domStyle.set(this.clearMapData, "display", "none");
       domStyle.set(this.submitData, "display", "none");
 
-      this._configLayerInfo = this.config.layerInfos[0];
-      this._url = this._configLayerInfo.featureLayer.url;
-      this._geocodeSources = this.config.sources;
+      if (this.config.layerInfos && this.config.layerInfos.hasOwnProperty(0)) {
+        this._valid = true;
+        domStyle.set(this.loadWarning, "display", "none");
+        this._configLayerInfo = this.config.layerInfos[0];
+        this._url = this._configLayerInfo.featureLayer.url;
+        this._geocodeSources = this.config.sources;
 
-      this._fsFields = [];
-      if (this._configLayerInfo) {
-        array.forEach(this._configLayerInfo.fieldInfos, lang.hitch(this, function (field) {
-          if (field && field.visible) {
-            this._fsFields.push({ "name": field.fieldName, "value": field.type });
-            this.addFieldRow(this.schemaMapTable, field.fieldName);
-          }
+        this._fsFields = [];
+        if (this._configLayerInfo) {
+          array.forEach(this._configLayerInfo.fieldInfos, lang.hitch(this, function (field) {
+            if (field && field.visible) {
+              this._fsFields.push({ "name": field.fieldName, "value": field.type });
+              this.addFieldRow(this.schemaMapTable, field.fieldName);
+            }
+          }));
+          //domStyle.set(this.schemaMapContainer, "display", this._fsFields.length === 0 ? "none" : "block");
+
+          var multiAddrFields = [this.nls.address, this.nls.city, this.nls.state, this.nls.zip];
+          array.forEach(multiAddrFields, lang.hitch(this, function (addr) {
+            this.addFieldRow(this.addressMultiTable, addr);
+          }));
+
+          this.addFieldRow(this.addressTable, this.nls.addressFieldLabel);
+          this.addFieldRow(this.xyTable, this.nls.xyFieldsLabelX);
+          this.addFieldRow(this.xyTable, this.nls.xyFieldsLabelY);
+        }
+
+        LayerInfos.getInstance(this.map, this.map.itemInfo).then(lang.hitch(this, function (operLayerInfos) {
+          this.opLayers = operLayerInfos;
+          this.editLayer = operLayerInfos.getLayerInfoById(this._configLayerInfo.featureLayer.id).layerObject;
         }));
-        //domStyle.set(this.schemaMapContainer, "display", this._fsFields.length === 0 ? "none" : "block");
-
-        var multiAddrFields = ["Address", "City", "State", "Zip"];
-        array.forEach(multiAddrFields, lang.hitch(this, function (addr) {
-          this.addFieldRow(this.addressMultiTable, addr);//TODO NLS
-        }));
-
-        this.addFieldRow(this.addressTable, this.nls.addressFieldLabel);
-        this.addFieldRow(this.xyTable, this.nls.xyFieldsLabelX);
-        this.addFieldRow(this.xyTable, this.nls.xyFieldsLabelY);
+      } else {
+        //set the default UI to none
+        //domStyle.set(this.mainContainer, "display", "none");
+        domStyle.set(this.schemaMapInstructions, "display", "none");
+        domStyle.set(this.loadWarning, "display", "block");
       }
-
-      LayerInfos.getInstance(this.map, this.map.itemInfo).then(lang.hitch(this, function (operLayerInfos) {
-        this.opLayers = operLayerInfos;
-        this.editLayer = operLayerInfos.getLayerInfoById(this._configLayerInfo.featureLayer.id).layerObject;
-      }));
     },
 
     addFieldRow: function (tableNode, keyField) {
@@ -145,33 +156,35 @@ define(['dojo/_base/declare',
     },
 
     onDrop: function (event) {
-      event.preventDefault();
+      if (this._valid) {
+        event.preventDefault();
 
-      var dataTransfer = event.dataTransfer,
-        files = dataTransfer.files,
-        types = dataTransfer.types;
+        var dataTransfer = event.dataTransfer,
+          files = dataTransfer.files,
+          types = dataTransfer.types;
 
-      if (files && files.length > 0) {
-        var file = files[0];//single file for the moment
-        if (file.name.indexOf(".csv") !== -1) {
-          this.myCsvStore = new CsvStore({
-            inFile: file,
-            inArrayFields: this._fsFields,
-            inMap: this.map,
-            geocodeSources: this._geocodeSources,
-            nls: this.nls
-          });
-          this.myCsvStore.onHandleCsv().then(lang.hitch(this, function (obj) {
-            this._updateFieldControls(this.schemaMapTable, obj, true, true);
-            this._updateFieldControls(this.xyTable, obj, true, false);
-            this._updateFieldControls(this.addressTable, obj, false, false);
-            this._updateFieldControls(this.addressMultiTable, obj, false, false);
+        if (files && files.length > 0) {
+          var file = files[0];//single file for the moment
+          if (file.name.indexOf(".csv") !== -1) {
+            this.myCsvStore = new CsvStore({
+              inFile: file,
+              inArrayFields: this._fsFields,
+              inMap: this.map,
+              geocodeSources: this._geocodeSources,
+              nls: this.nls
+            });
+            this.myCsvStore.onHandleCsv().then(lang.hitch(this, function (obj) {
+              this._updateFieldControls(this.schemaMapTable, obj, true, true);
+              this._updateFieldControls(this.xyTable, obj, true, false);
+              this._updateFieldControls(this.addressTable, obj, false, false);
+              this._updateFieldControls(this.addressMultiTable, obj, false, false);
 
-            domStyle.set(this.schemaMapInstructions, "display", "none");
-            domStyle.set(this.mainContainer, "display", "block");
-          }));
+              domStyle.set(this.schemaMapInstructions, "display", "none");
+              domStyle.set(this.mainContainer, "display", "block");
+            }));
+          }
+          this.panalManager.openPanel(this.getPanel());
         }
-        this.panalManager.openPanel(this.getPanel());
       }
     },
 

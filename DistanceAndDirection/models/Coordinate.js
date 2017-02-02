@@ -135,16 +135,16 @@ define([
             northSouthSuffix = match[7];
             eastWestPrefix = match[10];
             eastWestSuffix = match[16];
-            latDeg = match[3];
-            longDeg = match[11];             
+            latDeg = match[3].replace(/[,:]/, '.');
+            longDeg = match[11].replace(/[,:]/, '.');             
             break; 
           case 'DDrev':
             northSouthPrefix = match[11];
             northSouthSuffix = match[16];
             eastWestPrefix = match[2];
             eastWestSuffix = match[8];
-            latDeg = match[12];
-            longDeg = match[3];  
+            latDeg = match[12].replace(/[,:]/, '.');
+            longDeg = match[3].replace(/[,:]/, '.');  
             asType.name = 'DD';            
             break;            
           case 'DDM':            
@@ -153,9 +153,9 @@ define([
             eastWestPrefix = match[10];
             eastWestSuffix = match[15];
             latDeg = match[3];
-            latMin = match[4];
+            latMin = match[4].replace(/[,:]/, '.');
             longDeg = match[11];
-            longMin = match[12];                
+            longMin = match[12].replace(/[,:]/, '.');                
             break;
           case 'DDMrev':
             northSouthPrefix = match[10];
@@ -163,9 +163,9 @@ define([
             eastWestPrefix = match[2];
             eastWestSuffix = match[7];
             latDeg = match[11];
-            latMin = match[12];
+            latMin = match[12].replace(/[,:]/, '.');
             longDeg = match[3];
-            longMin = match[4];                
+            longMin = match[4].replace(/[,:]/, '.');                
             asType.name = 'DDM';            
             break;
           case 'DMS':
@@ -175,10 +175,10 @@ define([
             eastWestSuffix = match[17];
             latDeg = match[3];
             latMin = match[4];
-            latSec = match[5];
+            latSec = match[5].replace(/[,:]/, '.');
             longDeg = match[12];
             longMin = match[13];
-            longSec = match[14];
+            longSec = match[14].replace(/[,:]/, '.');
             asType.name = 'DMS';               
             break;
           case 'DMSrev':
@@ -188,10 +188,10 @@ define([
             eastWestSuffix = match[8];
             latDeg = match[12];
             latMin = match[13];
-            latSec = match[14];
+            latSec = match[14].replace(/[,:]/, '.');
             longDeg = match[3];
             longMin = match[4];
-            longSec = match[5];
+            longSec = match[5].replace(/[,:]/, '.');
             asType.name = 'DMS';               
             break;
         }

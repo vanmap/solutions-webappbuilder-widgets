@@ -133,7 +133,6 @@ define(['dojo/_base/declare',
       }, tr);
 
       var c = domConstruct.create('td', {
-        'class': 'field-control-node-td'
       }, tr);
 
       var selectFields = new Select({
@@ -318,11 +317,13 @@ define(['dojo/_base/declare',
       domClass.remove(container, removeClass);
       domClass.add(container, removeClass === 'content-show' ? 'content-hide' : 'content-show');
 
-      //if (container.className.indexOf("content-show") == -1) {
-      //  x.className += " w3-show";
-      //} else {
-      //  x.className = x.className.replace(" w3-show", "");
-      //}
+      var accordian = container.previousElementSibling;
+      if (domClass.contains(accordian, 'bottom-radius')) {
+        domStyle.set(accordian, 'border-radius', removeClass === 'content-hide' ? '0 0 0 0' : '0 0 4px 4px');
+      }
+
+      domClass.remove(accordian.children[1], removeClass === 'content-hide' ? 'image-down' : 'image-up');
+      domClass.add(accordian.children[1], removeClass === 'content-hide' ? 'image-up' : 'image-down');
     },
 
     onClearClick: function () {

@@ -1,27 +1,28 @@
 <div style="width: 100%; height: 100%;">
   <div data-dojo-attach-point="mainContainer">
-    <div class="main-container">
-      <div class="accordion-btn jimu-main-background" data-dojo-type="jimu/dijit/Button" data-click-params="locationMapContainer" data-dojo-attach-event="onclick:toggleContainer">
-        ${nls.locationMapping}
+    <div class="box-shadow bottom-radius">
+      <div class="accordion-btn jimu-main-background top-radius" data-dojo-type="jimu/dijit/Button" data-click-params="locationMapContainer" data-dojo-attach-event="onclick:toggleContainer">
+        <div class="btn-title">${nls.locationMapping}</div>
+        <div class="expand-image image-down"></div>
       </div>
-      <div class="location-map-container content-hide" data-dojo-attach-point="locationMapContainer">
+      <div class="content-container content-hide box-shadow" data-dojo-attach-point="locationMapContainer">
         <!--Single Line Address-->
-        <div class="" data-dojo-attach-point="useAddrNode">
-          <input class="location-radio-btn" name="locationOption" type="radio" data-dojo-type="jimu/dijit/RadioBtn" value="addr"
-                 checked=true data-dojo-attach-point="useAddrNode">
+        <div data-dojo-attach-point="useAddrNode">
+          <input name="locationOption" type="radio" data-dojo-type="jimu/dijit/RadioBtn" value="addr"
+                  checked=true data-dojo-attach-point="useAddrNode">
           <label>${nls.useAddress}</label>
         </div>
         <div class="location-body" data-dojo-attach-point="addressBodyContainer">
           <div class="schema-map-body" data-dojo-attach-point="addressBody">
             <table class="schema-map-table">
-              <tbody class="schema-map-table-body" data-dojo-attach-point="addressTable"></tbody>
+              <tbody data-dojo-attach-point="addressTable"></tbody>
             </table>
           </div>
         </div>
         <!--Multi-line Address-->
         <div class="" data-dojo-attach-point="useMultiAddrNode">
-          <input class="location-radio-btn" name="locationOption" type="radio" data-dojo-type="jimu/dijit/RadioBtn" value="MultiAddr"
-                 data-dojo-attach-point="useMultiAddrNode">
+          <input name="locationOption" type="radio" data-dojo-type="jimu/dijit/RadioBtn" value="MultiAddr"
+                  data-dojo-attach-point="useMultiAddrNode">
           <label>${nls.useMultiAddress}</label>
         </div>
         <div class="location-body" data-dojo-attach-point="addressMultiBodyContainer">
@@ -33,8 +34,8 @@
         </div>
         <!--X/Y-->
         <div data-dojo-attach-point="useXYNode">
-          <input class="location-radio-btn" name="locationOption" type="radio" data-dojo-type="jimu/dijit/RadioBtn" value="xy"
-                 data-dojo-attach-point="useXYNode">
+          <input name="locationOption" type="radio" data-dojo-type="jimu/dijit/RadioBtn" value="xy"
+                  data-dojo-attach-point="useXYNode">
           <label>${nls.useXY}</label>
         </div>
         <div class="location-body" data-dojo-attach-point="xyBodyContainer">
@@ -45,12 +46,12 @@
           </div>
         </div>
       </div>
-
       <!--Schema Map-->
-      <div class="accordion-btn jimu-main-background" data-dojo-type="jimu/dijit/Button" data-click-params="schemaMapContainer" data-dojo-attach-event="onclick:toggleContainer">
-        ${nls.schemaMapping}
+      <div class="accordion-btn jimu-main-background bottom-radius" data-dojo-type="jimu/dijit/Button" data-click-params="schemaMapContainer" data-dojo-attach-event="onclick:toggleContainer">
+        <div class="btn-title">${nls.schemaMapping}</div> 
+        <div class="expand-image image-down"></div>
       </div>
-      <div class="schema-map-container content-hide" data-dojo-attach-point="schemaMapContainer">
+      <div class="content-container content-hide box-shadow bottom-radius" data-dojo-attach-point="schemaMapContainer">
         <div class="schema-map-body" data-dojo-attach-point="schemaMapBody">
           <table class="schema-map-table">
             <tbody class="schema-map-table-body" data-dojo-attach-point="schemaMapTable"></tbody>
@@ -70,13 +71,13 @@
     </div>
   </div>
   <!--will use this to show something before CSV is dragged onto map-->
-  <div class="schema-map-instructions" data-dojo-attach-point="schemaMapInstructions">
+  <div data-dojo-attach-point="schemaMapInstructions">
     <span>${nls.schemaMappingInstructions}</span>
     <div class="credit-warning-container">
       <a class="credit-warning" href="http://www.esri.com/software/arcgis/arcgisonline/credits">${nls.consumesCredits}</a>
     </div>
   </div>
-  <div class="schema-map-instructions warning-instruction" data-dojo-attach-point="loadWarning">
+  <div class="warning-instruction" data-dojo-attach-point="loadWarning">
     <span>${nls.loadWarning}</span>
   </div>
 </div>

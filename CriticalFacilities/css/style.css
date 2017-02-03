@@ -74,6 +74,10 @@
   border-color: #e0e0e0;
 }
 
+.jimu-widget-critical-facilities .field-control-node-td{
+
+}
+
 .jimu-widget-critical-facilities .location-body{
   padding-left: 20px;
 }
@@ -85,6 +89,11 @@
 .jimu-widget-critical-facilities .btn{
   float: right;
   margin-left: 10px;
+}
+
+.jimu-widget-critical-facilities .disabled{
+  cursor: default;
+  background-color: #a0acbf;
 }
 
 .jimu-rtl .jimu-widget-critical-facilities .btn{

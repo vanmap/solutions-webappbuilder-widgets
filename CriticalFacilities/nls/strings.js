@@ -1,10 +1,11 @@
 ﻿define({
   root: ({
-    schemaMapping: "Schema Mapping",
+    schemaMapping: "Field Mapping",
     locationMapping: "Location Mapping",
     addToMap: "Add to map",
     submit: "Submit",
     clear: "Clear",
+    update: "Update",
     schemaMappingInstructions: "Please drag/drop a CSV onto the map.\nThis widget will assist with processing the CSV data when it is made avalible.",
     loadWarning: "This widget requires a Feature Service datasource. Please configure the widget to define a datasource.",
     addressFieldLabel: "Address",

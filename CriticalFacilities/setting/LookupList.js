@@ -36,6 +36,7 @@ define(['dojo/_base/declare',
         this.nls = options.nls;
         this.row = options.row;
         this.fieldName = options.fieldName;
+        this.isRecognizedValues = options.isRecognizedValues;
       },
 
       postMixInProperties: function(){
@@ -46,8 +47,13 @@ define(['dojo/_base/declare',
       postCreate: function () {
         this.inherited(arguments);
         this._initList();
-        if (typeof(this.isRecognizedValues) === 'array') {
-          array.forEach(this.isRecognizedValues, lang.hitch(this, function (v) {
+        var aaa;
+        if (this.isRecognizedValues !== "") {
+          aaa = JSON.parse(this.isRecognizedValues);
+        }
+
+        if (aaa && aaa.length > 0) {
+          array.forEach(aaa, lang.hitch(this, function (v) {
             this._addRow(v);
           }));
         } else {

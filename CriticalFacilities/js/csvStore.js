@@ -86,33 +86,61 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
         var def = new Deferred();
         this.locateData().then(lang.hitch(this, function (data) {
           try{
-            this.featureCollection = this._generateFeatureCollection();
+            this._generateFeatureCollection();
+            this._generateUnMatchedFeatureCollection();
           
             //TODO I have no idea if this is really safe...are the items gaurenteed to be returned in the same order as they were sent?
             // Has to be a safer way to do this.
+            var unmatchedI = 0;
             for (var i = 0; i < this.storeItems.length; i++) {
               var attributes = {};
               var si = this.storeItems[i];
               var di = data[i];
-              if (di) { //TODO this is a crappy workaround until the chunking is done properly
-                array.forEach(this.inArrayFields, lang.hitch(this, function (f) {
-                  attributes[f.name] = this.csvStore.getValue(si, this.mappedArrayFields[f.name]);
-                }));
-                attributes["ObjectID"] = i;
+              array.forEach(this.inArrayFields, lang.hitch(this, function (f) {
+                attributes[f.name] = this.csvStore.getValue(si, this.mappedArrayFields[f.name]);
+              }));
+              //TODO could also have a score threshold evaluated here
+              if (di) {
+                attributes["ObjectID"] = i - unmatchedI;
                 this.featureCollection.featureSet.features.push({
                   "geometry": di.location,
                   "attributes": lang.clone(attributes)
                 });
+              } else {
+                attributes["ObjectID"] = unmatchedI;
+                //TODO need to handle the null location by doing something
+                this.unMatchedFeatureCollection.featureSet.features.push({
+                  "geometry": new Point(0, 0, this.inMap.spatialReference),
+                  "attributes": lang.clone(attributes)
+                });
+                unmatchedI++;
               }
             }
+
+            if (unmatchedI > 0) {
+              this.unMatchedFeatureLayer = new FeatureLayer(this.unMatchedFeatureCollection, {
+                id: this.inFile.name += "_UnMatched",
+                editable: true,
+                outFields: ["*"]
+              });
+
+              var b = new Color([0, 255, 0, 0.5]); // hex is #ff4500
+              this.unMatchedFeatureLayer.setRenderer(new SimpleRenderer(new SimpleMarkerSymbol("solid", 10, null, b)));
+              on(this.unMatchedFeatureLayer, "click", function (e) {
+                console.log("UnMatched FL clicked");
+                console.log(e.graphic);
+                console.log("X: " + e.graphic.geometry.x + ", Y: " + e.graphic.geometry.y);
+              });
+              this.inMap.addLayers([this.unMatchedFeatureLayer]);
+            }
+
 
             this.featureLayer = new FeatureLayer(this.featureCollection, {
               id: this.inFile.name,
               editable: true,
               outFields: ["*"]
             });
-
-            var orangeRed = new Color([238, 69, 0, 0.5]); // hex is #ff4500
+            var orangeRed = new Color([238, 69, 0, 0.2]); // hex is #ff4500
             this.featureLayer.setRenderer(new SimpleRenderer(new SimpleMarkerSymbol("solid", 10, null, orangeRed)));
             on(this.featureLayer, "click", function (e) {
               console.log("FL clicked");
@@ -121,7 +149,6 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
             });
             this.inMap.addLayers([this.featureLayer]);
             this.onZoomToData(this.featureLayer);
-            this.emit('complete');
             def.resolve('complete');
           } catch (err) {
             console.log(err);
@@ -207,7 +234,7 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
           }));
         }
 
-        var max = 1000;
+        var max = 2;
         var geocodeOps = [];
         var x = 0;
         var i, j;
@@ -246,8 +273,9 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
           var finalResults = [];
           if (results) {
             array.forEach(results, function (r) {
-              var t = r[1][0];
-              finalResults.push(t);
+              array.forEach(r[1], function (_r) {
+                finalResults.push(_r);
+              });
             });
             def.resolve(finalResults);
           }
@@ -300,9 +328,61 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
         return this.featureCollection;
       },
 
+      _generateUnMatchedFeatureCollection: function () {
+        //create a feature collection for the null results from the
+        // geocode operation
+        this.unMatchedFeatureCollection = {
+          "layerDefinition": {
+            "geometryType": "esriGeometryPoint",
+            "objectIdField": this.objectIdField,
+            "type": "Feature Layer",
+            "drawingInfo": {
+              "renderer": {
+                "type": "simple",
+                "symbol": {
+                  "type": "esriPMS",
+                  "url": "https://static.arcgis.com/images/Symbols/Basic/RedSphere.png",
+                  "contentType": "image/png",
+                  "width": 15,
+                  "height": 15
+                }
+              }
+            },
+            "fields": [
+                {
+                  "name": this.objectIdField,
+                  "alias": this.objectIdField,
+                  "type": "esriFieldTypeOID"
+                }
+            ]
+          },
+          "featureSet": {
+            "features": [],
+            "geometryType": "esriGeometryPoint"
+          }
+        };
+
+        array.forEach(this.inArrayFields, lang.hitch(this, function (af) {
+          this.unMatchedFeatureCollection.layerDefinition.fields.push({
+            "name": af.name,
+            "alias": af.name,
+            "type": af.value,
+            "editable": true,
+            "domain": null
+          });
+        }));
+        return this.unMatchedFeatureCollection;
+      },
+
       clear: function () {
-        this.inMap.removeLayer(this.featureLayer);
-        this.featureLayer.clear();
+        if (this.featureLayer) {
+          this.inMap.removeLayer(this.featureLayer);
+          this.featureLayer.clear();
+        }
+        if (this.unMatchedFeatureLayer) {
+          this.inMap.removeLayer(this.unMatchedFeatureLayer);
+          this.unMatchedFeatureLayer.clear();
+        }
         this.inFile = undefined;
         this.inArrayFields = undefined;
         this.fileData = undefined;
@@ -312,6 +392,7 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
         this.storeItems = undefined;
         this.featureCollection = undefined;
         this.featureLayer = undefined;
+        this.unMatchedFeatureLayer = undefined;
         this.correctFieldNames = undefined;
         this.mappedArrayFields = undefined;
         this.useAddr = true;
@@ -401,6 +482,7 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
 
       onZoomToData: function (featureLayer) {
         if (featureLayer.graphics && featureLayer.graphics.length > 0) {
+          //TODO this would not handle null features
           var ext = graphicsUtils.graphicsExtent(featureLayer.graphics);
           this.inMap.setExtent(ext.expand(1.5), true)
         }

@@ -83,7 +83,7 @@ define(['dojo/_base/declare',
           name: 'actions',
           title: this.nls.actions,
           type: 'actions',
-          actions: ['up', 'down'], //actions: ['up', 'down', 'edit'],
+          actions: ['up', 'down'], //['up', 'down', 'edit']
           'class': 'actions'
         }, {
           name: 'type',
@@ -91,6 +91,11 @@ define(['dojo/_base/declare',
           type: 'text',
           editable: true,
           hidden: true
+        }, {
+          name: 'isRecognizedValues',
+          type: 'text',
+          hidden: true,
+          editable: true
         }];
         var args2 = {
           fields: fields2,
@@ -116,7 +121,8 @@ define(['dojo/_base/declare',
               fieldName: fieldInfo.fieldName,
               label: fieldInfo.label,
               visible: fieldInfo.visible,
-              type: fieldInfo.type
+              type: fieldInfo.type,
+              isRecognizedValues: fieldInfo.isRecognizedValues
             });
           }
         }, this);
@@ -129,6 +135,13 @@ define(['dojo/_base/declare',
         }
       },
 
+      _onIsRecognizedListChanged: function (tr) {
+        var rowData = this._fieldsTable.getRowData(tr);
+        tr.isRecognizedValues = this.isRecognizedValues;
+        rowData.isRecognizedValues = JSON.stringify(this.isRecognizedValues);
+        this._fieldsTable.editRow(tr, rowData);
+      },
+
       _resetFieldInfos: function() {
         var newFieldInfos = [];
         var fieldsTableData =  this._fieldsTable.getData();
@@ -137,7 +150,8 @@ define(['dojo/_base/declare',
             "fieldName": fieldData.fieldName,
             "label": fieldData.label,
             "visible": fieldData.visible,
-            "type": fieldData.type
+            "type": fieldData.type,
+            "isRecognizedValues": fieldData.isRecognizedValues
           });
         });
         this._layerInfo.fieldInfos = newFieldInfos;
@@ -148,7 +162,7 @@ define(['dojo/_base/declare',
           nls: this.nls,
           row: tr,
           fieldName: tr.childNodes[1].innerText,
-          isRecognizedValues: this.isRecognizedValues
+          isRecognizedValues: tr.lastChild.textContent
         });
 
         var popup = new Popup({
@@ -159,11 +173,13 @@ define(['dojo/_base/declare',
           buttons: [{
             label: this.nls.ok,
             onClick: lang.hitch(this, function () {
-              //var sourceListRows = popup.content.sourceList.getRows();
-              //this.isRecognizedValues = [];
-              //array.forEach(sourceListRows, lang.hitch(this, function (tr) {
-              //  this.isRecognizedValues.push(query(tr).data('config')[0]);
-              //}));
+              //var data = popup.content.sourceList.getData();
+              var sourceListRows = popup.content.sourceList.getRows();
+              this.isRecognizedValues = [];
+              array.forEach(sourceListRows, lang.hitch(this, function (_tr) {
+                this.isRecognizedValues.push(query(_tr).data('config')[0]);
+              }));
+              this._onIsRecognizedListChanged(popup.content.row);
               popup.close();
             })
           }, {

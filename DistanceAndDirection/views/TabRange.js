@@ -273,7 +273,7 @@ define([
             });
           } else {
             dojoTopic.publish(
-              'manual-linestart-point-input',
+              'manual-rangering-center-point-input',
               this.coordTool.inputCoordinate.coordinateEsriGeometry
             );
             this.setCoordLabel(r.inputType);

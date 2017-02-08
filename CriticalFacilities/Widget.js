@@ -189,9 +189,9 @@ define(['dojo/_base/declare',
           var file = files[0];//single file for the moment
           if (file.name.indexOf(".csv") !== -1) {
             this.myCsvStore = new CsvStore({
-              inFile: file,
-              inArrayFields: this._fsFields,
-              inMap: this.map,
+              file: file,
+              arrayFields: this._fsFields,
+              map: this.map,
               geocodeSources: this._geocodeSources,
               nls: this.nls
             });
@@ -236,43 +236,29 @@ define(['dojo/_base/declare',
 
         node.selectFields.addOption({ label: noValue, value: noValue });
 
-        var ftInt = ["esriFieldTypeSmallInteger", "esriFieldTypeInteger", "esriFieldTypeSingle"];
-        var ftFloat = ["esriFieldTypeDouble"];
-        var test = {};
+        var ints = ["esriFieldTypeSmallInteger", "esriFieldTypeInteger", "esriFieldTypeSingle"];
+        var dbls = ["esriFieldTypeDouble"];
+        var t = {};
         var keyFieldType;
         if (checkArrayFields) {
           array.forEach(arrayFields, function (f) {
-            var type;
-            if (ftInt.indexOf(f.value) > -1) {
-              type = "int";
-            } else if (ftFloat.indexOf(f.value) > -1) {
-              type = "float";
-            } else {
-              type = "other";
-            }
-            test[f.name] = type;
+            t[f.name] = ints.indexOf(f.value) > -1 ? "int" : dbls.indexOf(f.value) > -1 ? "float" : "other";
           });
-          keyFieldType = test[node.keyField];
+          keyFieldType = t[node.keyField];
         }
 
         array.forEach(fields, function (f) {
           var add = false;
           if (checkArrayFields) {
-            //Schema Map fields         
-            if (keyFieldType === "int" && fieldTypes[f].supportsInt) {
-              add = true;
-            } else if (keyFieldType === "float" && fieldTypes[f].supportsFloat) {
-              add = true;
-            } else if (keyFieldType === "other") {
-              add = true;
-            }
+            //Schema Map fields
+            add = ((keyFieldType === "int" && fieldTypes[f].supportsInt) ||
+              (keyFieldType === "float" && fieldTypes[f].supportsFloat) ||
+              (keyFieldType === "other")) ? true : add;
           } else {
             //XY or Address
             if (checkFieldTypes) {
               //XY
-              if (fieldTypes[f].supportsFloat || fieldTypes[f].supportsInt) {
-                add = true;
-              }
+              add = fieldTypes[f].supportsFloat || fieldTypes[f].supportsInt ? true : add;
             } else {
               //Address
               add = true;
@@ -283,10 +269,8 @@ define(['dojo/_base/declare',
           }
         });
 
-        //Select Matching Field Name
-        if (fields.indexOf(node.keyField) > -1) {
-          node.selectFields.set('value', node.keyField);
-        }
+        //Select Matching Field Name if found
+        node.selectFields.set('value', fields.indexOf(node.keyField) > -1 ? node.keyField : noValue);
       });
     },
 
@@ -335,7 +319,6 @@ define(['dojo/_base/declare',
         this.myCsvStore.useMultiFields = useMultiFields;
         this.myCsvStore.multiFields = multiFields;
         this.myCsvStore.useAddr = this._useAddr;
-        this.myCsvStore.correctFieldNames = this._fsFields;
         this.myCsvStore.mappedArrayFields = mappedFields;
         this.myCsvStore.onProcessForm().then(lang.hitch(this, function () {
           domStyle.set(this.processingNode, 'display', 'none');

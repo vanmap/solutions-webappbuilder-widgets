@@ -123,11 +123,11 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
 
             if (unmatchedI > 0) {
               this.unMatchedFeatureLayer = this._initLayer(this.unmatchedFC,
-                this.file.name += "_UnMatched", new Color([255, 0, 0]));
+                this.file.name += "_UnMatched");
             }
 
             //TODO this should be the theme color
-            this.featureLayer = this._initLayer(this.featureCollection, this.file.name, new Color([0, 255, 0]));
+            this.featureLayer = this._initLayer(this.featureCollection, this.file.name);
 
             this.onZoomToData(this.featureLayer);
             def.resolve('complete');
@@ -136,13 +136,12 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
         return def;
       },
 
-      _initLayer: function (fc, id, color) {
+      _initLayer: function (fc, id) {
         var lyr = new FeatureLayer(fc, {
           id: id,
           editable: true,
           outFields: ["*"]
         });
-        lyr.setRenderer(new SimpleRenderer(new SimpleMarkerSymbol("solid", 10, null, color)));
         this.map.addLayers([lyr]);
         return lyr;
       },
@@ -277,6 +276,7 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
       },
 
       _generateFC: function () {
+        var baseImageUrl = window.location.protocol + "//" + window.location.host + require.toUrl("widgets");
         //create a feature collection for the input csv file
         var lyr = {
           "layerDefinition": {
@@ -288,7 +288,7 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
                 "type": "simple",
                 "symbol": {
                   "type": "esriPMS",
-                  "url": "https://static.arcgis.com/images/Symbols/Basic/RedSphere.png",
+                  "url": baseImageUrl + "/CriticalFacilities/images/redpushpin.png",
                   "contentType": "image/png",
                   "width": 15,
                   "height": 15

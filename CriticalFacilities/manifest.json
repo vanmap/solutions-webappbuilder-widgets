@@ -4,7 +4,7 @@
   "3D": false,
   "platform": "HTML",
   "version": "0.0.1",
-  "wabVersion": "2.2",
+  "wabVersion": "2.3",
   "author": "Esri Inc.",
   "description": "A widget for uploading and batch geocoding CSV files.",
   "copyright": "",

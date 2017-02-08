@@ -151,10 +151,24 @@ define(['dojo/_base/declare',
     validateValues: function(){
       var controlNodes = query('.field-node-tr', this._useAddr ? this.addrType === "addr" ? this.addressTable : this.addressMultiTable : this.xyTable);
       var hasAllVals = true;
+      //array.forEach(controlNodes, lang.hitch(this, function (node) {
+      //  var selectNode = query('.field-select-node', node)[0];
+      //  hasAllVals = hasAllVals && !(selectNode.textContent === this.nls.noValue);
+      //}));
+
+      //TODO this x stuff is a temp workaround...not all fields are actually required for multi-field input
+      //need to think through this more
+      var x = 0;
       array.forEach(controlNodes, lang.hitch(this, function (node) {
         var selectNode = query('.field-select-node', node)[0];
-        hasAllVals = hasAllVals && !(selectNode.textContent === this.nls.noValue);
+        var hasVal = !(selectNode.textContent === this.nls.noValue);
+        hasAllVals = hasAllVals && hasVal;
+        x += hasVal ? 1 : 0;
       }));
+      if (x > 1) {
+        hasAllVals = true;
+      }
+
       if (hasAllVals) {
         if (domClass.contains(this.addToMap, 'disabled')) {
           domClass.remove(this.addToMap, 'disabled');

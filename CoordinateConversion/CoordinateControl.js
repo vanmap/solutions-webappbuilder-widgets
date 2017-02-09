@@ -17,6 +17,7 @@
 /*global define*/
 define([
     'dojo/_base/declare',
+    'dojo/_base/array',
     'dojo/_base/lang',
     'dojo/on',
     'dojo/dom-attr',
@@ -46,9 +47,12 @@ define([
     'esri/tasks/GeometryService',
     './util',
     'jimu/dijit/Message',
-    './EditOutputCoordinate'
+    './EditOutputCoordinate',
+    './dialogConfirm',
+    './ConfirmNotation'
 ], function (
     dojoDeclare,
+    dojoArray,
     dojoLang,
     dojoOn,
     dojoDomAttr,
@@ -78,7 +82,9 @@ define([
     EsriGeometryService,
     Util,
     JimuMessage,
-    CoordFormat
+    CoordFormat,
+    dialogConfirm,
+    ConfirmNotation
 ) {
     'use strict';
     return dojoDeclare([dijitWidgetBase, dijitTemplatedMixin, dijitWidgetsInTemplate], {
@@ -439,9 +445,27 @@ define([
             if (evt.keyCode === dojoKeys.ENTER) {
                 var sanitizedInput = this.util.getCleanInput(evt.currentTarget.value);
                 this.util.getCoordinateType(sanitizedInput).then(dojoLang.hitch(this, function(itm){
-                  if (itm) {
-                      this.processCoordTextInput(sanitizedInput, itm[0]);
-                  } else {
+                  
+                if (itm) {
+                  if (itm.length == 1) {
+                    this.processCoordTextInput(sanitizedInput, itm[0]);
+                  } else {                  
+                    var dialog = new dialogConfirm({
+                       title: 'Confirm Input Notation',
+                       content: new ConfirmNotation(itm),
+                       style: "width: 400px",
+                       hasSkipCheckBox: false
+                    });
+                    dialog.show().then(dojoLang.hitch(this, function() {                    
+                          var singleMatch = dojoArray.filter(itm, function (singleItm) {
+                            return singleItm.name == dialog.content.comboOptions.get('value');
+                          });
+                          this.processCoordTextInput(sanitizedInput, singleMatch[0]);                     
+                    }, function() {
+                       deferred.reject();
+                    }));
+                  }
+                } else {
                       new JimuMessage({message: 'Unable to determine input coordinate type please check your input.'});
                       dojoTopic.publish('INPUTERROR');
                   }

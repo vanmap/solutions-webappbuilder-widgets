@@ -16,27 +16,15 @@
 
 /*global define*/
 define([
-    './dialogConfirm',
     'dojo/_base/declare',
     'dojo/_base/array',
-    'dojo/_base/lang',
-    'dojo/sniff',
     'dojo/_base/Deferred',
-    'esri/tasks/GeometryService',
-    'esri/request',
-    'dijit/popup',
-    './ConfirmNotation'    
+    'esri/tasks/GeometryService'    
 ], function (
-    dialogConfirm,
     dojoDeclare,
-    dojoArray,
-    dojoLang,
-    dojoSniff,
+    dojoArray,   
     Deferred,
-    EsriGeometryService,
-    EsriRequest,
-    dijitPopup,
-    ConfirmNotation
+    EsriGeometryService    
 ) {
     'use strict';
     return dojoDeclare(null, {
@@ -47,8 +35,7 @@ define([
             if (!gs) {
               gs = '//utility.arcgisonline.com/arcgis/rest/services/Geometry/GeometryServer';
             }
-            this.geomService = new EsriGeometryService(gs);  
-            
+            this.geomService = new EsriGeometryService(gs);            
         },
 
         /**
@@ -218,11 +205,11 @@ define([
                     notationType: "DMS - Longitude/Latitude" 
                 }, {
                     name: 'GARS',
-                    pattern: /\d{3}[a-zA-Z]{2}[1,4]?[1,9]?$/,
+                    pattern: /^\d{3}[a-zA-Z]{2}[1,4]?[1,9]?$/,
                     notationType: "GARS"
                 }, {
                     name: 'GEOREF',
-                    pattern: /[a-zA-Z]{4}\d{1,8}$/,
+                    pattern: /^[a-zA-Z]{4}\d{1,8}$/,
                     notationType: "GEOREF"
                 }, {
                     name: 'MGRS',
@@ -250,24 +237,7 @@ define([
             });
             
             if (matchedtype.length > 0) {
-                if (matchedtype.length == 1) {
-                  deferred.resolve(matchedtype);
-                } else {                  
-                  var dialog = new dialogConfirm({
-                     title: 'Confirm Input Notation',
-                     content: new ConfirmNotation(matchedtype),
-                     style: "width: 400px",
-                     hasSkipCheckBox: false
-                  });
-                  dialog.show().then(dojoLang.hitch(this, function() {                    
-                        var singleMatch = dojoArray.filter(matchedtype, function (itm) {
-                          return itm.name == dialog.content.comboOptions.get('value');
-                        });
-                        deferred.resolve(singleMatch);                     
-                  }, function() {
-                     deferred.reject();
-                  }));
-                }
+                deferred.resolve(matchedtype);                
             } else {
                 deferred.resolve(null);
             }

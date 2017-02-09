@@ -198,7 +198,6 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
       },
 
       _geocodeData: function () {
-        //TODO understand the limits of this and handle chunking the requests if necessary
         //TODO pass additional user configured parameters
 
         //TODO see if the classification fields for the address elements
@@ -225,7 +224,7 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
             }));
           }
 
-          var max = 2;
+          var max = 500;
           var geocodeOps = [];
           var x = 0;
           var i, j;

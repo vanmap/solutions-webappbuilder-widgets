@@ -16,7 +16,6 @@
 define(['dojo/_base/declare',
     'dijit/_WidgetsInTemplateMixin',
     'jimu/BaseWidget',
-    'dojo/text!./LookupList.html',
     'dojo/Evented',
     'jimu/dijit/SimpleTable',
     'dojo/dom-style',
@@ -25,18 +24,31 @@ define(['dojo/_base/declare',
     'dojo/_base/array',
     'dojo/on'
 ],
-  function (declare,  _WidgetsInTemplateMixin, BaseWidget, template, Evented, SimpleTable, domStyle, query, lang, array, on) {
+  function (declare,  _WidgetsInTemplateMixin, BaseWidget, Evented, SimpleTable, domStyle, query, lang, array, on) {
     return declare([BaseWidget, _WidgetsInTemplateMixin, Evented], {
-      templateString: template,
+      templateString: '<div style="width: 100%; height: 100%;">' +
+        '<div class="instruction hintText">' +
+          '<p>${nls.isRecognized}</p>' +
+        '</div>' +
+        '<div class="is-recognized-add-button" role="button">' +
+          '<div class="button" data-dojo-attach-event="click:addRow">' +
+            '<span class="button-text">${nls.add}</span>' +
+          '</div>' +
+        '</div>' +
+          '<div class="is-recognized-source-list jimu-float-leading">' +
+            '<div class="source-list-table" data-dojo-attach-point="sourceList"/>' +
+          '</div></div>',
       baseClass: 'jimu-widget-setting-critical-facilities',
       row: null,
       values: [],
+      isRecognizedValues: undefined,
 
       constructor: function (options) {
         this.nls = options.nls;
         this.row = options.row;
-        this.fieldName = options.fieldName;
-        this.isRecognizedValues = options.isRecognizedValues;
+        this.fieldName = options.rowData.fieldName;
+        this.label = options.rowData.label;
+        this.isRecognizedValues = options.rowData.isRecognizedValues;
       },
 
       postMixInProperties: function(){
@@ -47,27 +59,23 @@ define(['dojo/_base/declare',
       postCreate: function () {
         this.inherited(arguments);
         this._initList();
-        var aaa;
-        if (this.isRecognizedValues !== "") {
-          aaa = JSON.parse(this.isRecognizedValues);
-        }
-
-        if (aaa && aaa.length > 0) {
-          array.forEach(aaa, lang.hitch(this, function (v) {
-            this._addRow(v);
+        if (this.isRecognizedValues && this.isRecognizedValues.hasOwnProperty('length')) {
+          array.forEach(this.isRecognizedValues, lang.hitch(this, function (v) {
+            this.addRow(v);
           }));
         } else {
-          this._addRow(this.fieldName);
+          this.addRow(this.fieldName);
+          if (this.fieldName !== this.label) {
+            this.addRow(this.label);
+          }
         }
       },
 
-      _addRow: function(v){
+      addRow: function(v){
         var addResult = this.sourceList.addRow({
-          name: v
+          name: v instanceof MouseEvent ? this.nls.newNamePlaceholder : v
         });
-        if (addResult && addResult.success) {
-          this._setRowConfig(addResult.tr, this.fieldName);
-        } else {
+        if (!addResult || !addResult.success) {
           console.error("add row failed ", addResult);
         }
       },
@@ -92,35 +100,6 @@ define(['dojo/_base/declare',
         }, this.sourceList);
         domStyle.set(this.sourceList.domNode, 'height', '100%');
         this.sourceList.startup();
-        this.own(on(this.sourceList, 'row-select', lang.hitch(this, this._onSourceItemSelected)));
-        this.own(on(this.sourceList, 'row-delete', lang.hitch(this, this._onSourceItemRemoved)));
-      },
-
-      _onSourceItemRemoved: function () {
-
-      },
-
-      _onAddClick: function () {
-        var addResult = this.sourceList.addRow({
-          name: this.nls.newNamePlaceholder
-        });
-        if (addResult && addResult.success) {
-          this._setRowConfig(addResult.tr, this.nls.newNamePlaceholder);
-        } else {
-          console.error("add row failed ", addResult);
-        }
-      },
-
-      _setRowConfig: function (tr, source) {
-        query(tr).data('config', lang.clone(source));
-      },
-
-      _getRowConfig: function (tr) {
-        return query(tr).data('config')[0];
-      },
-
-      _removeRowConfig: function (tr) {
-        return query(tr).removeData('config');
       },
 
       destroy: function () {

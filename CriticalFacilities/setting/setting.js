@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////
-// Copyright © 2014 Esri. All Rights Reserved.
+// Copyright © 2016 Esri. All Rights Reserved.
 //
 // Licensed under the Apache License Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -62,16 +62,12 @@ define([
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
       baseClass: 'jimu-widget-setting-critical-facilities',
 
-      //TODO step through the fieldInfo stuff...seems like there is way more work going on for that than is necessary
-
       //TODO disable OK when no layer is selected or if all locators have been removed
-      //TODO fix css issue with row highlight not lining up with row
       //TODO understand the fee vs paid loacting options https://developers.arcgis.com/rest/geocode/api-reference/geocoding-free-vs-paid.htm#ESRI_SECTION1_B9D659BA26584F26A65CBA24E59AFE6E
 
       //Questions
-      //TODO ask team about "is recognized if named list" idea
       //TODO should we support an option for configure user to mark certain fields as required or optional?
-      //TODO should lat/lon input be a configurable choice
+      //TODO should lat/lon input be a configurable choice?
 
 
       _operLayerInfos: null,

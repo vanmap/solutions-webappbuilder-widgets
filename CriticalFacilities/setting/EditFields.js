@@ -18,17 +18,16 @@ define(['dojo/_base/declare',
     'dojo/_base/array',
     'dojo/query',
     'dojo/on',
-    'dojo/text!./EditFields.html',
     'dijit/_TemplatedMixin',
     'jimu/BaseWidgetSetting',
     'jimu/dijit/SimpleTable',
     'jimu/dijit/Popup',
     './LookupList'
   ],
-  function(declare, lang, array, query, on, template, _TemplatedMixin, BaseWidgetSetting, Table, Popup, LookupList) {
+  function (declare, lang, array, query, on, _TemplatedMixin, BaseWidgetSetting, SimpleTable, Popup, LookupList) {
     return declare([BaseWidgetSetting, _TemplatedMixin], {
       baseClass: "jimu-widget-setting-fields-critical-facilities",
-      templateString: template,
+      templateString: '<div><div data-dojo-attach-point="fieldsTable"></div></div>',
       _layerInfo: null,
       isRecognizedValues: null,
 
@@ -65,7 +64,7 @@ define(['dojo/_base/declare',
       },
 
       _initFieldsTable: function() {
-        var fields2 = [{
+        var fields = [{
           name: 'visible',
           title: this.nls.display,
           type: 'checkbox',
@@ -83,7 +82,7 @@ define(['dojo/_base/declare',
           name: 'actions',
           title: this.nls.actions,
           type: 'actions',
-          actions: ['up', 'down'], //['up', 'down', 'edit']
+          actions: ['up', 'down', 'edit'],
           'class': 'actions'
         }, {
           name: 'type',
@@ -93,24 +92,39 @@ define(['dojo/_base/declare',
           hidden: true
         }, {
           name: 'isRecognizedValues',
-          type: 'text',
+          title: '',
+          type: 'extension', //doing this so I can store an array in the rowData
           hidden: true,
-          editable: true
+          create: lang.hitch(this, this._create),
+          setValue: lang.hitch(this, this._setValue),
+          getValue: lang.hitch(this, this._getValue)
         }];
-        var args2 = {
-          fields: fields2,
+        this._fieldsTable = new SimpleTable({
+          fields: fields,
           selectable: false,
           style: {
             'height': '300px',
             'maxHeight': '300px'
           }
-        };
-        this._fieldsTable = new Table(args2);
+        });
         this._fieldsTable.placeAt(this.fieldsTable);
         this._fieldsTable.startup();
 
         this.own(on(this._fieldsTable, 'actions-edit',
           lang.hitch(this, this._onEditFieldsClick)));
+      },
+
+      _create: function (td) {
+        //TODO could do something like this for the text box also rather than use the one from 
+        // SimpleTable if the double-click to edit thing is whacky
+      },
+
+      _setValue: function (td, fieldData) {
+        td._isRecognizedValues = fieldData;
+      },
+
+      _getValue: function (td) {
+        return td._isRecognizedValues;
       },
 
       _setFieldsTable: function(fieldInfos) {
@@ -137,8 +151,7 @@ define(['dojo/_base/declare',
 
       _onIsRecognizedListChanged: function (tr) {
         var rowData = this._fieldsTable.getRowData(tr);
-        tr.isRecognizedValues = this.isRecognizedValues;
-        rowData.isRecognizedValues = JSON.stringify(this.isRecognizedValues);
+        rowData.isRecognizedValues = this.isRecognizedValues;
         this._fieldsTable.editRow(tr, rowData);
       },
 
@@ -158,26 +171,27 @@ define(['dojo/_base/declare',
       },
 
       _onEditFieldsClick: function (tr) {
+        var rowData = this._fieldsTable.getRowData(tr);
         var sourceDijit = new LookupList({
           nls: this.nls,
           row: tr,
-          fieldName: tr.childNodes[1].innerText,
-          isRecognizedValues: tr.lastChild.textContent
+          rowData: rowData
         });
 
         var popup = new Popup({
           width: 400,
           autoHeight: true,
           content: sourceDijit,
-          titleLabel: this.nls.lookupList,
+          titleLabel: this.nls.lookupList + " (" + rowData.fieldName + ")",
           buttons: [{
             label: this.nls.ok,
             onClick: lang.hitch(this, function () {
-              //var data = popup.content.sourceList.getData();
-              var sourceListRows = popup.content.sourceList.getRows();
+              var data = popup.content.sourceList.getData();
               this.isRecognizedValues = [];
-              array.forEach(sourceListRows, lang.hitch(this, function (_tr) {
-                this.isRecognizedValues.push(query(_tr).data('config')[0]);
+              array.forEach(data, lang.hitch(this, function (v) {
+                if (this.isRecognizedValues.indexOf(v) === -1 && v !== this.nls.newNamePlaceholder) {
+                  this.isRecognizedValues.push(v.name);
+                }
               }));
               this._onIsRecognizedListChanged(popup.content.row);
               popup.close();

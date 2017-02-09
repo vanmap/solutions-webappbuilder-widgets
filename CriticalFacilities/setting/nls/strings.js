@@ -35,7 +35,8 @@
       enableDisableXY: "Allow input from XY",
       enableDisableGeocode: "Allow batch geocoding"
     },
-    lookupList: "Recognized if Named",
+    lookupList: "Field Names to Recognize",
+    isRecognized: "Field names in the table below are automatically recognized for this field",
     needsEditablePointLayers: "The webmap must contain at least 1 editable point layer.",
     actions: "Actions",
     editpageName: "Name",

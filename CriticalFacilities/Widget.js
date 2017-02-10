@@ -96,7 +96,7 @@ define(['dojo/_base/declare',
         if (this._configLayerInfo) {
           array.forEach(this._configLayerInfo.fieldInfos, lang.hitch(this, function (field) {
             if (field && field.visible) {
-              this._fsFields.push({ "name": field.fieldName, "value": field.type });
+              this._fsFields.push({ "name": field.fieldName, "value": field.type, isRecognizedValues: field.isRecognizedValues });
               this.addFieldRow(this.schemaMapTable, field.fieldName, field.label);
             }
           }));
@@ -284,7 +284,21 @@ define(['dojo/_base/declare',
         });
 
         //Select Matching Field Name if found
-        node.selectFields.set('value', fields.indexOf(node.keyField) > -1 ? node.keyField : noValue);
+        var kf = noValue;
+        for (var i = 0; i < arrayFields.length; i++) {
+          var af = arrayFields[i];
+          if (af.name === node.keyField) {
+            for (var ii = 0; ii < af.isRecognizedValues.length; ii++) {
+              var irv = af.isRecognizedValues[ii];
+              if (fields.indexOf(irv) > -1) {
+                kf = irv;
+                break;
+              }
+            }
+          }
+        }
+
+        node.selectFields.set('value', kf);
       });
     },
 

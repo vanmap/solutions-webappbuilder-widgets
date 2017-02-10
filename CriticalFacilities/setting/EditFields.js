@@ -189,7 +189,7 @@ define(['dojo/_base/declare',
               var data = popup.content.sourceList.getData();
               this.isRecognizedValues = [];
               array.forEach(data, lang.hitch(this, function (v) {
-                if (this.isRecognizedValues.indexOf(v) === -1 && v !== this.nls.newNamePlaceholder) {
+                if (this.isRecognizedValues.indexOf(v.name) === -1 && v.name !== this.nls.newNamePlaceholder) {
                   this.isRecognizedValues.push(v.name);
                 }
               }));

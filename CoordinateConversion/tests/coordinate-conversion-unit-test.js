@@ -167,7 +167,8 @@ define([
       }
       if (coordinateConversion) {
         coordinateConversion.destroy();
-      }       
+      }
+      console.log("Total number of tests conducted is: " + totalTestCount);      
     },
 
     'Test Coordinate Conversion CTOR': function() {
@@ -197,7 +198,7 @@ define([
       }
     },
      
-    'Test: Input Coords for DD - Lat / Long': function() {
+    'Test: Auto Input Coords for DD - Lat / Long': function() {
       //this.skip('Skip test for now');
       var passed = false;
       var match = '';      
@@ -277,10 +278,9 @@ define([
       }
       console.log("The number of tests conducted for Decimal Degrees Lat/Long was: " + count);
       totalTestCount = totalTestCount + count;
-      console.log("Total number of tests conducted is: " + totalTestCount);
     },
      
-    'Test: Input Coords for DD - Long / Lat': function() {
+    'Test: Auto Input Coords for DD - Long / Lat': function() {
       //this.skip('Skip test for now');
       var passed = false;
       var match = '';      
@@ -366,10 +366,9 @@ define([
       }
       console.log("The number of tests conducted for Decimal Degrees Long/Lat was: " + count);
       totalTestCount = totalTestCount + count;
-      console.log("Total number of tests conducted is: " + totalTestCount);
     },
     
-    'Test: Input Coords for DDM - Lat / Long': function() {
+    'Test: Auto Input Coords for DDM - Lat / Long': function() {
       //this.skip('Skip test for now');
       var passed = false;
       var match = '';      
@@ -449,10 +448,9 @@ define([
       }
       console.log("The number of tests conducted for Degrees Decimal Minutes Lat/Long was: " + count);
       totalTestCount = totalTestCount + count;
-      console.log("Total number of tests conducted is: " + totalTestCount);
     },
     
-    'Test: Input Coords for DDM - Long / Lat': function() {
+    'Test: Auto Input Coords for DDM - Long / Lat': function() {
       //this.skip('Skip test for now');
       var passed = false;
       var match = '';      
@@ -539,10 +537,9 @@ define([
       }
       console.log("The number of tests conducted for Degrees Decimal Minutes Long/Lat was: " + count);
       totalTestCount = totalTestCount + count;
-      console.log("Total number of tests conducted is: " + totalTestCount);
     },
     
-    'Test: Input Coords for DMS - Lat / Long': function() {
+    'Test: Auto Input Coords for DMS - Lat / Long': function() {
       //this.skip('Skip test for now');
       var passed = false;
       var match = '';      
@@ -626,7 +623,7 @@ define([
       console.log("Total number of tests conducted is: " + totalTestCount);
     },
     
-    'Test: Input Coords for DMS - Long / Lat': function() {
+    'Test: Auto Input Coords for DMS - Long / Lat': function() {
       //this.skip('Skip test for now');
       var passed = false;
       var match = '';      
@@ -713,9 +710,308 @@ define([
       }
       console.log("The number of tests conducted for Degrees Decimal Minutes Long/Lat was: " + count);
       totalTestCount = totalTestCount + count;
-      console.log("Total number of tests conducted is: " + totalTestCount);
     },
     
+    'Test: Manual Input Coords for DD - Lat / Long': function() {
+      //this.skip('Skip test for now');
+      var passed = false;
+      var match = '';      
+      var count = 0;
+      
+      // if you want to add specific tests that are not that you think will not be test with the automatic testing functions
+      // add entries to the array below, including test number, testString, lat, long and seperator. Ensure there is no comma after your last array entry 
+      var validEntries = [
+        {testNumber: '001', testString: '89.999 179.999', lat: '89.999', lon: '179.999', testSeperator: ' '},
+        {testNumber: '002', testString: '90.000 180.000', lat: '90.000', lon: '180.000', testSeperator: ' '}
+      ];
+
+      for (var i = 0; i < validEntries.length; i++) {
+        ccUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
+          /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
+          ** https://theintern.github.io/intern/#async-tests
+          ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
+          ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
+          */
+          itm && itm[0].name == 'DD'?passed=true:passed=false;
+          //execute the reg ex and store in the variable match
+          match = itm[0].pattern.exec(validEntries[i].testString);            
+          
+          //split the input string by its seperator
+          latLongArray = validEntries[i].testString.split(validEntries[i].testSeperator);
+        });
+        
+        //test to see if the regular expression identified the input as a valid inpout and identified it as DD (for decimal degrees)
+        assert.isTrue(passed, 'Test Number: ' + validEntries[i].testNumber + " String: " + validEntries[i].testString + ' did not validate as DD Lat/Long');
+        
+        //test to see if the regular expression has correctly identified the Lat / long values by comparing them against the original string
+        assert.equal(validEntries[i].lat, match[1], validEntries[i].testString + " Failed");
+        assert.equal(validEntries[i].lon, match[9], validEntries[i].testString + " Failed");
+                
+        //test to see if the regular expression has correctly identified the seperator
+        assert.equal(validEntries[i].testSeperator, match[8], "Matching the seperator failed");
+        
+        //reset passed
+        passed = false;
+        count++;                        
+      }
+      console.log("The number of manual tests conducted for Decimal Degrees Lat/Long was: " + count);
+      totalTestCount = totalTestCount + count;      
+    },
     
-   });
+    'Test: Manual Input Coords for DD - Long / Lat': function() {
+      //this.skip('Skip test for now');
+      var passed = false;
+      var match = '';      
+      var count = 0;
+      
+      // if you want to add specific tests that are not that you think will not be test with the automatic testing functions
+      // add entries to the array below, including test number, testString, lat, long and seperator. Ensure there is no comma after your last array entry 
+      var validEntries = [
+        {testNumber: '001', testString: '179.999 89.999', lat: '89.999', lon: '179.999', testSeperator: ' '},
+        {testNumber: '002', testString: '180.000 90.000', lat: '90.000', lon: '180.000', testSeperator: ' '}
+      ];
+
+      for (var i = 0; i < validEntries.length; i++) {
+        ccUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
+          /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
+          ** https://theintern.github.io/intern/#async-tests
+          ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
+          ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
+          */
+          if (itm.length == 1) {
+            itm && itm[0].name == 'DDrev'?passed=true:passed=false;
+            //execute the reg ex and store in the variable match
+            match = itm[0].pattern.exec(validEntries[i].testString);            
+          } else {
+            itm && itm[1].name == 'DDrev'?passed=true:passed=false;
+            //execute the reg ex and store in the variable match
+            match = itm[1].pattern.exec(validEntries[i].testString);            
+          }
+          
+          //split the input string by its seperator
+          latLongArray = validEntries[i].testString.split(validEntries[i].testSeperator);
+        });
+        
+        //test to see if the regular expression identified the input as a valid inpout and identified it as DD (for decimal degrees)
+        assert.isTrue(passed, 'Test Number: ' + validEntries[i].testNumber + " String: " + validEntries[i].testString + ' did not validate as DD Long/Lat');
+        
+        //test to see if the regular expression has correctly identified the Lat / long values by comparing them against the original string
+        assert.equal(validEntries[i].lon, match[1], validEntries[i].testString + " Failed");
+        assert.equal(validEntries[i].lat, match[10], validEntries[i].testString + " Failed");
+                
+        //test to see if the regular expression has correctly identified the seperator
+        assert.equal(validEntries[i].testSeperator, match[9], "Matching the seperator failed");
+        
+        //reset passed
+        passed = false;
+        count++;                        
+      }
+      console.log("The number of manual tests conducted for Decimal Degrees Long/Lat was: " + count);
+      totalTestCount = totalTestCount + count;      
+    },
+    
+    'Test: Manual Input Coords for DDM - Lat / Long': function() {
+      //this.skip('Skip test for now');
+      var passed = false;
+      var match = '';      
+      var count = 0;
+      
+      // if you want to add specific tests that are not that you think will not be test with the automatic testing functions
+      // add entries to the array below, including test number, testString, lat, long and seperator. Ensure there is no comma after your last array entry 
+      var validEntries = [
+        {testNumber: '001', testString: '89 59.999 179 59.999', lat: '89 59.999', lon: '179 59.999', testSeperator: ' '},
+        {testNumber: '002', testString: '90 00.000 180 00.000', lat: '90 00.000', lon: '180 00.000', testSeperator: ' '}
+      ];
+
+      for (var i = 0; i < validEntries.length; i++) {
+        ccUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
+          /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
+          ** https://theintern.github.io/intern/#async-tests
+          ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
+          ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
+          */
+          itm && itm[0].name == 'DDM'?passed=true:passed=false;
+          //execute the reg ex and store in the variable match
+          match = itm[0].pattern.exec(validEntries[i].testString);            
+          
+          //split the input string by its seperator
+          latLongArray = validEntries[i].testString.split(validEntries[i].testSeperator);
+        });
+        
+        //test to see if the regular expression identified the input as a valid inpout and identified it as DDM (for degrees decimal minutes)
+        assert.isTrue(passed, 'Test Number: ' + validEntries[i].testNumber + " String: " + validEntries[i].testString + ' did not validate as DDM Lat/Long');
+        
+        //test to see if the regular expression has correctly identified the Lat / long values by comparing them against the original string
+        assert.equal(validEntries[i].lat, match[1], validEntries[i].testString + " Failed");
+        assert.equal(validEntries[i].lon, match[9], validEntries[i].testString + " Failed");
+                
+        //test to see if the regular expression has correctly identified the seperator
+        assert.equal(validEntries[i].testSeperator, match[8], "Matching the seperator failed");
+        
+        //reset passed
+        passed = false;
+        count++;                        
+      }
+      console.log("The number of manual tests conducted for Decimal Degrees Lat/Long was: " + count);
+      totalTestCount = totalTestCount + count;      
+    },
+    
+    'Test: Manual Input Coords for DDM - Long / Lat': function() {
+      //this.skip('Skip test for now');
+      var passed = false;
+      var match = '';      
+      var count = 0;
+      
+      // if you want to add specific tests that are not that you think will not be test with the automatic testing functions
+      // add entries to the array below, including test number, testString, lat, long and seperator. Ensure there is no comma after your last array entry 
+      var validEntries = [
+        {testNumber: '001', testString: '179 59.999 89 59.999', lat: '89 59.999', lon: '179 59.999', testSeperator: ' '},
+        {testNumber: '002', testString: '180 00.000 90 00.000', lat: '90 00.000', lon: '180 00.000', testSeperator: ' '}
+      ];
+
+      for (var i = 0; i < validEntries.length; i++) {
+        ccUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
+          /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
+          ** https://theintern.github.io/intern/#async-tests
+          ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
+          ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
+          */
+          if (itm.length == 1) {
+            itm && itm[0].name == 'DDMrev'?passed=true:passed=false;
+            //execute the reg ex and store in the variable match
+            match = itm[0].pattern.exec(validEntries[i].testString);            
+          } else {
+            itm && itm[1].name == 'DDMrev'?passed=true:passed=false;
+            //execute the reg ex and store in the variable match
+            match = itm[1].pattern.exec(validEntries[i].testString);            
+          }
+          
+          //split the input string by its seperator
+          latLongArray = validEntries[i].testString.split(validEntries[i].testSeperator);
+        });
+        
+        //test to see if the regular expression identified the input as a valid inpout and identified it as DDM (for degrees decimal minutes)
+        assert.isTrue(passed, 'Test Number: ' + validEntries[i].testNumber + " String: " + validEntries[i].testString + ' did not validate as DDM Long/Lat');
+        
+        //test to see if the regular expression has correctly identified the Lat / long values by comparing them against the original string
+        assert.equal(validEntries[i].lon, match[1], validEntries[i].testString + " Failed");
+        assert.equal(validEntries[i].lat, match[9], validEntries[i].testString + " Failed");
+                
+        //test to see if the regular expression has correctly identified the seperator
+        assert.equal(validEntries[i].testSeperator, match[8], "Matching the seperator failed");
+        
+        //reset passed
+        passed = false;
+        count++;                        
+      }
+      console.log("The number of manual tests conducted for Decimal Degrees Long/Lat was: " + count);
+      totalTestCount = totalTestCount + count;      
+    },
+    
+    'Test: Manual Input Coords for DMS - Lat / Long': function() {
+      //this.skip('Skip test for now');
+      var passed = false;
+      var match = '';      
+      var count = 0;
+      
+      // if you want to add specific tests that are not that you think will not be test with the automatic testing functions
+      // add entries to the array below, including test number, testString, lat, long and seperator. Ensure there is no comma after your last array entry 
+      var validEntries = [
+        {testNumber: '001', testString: '00 59 59.666 000 59 59.666', lat: '00 59 59.666', lon: '000 59 59.666', testSeperator: ' '},
+        {testNumber: '002', testString: '00 00 59.666|000 00 59.666', lat: '00 00 59.666', lon: '000 00 59.666', testSeperator: '|'},
+        {testNumber: '003', testString: '00 59 00.666:000 59 00.666', lat: '00 59 00.666', lon: '000 59 00.666', testSeperator: ':'},
+        {testNumber: '004', testString: '89 59 59.666 179 59 59.666', lat: '89 59 59.666', lon: '179 59 59.666', testSeperator: ' '},
+        {testNumber: '005', testString: '90 00 00.000 180 00 00.000', lat: '90 00 00.000', lon: '180 00 00.000', testSeperator: ' '},
+      ];
+
+      for (var i = 0; i < validEntries.length; i++) {
+        ccUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
+          /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
+          ** https://theintern.github.io/intern/#async-tests
+          ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
+          ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
+          */
+          itm && itm[0].name == 'DMS'?passed=true:passed=false;
+          //execute the reg ex and store in the variable match
+          match = itm[0].pattern.exec(validEntries[i].testString);            
+          
+          //split the input string by its seperator
+          latLongArray = validEntries[i].testString.split(validEntries[i].testSeperator);
+        });
+        
+        //test to see if the regular expression identified the input as a valid inpout and identified it as DMS (for degrees, minutes, seconds)
+        assert.isTrue(passed, 'Test Number: ' + validEntries[i].testNumber + " String: " + validEntries[i].testString + ' did not validate as DMS Lat/Long');
+        
+        //test to see if the regular expression has correctly identified the Lat / long values by comparing them against the original string
+        assert.equal(validEntries[i].lat, match[1], validEntries[i].testString + " Failed");
+        assert.equal(validEntries[i].lon, match[10], validEntries[i].testString + " Failed");
+                
+        //test to see if the regular expression has correctly identified the seperator
+        assert.equal(validEntries[i].testSeperator, match[9], "Matching the seperator failed");
+        
+        //reset passed
+        passed = false;
+        count++;                        
+      }
+      console.log("The number of manual tests conducted for Degrees Decimal Minutes Long/Lat was: " + count);
+      totalTestCount = totalTestCount + count;      
+    },
+    
+    'Test: Manual Input Coords for DMS - Long / Lat': function() {
+      //this.skip('Skip test for now');
+      var passed = false;
+      var match = '';      
+      var count = 0;
+      
+      // if you want to add specific tests that are not that you think will not be test with the automatic testing functions
+      // add entries to the array below, including test number, testString, lat, long and seperator. Ensure there is no comma after your last array entry 
+      var validEntries = [
+        {testNumber: '001', testString: '000 59 59.666 00 59 59.666', lat: '00 59 59.666', lon: '000 59 59.666', testSeperator: ' '},
+        {testNumber: '002', testString: '000 00 59.666|00 00 59.666', lat: '00 00 59.666', lon: '000 00 59.666', testSeperator: '|'},
+        {testNumber: '003', testString: '000 59 00.666:00 59 00.666', lat: '00 59 00.666', lon: '000 59 00.666', testSeperator: ':'},
+        {testNumber: '004', testString: '179 59 59.666 89 59 59.666', lat: '89 59 59.666', lon: '179 59 59.666', testSeperator: ' '},
+        {testNumber: '005', testString: '180 00 00.000 90 00 00.000', lat: '90 00 00.000', lon: '180 00 00.000', testSeperator: ' '},
+      ];
+
+      for (var i = 0; i < validEntries.length; i++) {
+        ccUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
+          /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
+          ** https://theintern.github.io/intern/#async-tests
+          ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
+          ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
+          */
+          if (itm.length == 1) {
+            itm && itm[0].name == 'DMSrev'?passed=true:passed=false;
+            //execute the reg ex and store in the variable match
+            match = itm[0].pattern.exec(validEntries[i].testString);            
+          } else {
+            itm && itm[1].name == 'DMSrev'?passed=true:passed=false;
+            //execute the reg ex and store in the variable match
+            match = itm[1].pattern.exec(validEntries[i].testString);            
+          }
+          
+          //split the input string by its seperator
+          latLongArray = validEntries[i].testString.split(validEntries[i].testSeperator);
+        });
+        
+        //test to see if the regular expression identified the input as a valid inpout and identified it as DMS (for degrees, minutes, seconds)
+        assert.isTrue(passed, 'Test Number: ' + validEntries[i].testNumber + " String: " + validEntries[i].testString + ' did not validate as DMS Long/Lat');
+        
+        //test to see if the regular expression has correctly identified the Lat / long values by comparing them against the original string
+        assert.equal(validEntries[i].lon, match[1], validEntries[i].testString + " Failed");
+        assert.equal(validEntries[i].lat, match[10], validEntries[i].testString + " Failed");
+                
+        //test to see if the regular expression has correctly identified the seperator
+        assert.equal(validEntries[i].testSeperator, match[9], "Matching the seperator failed");
+        
+        //reset passed
+        passed = false;
+        count++;                        
+      }
+      
+      console.log("The number of manual tests conducted for Degrees Decimal Minutes Long/Lat was: " + count);
+      totalTestCount = totalTestCount + count;      
+    },
+      
+    });
 });

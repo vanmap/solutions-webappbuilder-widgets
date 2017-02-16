@@ -3,18 +3,23 @@ define([
   'intern/chai!assert',
   'dojo/dom-construct',
   'dojo/_base/window',
+  'dojo/number',
   'esri/map',
+  'esri/geometry/Extent',
   'CC/Widget',
+  'CC/CoordinateControl',
   'CC/util',
+  'dojo/promise/all',
   'dojo/_base/lang',
+  'dojo/_base/Deferred',
   'jimu/dijit/CheckBox',
   'jimu/BaseWidget',
   'jimu/dijit/Message',
   'dijit/form/Select',
   'dijit/form/TextBox'
-], function(registerSuite, assert, domConstruct, win, Map, CoordinateConversion, CCUtil, lang) {
+], function(registerSuite, assert, domConstruct, win, dojoNumber, Map, Extent, CoordinateConversion, CoordinateControl, CCUtil, dojoAll, lang, Deferred) {
   // local vars scoped to this module
-  var map, coordinateConversion, ccUtil;
+  var map, ccUtil, coordinateConversion, cc;
   var dms2,dms3,ds,ds2,dp,ns,pLat,pLon,pss,ms,ss;
   var totalTestCount = 0;
   var latDDArray = [];
@@ -39,8 +44,32 @@ define([
        basemap: "topo",
        center: [-122.45, 37.75],
        zoom: 13,
-       sliderStyle: "small"
+       sliderStyle: "small",
+       extent: new Extent({xmin:-180,ymin:-90,xmax:180,ymax:90,spatialReference:{wkid:4326}})
       });
+      
+      coordinateConversion = new CoordinateConversion({
+            appConfig: {geomService: {url: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer"}},
+            parentWidget: this,
+            map: map,
+            input: true,
+            type: 'DD',
+            config: {
+              coordinateconversion: {
+                zoomScale: 50000,
+                initialCoords: ["DDM", "DMS", "MGRS", "UTM"],
+                geometryService: {
+                   url: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer"
+                }
+              }   
+            }         
+          }, domConstruct.create("div")).placeAt("ccNode");
+      
+      cc = new CoordinateControl({                
+                parentWidget: coordinateConversion,
+                input: true,
+                type: 'DD'
+            });
        
       ccUtil = new CCUtil({appConfig: {
         coordinateconversion: {                  
@@ -70,11 +99,11 @@ define([
       //we know that a comma seperator used with a comma for decimal degrees will fail so do not test for this
       ns = [' ',':',';','|','/','\\'];
       //pLat = prefix / suffix latitude - test lower and upper case
-      pLat = ['n','S','+','-'];
+      pLat = ['','n','S','+','-'];
       //pLon = prefix / suffix longitude
-      pLon = ['E','W','+','-'];
+      pLon = ['','E','w','+','-'];
       //pss = prefix / suffix spacer
-      pss = ['', " "];
+      pss = ['',' '];
 
        
       //set up an array of each combination of DD latitude values
@@ -153,11 +182,27 @@ define([
           }
         }
       }
+      
+      jsonLoader = function loadTests(file, callback) {
+          var rawFile = new XMLHttpRequest();
+          rawFile.overrideMimeType("application/json");
+          rawFile.open("GET", file, false);
+          rawFile.onreadystatechange = function() {
+              if (rawFile.readyState === 4 && rawFile.status == "200") {
+                  callback(rawFile.responseText);
+              }
+          }
+          rawFile.send(null);
+      }
+      
+      roundNumber = function round(value, decimals) {
+        return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
+      }
     },
 
     // before each test executes
     beforeEach: function() {
-      // do nothing
+      
     },
 
     // after the suite is done (all tests)
@@ -170,36 +215,343 @@ define([
       }
       console.log("Total number of tests conducted is: " + totalTestCount);      
     },
-
-    'Test Coordinate Conversion CTOR': function() {
-      if (map) {
-        map.on("load", function () {
-          console.log('Start CTOR test');
-          coordinateConversion = new CoordinateConversion({
-            parentWidget: this,
-            map: map,
-            input: true,
-            type: 'DD',
-            config: {
-              coordinateconversion: {
-                zoomScale: 50000,
-                initialCoords: ["DDM", "DMS", "MGRS", "UTM"],
-                geometryService: {
-                   url: "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"
-                }
-              }   
-            }         
-          }, domConstruct.create("div")).placeAt("ccNode");   
-          coordinateConversion.startup();
-          assert.ok(coordinateConversion);
-          assert.instanceOf(coordinateConversion, CoordinateConversion, 'coordinateConversion should be an instance of CoordinateConversion');       
-          console.log('End CTOR test');
-        });
+    
+    'Test Manual Input: Convert DDM to Lat/Long': function() {
+      //test to ensure inputed DDM is converted correctly to Lat/Long (4 Decimal Places)
+      //tests held in file: toGeoFromDDM.json
+      
+      this.skip('Skip test for now')
+      var count = 0;
+      var DDM2geo = null;
+      var dfd = this.async();
+      var returnArray = [];
+      
+      //read in tests from the json file
+      jsonLoader("../../widgets/CoordinateConversion/tests/toGeoFromDDM.json", lang.hitch(this,function(response){
+        DDM2geo = JSON.parse(response);
+      }));
+       
+      for (var i = 0; i < DDM2geo.tests.length; i++) {
+        returnArray.push(ccUtil.getXYNotation(DDM2geo.tests[i].testString,'DDM'));          
       }
+      
+      dojoAll(returnArray).then(dfd.callback(function (itm) {
+        for (var i = 0; i < itm.length; i++) {
+          assert.equal(roundNumber(itm[i][0][0],4), roundNumber(DDM2geo.tests[i].lon,4), DDM2geo.tests[i].testNumber + " Failed");
+          assert.equal(roundNumber(itm[i][0][1],4), roundNumber(DDM2geo.tests[i].lat,4), DDM2geo.tests[i].testNumber + " Failed");
+          count++;
+          
+        }
+        console.log("The number of manual tests conducted for Convert DDM to Lat/Long conducted was: " + count);
+        totalTestCount = totalTestCount + count;
+        console.log("Total number of tests conducted is: " + totalTestCount);
+        //clean up Array
+        DDM2geo = null;
+      }));  
     },
-     
-    'Test: Auto Input Coords for DD - Lat / Long': function() {
-      //this.skip('Skip test for now');
+    
+    'Test Manual Input: Convert DMS to Lat/Long': function() {
+      //test to ensure inputed DMS is converted correctly to Lat/Long (2 Decimal Places)
+      //tests held in file: toGeoFromDMS.json
+      
+      //this.skip('Skip test for now')
+      var count = 0;
+      var DMS2geo = null;
+      var dfd = this.async();
+      var returnArray = [];
+      
+      //read in tests from the json file
+      jsonLoader("../../widgets/CoordinateConversion/tests/toGeoFromDMS.json", lang.hitch(this,function(response){
+        DMS2geo = JSON.parse(response);
+      }));
+       
+      for (var i = 0; i < DMS2geo.tests.length; i++) {
+        returnArray.push(ccUtil.getXYNotation(DMS2geo.tests[i].testString,'DMS'));          
+      }
+      
+      dojoAll(returnArray).then(dfd.callback(function (itm) {
+        for (var i = 0; i < itm.length; i++) {
+          assert.equal(roundNumber(itm[i][0][0],2), roundNumber(DMS2geo.tests[i].lon,2), DMS2geo.tests[i].testNumber + " Failed");
+          assert.equal(roundNumber(itm[i][0][1],2), roundNumber(DMS2geo.tests[i].lat,2), DMS2geo.tests[i].testNumber + " Failed");
+          count++;
+          
+        }
+        console.log("The number of manual tests conducted for Convert DMS to Lat/Long conducted was: " + count);
+        totalTestCount = totalTestCount + count;
+        console.log("Total number of tests conducted is: " + totalTestCount);
+        //clean up Array
+        DMS2geo = null;
+      }));  
+    },
+    
+    'Test Manual Input: Convert MGRS to Lat/Long': function() {
+      //test to ensure inputed MGRS is converted correctly to Lat/Long (6 Decimal Places)
+      //tests held in file: toGeoFromMGRS.json
+      
+      //this.skip('Skip test for now')
+      var count = 0;
+      var MGRS2geo = null;
+      var dfd = this.async();
+      var returnArray = [];
+      
+      //read in tests from the json file
+      jsonLoader("../../widgets/CoordinateConversion/tests/toGeoFromMGRS.json", lang.hitch(this,function(response){
+        MGRS2geo = JSON.parse(response);
+      }));
+       
+      for (var i = 0; i < MGRS2geo.tests.length; i++) {
+        returnArray.push(ccUtil.getXYNotation(MGRS2geo.tests[i].testString,'MGRS'));          
+      }
+      
+      dojoAll(returnArray).then(dfd.callback(function (itm) {
+        for (var i = 0; i < itm.length; i++) {
+          assert.equal(roundNumber(itm[i][0][0],6), roundNumber(MGRS2geo.tests[i].lon,6), MGRS2geo.tests[i].testNumber + " Failed");
+          assert.equal(roundNumber(itm[i][0][1],6), roundNumber(MGRS2geo.tests[i].lat,6), MGRS2geo.tests[i].testNumber + " Failed");
+          count++;
+          
+        }
+        console.log("The number of manual tests conducted for Convert MGRS to Lat/Long conducted was: " + count);
+        totalTestCount = totalTestCount + count;
+        console.log("Total number of tests conducted is: " + totalTestCount);
+        //clean up MGRStests Array
+        MGRS2geo = null;
+      }));  
+    },
+    
+    'Test Manual Input: Convert Lat/Long to DDM': function() {
+      //test to ensure inputed Lat/Long is converted correctly to DDM
+      //tests held in file: geo2DDM.json
+      
+      this.skip('Skip test for now')
+      var count = 0;
+      var geo2DDM = null;
+      var dfd = this.async();
+      var returnArray = [];
+      
+      //read in tests from the json file
+      jsonLoader("../../widgets/CoordinateConversion/tests/fromGeo2DDM.json", lang.hitch(this,function(response){
+        geo2DDM = JSON.parse(response);
+      }));
+       
+      for (var i = 0; i < geo2DDM.tests.length; i++) {
+        returnArray.push(ccUtil.getCoordValues(geo2DDM.tests[i].testString,'DDM',4));          
+      }
+      
+      dojoAll(returnArray).then(dfd.callback(function (itm) {
+        for (var i = 0; i < itm.length; i++) {
+          assert.equal(itm[i], geo2DDM.tests[i].OUTPUT, geo2DDM.tests[i].testNumber + " Failed");
+          count++;
+          
+        }
+        console.log("The number of manual tests conducted for Convert Lat/Long to DDM conducted was: " + count);
+        totalTestCount = totalTestCount + count;
+        console.log("Total number of tests conducted is: " + totalTestCount);
+        //clean up Array
+        geo2DDM = null;
+      }));  
+    },
+
+    'Test Manual Input: Convert Lat/Long to DMS': function() {
+      //test to ensure inputed Lat/Long is converted correctly to DMS      
+      //tests held in file: geo2DMS.json
+      
+      this.skip('Skip test for now')
+      var count = 0;
+      var geo2DMS = null;
+      var dfd = this.async();
+      var returnArray = [];
+      
+      //read in tests from the json file
+      jsonLoader("../../widgets/CoordinateConversion/tests/fromGeo2DMS.json", lang.hitch(this,function(response){
+        geo2DMS = JSON.parse(response);
+      }));
+       
+      for (var i = 0; i < geo2DMS.tests.length; i++) {
+        returnArray.push(ccUtil.getCoordValues(geo2DMS.tests[i].testString,'DMS',2));          
+      }
+      
+      dojoAll(returnArray).then(dfd.callback(function (itm) {
+        for (var i = 0; i < itm.length; i++) {
+          assert.equal(itm[i], geo2DMS.tests[i].OUTPUT, geo2DMS.tests[i].testNumber + " Failed");
+          count++;
+          
+        }
+        console.log("The number of manual tests conducted for Convert Lat/Long to DMS conducted was: " + count);
+        totalTestCount = totalTestCount + count;
+        console.log("Total number of tests conducted is: " + totalTestCount);
+        //clean up Array
+        geo2DMS = null;
+      }));  
+    },
+    
+    'Test Manual Input: Convert Lat/Long to UTM (Band)': function() {
+      //test to ensure inputed Lat/Long is converted correctly to UTM (Band)      
+      //tests held in file: geo2UTMBand.json
+      
+      this.skip('Skip test for now')
+      var count = 0;
+      var geo2UTMBand = null;
+      var dfd = this.async();
+      var returnArray = [];
+      
+      //read in tests from the json file
+      jsonLoader("../../widgets/CoordinateConversion/tests/fromGeo2UTMBand.json", lang.hitch(this,function(response){
+        geo2UTMBand = JSON.parse(response);
+      }));
+       
+      for (var i = 0; i < geo2UTMBand.tests.length; i++) {
+        returnArray.push(ccUtil.getCoordValues(geo2UTMBand.tests[i].testString,'UTM'));          
+      }
+      
+      dojoAll(returnArray).then(dfd.callback(function (itm) {
+        for (var i = 0; i < itm.length; i++) {
+          assert.equal(itm[i], geo2UTMBand.tests[i].OUTPUT, geo2UTMBand.tests[i].testNumber + " Failed");
+          count++;
+          
+        }
+        console.log("The number of manual tests conducted for Convert Lat/Long to UTM (Band) conducted was: " + count);
+        totalTestCount = totalTestCount + count;
+        console.log("Total number of tests conducted is: " + totalTestCount);
+        //clean up Array
+        geo2UTMBand = null;
+      }));  
+    },
+    
+    'Test Manual Input: Convert Lat/Long to UTM (Hemisphere)': function() {
+      //test to ensure inputed Lat/Long is converted correctly to UTM (Hemisphere)      
+      //tests held in file: geo2UTMHem.json
+      
+      this.skip('Skip test for now')
+      var count = 0;
+      var geo2UTMHem = null;
+      var dfd = this.async();
+      var returnArray = [];
+      
+      //read in tests from the json file
+      jsonLoader("../../widgets/CoordinateConversion/tests/fromGeo2UTMHem.json", lang.hitch(this,function(response){
+        geo2UTMHem = JSON.parse(response);
+      }));
+       
+      for (var i = 0; i < geo2UTMHem.tests.length; i++) {
+        returnArray.push(ccUtil.getCoordValues(geo2UTMHem.tests[i].testString,'UTM (H)'));          
+      }
+      
+      dojoAll(returnArray).then(dfd.callback(function (itm) {
+        for (var i = 0; i < itm.length; i++) {
+          assert.equal(itm[i], geo2UTMHem.tests[i].OUTPUT, geo2UTMHem.tests[i].testNumber + " Failed");
+          count++;
+          
+        }
+        console.log("The number of manual tests conducted for Convert Lat/Long to UTM (Hemisphere) conducted was: " + count);
+        totalTestCount = totalTestCount + count;
+        console.log("Total number of tests conducted is: " + totalTestCount);
+        //clean up Array
+        geo2UTMHem = null;
+      }));  
+    },
+    
+    'Test Manual Input: Convert Lat/Long to GEOREF': function() {
+      //test to ensure inputed Lat/Long is converted correctly to GEOREF     
+      //tests held in file: geo2GEOREF.json
+      
+      this.skip('Skip test for now')
+      var count = 0;
+      var geo2GEOREF = null;
+      var dfd = this.async();
+      var returnArray = [];
+      
+      //read in tests from the json file
+      jsonLoader("../../widgets/CoordinateConversion/tests/fromGeo2GEOREF.json", lang.hitch(this,function(response){
+        geo2GEOREF = JSON.parse(response);
+      }));
+       
+      for (var i = 0; i < geo2GEOREF.tests.length; i++) {
+        returnArray.push(ccUtil.getCoordValues(geo2GEOREF.tests[i].testString,'GEOREF'));          
+      }
+      
+      dojoAll(returnArray).then(dfd.callback(function (itm) {
+        for (var i = 0; i < itm.length; i++) {
+          assert.equal(itm[i], geo2GEOREF.tests[i].OUTPUT, geo2GEOREF.tests[i].testNumber + " Failed");
+          count++;
+          
+        }
+        console.log("The number of manual tests conducted for Convert Lat/Long to GEOREF conducted was: " + count);
+        totalTestCount = totalTestCount + count;
+        console.log("Total number of tests conducted is: " + totalTestCount);
+        //clean up Array
+        geo2GEOREF = null;
+      }));  
+    },
+    
+    'Test Manual Input: Convert Lat/Long to GARS': function() {
+      //test to ensure inputed Lat/Long is converted correctly to GARS     
+      //tests held in file: geo2GARS.json
+      
+      this.skip('Skip test for now')
+      var count = 0;
+      var geo2GARS = null;
+      var dfd = this.async();
+      var returnArray = [];
+      
+      //read in tests from the json file
+      jsonLoader("../../widgets/CoordinateConversion/tests/fromGeo2GARS.json", lang.hitch(this,function(response){
+        geo2GARS = JSON.parse(response);
+      }));
+       
+      for (var i = 0; i < geo2GARS.tests.length; i++) {
+        returnArray.push(ccUtil.getCoordValues(geo2GARS.tests[i].testString,'GARS'));          
+      }
+      
+      dojoAll(returnArray).then(dfd.callback(function (itm) {
+        for (var i = 0; i < itm.length; i++) {
+          assert.equal(itm[i], geo2GARS.tests[i].OUTPUT, geo2GARS.tests[i].testNumber + " Failed");
+          count++;
+          
+        }
+        console.log("The number of manual tests conducted for Convert Lat/Long to GARS conducted was: " + count);
+        totalTestCount = totalTestCount + count;
+        console.log("Total number of tests conducted is: " + totalTestCount);
+        //clean up Array
+        geo2GARS = null;
+      }));  
+    },
+    
+    'Test Manual Input: Convert Lat/Long to MGRS': function() {
+      //test to ensure inputed Lat/Long is converted correctly to MGRS
+      
+      //tests held in file: geo2mgrs.json
+      
+      this.skip('Skip test for now')
+      var count = 0;
+      var geo2MGRStests = null;
+      var dfd = this.async();
+      var returnArray = [];
+      
+      //read in tests from the json file
+      jsonLoader("../../widgets/CoordinateConversion/tests/fromGeo2mgrs.json", lang.hitch(this,function(response){
+        geo2MGRStests = JSON.parse(response);
+      }));
+       
+      for (var i = 0; i < geo2MGRStests.MGRSTests.length; i++) {
+        returnArray.push(ccUtil.getCoordValues(geo2MGRStests.MGRSTests[i].testString,'MGRS'));          
+      }
+      
+      dojoAll(returnArray).then(dfd.callback(function (itm) {
+        for (var i = 0; i < itm.length; i++) {
+          assert.equal(itm[i], geo2MGRStests.MGRSTests[i].OUTPUT, geo2MGRStests.MGRSTests[i].testNumber + " Failed");
+          count++;
+          
+        }
+        console.log("The number of manual tests conducted for Convert Lat/Long to MGRS conducted was: " + count);
+        totalTestCount = totalTestCount + count;
+        console.log("Total number of tests conducted is: " + totalTestCount);
+        //clean up MGRStests Array
+        geo2MGRStests = null;
+      }));  
+    },    
+    
+    'Test Auto Input: Identify Input as DD - Lat / Long': function() {
+      this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;       
@@ -235,53 +587,45 @@ define([
       //we have tested each combination of numbers so lets just test a single combination with each possible prefix/suffix combo
       for (var a = 0; a < pLat.length; a++) {
         for (var b = 0; b < pss.length; b++) {
-          for (var c = 0; c < pss.length; c++) {
-            for (var d = 0; d < pLat.length; d++) { 
-              for (var e = 0; e < pLon.length; e++) {
-                for (var f = 0; f < pss.length; f++) {
-                  for (var g = 0; g < pss.length; g++) {
-                    for (var h = 0; h < pLon.length; h++) {         
-                      var tempLat = pLat[a].toUpperCase() + pss[b] + "00.0" + pss[c] + pLat[d].toUpperCase();
-                      //we know a space between a prefix of + or - and then number for latitude will fail so do not use a prefix spacer of +/- for latitude
-                      if(pLon[e] == "-" || pLon[e] == "+"){
-                        var tempLon = pLon[e] + "000.0" + pss[g] + pLon[h];
-                      } else {
-                        var tempLon = pLon[e] + pss[f] + "000.0" + pss[g] + pLon[h];
-                      }               
-                      ccUtil.getCoordinateType(tempLat + (" ") + tempLon).then(function(itm){
-                      /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
-                      ** https://theintern.github.io/intern/#async-tests
-                      ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
-                      ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
-                      */
-                      itm && itm[0].name == 'DD'?passed=true:passed=false;
-                      //execute the reg ex and store in the variable match
-                      match = itm[0].pattern.exec(tempLat.toUpperCase() + (" ") + tempLon.toUpperCase());    
-                      });         
-                      //test to see if the regular expression identified the input as a valid input and identified it as DDM (for degrees decimal minutes)
-                      assert.isTrue(passed, tempLat + (" ") + tempLon + ' did not validate as DD Lat/Long');
-                      //test to see if the regular expression has correctly identified the Lat / long values by comparing them against the original string
-                      assert.equal(tempLat.toUpperCase(), match[1], tempLat + (" ") + tempLon + " Failed ");
-                      assert.equal(tempLon.toUpperCase(), match[9], tempLat + (" ") + tempLon + " Failed ");
-                      //test to see if the regular expression has correctly identified the seperator
-                      assert.equal(" ", match[8], "Matching the seperator failed");
-                      //reset passed
-                      passed = false;
-                      count++;
-                    }
-                  }               
+          for (var c = 0; c < pLat.length; c++) { 
+            for (var d = 0; d < pLon.length; d++) {
+              for (var e = 0; e < pss.length; e++) {
+                for (var f = 0; f < pLon.length; f++) {         
+                  var tempLat = pLat[a].toUpperCase() + "00.0" + pss[b] + pLat[c].toUpperCase();
+                  var tempLon = pLon[d].toUpperCase() + "000.0" + pss[e] + pLon[f].toUpperCase();                  
+                  ccUtil.getCoordinateType(tempLat + (" ") + tempLon).then(function(itm){
+                  /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
+                  ** https://theintern.github.io/intern/#async-tests
+                  ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
+                  ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
+                  */
+                  itm && itm[0].name == 'DD'?passed=true:passed=false;
+                  //execute the reg ex and store in the variable match
+                  match = itm[0].pattern.exec(tempLat.toUpperCase() + (" ") + tempLon.toUpperCase());    
+                  });         
+                  //test to see if the regular expression identified the input as a valid input and identified it as DDM (for degrees decimal minutes)
+                  assert.isTrue(passed, tempLat + (" ") + tempLon + ' did not validate as DD Lat/Long');
+                  //test to see if the regular expression has correctly identified the Lat / long values by comparing them against the original string
+                  assert.equal(tempLat.toUpperCase(), match[1], tempLat + (" ") + tempLon + " Failed ");
+                  assert.equal(tempLon.toUpperCase(), match[9], tempLat + (" ") + tempLon + " Failed ");
+                  //test to see if the regular expression has correctly identified the seperator
+                  assert.equal(" ", match[8], "Matching the seperator failed");
+                  //reset passed
+                  passed = false;
+                  count++;                                 
                 }
               }
             }
           }
         }
       }
-      console.log("The number of tests conducted for Decimal Degrees Lat/Long was: " + count);
+      console.log("The number of Auto tests conducted for Identify Input as DD - Lat / Long tests conducted was: " + count);
       totalTestCount = totalTestCount + count;
+      console.log("Total number of tests conducted is: " + totalTestCount);
     },
      
-    'Test: Auto Input Coords for DD - Long / Lat': function() {
-      //this.skip('Skip test for now');
+    'Test Auto Input: Identify Input as DD - Long / Lat': function() {
+      this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;       
@@ -323,53 +667,45 @@ define([
       //we have tested each combination of numbers so lets just test a single combination with each possible prefix/suffix combo
       for (var a = 0; a < pLat.length; a++) {
         for (var b = 0; b < pss.length; b++) {
-          for (var c = 0; c < pss.length; c++) {
-            for (var d = 0; d < pLat.length; d++) { 
-              for (var e = 0; e < pLon.length; e++) {
-                for (var f = 0; f < pss.length; f++) {
-                  for (var g = 0; g < pss.length; g++) {
-                    for (var h = 0; h < pLon.length; h++) {
-                      var tempLon = pLon[e] + pss[f] + "000.0" + pss[g] + pLon[h];                 
-                      //we know a space between a prefix of + or - and then number for latitude will fail so do not use a prefix spacer of +/- for latitude
-                      if(pLat[a] == "-" || pLat[a] == "+"){
-                        var tempLat = pLat[a] + "00.0" + pss[c] + pLat[d]; 
-                      } else {
-                        var tempLat = pLat[a] + pss[b] + "00.0" + pss[c] + pLat[d]; 
-                      }               
-                      ccUtil.getCoordinateType(tempLon + (" ") + tempLat).then(function(itm){
-                      /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
-                      ** https://theintern.github.io/intern/#async-tests
-                      ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
-                      ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
-                      */
-                      itm && itm[0].name == 'DDrev'?passed=true:passed=false;
-                      //execute the reg ex and store in the variable match
-                      match = itm[0].pattern.exec(tempLon.toUpperCase() + (" ") + tempLat.toUpperCase());    
-                      });         
-                      //test to see if the regular expression identified the input as a valid input and identified it as DD (for decimal degrees)
-                      assert.isTrue(passed, tempLon + (" ") + tempLat + ' did not validate as DD Lat/Long');
-                      //test to see if the regular expression has correctly identified the Lat / long values by comparing them against the original string
-                      assert.equal(tempLon.toUpperCase(), match[1], tempLon + (" ") + tempLat + " Failed ");
-                      assert.equal(tempLat.toUpperCase(), match[10], tempLon + (" ") + tempLat + " Failed ");
-                      //test to see if the regular expression has correctly identified the seperator
-                      assert.equal(" ", match[9], "Matching the seperator failed");
-                      //reset passed
-                      passed = false;
-                      count++;
-                    }
-                  }
+          for (var c = 0; c < pLat.length; c++) { 
+            for (var d = 0; d < pLon.length; d++) {
+              for (var e = 0; e < pss.length; e++) {
+                for (var f = 0; f < pLon.length; f++) {
+                  var tempLon = pLon[d].toUpperCase() + "000.0" + pss[e] + pLon[f].toUpperCase();                 
+                  var tempLat = pLat[a].toUpperCase() + "00.0" + pss[b] + pLat[c].toUpperCase(); 
+                  ccUtil.getCoordinateType(tempLon + (" ") + tempLat).then(function(itm){
+                  /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
+                  ** https://theintern.github.io/intern/#async-tests
+                  ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
+                  ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
+                  */
+                  itm && itm[0].name == 'DDrev'?passed=true:passed=false;
+                  //execute the reg ex and store in the variable match
+                  match = itm[0].pattern.exec(tempLon.toUpperCase() + (" ") + tempLat.toUpperCase());    
+                  });         
+                  //test to see if the regular expression identified the input as a valid input and identified it as DD (for decimal degrees)
+                  assert.isTrue(passed, tempLon + (" ") + tempLat + ' did not validate as DD Lat/Long');
+                  //test to see if the regular expression has correctly identified the Lat / long values by comparing them against the original string
+                  assert.equal(tempLon.toUpperCase(), match[1], tempLon + (" ") + tempLat + " Failed ");
+                  assert.equal(tempLat.toUpperCase(), match[10], tempLon + (" ") + tempLat + " Failed ");
+                  //test to see if the regular expression has correctly identified the seperator
+                  assert.equal(" ", match[9], "Matching the seperator failed");
+                  //reset passed
+                  passed = false;
+                  count++;                  
                 }
               }
             }
           }
         }
       }
-      console.log("The number of tests conducted for Decimal Degrees Long/Lat was: " + count);
+      console.log("The number of Auto tests conducted for Identify Input as DD - Long / Lat conducted was: " + count);
       totalTestCount = totalTestCount + count;
+      console.log("Total number of tests conducted is: " + totalTestCount);
     },
     
-    'Test: Auto Input Coords for DDM - Lat / Long': function() {
-      //this.skip('Skip test for now');
+    'Test Auto Input: Identify Input as DDM - Lat / Long': function() {
+      this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;       
@@ -405,53 +741,45 @@ define([
       //we have tested each combination of numbers so lets just test a single combination with each possible prefix/suffix combo
       for (var a = 0; a < pLat.length; a++) {
         for (var b = 0; b < pss.length; b++) {
-          for (var c = 0; c < pss.length; c++) {
-            for (var d = 0; d < pLat.length; d++) { 
-              for (var e = 0; e < pLon.length; e++) {
-                for (var f = 0; f < pss.length; f++) {
-                  for (var g = 0; g < pss.length; g++) {
-                    for (var h = 0; h < pLon.length; h++) {         
-                      var tempLat = pLat[a] + pss[b] + "00 00.0" + pss[c] + pLat[d];
-                      //we know a space between a prefix of + or - and then number for latitude will fail so do not use a prefix spacer of +/- for latitude
-                      if(pLon[e] == "-" || pLon[e] == "+"){
-                        var tempLon = pLon[e] + "000 00.0" + pss[g] + pLon[h];
-                      } else {
-                        var tempLon = pLon[e] + pss[f] + "000 00.0" + pss[g] + pLon[h];
-                      }               
-                      ccUtil.getCoordinateType(tempLat + (" ") + tempLon).then(function(itm){
-                      /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
-                      ** https://theintern.github.io/intern/#async-tests
-                      ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
-                      ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
-                      */
-                      itm && itm[0].name == 'DDM'?passed=true:passed=false;
-                      //execute the reg ex and store in the variable match
-                      match = itm[0].pattern.exec(tempLat.toUpperCase() + (" ") + tempLon.toUpperCase());    
-                      });         
-                      //test to see if the regular expression identified the input as a valid input and identified it as DDM (for degrees decimal minutes)
-                      assert.isTrue(passed, tempLat + (" ") + tempLon + ' did not validate as DDM Lat/Long');
-                      //test to see if the regular expression has correctly identified the Lat / long values by comparing them against the original string
-                      assert.equal(tempLat.toUpperCase(), match[1], tempLat + (" ") + tempLon + " Failed ");
-                      assert.equal(tempLon.toUpperCase(), match[9], tempLat + (" ") + tempLon + " Failed ");
-                      //test to see if the regular expression has correctly identified the seperator
-                      assert.equal(" ", match[8], "Matching the seperator failed");
-                      //reset passed
-                      passed = false;
-                      count++;
-                    }
-                  }               
+          for (var c = 0; c < pLat.length; c++) { 
+            for (var d = 0; d < pLon.length; d++) {
+              for (var e = 0; e < pss.length; e++) {
+                for (var f = 0; f < pLon.length; f++) {         
+                  var tempLat = pLat[a].toUpperCase() + "00 00.0" + pss[b] + pLat[c].toUpperCase();
+                  var tempLon = pLon[d].toUpperCase() + "000 00.0" + pss[e] + pLon[f].toUpperCase();
+                  ccUtil.getCoordinateType(tempLat + (" ") + tempLon).then(function(itm){
+                  /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
+                  ** https://theintern.github.io/intern/#async-tests
+                  ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
+                  ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
+                  */
+                  itm && itm[0].name == 'DDM'?passed=true:passed=false;
+                  //execute the reg ex and store in the variable match
+                  match = itm[0].pattern.exec(tempLat.toUpperCase() + (" ") + tempLon.toUpperCase());    
+                  });         
+                  //test to see if the regular expression identified the input as a valid input and identified it as DDM (for degrees decimal minutes)
+                  assert.isTrue(passed, tempLat + (" ") + tempLon + ' did not validate as DDM Lat/Long');
+                  //test to see if the regular expression has correctly identified the Lat / long values by comparing them against the original string
+                  assert.equal(tempLat.toUpperCase(), match[1], tempLat + (" ") + tempLon + " Failed ");
+                  assert.equal(tempLon.toUpperCase(), match[9], tempLat + (" ") + tempLon + " Failed ");
+                  //test to see if the regular expression has correctly identified the seperator
+                  assert.equal(" ", match[8], "Matching the seperator failed");
+                  //reset passed
+                  passed = false;
+                  count++;                                 
                 }
               }
             }
           }
         }
       }
-      console.log("The number of tests conducted for Degrees Decimal Minutes Lat/Long was: " + count);
+      console.log("The number of Auto tests conducted for Identify Input as DDM - Lat / Long conducted was: " + count);
       totalTestCount = totalTestCount + count;
+      console.log("Total number of tests conducted is: " + totalTestCount);
     },
     
-    'Test: Auto Input Coords for DDM - Long / Lat': function() {
-      //this.skip('Skip test for now');
+    'Test Auto Input: Identify Input as DDM - Long / Lat': function() {
+      this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;       
@@ -493,54 +821,45 @@ define([
       //we have tested each combination of numbers so lets just test a single combination with each possible prefix/suffix combo
       for (var a = 0; a < pLat.length; a++) {
         for (var b = 0; b < pss.length; b++) {
-          for (var c = 0; c < pss.length; c++) {
-            for (var d = 0; d < pLat.length; d++) { 
-              for (var e = 0; e < pLon.length; e++) {
-                for (var f = 0; f < pss.length; f++) {
-                  for (var g = 0; g < pss.length; g++) {
-                    for (var h = 0; h < pLon.length; h++) {         
-                      var tempLon = pLon[e] + pss[f] + "000 00.0" + pss[g] + pLon[h];
-                      //we know a space between a prefix of + or - and then number for latitude will fail so do not use a prefix/suffix spacer +/- for latitude
-                      if(pLat[a] == "-" || pLat[a] == "+"){
-                        var tempLat = pLat[a] + "00 00.0" + pss[c] + pLat[d];
-                      } else {
-                        var tempLat = pLat[a] + pss[b] + "00 00.0" + pss[c] + pLat[d];
-                      }
-                      
-                      ccUtil.getCoordinateType(tempLon + (" ") + tempLat).then(function(itm){
-                      /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
-                      ** https://theintern.github.io/intern/#async-tests
-                      ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
-                      ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
-                      */
-                      itm && itm[0].name == 'DDMrev'?passed=true:passed=false;
-                      //execute the reg ex and store in the variable match
-                      match = itm[0].pattern.exec(tempLon.toUpperCase() + (" ") + tempLat.toUpperCase());    
-                      });         
-                      //test to see if the regular expression identified the input as a valid input and identified it as DDM (for degrees decimal minutes))
-                      assert.isTrue(passed, tempLon + (" ") + tempLat + ' did not validate as DDM Long/lat');
-                      //test to see if the regular expression has correctly identified the Lat / long values by comparing them against the original string
-                      assert.equal(tempLon.toUpperCase(), match[1], tempLon + (" ") + tempLat + " Failed ");
-                      assert.equal(tempLat.toUpperCase(), match[9], tempLon + (" ") + tempLat + " Failed ");
-                      //test to see if the regular expression has correctly identified the seperator
-                      assert.equal(" ", match[8], "Matching the seperator failed");
-                      //reset passed
-                      passed = false;
-                      count++;
-                    }
-                  }               
+          for (var c = 0; c < pLat.length; c++) { 
+            for (var d = 0; d < pLon.length; d++) {
+              for (var e = 0; e < pss.length; e++) {
+                for (var f = 0; f < pLon.length; f++) {
+                  var tempLon = pLon[d].toUpperCase() + "000 00.0" + pss[e] + pLon[f].toUpperCase();                 
+                  var tempLat = pLat[a].toUpperCase() + "00 00.0" + pss[b] + pLat[c].toUpperCase();                      
+                  ccUtil.getCoordinateType(tempLon + (" ") + tempLat).then(function(itm){
+                  /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
+                  ** https://theintern.github.io/intern/#async-tests
+                  ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
+                  ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
+                  */
+                  itm && itm[0].name == 'DDMrev'?passed=true:passed=false;
+                  //execute the reg ex and store in the variable match
+                  match = itm[0].pattern.exec(tempLon.toUpperCase() + (" ") + tempLat.toUpperCase());    
+                  });         
+                  //test to see if the regular expression identified the input as a valid input and identified it as DDM (for degrees decimal minutes))
+                  assert.isTrue(passed, tempLon + (" ") + tempLat + ' did not validate as DDM Long/lat');
+                  //test to see if the regular expression has correctly identified the Lat / long values by comparing them against the original string
+                  assert.equal(tempLon.toUpperCase(), match[1], tempLon + (" ") + tempLat + " Failed ");
+                  assert.equal(tempLat.toUpperCase(), match[9], tempLon + (" ") + tempLat + " Failed ");
+                  //test to see if the regular expression has correctly identified the seperator
+                  assert.equal(" ", match[8], "Matching the seperator failed");
+                  //reset passed
+                  passed = false;
+                  count++;                                 
                 }
               }
             }
           }
         }
       }
-      console.log("The number of tests conducted for Degrees Decimal Minutes Long/Lat was: " + count);
+      console.log("The number of Auto tests conducted for Identify Input as DDM - Long / Lat conducted was: " + count);
       totalTestCount = totalTestCount + count;
+      console.log("Total number of tests conducted is: " + totalTestCount);
     },
     
-    'Test: Auto Input Coords for DMS - Lat / Long': function() {
-      //this.skip('Skip test for now');
+    'Test Auto Input: Identify Input as DMS - Lat / Long': function() {
+      this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;       
@@ -575,56 +894,45 @@ define([
       //we have tested each combination of numbers so lets just test a single combination with each possible prefix/suffix and seperator combo
       for (var a = 0; a < pLat.length; a++) {
         for (var b = 0; b < pss.length; b++) {
-          for (var c = 0; c < pss.length; c++) {
-            for (var d = 0; d < pLat.length; d++) {
-              for (var e = 0; e < ns.length; e++) {
-                for (var f = 0; f < pLon.length; f++) {
-                  for (var g = 0; g < pss.length; g++) {
-                    for (var h = 0; h < pss.length; h++) {
-                      for (var i = 0; i < pLon.length; i++) {         
-                        var tempLat = pLat[a] + pss[b] + "00 00 00.0" + pss[c] + pLat[d];
-                        //we know a space between a prefix of + or - and then number for latitude will fail so do not use a prefix spacer of +/- for latitude
-                        if(pLon[f] == "-" || pLon[f] == "+"){
-                          var tempLon = pLon[f] + "000 00 00.0" + pss[h] + pLon[i];
-                        } else {
-                          var tempLon = pLon[f] + pss[g] + "000 00 00.0" + pss[h] + pLon[i];
-                        }               
-                        ccUtil.getCoordinateType(tempLat + ns[e] + tempLon).then(function(itm){
-                        /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
-                        ** https://theintern.github.io/intern/#async-tests
-                        ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
-                        ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
-                        */
-                        itm && itm[0].name == 'DMS'?passed=true:passed=false;
-                        //execute the reg ex and store in the variable match
-                        match = itm[0].pattern.exec(tempLat.toUpperCase() + ns[e] + tempLon.toUpperCase());    
-                        });         
-                        //test to see if the regular expression identified the input as a valid input and identified it as DMS (for degrees, minutes, seconds)
-                        assert.isTrue(passed, tempLat + ns[e] + tempLon + ' did not validate as DMS Lat/Long');
-                        //test to see if the regular expression has correctly identified the Lat / long values by comparing them against the original string
-                        assert.equal(tempLat.toUpperCase(), match[1], tempLat + ns[e] + tempLon + " Failed ");
-                        assert.equal(tempLon.toUpperCase(), match[10], tempLat + ns[e] + tempLon + " Failed ");
-                        //test to see if the regular expression has correctly identified the seperator
-                        assert.equal(ns[e], match[9], "Matching the seperator failed");
-                        //reset passed
-                        passed = false;
-                        count++;
-                      }
-                    }               
-                  }
+          for (var c = 0; c < pLat.length; c++) { 
+            for (var d = 0; d < pLon.length; d++) {
+              for (var e = 0; e < pss.length; e++) {
+                for (var f = 0; f < pLon.length; f++) {         
+                  var tempLat = pLat[a].toUpperCase() + "00 00 00.0" + pss[b] + pLat[c].toUpperCase();
+                  var tempLon = pLon[d].toUpperCase() + "000 00 00.0" + pss[e] + pLon[f].toUpperCase();               
+                  ccUtil.getCoordinateType(tempLat + ns[e] + tempLon).then(function(itm){
+                  /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
+                  ** https://theintern.github.io/intern/#async-tests
+                  ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
+                  ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
+                  */
+                  itm && itm[0].name == 'DMS'?passed=true:passed=false;
+                  //execute the reg ex and store in the variable match
+                  match = itm[0].pattern.exec(tempLat.toUpperCase() + ns[e] + tempLon.toUpperCase());    
+                  });         
+                  //test to see if the regular expression identified the input as a valid input and identified it as DMS (for degrees, minutes, seconds)
+                  assert.isTrue(passed, tempLat + ns[e] + tempLon + ' did not validate as DMS Lat/Long');
+                  //test to see if the regular expression has correctly identified the Lat / long values by comparing them against the original string
+                  assert.equal(tempLat.toUpperCase(), match[1], tempLat + ns[e] + tempLon + " Failed ");
+                  assert.equal(tempLon.toUpperCase(), match[10], tempLat + ns[e] + tempLon + " Failed ");
+                  //test to see if the regular expression has correctly identified the seperator
+                  assert.equal(ns[e], match[9], "Matching the seperator failed");
+                  //reset passed
+                  passed = false;
+                  count++;                              
                 }
               }
             }
           }
         }
       }
-      console.log("The number of tests conducted for Degrees Decimal Minutes Lat/Long was: " + count);
+      console.log("The number of Auto tests conducted for Identify Input as DMS - Lat / Long conducted was: " + count);
       totalTestCount = totalTestCount + count;
       console.log("Total number of tests conducted is: " + totalTestCount);
     },
     
-    'Test: Auto Input Coords for DMS - Long / Lat': function() {
-      //this.skip('Skip test for now');
+    'Test Auto Input: Identify Input as DMS - Long / Lat': function() {
+      this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;       
@@ -664,56 +972,45 @@ define([
       //we have tested each combination of numbers so lets just test a single combination with each possible prefix/suffix combo
       for (var a = 0; a < pLat.length; a++) {
         for (var b = 0; b < pss.length; b++) {
-          for (var c = 0; c < pss.length; c++) {
-            for (var d = 0; d < pLat.length; d++) {
-              for (var e = 0; e < ns.length; e++) {
+          for (var c = 0; c < pLat.length; c++) { 
+            for (var d = 0; d < pLon.length; d++) {
+              for (var e = 0; e < pss.length; e++) {
                 for (var f = 0; f < pLon.length; f++) {
-                  for (var g = 0; g < pss.length; g++) {
-                    for (var h = 0; h < pss.length; h++) {
-                      for (var i = 0; i < pLon.length; i++) {         
-                        var tempLon = pLon[f] + pss[g] + "000 00 00.0" + pss[h] + pLon[i];
-                        //we know a space between a prefix of + or - and then number for latitude will fail so do not use a prefix/suffix spacer +/- for latitude
-                        if(pLat[a] == "-" || pLat[a] == "+"){
-                          var tempLat = pLat[a] + "00 00 00.0" + pss[c] + pLat[d];
-                        } else {
-                          var tempLat = pLat[a] + pss[b] + "00 00 00.0" + pss[c] + pLat[d];
-                        }
-                        
-                        ccUtil.getCoordinateType(tempLon + ns[e] + tempLat).then(function(itm){
-                        /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
-                        ** https://theintern.github.io/intern/#async-tests
-                        ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
-                        ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
-                        */
-                        itm && itm[0].name == 'DMSrev'?passed=true:passed=false;
-                        //execute the reg ex and store in the variable match
-                        match = itm[0].pattern.exec(tempLon.toUpperCase() + ns[e] + tempLat.toUpperCase());    
-                        });         
-                        //test to see if the regular expression identified the input as a valid input and identified it as DMS (for degrees, minutes, seconds)
-                        assert.isTrue(passed, tempLon + (" ") + tempLat + ' did not validate as DMS Long/lat');
-                        //test to see if the regular expression has correctly identified the Lat / long values by comparing them against the original string
-                        assert.equal(tempLon.toUpperCase(), match[1], tempLon + ns[e] + tempLat + " Failed ");
-                        assert.equal(tempLat.toUpperCase(), match[10], tempLon + ns[e] + tempLat + " Failed ");
-                        //test to see if the regular expression has correctly identified the seperator
-                        assert.equal(ns[e], match[9], "Matching the seperator failed");
-                        //reset passed
-                        passed = false;
-                        count++;
-                      }
-                    }
-                  }               
+                  var tempLon = pLon[d].toUpperCase() + "000 00 00.0" + pss[e] + pLon[f].toUpperCase();                 
+                  var tempLat = pLat[a].toUpperCase() + "00 00 00.0" + pss[b] + pLat[c].toUpperCase();
+                  ccUtil.getCoordinateType(tempLon + ns[e] + tempLat).then(function(itm){
+                  /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
+                  ** https://theintern.github.io/intern/#async-tests
+                  ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
+                  ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
+                  */
+                  itm && itm[0].name == 'DMSrev'?passed=true:passed=false;
+                  //execute the reg ex and store in the variable match
+                  match = itm[0].pattern.exec(tempLon.toUpperCase() + ns[e] + tempLat.toUpperCase());    
+                  });         
+                  //test to see if the regular expression identified the input as a valid input and identified it as DMS (for degrees, minutes, seconds)
+                  assert.isTrue(passed, tempLon + (" ") + tempLat + ' did not validate as DMS Long/lat');
+                  //test to see if the regular expression has correctly identified the Lat / long values by comparing them against the original string
+                  assert.equal(tempLon.toUpperCase(), match[1], tempLon + ns[e] + tempLat + " Failed ");
+                  assert.equal(tempLat.toUpperCase(), match[10], tempLon + ns[e] + tempLat + " Failed ");
+                  //test to see if the regular expression has correctly identified the seperator
+                  assert.equal(ns[e], match[9], "Matching the seperator failed");
+                  //reset passed
+                  passed = false;
+                  count++;
                 }
               }
             }
           }
         }
       }
-      console.log("The number of tests conducted for Degrees Decimal Minutes Long/Lat was: " + count);
+      console.log("The number of Auto tests conducted for Identify Input as DMS - Long / Lat conducted was: " + count);
       totalTestCount = totalTestCount + count;
+      console.log("Total number of tests conducted is: " + totalTestCount);
     },
     
-    'Test: Manual Input Coords for DD - Lat / Long': function() {
-      //this.skip('Skip test for now');
+    'Test Manual Input: Identify Input as DD - Lat / Long': function() {
+      this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;
@@ -754,12 +1051,13 @@ define([
         passed = false;
         count++;                        
       }
-      console.log("The number of manual tests conducted for Decimal Degrees Lat/Long was: " + count);
-      totalTestCount = totalTestCount + count;      
+      console.log("The number of manual tests conducted for Identify Input as DD - Lat / Long conducted was: " + count);
+      totalTestCount = totalTestCount + count;
+      console.log("Total number of tests conducted is: " + totalTestCount);      
     },
     
-    'Test: Manual Input Coords for DD - Long / Lat': function() {
-      //this.skip('Skip test for now');
+    'Test Manual Input: Identify Input as DD - Long / Lat': function() {
+      this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;
@@ -806,12 +1104,12 @@ define([
         passed = false;
         count++;                        
       }
-      console.log("The number of manual tests conducted for Decimal Degrees Long/Lat was: " + count);
+      console.log("The number of manual tests conducted for Identify Input as DD - Long / Lat conducted was: " + count);
       totalTestCount = totalTestCount + count;      
     },
     
-    'Test: Manual Input Coords for DDM - Lat / Long': function() {
-      //this.skip('Skip test for now');
+    'Test Manual Input: Identify Input as DDM - Lat / Long': function() {
+      this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;
@@ -852,12 +1150,13 @@ define([
         passed = false;
         count++;                        
       }
-      console.log("The number of manual tests conducted for Decimal Degrees Lat/Long was: " + count);
-      totalTestCount = totalTestCount + count;      
+      console.log("The number of manual tests conducted for Identify Input as DDM - Lat / Long conducted was: " + count);
+      totalTestCount = totalTestCount + count;
+      console.log("Total number of tests conducted is: " + totalTestCount);      
     },
     
-    'Test: Manual Input Coords for DDM - Long / Lat': function() {
-      //this.skip('Skip test for now');
+    'Test Manual Input: Identify Input as DDM - Long / Lat': function() {
+      this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;
@@ -904,12 +1203,13 @@ define([
         passed = false;
         count++;                        
       }
-      console.log("The number of manual tests conducted for Decimal Degrees Long/Lat was: " + count);
-      totalTestCount = totalTestCount + count;      
+      console.log("The number of manual tests conducted for Identify Input as DDM - Long / Lat conducted was: " + count);
+      totalTestCount = totalTestCount + count;
+      console.log("Total number of tests conducted is: " + totalTestCount);      
     },
     
-    'Test: Manual Input Coords for DMS - Lat / Long': function() {
-      //this.skip('Skip test for now');
+    'Test Manual Input: Identify Input as DMS - Lat / Long': function() {
+      this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;
@@ -953,12 +1253,13 @@ define([
         passed = false;
         count++;                        
       }
-      console.log("The number of manual tests conducted for Degrees Decimal Minutes Long/Lat was: " + count);
-      totalTestCount = totalTestCount + count;      
+      console.log("The number of manual tests conducted for Identify Input as DMS - Lat / Long conducted was: " + count);
+      totalTestCount = totalTestCount + count;
+      console.log("Total number of tests conducted is: " + totalTestCount);
     },
     
-    'Test: Manual Input Coords for DMS - Long / Lat': function() {
-      //this.skip('Skip test for now');
+    'Test Manual Input: Identify Input as DMS - Long / Lat': function() {
+      this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;
@@ -970,7 +1271,7 @@ define([
         {testNumber: '002', testString: '000 00 59.666|00 00 59.666', lat: '00 00 59.666', lon: '000 00 59.666', testSeperator: '|'},
         {testNumber: '003', testString: '000 59 00.666:00 59 00.666', lat: '00 59 00.666', lon: '000 59 00.666', testSeperator: ':'},
         {testNumber: '004', testString: '179 59 59.666 89 59 59.666', lat: '89 59 59.666', lon: '179 59 59.666', testSeperator: ' '},
-        {testNumber: '005', testString: '180 00 00.000 90 00 00.000', lat: '90 00 00.000', lon: '180 00 00.000', testSeperator: ' '},
+        {testNumber: '005', testString: '180 00 00.000 90 00 00.000', lat: '90 00 00.000', lon: '180 00 00.000', testSeperator: ' '}
       ];
 
       for (var i = 0; i < validEntries.length; i++) {
@@ -1009,9 +1310,77 @@ define([
         count++;                        
       }
       
-      console.log("The number of manual tests conducted for Degrees Decimal Minutes Long/Lat was: " + count);
-      totalTestCount = totalTestCount + count;      
+      console.log("The number of manual tests conducted for Identify Input as DMS - Long / Lat conducted was: " + count);
+      totalTestCount = totalTestCount + count;
+      console.log("Total number of tests conducted is: " + totalTestCount);
     },
+    
+    'Test Auto Input: Process Input as DD - Lat / Long': function() {
+      //test to ensure that coordinates are processed correctly before handing off to the geometry service
       
-    });
+      this.skip('Skip test for now')
+      var passed = false;
+      var match = '';      
+      var count = 0;
+      
+      var notations = ccUtil.getNotations();
+      
+      for (var a = 0; a < pLat.length; a++) {
+        for (var b = 0; b < pss.length; b++) {
+          for (var c = 0; c < pLat.length; c++) { 
+            for (var d = 0; d < pLon.length; d++) {
+              for (var e = 0; e < pss.length; e++) {
+                for (var f = 0; f < pLon.length; f++) {         
+                  var tempLat = pLat[a].toUpperCase() + "00.0" + pss[b] + pLat[c].toUpperCase();
+                  var tempLon = pLon[d].toUpperCase() + "000.0" + pss[e] + pLon[f].toUpperCase();
+                      
+                  var outLatPrefix = '';                  
+                  if(pLat[a] != '' && pLat[c] != '') {
+                    new RegExp(/[Ss-]/).test(pLat[a])?outLatPrefix = '-':outLatPrefix = '+';
+                  } else {
+                    if(pLat[a] && new RegExp(/[Ss-]/).test(pLat[a])){
+                      outLatPrefix = '-';
+                    } else {
+                      if(pLat[c] && new RegExp(/[Ss-]/).test(pLat[c])){
+                        outLatPrefix = '-';
+                      } else {
+                        outLatPrefix = '+';
+                      }
+                    }
+                  }
+                  
+                  var outLonPrefix = '';                  
+                  if(pLon[d] != '' && pLon[f] != '') {
+                    new RegExp(/[Ww-]/).test(pLon[d])?outLonPrefix = '-':outLonPrefix = '+';
+                  } else {
+                    if(pLon[d] && new RegExp(/[Ww-]/).test(pLon[d])){
+                      outLonPrefix = '-';
+                  } else {
+                      if(pLon[f]  && new RegExp(/[Ww-]/).test(pLon[f])){
+                        outLonPrefix = '-';
+                      } else {
+                        outLonPrefix = '+';
+                      }
+                    }
+                  }
+                  
+                  var expectedOutput = outLatPrefix + "00.0," + outLonPrefix + "000.0";
+                  var testString = (tempLat + " " + tempLon);
+                  var returnString = cc.processCoordTextInput(testString, notations[0], true);
+                  
+                  assert.equal(returnString, expectedOutput, expectedOutput + "  Failed");
+                  count++;     
+                }
+              }
+            }
+          }
+        }
+      }   
+      console.log("The number of Auto tests conducted for Process Input as DD - Lat / Long conducted was: " + count);
+      totalTestCount = totalTestCount + count;
+      console.log("Total number of tests conducted is: " + totalTestCount);
+    }, 
+      
+    
+  });
 });

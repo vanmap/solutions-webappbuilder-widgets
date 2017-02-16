@@ -190,9 +190,7 @@ define(['dojo/_base/declare',
 
     onDrop: function (event) {
       if (this._valid) {
-        if (this.myCsvStore) {
-          this.myCsvStore.clear();
-        }
+        this.onClearClick();
         event.preventDefault();
 
         var dataTransfer = event.dataTransfer,
@@ -388,13 +386,12 @@ define(['dojo/_base/declare',
       domStyle.set(this.submitData, "display", "none");
       domStyle.set(this.updateData, "display", "none");
       domStyle.set(this.addToMap, "display", "block");
-
       domStyle.set(this.mainContainer, "display", "none");
       domStyle.set(this.schemaMapInstructions, "display", "block");
-
       domStyle.set(this.processingNode, 'display', 'none');
-
-      this.myCsvStore.clear();
+      if (this.myCsvStore) {
+        this.myCsvStore.clear();
+      }
     },
 
     onSubmitClick: function () {

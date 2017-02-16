@@ -22,6 +22,8 @@ define(['dojo/_base/declare',
     'dojo/DeferredList',
     'dojo/Evented',
     'dojox/data/CsvStore',
+    'dojo/store/Observable',
+    'dojo/store/Memory',
     'esri/graphicsUtils',
     'esri/geometry/webMercatorUtils',
     'esri/geometry/Point',
@@ -32,7 +34,7 @@ define(['dojo/_base/declare',
     'esri/tasks/locator',
     'jimu/utils'
 ],
-function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvStore,
+function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvStore, Observable, Memory,
   graphicsUtils, webMercatorUtils, Point, Color, SimpleMarkerSymbol, SimpleRenderer, FeatureLayer, Locator,
   jimuUtils) {
   return declare([Evented], {
@@ -224,7 +226,7 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
             }));
           }
 
-          var max = 500;
+          var max = 1;
           var geocodeOps = [];
           var x = 0;
           var i, j;
@@ -263,7 +265,16 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
             var finalResults = [];
             if (results) {
               array.forEach(results, function (r) {
-                array.forEach(r[1], function (_r) {
+
+                array.forEach(r[1], function (result) {
+                  result.ResultID = result.attributes.ResultID;
+                });
+                //var recs1 = orginalDataStore.query();
+                var i = 0;
+                var geocodeDataStore = Observable(new Memory({ data: r[1], idProperty: "ResultID" }));
+                var resultsSort = geocodeDataStore.query({}, { sort: [{ attribute: "ResultID" }] });
+
+                array.forEach(resultsSort, function (_r) {
                   finalResults.push(_r);
                 });
               });

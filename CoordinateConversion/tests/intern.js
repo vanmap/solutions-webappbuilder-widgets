@@ -37,7 +37,7 @@ define([], function() {
     tunnel: 'NullTunnel',
 
     useLoader: {
-      'host-browser': 'https://hgis-ags10-4-1.gigzy.local/arcgis_js_api/library/3.19/3.19/dojo/dojo.js'
+      'host-browser': 'http://js.arcgis.com/3.19/dojo/dojo.js'
     },
 
     loader: {
@@ -50,25 +50,25 @@ define([], function() {
           location: './widgets/CoordinateConversion'
         }, {
           name: 'esri',
-          location: 'https://hgis-ags10-4-1.gigzy.local/arcgis_js_api/library/3.19/3.19/esri'
+          location: 'http://js.arcgis.com/3.19/esri'
         }, {
           name: 'dgrid',
-          location: 'https://hgis-ags10-4-1.gigzy.local/arcgis_js_api/library/3.19/3.19/dgrid'
+          location: 'http://js.arcgis.com/3.19/dgrid'
         }, {
           name: 'put-selector',
-          location: 'https://hgis-ags10-4-1.gigzy.local/arcgis_js_api/library/3.19/put-selector'
+          location: 'http://js.arcgis.com/3.19/put-selector'
         }, {
           name: 'xstyle',
-          location: 'https://hgis-ags10-4-1.gigzy.local/arcgis_js_api/library/3.19/3.19/xstyle'
+          location: 'http://js.arcgis.com/3.19/xstyle'
         }, {
           name: 'dojo',
-          location: 'https://hgis-ags10-4-1.gigzy.local/arcgis_js_api/library/3.19/3.19/dojo'
+          location: 'http://js.arcgis.com/3.19/dojo'
         }, {
           name: 'dojox',
-          location: 'https://hgis-ags10-4-1.gigzy.local/arcgis_js_api/library/3.19/3.19/dojox'
+          location: 'http://js.arcgis.com/3.19/dojox'
         }, {
           name: 'dijit',
-          location: 'https://hgis-ags10-4-1.gigzy.local/arcgis_js_api/library/3.19/3.19/dijit'
+          location: 'http://js.arcgis.com/3.19/dijit'
         }, {
           name: 'jimu',
           location: './jimu.js'

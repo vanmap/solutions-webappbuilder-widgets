@@ -448,7 +448,14 @@ define([
                   
                 if (itm) {
                   if (itm.length == 1) {
-                    this.processCoordTextInput(sanitizedInput, itm[0]);
+                    var withStr = this.processCoordTextInput(sanitizedInput, itm[0], false);
+                    this.util.getXYNotation(withStr, itm[0].name).then(dojoLang.hitch(this,function(r) {
+                      if(r[0].length > 0){
+                        this.geomSrvcDidComplete(r);
+                      } else {
+                        this.geomSrvcDidFail();
+                      }              
+                    }));
                   } else {                  
                     var dialog = new dialogConfirm({
                        title: 'Confirm Input Notation',
@@ -457,10 +464,17 @@ define([
                        hasSkipCheckBox: false
                     });
                     dialog.show().then(dojoLang.hitch(this, function() {                    
-                          var singleMatch = dojoArray.filter(itm, function (singleItm) {
-                            return singleItm.name == dialog.content.comboOptions.get('value');
-                          });
-                          this.processCoordTextInput(sanitizedInput, singleMatch[0]);                     
+                      var singleMatch = dojoArray.filter(itm, function (singleItm) {
+                        return singleItm.name == dialog.content.comboOptions.get('value');
+                      });
+                      var withStr = this.processCoordTextInput(sanitizedInput, singleMatch[0], false);
+                      this.util.getXYNotation(withStr, itm[0].name).then(dojoLang.hitch(this,function(r) {
+                        if(r[0].length > 0){
+                          this.geomSrvcDidComplete(r);
+                        } else {
+                          this.geomSrvcDidFail();
+                        }              
+                      }));
                     }, function() {
                        deferred.reject();
                     }));
@@ -477,13 +491,15 @@ define([
         /**
          *
          **/
-        processCoordTextInput: function (withStr, asType) {
+        processCoordTextInput: function (withStr, asType , testingMode) {
             
             var match = asType.pattern.exec(withStr);            
             
             var northSouthPrefix, northSouthSuffix, eastWestPrefix, eastWestSuffix, latDeg, longDeg, latMin, longMin, latSec, longSec;
             
             var prefixSuffixError = false;
+            
+            var conversionType;
             
             switch (asType.name) {
               case 'DD':
@@ -492,7 +508,8 @@ define([
                 eastWestPrefix = match[10];
                 eastWestSuffix = match[16];
                 latDeg = match[3].replace(/[,:]/, '.');
-                longDeg = match[11].replace(/[,:]/, '.');             
+                longDeg = match[11].replace(/[,:]/, '.');
+                conversionType = 'DD';               
                 break; 
               case 'DDrev':
                 northSouthPrefix = match[11];
@@ -501,7 +518,7 @@ define([
                 eastWestSuffix = match[8];
                 latDeg = match[12].replace(/[,:]/, '.');
                 longDeg = match[3].replace(/[,:]/, '.');  
-                asType.name = 'DD';            
+                conversionType = 'DD';            
                 break;            
               case 'DDM':            
                 northSouthPrefix = match[2];
@@ -511,7 +528,8 @@ define([
                 latDeg = match[3];
                 latMin = match[4].replace(/[,:]/, '.');
                 longDeg = match[11];
-                longMin = match[12].replace(/[,:]/, '.');                
+                longMin = match[12].replace(/[,:]/, '.');
+                conversionType = 'DDM'; 
                 break;
               case 'DDMrev':
                 northSouthPrefix = match[10];
@@ -522,7 +540,7 @@ define([
                 latMin = match[12].replace(/[,:]/, '.');
                 longDeg = match[3];
                 longMin = match[4].replace(/[,:]/, '.');                
-                asType.name = 'DDM';            
+                conversionType = 'DDM';            
                 break;
               case 'DMS':
                 northSouthPrefix = match[2];
@@ -535,7 +553,7 @@ define([
                 longDeg = match[12];
                 longMin = match[13];
                 longSec = match[14].replace(/[,:]/, '.');
-                asType.name = 'DMS';               
+                conversionType = 'DMS';               
                 break;
               case 'DMSrev':
                 northSouthPrefix = match[11];
@@ -548,30 +566,30 @@ define([
                 longDeg = match[3];
                 longMin = match[4];
                 longSec = match[5].replace(/[,:]/, '.');
-                asType.name = 'DMS';               
+                conversionType = 'DMS';                  
                 break;
             }
             
             //check for north/south prefix/suffix
             if(northSouthPrefix && northSouthSuffix) {
-                  prefixSuffixError = true;                    
-                  new RegExp(/[Ss-]/).test(northSouthPrefix)?northSouthPrefix = '-':northSouthPrefix = '';
+              prefixSuffixError = true;                    
+              new RegExp(/[Ss-]/).test(northSouthPrefix)?northSouthPrefix = '-':northSouthPrefix = '+';
+            } else {
+              if(northSouthPrefix && new RegExp(/[Ss-]/).test(northSouthPrefix)){
+                northSouthPrefix = '-';
+              } else {
+                if(northSouthSuffix && new RegExp(/[Ss-]/).test(northSouthSuffix)){
+                  northSouthPrefix = '-';
                 } else {
-                  if(northSouthPrefix && new RegExp(/[Ss-]/).test(northSouthPrefix)){
-                    northSouthPrefix = '-';
-                  } else {
-                    if(northSouthSuffix && new RegExp(/[Ss-]/).test(northSouthSuffix)){
-                      northSouthPrefix = '-';
-                    } else {
-                      northSouthPrefix = '+';
-                    }
-                  }
+                  northSouthPrefix = '+';
                 }
+              }
+            }
                 
             //check for east/west prefix/suffix
             if(eastWestPrefix && eastWestSuffix) {
               prefixSuffixError = true;                    
-              new RegExp(/[Ww-]/).test(eastWestPrefix)?eastWestPrefix = '-':eastWestPrefix = '';
+              new RegExp(/[Ww-]/).test(eastWestPrefix)?eastWestPrefix = '-':eastWestPrefix = '+';
             } else {
               if(eastWestPrefix && new RegExp(/[Ww-]/).test(eastWestPrefix)){
                 eastWestPrefix = '-';
@@ -586,30 +604,27 @@ define([
             
             //give user warning if lat or long is determined as having a prefix and suffix 
             if(prefixSuffixError) {
+              if(!testingMode) {
               new JimuMessage({message: 'The input coordinate has been detected as having both a prefix and suffix for the latitude or longitude value, returned coordinate is based on the prefix.'});
+              }
             }            
             
-            switch (asType.name) {
-              case 'DD':               
-              case 'DDrev':
+            switch (conversionType) {
+              case 'DD':
                 withStr = northSouthPrefix + latDeg + "," + eastWestPrefix + longDeg;
                 break;              
               case 'DDM':
-              case 'DDMrev':
                 withStr = northSouthPrefix + latDeg + " " + latMin + "," + eastWestPrefix + longDeg + " " + longMin;
                 break;
               case 'DMS':
-              case 'DMSrev':
                 withStr = northSouthPrefix + latDeg + " " + latMin + " " + latSec + "," + eastWestPrefix + longDeg + " " + longMin + " " + longSec;
-                break;default:
+                break;
+              default:
                 withStr = withStr;              
                 break;
             }
             
-            this.util.getXYNotation(withStr, asType).then(
-                dojoLang.hitch(this, this.geomSrvcDidComplete),
-                dojoLang.hitch(this, this.geomSrvcDidFail)
-            );
+            return withStr;               
         },
 
         /**

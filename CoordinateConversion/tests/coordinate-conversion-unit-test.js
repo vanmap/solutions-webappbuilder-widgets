@@ -21,6 +21,7 @@ define([
   // local vars scoped to this module
   var map, ccUtil, coordinateConversion, cc;
   var dms2,dms3,ds,ds2,dp,ns,pLat,pLon,pss,ms,ss;
+  var notations;
   var totalTestCount = 0;
   var latDDArray = [];
   var lonDDArray = [];
@@ -28,6 +29,7 @@ define([
   var lonDDMArray = [];
   var latDMSArray = [];
   var lonDMSArray = [];
+  
    
   registerSuite({
     name: 'CoordinateConversion Widget',
@@ -49,7 +51,8 @@ define([
       });
       
       coordinateConversion = new CoordinateConversion({
-            appConfig: {geomService: {url: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer"}},
+            appConfig: {geomService: {url: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer"},
+                        geometryService: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer"},
             parentWidget: this,
             map: map,
             input: true,
@@ -72,10 +75,13 @@ define([
             });
        
       ccUtil = new CCUtil({appConfig: {
+        geometryService: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer",
         coordinateconversion: {                  
-          geometryService: {url: "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"}
+          geometryService: {url: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer"}
         }   
       }});
+      
+      notations = ccUtil.getNotations();
        
       //populate the arrays that will be used in the tests       
       //dms2 = degrees/minutes/seconds two figures
@@ -220,7 +226,7 @@ define([
       //test to ensure inputed DDM is converted correctly to Lat/Long (4 Decimal Places)
       //tests held in file: toGeoFromDDM.json
       
-      this.skip('Skip test for now')
+      //this.skip('Skip test for now')
       var count = 0;
       var DDM2geo = null;
       var dfd = this.async();
@@ -244,7 +250,6 @@ define([
         }
         console.log("The number of manual tests conducted for Convert DDM to Lat/Long conducted was: " + count);
         totalTestCount = totalTestCount + count;
-        console.log("Total number of tests conducted is: " + totalTestCount);
         //clean up Array
         DDM2geo = null;
       }));  
@@ -278,9 +283,140 @@ define([
         }
         console.log("The number of manual tests conducted for Convert DMS to Lat/Long conducted was: " + count);
         totalTestCount = totalTestCount + count;
-        console.log("Total number of tests conducted is: " + totalTestCount);
         //clean up Array
         DMS2geo = null;
+      }));  
+    },
+    
+    'Test Manual Input: Convert UTM (Band) to Lat/Long': function() {
+      //test to ensure inputed MGRS is converted correctly to Lat/Long (3 Decimal Places)
+      //tests held in file: toGeoFromMGRS.json
+      
+      //this.skip('Skip test for now')
+      var count = 0;
+      var UTM2geo = null;
+      var dfd = this.async();
+      var returnArray = [];
+      
+      //read in tests from the json file
+      jsonLoader("../../widgets/CoordinateConversion/tests/toGeoFromUTMBand.json", lang.hitch(this,function(response){
+        UTM2geo = JSON.parse(response);
+      }));
+       
+      for (var i = 0; i < UTM2geo.tests.length; i++) {
+        returnArray.push(ccUtil.getXYNotation(UTM2geo.tests[i].testString,'UTM'));          
+      }
+      
+      dojoAll(returnArray).then(dfd.callback(function (itm) {
+        for (var i = 0; i < itm.length; i++) {
+          assert.equal(roundNumber(itm[i][0][0],3), roundNumber(UTM2geo.tests[i].lon,3), UTM2geo.tests[i].testNumber + " Failed");
+          assert.equal(roundNumber(itm[i][0][1],3), roundNumber(UTM2geo.tests[i].lat,3), UTM2geo.tests[i].testNumber + " Failed");
+          count++;
+          
+        }
+        console.log("The number of manual tests conducted for Convert UTM (Band) to Lat/Long conducted was: " + count);
+        totalTestCount = totalTestCount + count;
+        //clean up MGRStests Array
+        UTM2geo = null;
+      }));  
+    },
+    
+    'Test Manual Input: Convert UTM (Hemisphere) to Lat/Long': function() {
+      //test to ensure inputed MGRS is converted correctly to Lat/Long (3 Decimal Places)
+      //tests held in file: toGeoFromMGRS.json
+      
+      //this.skip('Skip test for now')
+      var count = 0;
+      var UTMHem2geo = null;
+      var dfd = this.async();
+      var returnArray = [];
+      
+      //read in tests from the json file
+      jsonLoader("../../widgets/CoordinateConversion/tests/toGeoFromUTMHem.json", lang.hitch(this,function(response){
+        UTMHem2geo = JSON.parse(response);
+      }));
+       
+      for (var i = 0; i < UTMHem2geo.tests.length; i++) {
+        returnArray.push(ccUtil.getXYNotation(UTMHem2geo.tests[i].testString,'UTM (H)'));          
+      }
+      
+      dojoAll(returnArray).then(dfd.callback(function (itm) {
+        for (var i = 0; i < itm.length; i++) {
+          assert.equal(roundNumber(itm[i][0][0],3), roundNumber(UTMHem2geo.tests[i].lon,3), UTMHem2geo.tests[i].testNumber + " Failed");
+          assert.equal(roundNumber(itm[i][0][1],3), roundNumber(UTMHem2geo.tests[i].lat,3), UTMHem2geo.tests[i].testNumber + " Failed");
+          count++;
+          
+        }
+        console.log("The number of manual tests conducted for Convert UTM (Hemisphere) to Lat/Long conducted was: " + count);
+        totalTestCount = totalTestCount + count;
+        //clean up MGRStests Array
+        UTMHem2geo = null;
+      }));  
+    },
+    
+    'Test Manual Input: Convert GEOREF to Lat/Long': function() {
+      //test to ensure inputed MGRS is converted correctly to Lat/Long (3 Decimal Places)
+      //tests held in file: toGeoFromMGRS.json
+      
+      //this.skip('Skip test for now')
+      var count = 0;
+      var GEOREF2geo = null;
+      var dfd = this.async();
+      var returnArray = [];
+      
+      //read in tests from the json file
+      jsonLoader("../../widgets/CoordinateConversion/tests/toGeoFromGEOREF.json", lang.hitch(this,function(response){
+        GEOREF2geo = JSON.parse(response);
+      }));
+       
+      for (var i = 0; i < GEOREF2geo.tests.length; i++) {
+        returnArray.push(ccUtil.getXYNotation(GEOREF2geo.tests[i].testString,'GEOREF'));          
+      }
+      
+      dojoAll(returnArray).then(dfd.callback(function (itm) {
+        for (var i = 0; i < itm.length; i++) {
+          assert.equal(roundNumber(itm[i][0][0],3), roundNumber(GEOREF2geo.tests[i].lon,3), GEOREF2geo.tests[i].testNumber + " Failed");
+          assert.equal(roundNumber(itm[i][0][1],3), roundNumber(GEOREF2geo.tests[i].lat,3), GEOREF2geo.tests[i].testNumber + " Failed");
+          count++;
+          
+        }
+        console.log("The number of manual tests conducted for Convert GEOREF to Lat/Long conducted was: " + count);
+        totalTestCount = totalTestCount + count;
+        //clean up MGRStests Array
+        GEOREF2geo = null;
+      }));  
+    },
+    
+    'Test Manual Input: Convert GARS to Lat/Long': function() {
+      //test to ensure inputed MGRS is converted correctly to Lat/Long
+      //tests held in file: toGeoFromMGRS.json
+      
+      //this.skip('Skip test for now')
+      var count = 0;
+      var GARS2geo = null;
+      var dfd = this.async();
+      var returnArray = [];
+      
+      //read in tests from the json file
+      jsonLoader("../../widgets/CoordinateConversion/tests/toGeoFromGARS.json", lang.hitch(this,function(response){
+        GARS2geo = JSON.parse(response);
+      }));
+       
+      for (var i = 0; i < GARS2geo.tests.length; i++) {
+        returnArray.push(ccUtil.getXYNotation(GARS2geo.tests[i].testString,'GARS'));          
+      }
+      
+      dojoAll(returnArray).then(dfd.callback(function (itm) {
+        for (var i = 0; i < itm.length; i++) {
+          assert.equal(itm[i][0][0], GARS2geo.tests[i].lon, GARS2geo.tests[i].testNumber + " Failed");
+          assert.equal(itm[i][0][1], GARS2geo.tests[i].lat, GARS2geo.tests[i].testNumber + " Failed");
+          count++;
+          
+        }
+        console.log("The number of manual tests conducted for Convert GARS to Lat/Long conducted was: " + count);
+        totalTestCount = totalTestCount + count;
+        //clean up MGRStests Array
+        GARS2geo = null;
       }));  
     },
     
@@ -312,7 +448,6 @@ define([
         }
         console.log("The number of manual tests conducted for Convert MGRS to Lat/Long conducted was: " + count);
         totalTestCount = totalTestCount + count;
-        console.log("Total number of tests conducted is: " + totalTestCount);
         //clean up MGRStests Array
         MGRS2geo = null;
       }));  
@@ -322,7 +457,7 @@ define([
       //test to ensure inputed Lat/Long is converted correctly to DDM
       //tests held in file: geo2DDM.json
       
-      this.skip('Skip test for now')
+      //this.skip('Skip test for now')
       var count = 0;
       var geo2DDM = null;
       var dfd = this.async();
@@ -345,7 +480,7 @@ define([
         }
         console.log("The number of manual tests conducted for Convert Lat/Long to DDM conducted was: " + count);
         totalTestCount = totalTestCount + count;
-        console.log("Total number of tests conducted is: " + totalTestCount);
+        
         //clean up Array
         geo2DDM = null;
       }));  
@@ -355,7 +490,7 @@ define([
       //test to ensure inputed Lat/Long is converted correctly to DMS      
       //tests held in file: geo2DMS.json
       
-      this.skip('Skip test for now')
+      //this.skip('Skip test for now')
       var count = 0;
       var geo2DMS = null;
       var dfd = this.async();
@@ -378,7 +513,7 @@ define([
         }
         console.log("The number of manual tests conducted for Convert Lat/Long to DMS conducted was: " + count);
         totalTestCount = totalTestCount + count;
-        console.log("Total number of tests conducted is: " + totalTestCount);
+        
         //clean up Array
         geo2DMS = null;
       }));  
@@ -388,7 +523,7 @@ define([
       //test to ensure inputed Lat/Long is converted correctly to UTM (Band)      
       //tests held in file: geo2UTMBand.json
       
-      this.skip('Skip test for now')
+      //this.skip('Skip test for now')
       var count = 0;
       var geo2UTMBand = null;
       var dfd = this.async();
@@ -411,7 +546,7 @@ define([
         }
         console.log("The number of manual tests conducted for Convert Lat/Long to UTM (Band) conducted was: " + count);
         totalTestCount = totalTestCount + count;
-        console.log("Total number of tests conducted is: " + totalTestCount);
+        
         //clean up Array
         geo2UTMBand = null;
       }));  
@@ -421,7 +556,7 @@ define([
       //test to ensure inputed Lat/Long is converted correctly to UTM (Hemisphere)      
       //tests held in file: geo2UTMHem.json
       
-      this.skip('Skip test for now')
+      //this.skip('Skip test for now')
       var count = 0;
       var geo2UTMHem = null;
       var dfd = this.async();
@@ -444,7 +579,7 @@ define([
         }
         console.log("The number of manual tests conducted for Convert Lat/Long to UTM (Hemisphere) conducted was: " + count);
         totalTestCount = totalTestCount + count;
-        console.log("Total number of tests conducted is: " + totalTestCount);
+        
         //clean up Array
         geo2UTMHem = null;
       }));  
@@ -454,7 +589,7 @@ define([
       //test to ensure inputed Lat/Long is converted correctly to GEOREF     
       //tests held in file: geo2GEOREF.json
       
-      this.skip('Skip test for now')
+      //this.skip('Skip test for now')
       var count = 0;
       var geo2GEOREF = null;
       var dfd = this.async();
@@ -477,7 +612,7 @@ define([
         }
         console.log("The number of manual tests conducted for Convert Lat/Long to GEOREF conducted was: " + count);
         totalTestCount = totalTestCount + count;
-        console.log("Total number of tests conducted is: " + totalTestCount);
+        
         //clean up Array
         geo2GEOREF = null;
       }));  
@@ -487,7 +622,7 @@ define([
       //test to ensure inputed Lat/Long is converted correctly to GARS     
       //tests held in file: geo2GARS.json
       
-      this.skip('Skip test for now')
+      //this.skip('Skip test for now')
       var count = 0;
       var geo2GARS = null;
       var dfd = this.async();
@@ -510,7 +645,7 @@ define([
         }
         console.log("The number of manual tests conducted for Convert Lat/Long to GARS conducted was: " + count);
         totalTestCount = totalTestCount + count;
-        console.log("Total number of tests conducted is: " + totalTestCount);
+        
         //clean up Array
         geo2GARS = null;
       }));  
@@ -521,7 +656,7 @@ define([
       
       //tests held in file: geo2mgrs.json
       
-      this.skip('Skip test for now')
+      //this.skip('Skip test for now')
       var count = 0;
       var geo2MGRStests = null;
       var dfd = this.async();
@@ -544,14 +679,14 @@ define([
         }
         console.log("The number of manual tests conducted for Convert Lat/Long to MGRS conducted was: " + count);
         totalTestCount = totalTestCount + count;
-        console.log("Total number of tests conducted is: " + totalTestCount);
+        
         //clean up MGRStests Array
         geo2MGRStests = null;
       }));  
     },    
     
     'Test Auto Input: Identify Input as DD - Lat / Long': function() {
-      this.skip('Skip test for now')
+      //this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;       
@@ -621,11 +756,10 @@ define([
       }
       console.log("The number of Auto tests conducted for Identify Input as DD - Lat / Long tests conducted was: " + count);
       totalTestCount = totalTestCount + count;
-      console.log("Total number of tests conducted is: " + totalTestCount);
     },
      
     'Test Auto Input: Identify Input as DD - Long / Lat': function() {
-      this.skip('Skip test for now')
+      //this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;       
@@ -701,11 +835,10 @@ define([
       }
       console.log("The number of Auto tests conducted for Identify Input as DD - Long / Lat conducted was: " + count);
       totalTestCount = totalTestCount + count;
-      console.log("Total number of tests conducted is: " + totalTestCount);
     },
     
     'Test Auto Input: Identify Input as DDM - Lat / Long': function() {
-      this.skip('Skip test for now')
+      //this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;       
@@ -775,11 +908,10 @@ define([
       }
       console.log("The number of Auto tests conducted for Identify Input as DDM - Lat / Long conducted was: " + count);
       totalTestCount = totalTestCount + count;
-      console.log("Total number of tests conducted is: " + totalTestCount);
     },
     
     'Test Auto Input: Identify Input as DDM - Long / Lat': function() {
-      this.skip('Skip test for now')
+      //this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;       
@@ -855,11 +987,10 @@ define([
       }
       console.log("The number of Auto tests conducted for Identify Input as DDM - Long / Lat conducted was: " + count);
       totalTestCount = totalTestCount + count;
-      console.log("Total number of tests conducted is: " + totalTestCount);
     },
     
     'Test Auto Input: Identify Input as DMS - Lat / Long': function() {
-      this.skip('Skip test for now')
+      //this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;       
@@ -928,11 +1059,10 @@ define([
       }
       console.log("The number of Auto tests conducted for Identify Input as DMS - Lat / Long conducted was: " + count);
       totalTestCount = totalTestCount + count;
-      console.log("Total number of tests conducted is: " + totalTestCount);
     },
     
     'Test Auto Input: Identify Input as DMS - Long / Lat': function() {
-      this.skip('Skip test for now')
+      //this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;       
@@ -1006,11 +1136,10 @@ define([
       }
       console.log("The number of Auto tests conducted for Identify Input as DMS - Long / Lat conducted was: " + count);
       totalTestCount = totalTestCount + count;
-      console.log("Total number of tests conducted is: " + totalTestCount);
     },
     
     'Test Manual Input: Identify Input as DD - Lat / Long': function() {
-      this.skip('Skip test for now')
+      //this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;
@@ -1052,12 +1181,11 @@ define([
         count++;                        
       }
       console.log("The number of manual tests conducted for Identify Input as DD - Lat / Long conducted was: " + count);
-      totalTestCount = totalTestCount + count;
-      console.log("Total number of tests conducted is: " + totalTestCount);      
+      totalTestCount = totalTestCount + count;      
     },
     
     'Test Manual Input: Identify Input as DD - Long / Lat': function() {
-      this.skip('Skip test for now')
+      //this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;
@@ -1109,7 +1237,7 @@ define([
     },
     
     'Test Manual Input: Identify Input as DDM - Lat / Long': function() {
-      this.skip('Skip test for now')
+      //this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;
@@ -1151,12 +1279,11 @@ define([
         count++;                        
       }
       console.log("The number of manual tests conducted for Identify Input as DDM - Lat / Long conducted was: " + count);
-      totalTestCount = totalTestCount + count;
-      console.log("Total number of tests conducted is: " + totalTestCount);      
+      totalTestCount = totalTestCount + count;     
     },
     
     'Test Manual Input: Identify Input as DDM - Long / Lat': function() {
-      this.skip('Skip test for now')
+      //this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;
@@ -1204,12 +1331,11 @@ define([
         count++;                        
       }
       console.log("The number of manual tests conducted for Identify Input as DDM - Long / Lat conducted was: " + count);
-      totalTestCount = totalTestCount + count;
-      console.log("Total number of tests conducted is: " + totalTestCount);      
+      totalTestCount = totalTestCount + count;      
     },
     
     'Test Manual Input: Identify Input as DMS - Lat / Long': function() {
-      this.skip('Skip test for now')
+      //this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;
@@ -1255,11 +1381,10 @@ define([
       }
       console.log("The number of manual tests conducted for Identify Input as DMS - Lat / Long conducted was: " + count);
       totalTestCount = totalTestCount + count;
-      console.log("Total number of tests conducted is: " + totalTestCount);
     },
     
     'Test Manual Input: Identify Input as DMS - Long / Lat': function() {
-      this.skip('Skip test for now')
+      //this.skip('Skip test for now')
       var passed = false;
       var match = '';      
       var count = 0;
@@ -1312,18 +1437,14 @@ define([
       
       console.log("The number of manual tests conducted for Identify Input as DMS - Long / Lat conducted was: " + count);
       totalTestCount = totalTestCount + count;
-      console.log("Total number of tests conducted is: " + totalTestCount);
     },
     
     'Test Auto Input: Process Input as DD - Lat / Long': function() {
       //test to ensure that coordinates are processed correctly before handing off to the geometry service
       
-      this.skip('Skip test for now')
-      var passed = false;
-      var match = '';      
-      var count = 0;
-      
-      var notations = ccUtil.getNotations();
+      //this.skip('Skip test for now')
+      var count = 0;      
+      //var notations = ccUtil.getNotations();
       
       for (var a = 0; a < pLat.length; a++) {
         for (var b = 0; b < pss.length; b++) {
@@ -1378,9 +1499,317 @@ define([
       }   
       console.log("The number of Auto tests conducted for Process Input as DD - Lat / Long conducted was: " + count);
       totalTestCount = totalTestCount + count;
-      console.log("Total number of tests conducted is: " + totalTestCount);
-    }, 
+    },
+    
+    'Test Auto Input: Process Input as DD - Long / Lat': function() {
+      //test to ensure that coordinates are processed correctly before handing off to the geometry service
       
+      //this.skip('Skip test for now')
+      var count = 0; 
+      
+           
+      for (var a = 0; a < pLat.length; a++) {
+        for (var b = 0; b < pss.length; b++) {
+          for (var c = 0; c < pLat.length; c++) { 
+            for (var d = 0; d < pLon.length; d++) {
+              for (var e = 0; e < pss.length; e++) {
+                for (var f = 0; f < pLon.length; f++) {         
+                  var tempLat = pLat[a].toUpperCase() + "00.0" + pss[b] + pLat[c].toUpperCase();
+                  var tempLon = pLon[d].toUpperCase() + "000.0" + pss[e] + pLon[f].toUpperCase();
+                      
+                  var outLatPrefix = '';                  
+                  if(pLat[a] != '' && pLat[c] != '') {
+                    new RegExp(/[Ss-]/).test(pLat[a])?outLatPrefix = '-':outLatPrefix = '+';
+                  } else {
+                    if(pLat[a] && new RegExp(/[Ss-]/).test(pLat[a])){
+                      outLatPrefix = '-';
+                    } else {
+                      if(pLat[c] && new RegExp(/[Ss-]/).test(pLat[c])){
+                        outLatPrefix = '-';
+                      } else {
+                        outLatPrefix = '+';
+                      }
+                    }
+                  }
+                  
+                  var outLonPrefix = '';                  
+                  if(pLon[d] != '' && pLon[f] != '') {
+                    new RegExp(/[Ww-]/).test(pLon[d])?outLonPrefix = '-':outLonPrefix = '+';
+                  } else {
+                    if(pLon[d] && new RegExp(/[Ww-]/).test(pLon[d])){
+                      outLonPrefix = '-';
+                  } else {
+                      if(pLon[f]  && new RegExp(/[Ww-]/).test(pLon[f])){
+                        outLonPrefix = '-';
+                      } else {
+                        outLonPrefix = '+';
+                      }
+                    }
+                  }
+                  
+                  var expectedOutput = outLatPrefix + "00.0," + outLonPrefix + "000.0";
+                  var testString = (tempLon + " " + tempLat);
+                  var returnString = cc.processCoordTextInput(testString, notations[1], true);
+                                    
+                  assert.equal(returnString, expectedOutput, expectedOutput + "  Failed");
+                  count++;     
+                }
+              }
+            }
+          }
+        }
+      }   
+      console.log("The number of Auto tests conducted for Process Input as DD - Long / Lat conducted was: " + count);
+      totalTestCount = totalTestCount + count;
+    },
+    
+    'Test Auto Input: Process Input as DDM - Lat / Long': function() {
+      //test to ensure that coordinates are processed correctly before handing off to the geometry service
+      
+      //this.skip('Skip test for now')
+      var count = 0;      
+      
+      for (var a = 0; a < pLat.length; a++) {
+        for (var b = 0; b < pss.length; b++) {
+          for (var c = 0; c < pLat.length; c++) { 
+            for (var d = 0; d < pLon.length; d++) {
+              for (var e = 0; e < pss.length; e++) {
+                for (var f = 0; f < pLon.length; f++) {         
+                  var tempLat = pLat[a].toUpperCase() + "00 00.0" + pss[b] + pLat[c].toUpperCase();
+                  var tempLon = pLon[d].toUpperCase() + "000 00.0" + pss[e] + pLon[f].toUpperCase();
+                      
+                  var outLatPrefix = '';                  
+                  if(pLat[a] != '' && pLat[c] != '') {
+                    new RegExp(/[Ss-]/).test(pLat[a])?outLatPrefix = '-':outLatPrefix = '+';
+                  } else {
+                    if(pLat[a] && new RegExp(/[Ss-]/).test(pLat[a])){
+                      outLatPrefix = '-';
+                    } else {
+                      if(pLat[c] && new RegExp(/[Ss-]/).test(pLat[c])){
+                        outLatPrefix = '-';
+                      } else {
+                        outLatPrefix = '+';
+                      }
+                    }
+                  }
+                  
+                  var outLonPrefix = '';                  
+                  if(pLon[d] != '' && pLon[f] != '') {
+                    new RegExp(/[Ww-]/).test(pLon[d])?outLonPrefix = '-':outLonPrefix = '+';
+                  } else {
+                    if(pLon[d] && new RegExp(/[Ww-]/).test(pLon[d])){
+                      outLonPrefix = '-';
+                  } else {
+                      if(pLon[f]  && new RegExp(/[Ww-]/).test(pLon[f])){
+                        outLonPrefix = '-';
+                      } else {
+                        outLonPrefix = '+';
+                      }
+                    }
+                  }
+                  
+                  var expectedOutput = outLatPrefix + "00 00.0," + outLonPrefix + "000 00.0";
+                  var testString = (tempLat + " " + tempLon);
+                  var returnString = cc.processCoordTextInput(testString, notations[2], true);
+                  
+                  assert.equal(returnString, expectedOutput, expectedOutput + "  Failed");
+                  count++;     
+                }
+              }
+            }
+          }
+        }
+      }   
+      console.log("The number of Auto tests conducted for Process Input as DDM - Lat / Long conducted was: " + count);
+      totalTestCount = totalTestCount + count;
+    },
+    
+    'Test Auto Input: Process Input as DDM - Long / Lat': function() {
+      //test to ensure that coordinates are processed correctly before handing off to the geometry service
+      
+      //this.skip('Skip test for now')
+      var count = 0;      
+      //var notations = ccUtil.getNotations();
+      
+           
+      for (var a = 0; a < pLat.length; a++) {
+        for (var b = 0; b < pss.length; b++) {
+          for (var c = 0; c < pLat.length; c++) { 
+            for (var d = 0; d < pLon.length; d++) {
+              for (var e = 0; e < pss.length; e++) {
+                for (var f = 0; f < pLon.length; f++) {         
+                  var tempLat = pLat[a].toUpperCase() + "00 00.0" + pss[b] + pLat[c].toUpperCase();
+                  var tempLon = pLon[d].toUpperCase() + "000 00.0" + pss[e] + pLon[f].toUpperCase();
+                      
+                  var outLatPrefix = '';                  
+                  if(pLat[a] != '' && pLat[c] != '') {
+                    new RegExp(/[Ss-]/).test(pLat[a])?outLatPrefix = '-':outLatPrefix = '+';
+                  } else {
+                    if(pLat[a] && new RegExp(/[Ss-]/).test(pLat[a])){
+                      outLatPrefix = '-';
+                    } else {
+                      if(pLat[c] && new RegExp(/[Ss-]/).test(pLat[c])){
+                        outLatPrefix = '-';
+                      } else {
+                        outLatPrefix = '+';
+                      }
+                    }
+                  }
+                  
+                  var outLonPrefix = '';                  
+                  if(pLon[d] != '' && pLon[f] != '') {
+                    new RegExp(/[Ww-]/).test(pLon[d])?outLonPrefix = '-':outLonPrefix = '+';
+                  } else {
+                    if(pLon[d] && new RegExp(/[Ww-]/).test(pLon[d])){
+                      outLonPrefix = '-';
+                  } else {
+                      if(pLon[f]  && new RegExp(/[Ww-]/).test(pLon[f])){
+                        outLonPrefix = '-';
+                      } else {
+                        outLonPrefix = '+';
+                      }
+                    }
+                  }
+                  
+                  var expectedOutput = outLatPrefix + "00 00.0," + outLonPrefix + "000 00.0";
+                  var testString = (tempLon + " " + tempLat);
+                  var returnString = cc.processCoordTextInput(testString, notations[3], true);
+                                    
+                  assert.equal(returnString, expectedOutput, expectedOutput + "  Failed");
+                  count++;     
+                }
+              }
+            }
+          }
+        }
+      }   
+      console.log("The number of Auto tests conducted for Process Input as DDM - Long / Lat conducted was: " + count);
+      totalTestCount = totalTestCount + count;
+    },
+    
+    'Test Auto Input: Process Input as DMS - Lat / Long': function() {
+      //test to ensure that coordinates are processed correctly before handing off to the geometry service
+      
+      //this.skip('Skip test for now')
+      var count = 0;      
+      
+      for (var a = 0; a < pLat.length; a++) {
+        for (var b = 0; b < pss.length; b++) {
+          for (var c = 0; c < pLat.length; c++) { 
+            for (var d = 0; d < pLon.length; d++) {
+              for (var e = 0; e < pss.length; e++) {
+                for (var f = 0; f < pLon.length; f++) {         
+                  var tempLat = pLat[a].toUpperCase() + "00 00 00.0" + pss[b] + pLat[c].toUpperCase();
+                  var tempLon = pLon[d].toUpperCase() + "000 00 00.0" + pss[e] + pLon[f].toUpperCase();
+                      
+                  var outLatPrefix = '';                  
+                  if(pLat[a] != '' && pLat[c] != '') {
+                    new RegExp(/[Ss-]/).test(pLat[a])?outLatPrefix = '-':outLatPrefix = '+';
+                  } else {
+                    if(pLat[a] && new RegExp(/[Ss-]/).test(pLat[a])){
+                      outLatPrefix = '-';
+                    } else {
+                      if(pLat[c] && new RegExp(/[Ss-]/).test(pLat[c])){
+                        outLatPrefix = '-';
+                      } else {
+                        outLatPrefix = '+';
+                      }
+                    }
+                  }
+                  
+                  var outLonPrefix = '';                  
+                  if(pLon[d] != '' && pLon[f] != '') {
+                    new RegExp(/[Ww-]/).test(pLon[d])?outLonPrefix = '-':outLonPrefix = '+';
+                  } else {
+                    if(pLon[d] && new RegExp(/[Ww-]/).test(pLon[d])){
+                      outLonPrefix = '-';
+                  } else {
+                      if(pLon[f]  && new RegExp(/[Ww-]/).test(pLon[f])){
+                        outLonPrefix = '-';
+                      } else {
+                        outLonPrefix = '+';
+                      }
+                    }
+                  }
+                  
+                  var expectedOutput = outLatPrefix + "00 00 00.0," + outLonPrefix + "000 00 00.0";
+                  var testString = (tempLat + " " + tempLon);
+                  var returnString = cc.processCoordTextInput(testString, notations[4], true);
+                  
+                  assert.equal(returnString, expectedOutput, expectedOutput + "  Failed");
+                  count++;     
+                }
+              }
+            }
+          }
+        }
+      }   
+      console.log("The number of Auto tests conducted for Process Input as DMS - Lat / Long conducted was: " + count);
+      totalTestCount = totalTestCount + count;
+    },
+    
+    'Test Auto Input: Process Input as DMS - Long / Lat': function() {
+      //test to ensure that coordinates are processed correctly before handing off to the geometry service
+      
+      //this.skip('Skip test for now')
+      var count = 0;      
+      //var notations = ccUtil.getNotations();
+      
+           
+      for (var a = 0; a < pLat.length; a++) {
+        for (var b = 0; b < pss.length; b++) {
+          for (var c = 0; c < pLat.length; c++) { 
+            for (var d = 0; d < pLon.length; d++) {
+              for (var e = 0; e < pss.length; e++) {
+                for (var f = 0; f < pLon.length; f++) {         
+                  var tempLat = pLat[a].toUpperCase() + "00 00 00.0" + pss[b] + pLat[c].toUpperCase();
+                  var tempLon = pLon[d].toUpperCase() + "000 00 00.0" + pss[e] + pLon[f].toUpperCase();
+                      
+                  var outLatPrefix = '';                  
+                  if(pLat[a] != '' && pLat[c] != '') {
+                    new RegExp(/[Ss-]/).test(pLat[a])?outLatPrefix = '-':outLatPrefix = '+';
+                  } else {
+                    if(pLat[a] && new RegExp(/[Ss-]/).test(pLat[a])){
+                      outLatPrefix = '-';
+                    } else {
+                      if(pLat[c] && new RegExp(/[Ss-]/).test(pLat[c])){
+                        outLatPrefix = '-';
+                      } else {
+                        outLatPrefix = '+';
+                      }
+                    }
+                  }
+                  
+                  var outLonPrefix = '';                  
+                  if(pLon[d] != '' && pLon[f] != '') {
+                    new RegExp(/[Ww-]/).test(pLon[d])?outLonPrefix = '-':outLonPrefix = '+';
+                  } else {
+                    if(pLon[d] && new RegExp(/[Ww-]/).test(pLon[d])){
+                      outLonPrefix = '-';
+                  } else {
+                      if(pLon[f]  && new RegExp(/[Ww-]/).test(pLon[f])){
+                        outLonPrefix = '-';
+                      } else {
+                        outLonPrefix = '+';
+                      }
+                    }
+                  }
+                  
+                  var expectedOutput = outLatPrefix + "00 00 00.0," + outLonPrefix + "000 00 00.0";
+                  var testString = (tempLon + " " + tempLat);
+                  var returnString = cc.processCoordTextInput(testString, notations[5], true);
+                                    
+                  assert.equal(returnString, expectedOutput, expectedOutput + "  Failed");
+                  count++;     
+                }
+              }
+            }
+          }
+        }
+      }   
+      console.log("The number of Auto tests conducted for Process Input as DMS - Long / Lat conducted was: " + count);
+      totalTestCount = totalTestCount + count;
+    },
     
   });
 });

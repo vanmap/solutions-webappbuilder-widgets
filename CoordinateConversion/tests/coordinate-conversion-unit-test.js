@@ -1439,6 +1439,72 @@ define([
       totalTestCount = totalTestCount + count;
     },
     
+    'Test Manual Input: Identify Correct Non-Geographic Formats': function() {
+      //this.skip('Skip test for now')
+      var passed = false;
+      var match = '';      
+      var count = 0;
+      
+      // if you want to add specific tests that are not that you think will not be test with the automatic testing functions
+      // add entries to the array below, including test number, testString, lat, long and seperator. Ensure there is no comma after your last array entry 
+      var validEntries = [
+        {testNumber: '1', testString: '49Q GV 3527397324', correctNotation: 'MGRS'},
+        {testNumber: '2', testString: '49Q GV 35273 97324', correctNotation: 'MGRS'},
+        {testNumber: '3', testString: '49Q GV 3527 9732', correctNotation: 'MGRS'},
+        {testNumber: '4', testString: '49Q GV 352 397', correctNotation: 'MGRS'},
+        {testNumber: '5', testString: '49Q GV 35 39', correctNotation: 'MGRS'},
+        {testNumber: '6', testString: '49Q GV 3 3', correctNotation: 'MGRS'},
+        {testNumber: '7', testString: '49QGV 3527397324', correctNotation: 'MGRS'},
+        {testNumber: '8', testString: '49QGV 35273 97324', correctNotation: 'MGRS'},
+        {testNumber: '9', testString: '49QGV 3527 9732', correctNotation: 'MGRS'},
+        {testNumber: '10', testString: '49QGV 352 397', correctNotation: 'MGRS'},
+        {testNumber: '11', testString: '49QGV 35 39', correctNotation: 'MGRS'},
+        {testNumber: '12', testString: '49QGV 3 3', correctNotation: 'MGRS'},
+        {testNumber: '13', testString: '49QGV3527397324', correctNotation: 'MGRS'},
+        {testNumber: '14', testString: '49QGV35273 97324', correctNotation: 'MGRS'},
+        {testNumber: '15', testString: '49QGV3527 9732', correctNotation: 'MGRS'},
+        {testNumber: '16', testString: '49QGV352 397', correctNotation: 'MGRS'},
+        {testNumber: '17', testString: '49QGV35 39', correctNotation: 'MGRS'},
+        {testNumber: '18', testString: '49QGV3 3', correctNotation: 'MGRS'},
+        {testNumber: '19', testString: '02D 456100 2516654', correctNotation: 'UTM'},
+        {testNumber: '20', testString: '02D4561002516654', correctNotation: 'UTM'},
+        {testNumber: '21', testString: 'ABFH2111042', correctNotation: 'GEOREF'},
+        {testNumber: '22', testString: 'ABBN0677780', correctNotation: 'GEOREF'},
+        {testNumber: '23', testString: 'ACAF0357515', correctNotation: 'GEOREF'},
+        {testNumber: '24', testString: 'ACFF5642385', correctNotation: 'GEOREF'},
+        {testNumber: '25', testString: 'ADAE3811872', correctNotation: 'GEOREF'},
+        {testNumber: '26', testString: '011BW25', correctNotation: 'GARS'},
+        {testNumber: '27', testString: '003CG35', correctNotation: 'GARS'},
+        {testNumber: '28', testString: '001CZ14', correctNotation: 'GARS'},
+        {testNumber: '29', testString: '012CZ26', correctNotation: 'GARS'},
+        {testNumber: '30', testString: '002EC15', correctNotation: 'GARS'},
+        {testNumber: '31', testString: '004EM25', correctNotation: 'GARS'},
+        {testNumber: '32', testString: '009FF14', correctNotation: 'GARS'}
+      ];
+
+      for (var i = 0; i < validEntries.length; i++) {
+        ccUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
+          /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
+          ** https://theintern.github.io/intern/#async-tests
+          ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
+          ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
+          */
+            itm && itm[0].name == validEntries[i].correctNotation?passed=true:passed=false;
+            //execute the reg ex and store in the variable match          
+        });
+        
+        //test to see if the regular expression identified the input as a valid inpout and identified it as DMS (for degrees, minutes, seconds)
+        assert.isTrue(passed, 'Test Number: ' + validEntries[i].testNumber + " String: " + validEntries[i].testString + ' notation was not identified.');
+                
+        //reset passed
+        passed = false;
+        count++;                        
+      }
+      
+      console.log("The number of manual tests conducted for Identify Correct Non-Geographic Formats conducted was: " + count);
+      totalTestCount = totalTestCount + count;
+    },
+    
     'Test Auto Input: Process Input as DD - Lat / Long': function() {
       //test to ensure that coordinates are processed correctly before handing off to the geometry service
       

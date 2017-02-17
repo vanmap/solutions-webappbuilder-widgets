@@ -201,7 +201,7 @@ define([
           notationType: "DMS - Longitude/Latitude" 
         }, {
           name: 'GARS',
-          pattern: /^\d{3}[a-zA-Z]{2}[1,4]?[1,9]?$/,
+          pattern: /^\d{3}[a-zA-Z]{2}[1-4]?[1-9]?$/,
           notationType: "GARS"
         }, {
           name: 'GEOREF',
@@ -220,7 +220,7 @@ define([
         },*/ 
         {
           name: 'UTM',
-          pattern: /^\d{1,2}[-,;:\s]*[c-hj-np-xC-HJ-NP-X]{1}[-,;:\s]*\d{1,6}.?\d*[mM]?[-,;:\s]+\d{1,7}.?\d*[mM]?$/,
+          pattern: /^\d{1,2}[-,;:\s]*[c-hj-np-xC-HJ-NP-X]{1}[-,;:\s]*\d{1,6}.?\d*[mM]?[-,;:\s]?\d{1,7}.?\d*[mM]?$/,
           notationType: "UTM - Band Letter"
         }, {
           name: 'UTM (H)',

@@ -46,7 +46,6 @@ define([
   'esri/units',
   'esri/geometry/webMercatorUtils',
   'esri/tasks/FeatureSet',
-  '../util',
   '../models/EllipseFeedback',
   '../models/ShapeModel',
   '../views/CoordinateInput',
@@ -84,7 +83,6 @@ define([
   esriUnits,
   esriWMUtils,
   EsriFeatureSet,
-  Utils,
   DrawFeedBack,
   ShapeModel,
   CoordInput,
@@ -103,7 +101,6 @@ define([
      */
     constructor: function (args) {
       dojoDeclare.safeMixin(this, args);
-      this._utils = new Utils();
     },
     
     /*
@@ -129,7 +126,7 @@ define([
       });
 
       // add extended toolbar
-      this.dt = new DrawFeedBack(this.map);
+      this.dt = new DrawFeedBack(this.map,this.coordTool.inputCoordinate.util);
       this.dt.setLineSymbol(this._ellipseSym);
       this.dt.set('lengthUnit', 'feet');
       this.dt.set('angle', 0);

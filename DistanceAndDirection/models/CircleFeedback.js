@@ -28,8 +28,7 @@ define([
   'esri/geometry/Polyline',
   'esri/geometry/geometryEngine',
   'esri/units',
-  './Feedback',
-  '../util'
+  './Feedback'
 ], function (
   dojoDeclare,
   dojoLang,
@@ -43,16 +42,15 @@ define([
   EsriPolyline,
   EsriGeometryEngine,
   esriUnits,
-  DrawFeedBack,
-  Utils
+  DrawFeedBack
 ) {
   var clz = dojoDeclare([DrawFeedBack], {
     /*
      *
      */
-    constructor: function () {
+    constructor: function (map,coordTool) {
       this.inherited(arguments);
-      this._utils = new Utils();
+      this._utils = coordTool;
       this.syncEvents();
     },
 

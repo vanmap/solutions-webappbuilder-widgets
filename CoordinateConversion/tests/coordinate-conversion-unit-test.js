@@ -28,11 +28,10 @@ define([
   var latDDMArray = [];
   var lonDDMArray = [];
   var latDMSArray = [];
-  var lonDMSArray = [];
-  
+  var lonDMSArray = [];  
    
   registerSuite({
-    name: 'CoordinateConversion Widget',
+    name: 'Coordinate Conversion Widget',
      // before the suite starts
     setup: function() {
       // load claro and esri css, create a map div in the body, and create map and Coordinate Conversion objects for our tests
@@ -43,16 +42,16 @@ define([
       domConstruct.place('<div id="ccNode" style="width:300px;" class="claro"></div>', win.body(), 'last');
 
       map = new Map("map", {
-       basemap: "topo",
-       center: [-122.45, 37.75],
-       zoom: 13,
-       sliderStyle: "small",
-       extent: new Extent({xmin:-180,ymin:-90,xmax:180,ymax:90,spatialReference:{wkid:4326}})
+        basemap: "topo",
+        center: [-122.45, 37.75],
+        zoom: 13,
+        sliderStyle: "small",
+        extent: new Extent({xmin:-180,ymin:-90,xmax:180,ymax:90,spatialReference:{wkid:4326}})
       });
       
       coordinateConversion = new CoordinateConversion({
-            appConfig: {geomService: {url: "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"},
-                        geometryService: "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"},
+            appConfig: {geomService: {url: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer"},
+                        geometryService: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer"},
             parentWidget: this,
             map: map,
             input: true,
@@ -62,7 +61,7 @@ define([
                 zoomScale: 50000,
                 initialCoords: ["DDM", "DMS", "MGRS", "UTM"],
                 geometryService: {
-                   url: "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"
+                   url: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer"
                 }
               }   
             }         
@@ -75,9 +74,9 @@ define([
             });
        
       ccUtil = new CCUtil({appConfig: {
-        geometryService: "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer",
+        geometryService: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer",
         coordinateconversion: {                  
-          geometryService: {url: "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"}
+          geometryService: {url: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer"}
         }   
       }});
       

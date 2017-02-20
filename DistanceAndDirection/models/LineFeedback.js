@@ -38,8 +38,7 @@ define([
   'esri/symbols/Font',
   'esri/geometry/webMercatorUtils',
   'esri/units',
-  './Feedback',
-  '../util'
+  './Feedback'
 ], function (
   dojoDeclare,
   dojoLang,
@@ -63,16 +62,16 @@ define([
   EsriFont,
   EsriWebMercatorUtils,
   EsriUnits,
-  DrawFeedBack,
-  Utils
+  DrawFeedBack
 ) {
       var lf = dojoDeclare([DrawFeedBack], {
 
         /**
          *
          **/
-        constructor: function () {
+        constructor: function (map,coordTool) {
           this.inherited(arguments);
+          this._utils = coordTool;
           this.syncEvents();
         },
         

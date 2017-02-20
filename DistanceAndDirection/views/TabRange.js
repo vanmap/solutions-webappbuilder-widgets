@@ -51,7 +51,6 @@ define([
   'esri/geometry/webMercatorUtils',
   '../views/CoordinateInput',
   '../views/EditOutputCoordinate',
-  '../util',
   '../models/RangeRingFeedback',
   'dijit/form/NumberTextBox',
   'dijit/form/ValidationTextBox'
@@ -91,7 +90,6 @@ define([
   EsriWMUtils,
   CoordInput,
   EditOutputCoordinate,
-  Util,
   DrawFeedBack
 ) {
     'use strict';
@@ -118,9 +116,7 @@ define([
     /*
      * dijit post create
      */
-    postCreate: function () {
-      this._util = new Util();
-
+    postCreate: function () {      
       this._ptSym = new EsriSimpleMarkerSymbol(this.pointSymbol);
       this._circleSym = new EsriSimpleFillSymbol(this.circleSymbol);
       this._lineSym = new EsriSimpleLineSymbol(this.lineSymbol);
@@ -138,7 +134,7 @@ define([
       });
 
       // add extended toolbar
-      this.dt = new DrawFeedBack(this.map);
+      this.dt = new DrawFeedBack(this.map,this.coordTool.inputCoordinate.util);
       this.dt.setFillSymbol(this._circleSym);
       this.dt.set('lengthLayer', this._lengthLayer);
 
@@ -399,10 +395,10 @@ define([
         if (params.ringInterval && params.ringIntervalUnitsDD) {
           if(params.ringInterval.constructor === Array) {
             for (i = 0; i < params.ringInterval.length; i++) {
-              params.ringInterval[i] = this._util.convertToMeters(parseFloat(params.ringInterval[i]), params.ringIntervalUnitsDD);  
+              params.ringInterval[i] = this.coordTool.inputCoordinate.util.convertToMeters(parseFloat(params.ringInterval[i]), params.ringIntervalUnitsDD);  
             }            
           } else {
-            params.ringDistance = this._util.convertToMeters(parseFloat(params.ringInterval), params.ringIntervalUnitsDD);
+            params.ringDistance = this.coordTool.inputCoordinate.util.convertToMeters(parseFloat(params.ringInterval), params.ringIntervalUnitsDD);
           }
         }
 
@@ -444,7 +440,7 @@ define([
           var cGraphic = new EsriGraphic(circlePath,
             this._lineSym,
             {
-              'Interval': dojoNumber.round(this._util.convertMetersToUnits(params.circles[params.c].radius, u)) + " " + this.ringIntervalUnitsDD.get('value').charAt(0).toUpperCase() + this.ringIntervalUnitsDD.get('value').slice(1)
+              'Interval': dojoNumber.round(this.coordTool.inputCoordinate.util.convertMetersToUnits(params.circles[params.c].radius, u)) + " " + this.ringIntervalUnitsDD.get('value').charAt(0).toUpperCase() + this.ringIntervalUnitsDD.get('value').slice(1)
             }
           );
           this._gl.add(cGraphic);

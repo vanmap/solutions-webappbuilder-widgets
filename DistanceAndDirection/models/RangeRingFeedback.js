@@ -43,19 +43,16 @@ define([
   EsriPolyline,
   EsriGeometryEngine,
   esriUnits,
-  DrawFeedBack,
-  Utils
+  DrawFeedBack
 ) {
     var clz = dojoDeclare([DrawFeedBack], {
         /**
          *
          **/
-        constructor: function () {
+        constructor: function (map,coordTool) {
             this.syncEvents();
             this.inherited(arguments);
-            this._utils = new Utils();
             this.circlePoints = [];
-            
         },
         
         /*

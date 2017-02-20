@@ -32,8 +32,7 @@ define([
   'esri/Color',
   'esri/graphic',
   'esri/geometry/webMercatorUtils',
-  './Feedback',
-  '../util'
+  './Feedback'
 ], function (
   dojoDeclare,
   dojoConnect,
@@ -51,8 +50,7 @@ define([
   Color,
   EsriGraphic,
   EsriWebMercatorUtils,
-  drawFeedback,
-  Utils
+  drawFeedback
 ) {
     var clz = dojoDeclare([drawFeedback], {
         orientationAngle: null,
@@ -62,8 +60,8 @@ define([
         /*
          * Class Constructor
          */
-        constructor: function () {
-            this._utils = new Utils();
+        constructor: function (map,coordTool) {
+            this._utils = coordTool;
             this.syncEvents();
             this._majGraphic = new EsriGraphic();
             this._majGraphicB = new EsriGraphic();
@@ -120,7 +118,7 @@ define([
                         centerPoint = EsriWebMercatorUtils.geographicToWebMercator(centerPoint);
                     }
                     //Convert to meters
-                    var lengthInMeters = this._utils.convertToMeters(Number(majorLength), this.lengthUnit);
+                    var lengthInMeters = this.coordTool.inputCoordinate.util.convertToMeters(Number(majorLength), this.lengthUnit);
                     this.majorAxisLength = lengthInMeters;
                     //We do have a center point. Get the end point
                     var endPoint = this.getEndPoint(centerPoint, 0, lengthInMeters);
@@ -171,7 +169,7 @@ define([
                         centerPoint = EsriWebMercatorUtils.geographicToWebMercator(centerPoint);
                     }
                     //Convert to meters
-                    var lengthInMeters = this._utils.convertToMeters(Number(minorLength), this.lengthUnit);
+                    var lengthInMeters = this.coordTool.inputCoordinate.util.convertToMeters(Number(minorLength), this.lengthUnit);
                     this.minorAxisLength = lengthInMeters;
                     //We do have a center point. Get the end point
                     var endPoint = this.getEndPoint(centerPoint, 90, lengthInMeters);

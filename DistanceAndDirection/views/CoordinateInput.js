@@ -2,13 +2,11 @@ define([
   'dojo/_base/declare',
   'dojo/topic',
   'dijit/form/ValidationTextBox',
-  '../util',
   '../models/Coordinate'
 ], function (
   dojoDeclare,
   dojoTopic,
   dijitValidationTextBox,
-  util,
   Coord
 ) {
   var mo = dojoDeclare('test', dijitValidationTextBox, {

@@ -132,12 +132,7 @@ define([
 
       this._labelSym = new EsriTextSymbol(this.labelSymbol);
 
-      this.map.addLayer(this.getLayer());
-
-      // add extended toolbar
-      this.dt = new DrawFeedBack(this.map);
-      
-      this.dt.setLineSymbol(this._lineSym);
+      this.map.addLayer(this.getLayer());      
 
       this.coordToolStart = new CoordInput({appConfig: this.appConfig}, this.startPointCoordsLine);
       
@@ -151,6 +146,11 @@ define([
         content: new EditOutputCoordinate(),
         style: 'width: 400px'
       });
+      
+      // add extended toolbar
+      this.dt = new DrawFeedBack(this.map,this.coordToolStart.inputCoordinate.util);
+      
+      this.dt.setLineSymbol(this._lineSym);
 
       this.lineTypeDDDidChange();
       this.syncEvents();
@@ -507,7 +507,7 @@ define([
 
       var stPt = this.coordToolStart.inputCoordinate.coordinateEsriGeometry;
 
-      var l = this.dt._utils.convertToMeters(this.lengthInput.get('value'), this.lengthUnitDD.get('value'));            
+      var l = this.coordTool.inputCoordinate.util.convertToMeters(this.lengthInput.get('value'), this.lengthUnitDD.get('value'));            
 
       var tempcircle = new EsriCircle(stPt, {
         geodesic:true,

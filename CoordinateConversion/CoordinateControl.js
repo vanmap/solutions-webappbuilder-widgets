@@ -449,7 +449,7 @@ define([
                 if (itm) {
                   if (itm.length == 1) {
                     var withStr = this.processCoordTextInput(sanitizedInput, itm[0], false);
-                    this.util.getXYNotation(withStr, itm[0].name).then(dojoLang.hitch(this,function(r) {
+                    this.util.getXYNotation(withStr, itm[0].conversionType).then(dojoLang.hitch(this,function(r) {
                       if(r[0].length > 0){
                         this.geomSrvcDidComplete(r);
                       } else {
@@ -468,7 +468,7 @@ define([
                         return singleItm.name == dialog.content.comboOptions.get('value');
                       });
                       var withStr = this.processCoordTextInput(sanitizedInput, singleMatch[0], false);
-                      this.util.getXYNotation(withStr, itm[0].name).then(dojoLang.hitch(this,function(r) {
+                      this.util.getXYNotation(withStr, singleMatch[0].conversionType).then(dojoLang.hitch(this,function(r) {
                         if(r[0].length > 0){
                           this.geomSrvcDidComplete(r);
                         } else {
@@ -499,7 +499,7 @@ define([
             
             var prefixSuffixError = false;
             
-            var conversionType;
+            var conversionType = asType.name;
             
             switch (asType.name) {
               case 'DD':

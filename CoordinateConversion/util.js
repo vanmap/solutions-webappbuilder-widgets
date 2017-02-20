@@ -136,6 +136,24 @@ define([
         a = fromStr.replace(/[°˚º^~*"'′¨˝]/g, '');
         params.strings.push(a);
         break;
+      case 'DDrev':
+        params.conversionType = 'DD';
+        params.numOfDigits = 2;
+        a = fromStr.replace(/[°˚º^~*"'′¨˝]/g, '');
+        params.strings.push(a);
+        break;
+      case 'DDMrev':
+        params.conversionType = 'DDM';
+        params.numOfDigits = 2;
+        a = fromStr.replace(/[°˚º^~*"'′¨˝]/g, '');
+        params.strings.push(a);
+        break;
+      case 'DMSrev':
+        params.conversionType = 'DMS';
+        params.numOfDigits = 2;
+        a = fromStr.replace(/[°˚º^~*"'′¨˝]/g, '');
+        params.strings.push(a);
+        break;
       case 'USNG':
         params.strings.push(fromStr);
         params.addSpaces = 'false';
@@ -178,54 +196,66 @@ define([
         {
           name: 'DD',
           pattern: /^(([NS\+\-\s])*([0-8]?\d([,.]\d*)?|90([,.]0*)?)([°˚º^~*]*)([NS\+\-\s])*)([,:;\s|\/\\]+)(([EW\+\-\s])*([0]?\d?\d([,.]\d*)?|1[0-7]\d([,.]\d*)?|180([,.]0*)?)([°˚º^~*]*)([EW\+\-\s])*)$/,
-          notationType: "DD - Latitude/Longitude"
+          notationType: "DD - Latitude/Longitude",
+          conversionType: "DD"
         }, {
           name: 'DDrev',
           pattern: /^(([EW\+\-\s])*([0]?\d?\d([,.]\d*)?|1[0-7]\d([,.]\d*)?|180([,.]0*)?)([°˚º^~*]*)([EW\+\-\s])*)([,:;\s|\/\\]+)(([NS\+\-\s])*([0-8]?\d([,.]\d*)?|90([,.]0*)?)([°˚º^~*]*)([NS\+\-\s])*)$/,
-          notationType: "DD - Longitude/Latitude"
+          notationType: "DD - Longitude/Latitude",
+          conversionType: "DD"
         }, {
           name: 'DDM',
           pattern: /^(([NS\+\-\s])*([0-8]?\d|90)[°˚º^~*\s\-_]+(([0-5]?\d|\d)([,.]\d*)?)['′\s_]*([NS\+\-\s])*)([,:;\s|\/\\]+)(([EW\+\-\s])*([0]?\d?\d|1[0-7]\d|180)[°˚º^~*\s\-_]+(([0-5]\d|\d)([,.]\d*)?)['′\s_]*([EW\+\-\s])*)[\s]*$/,
-          notationType: "DDM - Latitude/Longitude"                    
+          notationType: "DDM - Latitude/Longitude",
+          conversionType: "DDM"                    
         }, {
           name: 'DDMrev',
           pattern: /^(([EW\+\-\s])*([0]?\d?\d|1[0-7]\d|180)[°˚º^~*\s\-_]+(([0-5]\d|\d)([,.]\d*)?)['′\s_]*([EW\+\-\s])*)([,:;\s|\/\\]+)(([NS\+\-\s])*([0-8]?\d|90)[°˚º^~*\s\-_]+(([0-5]?\d|\d)([,.]\d*)?)['′\s_]*([NS\+\-\s])*)[\s]*$/,
-          notationType: "DDM - Longitude/Latitude"                    
+          notationType: "DDM - Longitude/Latitude",
+          conversionType: "DDM"                    
         }, {
           name: 'DMS',
           pattern: /^(([NS\+\-\s])*([0-8]?\d|90)[°˚º^~*\s\-_]+([0-5]?\d|\d)['′\s\-_]+(([0-5]?\d|\d)([,.]\d*)?)["¨˝\s_]*([NS\+\-\s])*)([,:;\s|\/\\]+)(([EW\+\-\s])*([0]?\d?\d|1[0-7]\d|180)[°˚º^~*\s\-_]+([0-5]\d|\d)['′\s\-_]+(([0-5]?\d|\d)([,.]\d*)?)["¨˝\s_]*([EW\+\-\s])*)[\s]*$/,
-          notationType: "DMS - Latitude/Longitude" 
+          notationType: "DMS - Latitude/Longitude",
+          conversionType: "DMS" 
         }, {
           name: 'DMSrev',
           pattern: /^(([EW\+\-\s])*([0]?\d?\d|1[0-7]\d|180)[°˚º^~*\s\-_]+([0-5]\d|\d)['′\s\-_]+(([0-5]?\d|\d)([,.]\d*)?)["¨˝\s_]*([EW\+\-\s])*)([,:;\s|\/\\]+)(([NS\+\-\s])*([0-8]?\d|90)[°˚º^~*\s\-_]+([0-5]?\d|\d)['′\s\-_]+(([0-5]?\d|\d)([,.]\d*)?)["¨˝\s_]*([NS\+\-\s])*)[\s]*$/,
-          notationType: "DMS - Longitude/Latitude" 
+          notationType: "DMS - Longitude/Latitude",
+          conversionType: "DMS" 
         }, {
           name: 'GARS',
           pattern: /^\d{3}[a-zA-Z]{2}[1-4]?[1-9]?$/,
-          notationType: "GARS"
+          notationType: "GARS",
+          conversionType: "GARS"
         }, {
           name: 'GEOREF',
           pattern: /^[a-zA-Z]{4}\d{1,8}$/,
-          notationType: "GEOREF"
+          notationType: "GEOREF",
+          conversionType: "GEOREF"
         }, {
           name: 'MGRS',
           pattern: /^\d{1,2}[-,;:\s]*[C-HJ-NP-X][-,;:\s]*[A-HJ-NP-Z]{2}[-,;:\s]*(\d[-,;:\s]+\d|\d{2}[-,;:\s]+\d{2}|\d{3}[-,;:\s]+\d{3}|\d{4}[-,;:\s]+\d{4}|\d{5}[-,;:\s]+\d{5})$|^(\d{1,2}[-,;:\s]*[C-HJ-NP-X][-,;:\s]*[A-HJ-NP-Z]{2}[-,;:\s]*)(\d{2}|\d{4}|\d{6}|\d{8}|\d{10})$|^[ABYZ][-,;:\s]*[A-HJ-NP-Z]{2}[-,;:\s]*(\d[-,;:\s]+\d|\d{2}[-,;:\s]+\d{2}|\d{3}[-,;:\s]+\d{3}|\d{4}[-,;:\s]+\d{4}|\d{5}[-,;:\s]+\d{5})$|^[ABYZ][-,;:\s]*[A-HJ-NP-Z]{2}[-,;:\s]*(\d{2}|\d{4}|\d{6}|\d{8}|\d{10})$/,
-          notationType: "MGRS"
+          notationType: "MGRS",
+          conversionType: "MGRS"
         },
         //not sure if USNG is needed as its exactly the same as MGRS
         /*{
           name: 'USNG',
           pattern: /^\d{1,2}[-,;:\s]*[C-HJ-NP-X][-,;:\s]*[A-HJ-NP-Z]{2}[-,;:\s]*(\d[-,;:\s]+\d|\d{2}[-,;:\s]+\d{2}|\d{3}[-,;:\s]+\d{3}|\d{4}[-,;:\s]+\d{4}|\d{5}[-,;:\s]+\d{5})$|^(\d{1,2}[-,;:\s]*[C-HJ-NP-X][-,;:\s]*[A-HJ-NP-Z]{2}[-,;:\s]*)(\d{2}|\d{4}|\d{6}|\d{8}|\d{10})$|^[ABYZ][-,;:\s]*[A-HJ-NP-Z]{2}[-,;:\s]*(\d[-,;:\s]+\d|\d{2}[-,;:\s]+\d{2}|\d{3}[-,;:\s]+\d{3}|\d{4}[-,;:\s]+\d{4}|\d{5}[-,;:\s]+\d{5})$|^[ABYZ][-,;:\s]*[A-HJ-NP-Z]{2}[-,;:\s]*(\d{2}|\d{4}|\d{6}|\d{8}|\d{10})$/,
-          notationType: "USNG"
+          notationType: "USNG",
+          conversionType: "USNG"
         },*/ 
         {
           name: 'UTM',
           pattern: /^\d{1,2}[-,;:\s]*[c-hj-np-xC-HJ-NP-X]{1}[-,;:\s]*\d{1,6}.?\d*[mM]?[-,;:\s]?\d{1,7}.?\d*[mM]?$/,
-          notationType: "UTM - Band Letter"
+          notationType: "UTM - Band Letter",
+          conversionType: "UTM"
         }, {
           name: 'UTM (H)',
           pattern: /^\d{1,2}[-,;:\s]*[NnSs]{1}[-,;:\s]*\d{1,6}.?\d*[mM]?[-,;:\s]+\d{1,7}.?\d*[mM]?$/,
-          notationType: "UTM - Hemisphere (N/S)"
+          notationType: "UTM - Hemisphere (N/S)",
+          conversionType: "UTM (H)"
         }
       ];
       

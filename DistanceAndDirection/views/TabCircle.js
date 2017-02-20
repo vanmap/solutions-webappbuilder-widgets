@@ -53,7 +53,6 @@ define([
   '../models/ShapeModel',
   '../views/CoordinateInput',
   '../views/EditOutputCoordinate',
-  '../util',
   'dojo/text!../templates/TabCircle.html'
 ], function (
   dojoDeclare,
@@ -93,7 +92,6 @@ define([
   ShapeModel,
   CoordInput,
   EditOutputCoordinate,
-  Util,
   templateStr
   ) {
   'use strict';
@@ -113,8 +111,6 @@ define([
      */
     postCreate: function () {
 
-      this.utils = new Util(this.appConfig.geometryService);
-
       this.useCalculatedDistance = false;
 
       this.currentLengthUnit = this.lengthUnitDD.get('value');
@@ -126,12 +122,7 @@ define([
       this._labelSym = new EsriTextSymbol(this.labelSymbol);
 
       this.map.addLayer(this.getLayer());
-
-      // add extended toolbar
-      this.dt = new DrawFeedBack(this.map);
       
-      this.dt.setFillSymbol(this._circleSym);
-
       this.coordTool = new CoordInput({appConfig: this.appConfig}, this.startPointCoords);
       
       this.coordTool.inputCoordinate.formatType = 'DD';
@@ -140,6 +131,13 @@ define([
         content: new EditOutputCoordinate(),
         style: 'width: 400px'
       });
+
+      // add extended toolbar
+      this.dt = new DrawFeedBack(this.map,this.coordTool.inputCoordinate.util);
+      
+      this.dt.setFillSymbol(this._circleSym);
+
+      
 
       this.syncEvents();
     },
@@ -475,7 +473,7 @@ define([
 
         var stPt = this.coordTool.inputCoordinate.coordinateEsriGeometry;
 
-        var distInMeters = this.utils.convertToMeters(
+        var distInMeters = this.coordTool.util.inputCoordinate.convertToMeters(
           this.lengthInput.value,
           this.lengthUnitDD.get('value')
         );
@@ -543,7 +541,7 @@ define([
         results.calculatedDistance = dojoNumber.parse(this.lengthInput.value, {places: '0,99'});
       }
 
-      results.calculatedDistance = this.utils.convertToMeters(results.calculatedDistance,this.lengthUnitDD.get('value'));
+      results.calculatedDistance = this.coordTool.inputCoordinate.util.convertToMeters(results.calculatedDistance,this.lengthUnitDD.get('value'));
 
       results.geometry = this.coordTool.inputCoordinate.coordinateEsriGeometry;
       results.lineGeometry = lineGeom;

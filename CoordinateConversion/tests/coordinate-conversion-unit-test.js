@@ -35,10 +35,10 @@ define([
     name: 'CoordinateConversion Widget',
      // before the suite starts
     setup: function() {
-      // load claro and esri css, create a map div in the body, and create the map object and print widget for our tests
-      domConstruct.place('<link rel="stylesheet" type="text/css" href="//js.arcgis.com/3.16/esri/css/esri.css">', win.doc.getElementsByTagName("head")[0], 'last');
-      domConstruct.place('<link rel="stylesheet" type="text/css" href="//js.arcgis.com/3.16/dijit/themes/claro/claro.css">', win.doc.getElementsByTagName("head")[0], 'last');
-      domConstruct.place('<script src="http://js.arcgis.com/3.16/"></script>', win.doc.getElementsByTagName("head")[0], 'last');
+      // load claro and esri css, create a map div in the body, and create map and Coordinate Conversion objects for our tests
+      domConstruct.place('<link rel="stylesheet" type="text/css" href="//js.arcgis.com/3.19/esri/css/esri.css">', win.doc.getElementsByTagName("head")[0], 'last');
+      domConstruct.place('<link rel="stylesheet" type="text/css" href="//js.arcgis.com/3.19/dijit/themes/claro/claro.css">', win.doc.getElementsByTagName("head")[0], 'last');
+      domConstruct.place('<script src="http://js.arcgis.com/3.19/"></script>', win.doc.getElementsByTagName("head")[0], 'last');
       domConstruct.place('<div id="map" style="width:300px;height:200px;" class="claro"></div>', win.body(), 'only');
       domConstruct.place('<div id="ccNode" style="width:300px;" class="claro"></div>', win.body(), 'last');
 
@@ -51,8 +51,8 @@ define([
       });
       
       coordinateConversion = new CoordinateConversion({
-            appConfig: {geomService: {url: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer"},
-                        geometryService: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer"},
+            appConfig: {geomService: {url: "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"},
+                        geometryService: "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"},
             parentWidget: this,
             map: map,
             input: true,
@@ -62,7 +62,7 @@ define([
                 zoomScale: 50000,
                 initialCoords: ["DDM", "DMS", "MGRS", "UTM"],
                 geometryService: {
-                   url: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer"
+                   url: "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"
                 }
               }   
             }         
@@ -75,9 +75,9 @@ define([
             });
        
       ccUtil = new CCUtil({appConfig: {
-        geometryService: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer",
+        geometryService: "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer",
         coordinateconversion: {                  
-          geometryService: {url: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer"}
+          geometryService: {url: "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"}
         }   
       }});
       
@@ -142,7 +142,7 @@ define([
         }
       }
 
-      //set up an array of each combination of DDM latitude values
+      //set up an array of each combination of DDM longitude values
       for (var a = 0; a < dms3.length; a++) {
         for (var b = 0; b < ds2.length; b++) {
           for (var c = 0; c < dms2.length; c++) {
@@ -172,7 +172,7 @@ define([
         }
       }
       
-      //set up an array of each combination of DMS latitude values
+      //set up an array of each combination of DMS longitude values
       for (var a = 0; a < dms3.length; a++) {
         for (var b = 0; b < ds2.length; b++) {
           for (var c = 0; c < dms2.length; c++) {
@@ -245,8 +245,7 @@ define([
         for (var i = 0; i < itm.length; i++) {
           assert.equal(roundNumber(itm[i][0][0],4), roundNumber(DDM2geo.tests[i].lon,4), DDM2geo.tests[i].testNumber + " Failed");
           assert.equal(roundNumber(itm[i][0][1],4), roundNumber(DDM2geo.tests[i].lat,4), DDM2geo.tests[i].testNumber + " Failed");
-          count++;
-          
+          count++;          
         }
         console.log("The number of manual tests conducted for Convert DDM to Lat/Long conducted was: " + count);
         totalTestCount = totalTestCount + count;
@@ -278,8 +277,7 @@ define([
         for (var i = 0; i < itm.length; i++) {
           assert.equal(roundNumber(itm[i][0][0],2), roundNumber(DMS2geo.tests[i].lon,2), DMS2geo.tests[i].testNumber + " Failed");
           assert.equal(roundNumber(itm[i][0][1],2), roundNumber(DMS2geo.tests[i].lat,2), DMS2geo.tests[i].testNumber + " Failed");
-          count++;
-          
+          count++;          
         }
         console.log("The number of manual tests conducted for Convert DMS to Lat/Long conducted was: " + count);
         totalTestCount = totalTestCount + count;
@@ -289,8 +287,8 @@ define([
     },
     
     'Test Manual Input: Convert UTM (Band) to Lat/Long': function() {
-      //test to ensure inputed MGRS is converted correctly to Lat/Long (3 Decimal Places)
-      //tests held in file: toGeoFromMGRS.json
+      //test to ensure inputed UTM (using band letters) is converted correctly to Lat/Long (3 Decimal Places)
+      //tests held in file: toGeoFromUTMBand.json
       
       //this.skip('Skip test for now')
       var count = 0;
@@ -311,19 +309,18 @@ define([
         for (var i = 0; i < itm.length; i++) {
           assert.equal(roundNumber(itm[i][0][0],3), roundNumber(UTM2geo.tests[i].lon,3), UTM2geo.tests[i].testNumber + " Failed");
           assert.equal(roundNumber(itm[i][0][1],3), roundNumber(UTM2geo.tests[i].lat,3), UTM2geo.tests[i].testNumber + " Failed");
-          count++;
-          
+          count++;          
         }
         console.log("The number of manual tests conducted for Convert UTM (Band) to Lat/Long conducted was: " + count);
         totalTestCount = totalTestCount + count;
-        //clean up MGRStests Array
+        //clean up UTM2geo Array
         UTM2geo = null;
       }));  
     },
     
     'Test Manual Input: Convert UTM (Hemisphere) to Lat/Long': function() {
-      //test to ensure inputed MGRS is converted correctly to Lat/Long (3 Decimal Places)
-      //tests held in file: toGeoFromMGRS.json
+      //test to ensure inputed UTM (using hemisphere letters) is converted correctly to Lat/Long (3 Decimal Places)
+      //tests held in file: toGeoFromUTMHem.json
       
       //this.skip('Skip test for now')
       var count = 0;
@@ -344,19 +341,18 @@ define([
         for (var i = 0; i < itm.length; i++) {
           assert.equal(roundNumber(itm[i][0][0],3), roundNumber(UTMHem2geo.tests[i].lon,3), UTMHem2geo.tests[i].testNumber + " Failed");
           assert.equal(roundNumber(itm[i][0][1],3), roundNumber(UTMHem2geo.tests[i].lat,3), UTMHem2geo.tests[i].testNumber + " Failed");
-          count++;
-          
+          count++;          
         }
         console.log("The number of manual tests conducted for Convert UTM (Hemisphere) to Lat/Long conducted was: " + count);
         totalTestCount = totalTestCount + count;
-        //clean up MGRStests Array
+        //clean up UTMHem2geo Array
         UTMHem2geo = null;
       }));  
     },
     
     'Test Manual Input: Convert GEOREF to Lat/Long': function() {
-      //test to ensure inputed MGRS is converted correctly to Lat/Long (3 Decimal Places)
-      //tests held in file: toGeoFromMGRS.json
+      //test to ensure inputed GEOREF is converted correctly to Lat/Long (3 Decimal Places)
+      //tests held in file: toGeoFromGEOREF.json
       
       //this.skip('Skip test for now')
       var count = 0;
@@ -377,19 +373,18 @@ define([
         for (var i = 0; i < itm.length; i++) {
           assert.equal(roundNumber(itm[i][0][0],3), roundNumber(GEOREF2geo.tests[i].lon,3), GEOREF2geo.tests[i].testNumber + " Failed");
           assert.equal(roundNumber(itm[i][0][1],3), roundNumber(GEOREF2geo.tests[i].lat,3), GEOREF2geo.tests[i].testNumber + " Failed");
-          count++;
-          
+          count++;          
         }
         console.log("The number of manual tests conducted for Convert GEOREF to Lat/Long conducted was: " + count);
         totalTestCount = totalTestCount + count;
-        //clean up MGRStests Array
+        //clean up GEOREF2geo Array
         GEOREF2geo = null;
       }));  
     },
     
     'Test Manual Input: Convert GARS to Lat/Long': function() {
-      //test to ensure inputed MGRS is converted correctly to Lat/Long
-      //tests held in file: toGeoFromMGRS.json
+      //test to ensure inputed GARS is converted correctly to Lat/Long
+      //tests held in file: toGeoFromGARS.json
       
       //this.skip('Skip test for now')
       var count = 0;
@@ -410,12 +405,11 @@ define([
         for (var i = 0; i < itm.length; i++) {
           assert.equal(itm[i][0][0], GARS2geo.tests[i].lon, GARS2geo.tests[i].testNumber + " Failed");
           assert.equal(itm[i][0][1], GARS2geo.tests[i].lat, GARS2geo.tests[i].testNumber + " Failed");
-          count++;
-          
+          count++;          
         }
         console.log("The number of manual tests conducted for Convert GARS to Lat/Long conducted was: " + count);
         totalTestCount = totalTestCount + count;
-        //clean up MGRStests Array
+        //clean up GARS2geo Array
         GARS2geo = null;
       }));  
     },
@@ -443,12 +437,11 @@ define([
         for (var i = 0; i < itm.length; i++) {
           assert.equal(roundNumber(itm[i][0][0],6), roundNumber(MGRS2geo.tests[i].lon,6), MGRS2geo.tests[i].testNumber + " Failed");
           assert.equal(roundNumber(itm[i][0][1],6), roundNumber(MGRS2geo.tests[i].lat,6), MGRS2geo.tests[i].testNumber + " Failed");
-          count++;
-          
+          count++;          
         }
         console.log("The number of manual tests conducted for Convert MGRS to Lat/Long conducted was: " + count);
         totalTestCount = totalTestCount + count;
-        //clean up MGRStests Array
+        //clean up MGRS2geo Array
         MGRS2geo = null;
       }));  
     },
@@ -475,12 +468,10 @@ define([
       dojoAll(returnArray).then(dfd.callback(function (itm) {
         for (var i = 0; i < itm.length; i++) {
           assert.equal(itm[i], geo2DDM.tests[i].OUTPUT, geo2DDM.tests[i].testNumber + " Failed");
-          count++;
-          
+          count++;          
         }
         console.log("The number of manual tests conducted for Convert Lat/Long to DDM conducted was: " + count);
-        totalTestCount = totalTestCount + count;
-        
+        totalTestCount = totalTestCount + count;        
         //clean up Array
         geo2DDM = null;
       }));  
@@ -508,12 +499,10 @@ define([
       dojoAll(returnArray).then(dfd.callback(function (itm) {
         for (var i = 0; i < itm.length; i++) {
           assert.equal(itm[i], geo2DMS.tests[i].OUTPUT, geo2DMS.tests[i].testNumber + " Failed");
-          count++;
-          
+          count++;          
         }
         console.log("The number of manual tests conducted for Convert Lat/Long to DMS conducted was: " + count);
-        totalTestCount = totalTestCount + count;
-        
+        totalTestCount = totalTestCount + count;        
         //clean up Array
         geo2DMS = null;
       }));  
@@ -541,12 +530,10 @@ define([
       dojoAll(returnArray).then(dfd.callback(function (itm) {
         for (var i = 0; i < itm.length; i++) {
           assert.equal(itm[i], geo2UTMBand.tests[i].OUTPUT, geo2UTMBand.tests[i].testNumber + " Failed");
-          count++;
-          
+          count++;          
         }
         console.log("The number of manual tests conducted for Convert Lat/Long to UTM (Band) conducted was: " + count);
-        totalTestCount = totalTestCount + count;
-        
+        totalTestCount = totalTestCount + count;        
         //clean up Array
         geo2UTMBand = null;
       }));  
@@ -574,12 +561,10 @@ define([
       dojoAll(returnArray).then(dfd.callback(function (itm) {
         for (var i = 0; i < itm.length; i++) {
           assert.equal(itm[i], geo2UTMHem.tests[i].OUTPUT, geo2UTMHem.tests[i].testNumber + " Failed");
-          count++;
-          
+          count++;          
         }
         console.log("The number of manual tests conducted for Convert Lat/Long to UTM (Hemisphere) conducted was: " + count);
-        totalTestCount = totalTestCount + count;
-        
+        totalTestCount = totalTestCount + count;        
         //clean up Array
         geo2UTMHem = null;
       }));  
@@ -607,12 +592,10 @@ define([
       dojoAll(returnArray).then(dfd.callback(function (itm) {
         for (var i = 0; i < itm.length; i++) {
           assert.equal(itm[i], geo2GEOREF.tests[i].OUTPUT, geo2GEOREF.tests[i].testNumber + " Failed");
-          count++;
-          
+          count++;          
         }
         console.log("The number of manual tests conducted for Convert Lat/Long to GEOREF conducted was: " + count);
-        totalTestCount = totalTestCount + count;
-        
+        totalTestCount = totalTestCount + count;        
         //clean up Array
         geo2GEOREF = null;
       }));  
@@ -640,12 +623,10 @@ define([
       dojoAll(returnArray).then(dfd.callback(function (itm) {
         for (var i = 0; i < itm.length; i++) {
           assert.equal(itm[i], geo2GARS.tests[i].OUTPUT, geo2GARS.tests[i].testNumber + " Failed");
-          count++;
-          
+          count++;          
         }
         console.log("The number of manual tests conducted for Convert Lat/Long to GARS conducted was: " + count);
-        totalTestCount = totalTestCount + count;
-        
+        totalTestCount = totalTestCount + count;        
         //clean up Array
         geo2GARS = null;
       }));  
@@ -674,12 +655,10 @@ define([
       dojoAll(returnArray).then(dfd.callback(function (itm) {
         for (var i = 0; i < itm.length; i++) {
           assert.equal(itm[i], geo2MGRStests.MGRSTests[i].OUTPUT, geo2MGRStests.MGRSTests[i].testNumber + " Failed");
-          count++;
-          
+          count++;          
         }
         console.log("The number of manual tests conducted for Convert Lat/Long to MGRS conducted was: " + count);
-        totalTestCount = totalTestCount + count;
-        
+        totalTestCount = totalTestCount + count;        
         //clean up MGRStests Array
         geo2MGRStests = null;
       }));  
@@ -1490,8 +1469,7 @@ define([
           ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
           */
             itm && itm[0].name == validEntries[i].correctNotation?passed=true:passed=false;
-            //execute the reg ex and store in the variable match          
-        });
+         });
         
         //test to see if the regular expression identified the input as a valid inpout and identified it as DMS (for degrees, minutes, seconds)
         assert.isTrue(passed, 'Test Number: ' + validEntries[i].testNumber + " String: " + validEntries[i].testString + ' notation was not identified.');
@@ -1519,8 +1497,7 @@ define([
               for (var e = 0; e < pss.length; e++) {
                 for (var f = 0; f < pLon.length; f++) {         
                   var tempLat = pLat[a].toUpperCase() + "00.0" + pss[b] + pLat[c].toUpperCase();
-                  var tempLon = pLon[d].toUpperCase() + "000.0" + pss[e] + pLon[f].toUpperCase();
-                      
+                  var tempLon = pLon[d].toUpperCase() + "000.0" + pss[e] + pLon[f].toUpperCase();                      
                   var outLatPrefix = '';                  
                   if(pLat[a] != '' && pLat[c] != '') {
                     new RegExp(/[Ss-]/).test(pLat[a])?outLatPrefix = '-':outLatPrefix = '+';
@@ -1534,8 +1511,7 @@ define([
                         outLatPrefix = '+';
                       }
                     }
-                  }
-                  
+                  }                  
                   var outLonPrefix = '';                  
                   if(pLon[d] != '' && pLon[f] != '') {
                     new RegExp(/[Ww-]/).test(pLon[d])?outLonPrefix = '-':outLonPrefix = '+';
@@ -1549,12 +1525,10 @@ define([
                         outLonPrefix = '+';
                       }
                     }
-                  }
-                  
+                  }                  
                   var expectedOutput = outLatPrefix + "00.0," + outLonPrefix + "000.0";
                   var testString = (tempLat + " " + tempLon);
-                  var returnString = cc.processCoordTextInput(testString, notations[0], true);
-                  
+                  var returnString = cc.processCoordTextInput(testString, notations[0], true);                  
                   assert.equal(returnString, expectedOutput, expectedOutput + "  Failed");
                   count++;     
                 }
@@ -1581,8 +1555,7 @@ define([
               for (var e = 0; e < pss.length; e++) {
                 for (var f = 0; f < pLon.length; f++) {         
                   var tempLat = pLat[a].toUpperCase() + "00.0" + pss[b] + pLat[c].toUpperCase();
-                  var tempLon = pLon[d].toUpperCase() + "000.0" + pss[e] + pLon[f].toUpperCase();
-                      
+                  var tempLon = pLon[d].toUpperCase() + "000.0" + pss[e] + pLon[f].toUpperCase();                      
                   var outLatPrefix = '';                  
                   if(pLat[a] != '' && pLat[c] != '') {
                     new RegExp(/[Ss-]/).test(pLat[a])?outLatPrefix = '-':outLatPrefix = '+';
@@ -1596,8 +1569,7 @@ define([
                         outLatPrefix = '+';
                       }
                     }
-                  }
-                  
+                  }                  
                   var outLonPrefix = '';                  
                   if(pLon[d] != '' && pLon[f] != '') {
                     new RegExp(/[Ww-]/).test(pLon[d])?outLonPrefix = '-':outLonPrefix = '+';
@@ -1611,12 +1583,10 @@ define([
                         outLonPrefix = '+';
                       }
                     }
-                  }
-                  
+                  }                  
                   var expectedOutput = outLatPrefix + "00.0," + outLonPrefix + "000.0";
                   var testString = (tempLon + " " + tempLat);
-                  var returnString = cc.processCoordTextInput(testString, notations[1], true);
-                                    
+                  var returnString = cc.processCoordTextInput(testString, notations[1], true);                                    
                   assert.equal(returnString, expectedOutput, expectedOutput + "  Failed");
                   count++;     
                 }
@@ -1642,8 +1612,7 @@ define([
               for (var e = 0; e < pss.length; e++) {
                 for (var f = 0; f < pLon.length; f++) {         
                   var tempLat = pLat[a].toUpperCase() + "00 00.0" + pss[b] + pLat[c].toUpperCase();
-                  var tempLon = pLon[d].toUpperCase() + "000 00.0" + pss[e] + pLon[f].toUpperCase();
-                      
+                  var tempLon = pLon[d].toUpperCase() + "000 00.0" + pss[e] + pLon[f].toUpperCase();                      
                   var outLatPrefix = '';                  
                   if(pLat[a] != '' && pLat[c] != '') {
                     new RegExp(/[Ss-]/).test(pLat[a])?outLatPrefix = '-':outLatPrefix = '+';
@@ -1657,8 +1626,7 @@ define([
                         outLatPrefix = '+';
                       }
                     }
-                  }
-                  
+                  }                  
                   var outLonPrefix = '';                  
                   if(pLon[d] != '' && pLon[f] != '') {
                     new RegExp(/[Ww-]/).test(pLon[d])?outLonPrefix = '-':outLonPrefix = '+';
@@ -1672,12 +1640,10 @@ define([
                         outLonPrefix = '+';
                       }
                     }
-                  }
-                  
+                  }                  
                   var expectedOutput = outLatPrefix + "00 00.0," + outLonPrefix + "000 00.0";
                   var testString = (tempLat + " " + tempLon);
-                  var returnString = cc.processCoordTextInput(testString, notations[2], true);
-                  
+                  var returnString = cc.processCoordTextInput(testString, notations[2], true);                  
                   assert.equal(returnString, expectedOutput, expectedOutput + "  Failed");
                   count++;     
                 }
@@ -1695,8 +1661,6 @@ define([
       
       //this.skip('Skip test for now')
       var count = 0;      
-      //var notations = ccUtil.getNotations();
-      
            
       for (var a = 0; a < pLat.length; a++) {
         for (var b = 0; b < pss.length; b++) {
@@ -1705,8 +1669,7 @@ define([
               for (var e = 0; e < pss.length; e++) {
                 for (var f = 0; f < pLon.length; f++) {         
                   var tempLat = pLat[a].toUpperCase() + "00 00.0" + pss[b] + pLat[c].toUpperCase();
-                  var tempLon = pLon[d].toUpperCase() + "000 00.0" + pss[e] + pLon[f].toUpperCase();
-                      
+                  var tempLon = pLon[d].toUpperCase() + "000 00.0" + pss[e] + pLon[f].toUpperCase();                      
                   var outLatPrefix = '';                  
                   if(pLat[a] != '' && pLat[c] != '') {
                     new RegExp(/[Ss-]/).test(pLat[a])?outLatPrefix = '-':outLatPrefix = '+';
@@ -1720,8 +1683,7 @@ define([
                         outLatPrefix = '+';
                       }
                     }
-                  }
-                  
+                  }                  
                   var outLonPrefix = '';                  
                   if(pLon[d] != '' && pLon[f] != '') {
                     new RegExp(/[Ww-]/).test(pLon[d])?outLonPrefix = '-':outLonPrefix = '+';
@@ -1735,12 +1697,10 @@ define([
                         outLonPrefix = '+';
                       }
                     }
-                  }
-                  
+                  }                  
                   var expectedOutput = outLatPrefix + "00 00.0," + outLonPrefix + "000 00.0";
                   var testString = (tempLon + " " + tempLat);
-                  var returnString = cc.processCoordTextInput(testString, notations[3], true);
-                                    
+                  var returnString = cc.processCoordTextInput(testString, notations[3], true);                                    
                   assert.equal(returnString, expectedOutput, expectedOutput + "  Failed");
                   count++;     
                 }
@@ -1766,8 +1726,7 @@ define([
               for (var e = 0; e < pss.length; e++) {
                 for (var f = 0; f < pLon.length; f++) {         
                   var tempLat = pLat[a].toUpperCase() + "00 00 00.0" + pss[b] + pLat[c].toUpperCase();
-                  var tempLon = pLon[d].toUpperCase() + "000 00 00.0" + pss[e] + pLon[f].toUpperCase();
-                      
+                  var tempLon = pLon[d].toUpperCase() + "000 00 00.0" + pss[e] + pLon[f].toUpperCase();                      
                   var outLatPrefix = '';                  
                   if(pLat[a] != '' && pLat[c] != '') {
                     new RegExp(/[Ss-]/).test(pLat[a])?outLatPrefix = '-':outLatPrefix = '+';
@@ -1781,8 +1740,7 @@ define([
                         outLatPrefix = '+';
                       }
                     }
-                  }
-                  
+                  }                  
                   var outLonPrefix = '';                  
                   if(pLon[d] != '' && pLon[f] != '') {
                     new RegExp(/[Ww-]/).test(pLon[d])?outLonPrefix = '-':outLonPrefix = '+';
@@ -1796,12 +1754,10 @@ define([
                         outLonPrefix = '+';
                       }
                     }
-                  }
-                  
+                  }                  
                   var expectedOutput = outLatPrefix + "00 00 00.0," + outLonPrefix + "000 00 00.0";
                   var testString = (tempLat + " " + tempLon);
-                  var returnString = cc.processCoordTextInput(testString, notations[4], true);
-                  
+                  var returnString = cc.processCoordTextInput(testString, notations[4], true);                  
                   assert.equal(returnString, expectedOutput, expectedOutput + "  Failed");
                   count++;     
                 }
@@ -1819,9 +1775,7 @@ define([
       
       //this.skip('Skip test for now')
       var count = 0;      
-      //var notations = ccUtil.getNotations();
       
-           
       for (var a = 0; a < pLat.length; a++) {
         for (var b = 0; b < pss.length; b++) {
           for (var c = 0; c < pLat.length; c++) { 
@@ -1829,8 +1783,7 @@ define([
               for (var e = 0; e < pss.length; e++) {
                 for (var f = 0; f < pLon.length; f++) {         
                   var tempLat = pLat[a].toUpperCase() + "00 00 00.0" + pss[b] + pLat[c].toUpperCase();
-                  var tempLon = pLon[d].toUpperCase() + "000 00 00.0" + pss[e] + pLon[f].toUpperCase();
-                      
+                  var tempLon = pLon[d].toUpperCase() + "000 00 00.0" + pss[e] + pLon[f].toUpperCase();                      
                   var outLatPrefix = '';                  
                   if(pLat[a] != '' && pLat[c] != '') {
                     new RegExp(/[Ss-]/).test(pLat[a])?outLatPrefix = '-':outLatPrefix = '+';
@@ -1844,8 +1797,7 @@ define([
                         outLatPrefix = '+';
                       }
                     }
-                  }
-                  
+                  }                  
                   var outLonPrefix = '';                  
                   if(pLon[d] != '' && pLon[f] != '') {
                     new RegExp(/[Ww-]/).test(pLon[d])?outLonPrefix = '-':outLonPrefix = '+';
@@ -1859,12 +1811,10 @@ define([
                         outLonPrefix = '+';
                       }
                     }
-                  }
-                  
+                  }                  
                   var expectedOutput = outLatPrefix + "00 00 00.0," + outLonPrefix + "000 00 00.0";
                   var testString = (tempLon + " " + tempLat);
-                  var returnString = cc.processCoordTextInput(testString, notations[5], true);
-                                    
+                  var returnString = cc.processCoordTextInput(testString, notations[5], true);                                    
                   assert.equal(returnString, expectedOutput, expectedOutput + "  Failed");
                   count++;     
                 }
@@ -1874,6 +1824,53 @@ define([
         }
       }   
       console.log("The number of Auto tests conducted for Process Input as DMS - Long / Lat conducted was: " + count);
+      totalTestCount = totalTestCount + count;
+    },
+    
+    'Test Manual Input: Check invalid input is not identified as a valid entry': function() {
+      //this.skip('Skip test for now')
+      var passed = false;
+      var match = '';      
+      var count = 0;      
+       
+      var invalidEntries = [
+        {testNumber: '1', testString: '00 00 00 000N 00 00'},  //cannot have a north suffix on a longitude value
+        {testNumber: '2', testString: 'W00 00 00 000 00 00'},  //cannot have a west prefix on a latitude value
+        {testNumber: '3', testString: 'A random string'},  //random values
+        {testNumber: '4', testString: '009FF141'}, //incorrect GARS entry - an extra digit on the end
+        {testNumber: '5', testString: '41RPR1'}, //incorrect MGRS only 1 digit
+        {testNumber: '6', testString: '41RPR 1'}, //incorrect MGRS only 1 digit
+        {testNumber: '7', testString: '41RPR 123'}, //incorrect MGRS 3 digits
+        {testNumber: '8', testString: '41RPR 12 3'}, //incorrect MGRS 3 digits
+        {testNumber: '9', testString: '41RPR 12345'}, //incorrect MGRS 5 digits
+        {testNumber: '10', testString: '41RPR 12 345'}, //incorrect MGRS 5 digits
+        {testNumber: '11', testString: '41RPR 1234567'}, //incorrect MGRS 7 digits
+        {testNumber: '12', testString: '41RPR 1234 567'}, //incorrect MGRS 7 digits
+        {testNumber: '13', testString: '41RPR 123456789'}, //incorrect MGRS 9 digits
+        {testNumber: '14', testString: '41RPR 12345 6789'}, //incorrect MGRS 9 digits
+        {testNumber: '15', testString: '41RPR 12345678900'}, //incorrect MGRS 11 digits
+        {testNumber: '16', testString: '41RPR 123456 78900'} //incorrect MGRS 11 digits
+      ];
+
+      for (var i = 0; i < invalidEntries.length; i++) {
+        ccUtil.getCoordinateType(invalidEntries[i].testString).then(function(itm){
+          /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
+          ** https://theintern.github.io/intern/#async-tests
+          ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
+          ** we can the use the passed boolean to perform an assert.isTrue outside of the promise
+          */
+          
+          //if no match is made itm should be null
+            itm == null?passed=true:passed=false;
+        });
+        
+        assert.isTrue(passed, 'Test Number: ' + invalidEntries[i].testNumber + " String: " + invalidEntries[i].testString + ' was identified as a valid input when it should have failed');
+                
+        //reset passed
+        passed = false;
+        count++;                        
+      }      
+      console.log("The number of manual tests conducted to check invalid input is not identified as a valid entry was: " + count);
       totalTestCount = totalTestCount + count;
     },
     

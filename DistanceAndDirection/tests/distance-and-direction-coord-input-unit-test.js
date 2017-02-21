@@ -3,23 +3,16 @@ define([
   'intern/chai!assert',
   'dojo/dom-construct',
   'dojo/_base/window',
-  'dojo/number',
   'esri/map',
   'esri/geometry/Extent',
-  'CC/Widget',
-  'CC/CoordinateControl',
-  'CC/util',
+  'DD/views/TabLine',
+  'DD/util',
   'dojo/promise/all',
   'dojo/_base/lang',
-  'dojo/_base/Deferred',
-  'jimu/dijit/CheckBox',
-  'jimu/BaseWidget',
-  'jimu/dijit/Message',
-  'dijit/form/Select',
-  'dijit/form/TextBox'
-], function(registerSuite, assert, domConstruct, win, dojoNumber, Map, Extent, CoordinateConversion, CoordinateControl, CCUtil, dojoAll, lang, Deferred) {
+  'dojo/_base/Deferred'
+], function(registerSuite, assert, domConstruct, win, Map, Extent, TabLine, DDUtil, dojoAll, lang, Deferred) {
   // local vars scoped to this module
-  var map, ccUtil, coordinateConversion, cc;
+  var map, ddUtil;
   var dms2,dms3,ds,ds2,dp,ns,pLat,pLon,pss,ms,ss;
   var notations;
   var totalTestCount = 0;
@@ -28,18 +21,18 @@ define([
   var latDDMArray = [];
   var lonDDMArray = [];
   var latDMSArray = [];
-  var lonDMSArray = [];  
-   
+  var lonDMSArray = [];
+
   registerSuite({
-    name: 'Coordinate Conversion Widget',
-     // before the suite starts
+    name: 'Distance Direction Widget',
+      // before the suite starts
     setup: function() {
       // load claro and esri css, create a map div in the body, and create map and Coordinate Conversion objects for our tests
       domConstruct.place('<link rel="stylesheet" type="text/css" href="//js.arcgis.com/3.19/esri/css/esri.css">', win.doc.getElementsByTagName("head")[0], 'last');
       domConstruct.place('<link rel="stylesheet" type="text/css" href="//js.arcgis.com/3.19/dijit/themes/claro/claro.css">', win.doc.getElementsByTagName("head")[0], 'last');
       domConstruct.place('<script src="http://js.arcgis.com/3.19/"></script>', win.doc.getElementsByTagName("head")[0], 'last');
-      domConstruct.place('<div id="map" style="width:300px;height:200px;" class="claro"></div>', win.body(), 'only');
-      domConstruct.place('<div id="ccNode" style="width:300px;" class="claro"></div>', win.body(), 'last');
+      domConstruct.place('<div id="map" style="width:800px;height:600px;" class="claro"></div>', win.body(), 'only');
+      domConstruct.place('<div id="lineNode" style="width:300px;" class="claro"></div>', win.body(), 'last');
 
       map = new Map("map", {
         basemap: "topo",
@@ -49,39 +42,23 @@ define([
         extent: new Extent({xmin:-180,ymin:-90,xmax:180,ymax:90,spatialReference:{wkid:4326}})
       });
       
-      coordinateConversion = new CoordinateConversion({
-            appConfig: {geomService: {url: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer"},
-                        geometryService: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer"},
-            parentWidget: this,
-            map: map,
-            input: true,
-            type: 'DD',
-            config: {
-              coordinateconversion: {
-                zoomScale: 50000,
-                initialCoords: ["DDM", "DMS", "MGRS", "UTM"],
-                geometryService: {
-                   url: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer"
-                }
-              }   
-            }         
-          }, domConstruct.create("div")).placeAt("ccNode");
+      ddUtil = new DDUtil("http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer");
       
-      cc = new CoordinateControl({                
-                parentWidget: coordinateConversion,
-                input: true,
-                type: 'DD'
-            });
-       
-      ccUtil = new CCUtil({appConfig: {
-        geometryService: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer",
-        coordinateconversion: {                  
-          geometryService: {url: "https://hgis-ags10-4-1.gigzy.local/ags/rest/services/Utilities/Geometry/GeometryServer"}
-        }   
-      }});
+      notations = ddUtil.getNotations();    
       
-      notations = ccUtil.getNotations();
-       
+      //we need to initialise ont of the tabs so we can gain access to the coordinate control
+      tabLine = new TabLine({
+        map: map,
+        lineSymbol: {
+          type: 'esriSLS',
+          style: 'esriSLSSolid',
+          color: [255, 50, 50, 255],
+          width: 1.25
+        },
+        appConfig: {geometryService:"http://sampleserver6.arcgisonline.com/arcgis/rest/services/Utilities/Geometry/GeometryServer"}
+      }, domConstruct.create("div")).placeAt("lineNode"); 
+      tabLine.startup();
+
       //populate the arrays that will be used in the tests       
       //dms2 = degrees/minutes/seconds two figures
       dms2 = ['0','00'];
@@ -202,23 +179,17 @@ define([
       
       roundNumber = function round(value, decimals) {
         return Number(Math.round(value+'e'+decimals)+'e-'+decimals);
-      }
+      }      
     },
 
     // before each test executes
     beforeEach: function() {
-      
+      // do nothing
     },
 
     // after the suite is done (all tests)
     teardown: function() {
-      if (map.loaded) {
-        map.destroy();   
-      }
-      if (coordinateConversion) {
-        coordinateConversion.destroy();
-      }
-      console.log("Total number of tests conducted is: " + totalTestCount);      
+      // do nothing 
     },
     
     'Test Manual Input: Convert DDM to Lat/Long': function() {
@@ -232,12 +203,12 @@ define([
       var returnArray = [];
       
       //read in tests from the json file
-      jsonLoader("../../widgets/CoordinateConversion/tests/toGeoFromDDM.json", lang.hitch(this,function(response){
+      jsonLoader("../../widgets/DistanceAndDirection/tests/toGeoFromDDM.json", lang.hitch(this,function(response){
         DDM2geo = JSON.parse(response);
       }));
        
       for (var i = 0; i < DDM2geo.tests.length; i++) {
-        returnArray.push(ccUtil.getXYNotation(DDM2geo.tests[i].testString,'DDM'));          
+        returnArray.push(ddUtil.getXYNotation(DDM2geo.tests[i].testString,'DDM'));          
       }
       
       dojoAll(returnArray).then(dfd.callback(function (itm) {
@@ -257,19 +228,19 @@ define([
       //test to ensure inputed DMS is converted correctly to Lat/Long (2 Decimal Places)
       //tests held in file: toGeoFromDMS.json
       
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var count = 0;
       var DMS2geo = null;
       var dfd = this.async();
       var returnArray = [];
       
       //read in tests from the json file
-      jsonLoader("../../widgets/CoordinateConversion/tests/toGeoFromDMS.json", lang.hitch(this,function(response){
+      jsonLoader("../../widgets/DistanceAndDirection/tests/toGeoFromDMS.json", lang.hitch(this,function(response){
         DMS2geo = JSON.parse(response);
       }));
        
       for (var i = 0; i < DMS2geo.tests.length; i++) {
-        returnArray.push(ccUtil.getXYNotation(DMS2geo.tests[i].testString,'DMS'));          
+        returnArray.push(ddUtil.getXYNotation(DMS2geo.tests[i].testString,'DMS'));          
       }
       
       dojoAll(returnArray).then(dfd.callback(function (itm) {
@@ -289,19 +260,19 @@ define([
       //test to ensure inputed UTM (using band letters) is converted correctly to Lat/Long (3 Decimal Places)
       //tests held in file: toGeoFromUTMBand.json
       
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var count = 0;
       var UTM2geo = null;
       var dfd = this.async();
       var returnArray = [];
       
       //read in tests from the json file
-      jsonLoader("../../widgets/CoordinateConversion/tests/toGeoFromUTMBand.json", lang.hitch(this,function(response){
+      jsonLoader("../../widgets/DistanceAndDirection/tests/toGeoFromUTMBand.json", lang.hitch(this,function(response){
         UTM2geo = JSON.parse(response);
       }));
        
       for (var i = 0; i < UTM2geo.tests.length; i++) {
-        returnArray.push(ccUtil.getXYNotation(UTM2geo.tests[i].testString,'UTM'));          
+        returnArray.push(ddUtil.getXYNotation(UTM2geo.tests[i].testString,'UTM'));          
       }
       
       dojoAll(returnArray).then(dfd.callback(function (itm) {
@@ -321,19 +292,19 @@ define([
       //test to ensure inputed UTM (using hemisphere letters) is converted correctly to Lat/Long (3 Decimal Places)
       //tests held in file: toGeoFromUTMHem.json
       
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var count = 0;
       var UTMHem2geo = null;
       var dfd = this.async();
       var returnArray = [];
       
       //read in tests from the json file
-      jsonLoader("../../widgets/CoordinateConversion/tests/toGeoFromUTMHem.json", lang.hitch(this,function(response){
+      jsonLoader("../../widgets/DistanceAndDirection/tests/toGeoFromUTMHem.json", lang.hitch(this,function(response){
         UTMHem2geo = JSON.parse(response);
       }));
        
       for (var i = 0; i < UTMHem2geo.tests.length; i++) {
-        returnArray.push(ccUtil.getXYNotation(UTMHem2geo.tests[i].testString,'UTM (H)'));          
+        returnArray.push(ddUtil.getXYNotation(UTMHem2geo.tests[i].testString,'UTM (H)'));          
       }
       
       dojoAll(returnArray).then(dfd.callback(function (itm) {
@@ -353,19 +324,19 @@ define([
       //test to ensure inputed GEOREF is converted correctly to Lat/Long (3 Decimal Places)
       //tests held in file: toGeoFromGEOREF.json
       
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var count = 0;
       var GEOREF2geo = null;
       var dfd = this.async();
       var returnArray = [];
       
       //read in tests from the json file
-      jsonLoader("../../widgets/CoordinateConversion/tests/toGeoFromGEOREF.json", lang.hitch(this,function(response){
+      jsonLoader("../../widgets/DistanceAndDirection/tests/toGeoFromGEOREF.json", lang.hitch(this,function(response){
         GEOREF2geo = JSON.parse(response);
       }));
        
       for (var i = 0; i < GEOREF2geo.tests.length; i++) {
-        returnArray.push(ccUtil.getXYNotation(GEOREF2geo.tests[i].testString,'GEOREF'));          
+        returnArray.push(ddUtil.getXYNotation(GEOREF2geo.tests[i].testString,'GEOREF'));          
       }
       
       dojoAll(returnArray).then(dfd.callback(function (itm) {
@@ -385,19 +356,19 @@ define([
       //test to ensure inputed GARS is converted correctly to Lat/Long
       //tests held in file: toGeoFromGARS.json
       
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var count = 0;
       var GARS2geo = null;
       var dfd = this.async();
       var returnArray = [];
       
       //read in tests from the json file
-      jsonLoader("../../widgets/CoordinateConversion/tests/toGeoFromGARS.json", lang.hitch(this,function(response){
+      jsonLoader("../../widgets/DistanceAndDirection/tests/toGeoFromGARS.json", lang.hitch(this,function(response){
         GARS2geo = JSON.parse(response);
       }));
        
       for (var i = 0; i < GARS2geo.tests.length; i++) {
-        returnArray.push(ccUtil.getXYNotation(GARS2geo.tests[i].testString,'GARS'));          
+        returnArray.push(ddUtil.getXYNotation(GARS2geo.tests[i].testString,'GARS'));          
       }
       
       dojoAll(returnArray).then(dfd.callback(function (itm) {
@@ -417,19 +388,19 @@ define([
       //test to ensure inputed MGRS is converted correctly to Lat/Long (6 Decimal Places)
       //tests held in file: toGeoFromMGRS.json
       
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var count = 0;
       var MGRS2geo = null;
       var dfd = this.async();
       var returnArray = [];
       
       //read in tests from the json file
-      jsonLoader("../../widgets/CoordinateConversion/tests/toGeoFromMGRS.json", lang.hitch(this,function(response){
+      jsonLoader("../../widgets/DistanceAndDirection/tests/toGeoFromMGRS.json", lang.hitch(this,function(response){
         MGRS2geo = JSON.parse(response);
       }));
        
       for (var i = 0; i < MGRS2geo.tests.length; i++) {
-        returnArray.push(ccUtil.getXYNotation(MGRS2geo.tests[i].testString,'MGRS'));          
+        returnArray.push(ddUtil.getXYNotation(MGRS2geo.tests[i].testString,'MGRS'));          
       }
       
       dojoAll(returnArray).then(dfd.callback(function (itm) {
@@ -449,19 +420,19 @@ define([
       //test to ensure inputed Lat/Long is converted correctly to DDM
       //tests held in file: geo2DDM.json
       
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var count = 0;
       var geo2DDM = null;
       var dfd = this.async();
       var returnArray = [];
       
       //read in tests from the json file
-      jsonLoader("../../widgets/CoordinateConversion/tests/fromGeo2DDM.json", lang.hitch(this,function(response){
+      jsonLoader("../../widgets/DistanceAndDirection/tests/fromGeo2DDM.json", lang.hitch(this,function(response){
         geo2DDM = JSON.parse(response);
       }));
        
       for (var i = 0; i < geo2DDM.tests.length; i++) {
-        returnArray.push(ccUtil.getCoordValues(geo2DDM.tests[i].testString,'DDM',4));          
+        returnArray.push(ddUtil.getCoordValues(geo2DDM.tests[i].testString,'DDM',4));          
       }
       
       dojoAll(returnArray).then(dfd.callback(function (itm) {
@@ -480,19 +451,19 @@ define([
       //test to ensure inputed Lat/Long is converted correctly to DMS      
       //tests held in file: geo2DMS.json
       
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var count = 0;
       var geo2DMS = null;
       var dfd = this.async();
       var returnArray = [];
       
       //read in tests from the json file
-      jsonLoader("../../widgets/CoordinateConversion/tests/fromGeo2DMS.json", lang.hitch(this,function(response){
+      jsonLoader("../../widgets/DistanceAndDirection/tests/fromGeo2DMS.json", lang.hitch(this,function(response){
         geo2DMS = JSON.parse(response);
       }));
        
       for (var i = 0; i < geo2DMS.tests.length; i++) {
-        returnArray.push(ccUtil.getCoordValues(geo2DMS.tests[i].testString,'DMS',2));          
+        returnArray.push(ddUtil.getCoordValues(geo2DMS.tests[i].testString,'DMS',2));          
       }
       
       dojoAll(returnArray).then(dfd.callback(function (itm) {
@@ -511,19 +482,19 @@ define([
       //test to ensure inputed Lat/Long is converted correctly to UTM (Band)      
       //tests held in file: geo2UTMBand.json
       
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var count = 0;
       var geo2UTMBand = null;
       var dfd = this.async();
       var returnArray = [];
       
       //read in tests from the json file
-      jsonLoader("../../widgets/CoordinateConversion/tests/fromGeo2UTMBand.json", lang.hitch(this,function(response){
+      jsonLoader("../../widgets/DistanceAndDirection/tests/fromGeo2UTMBand.json", lang.hitch(this,function(response){
         geo2UTMBand = JSON.parse(response);
       }));
        
       for (var i = 0; i < geo2UTMBand.tests.length; i++) {
-        returnArray.push(ccUtil.getCoordValues(geo2UTMBand.tests[i].testString,'UTM'));          
+        returnArray.push(ddUtil.getCoordValues(geo2UTMBand.tests[i].testString,'UTM'));          
       }
       
       dojoAll(returnArray).then(dfd.callback(function (itm) {
@@ -542,19 +513,19 @@ define([
       //test to ensure inputed Lat/Long is converted correctly to UTM (Hemisphere)      
       //tests held in file: geo2UTMHem.json
       
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var count = 0;
       var geo2UTMHem = null;
       var dfd = this.async();
       var returnArray = [];
       
       //read in tests from the json file
-      jsonLoader("../../widgets/CoordinateConversion/tests/fromGeo2UTMHem.json", lang.hitch(this,function(response){
+      jsonLoader("../../widgets/DistanceAndDirection/tests/fromGeo2UTMHem.json", lang.hitch(this,function(response){
         geo2UTMHem = JSON.parse(response);
       }));
        
       for (var i = 0; i < geo2UTMHem.tests.length; i++) {
-        returnArray.push(ccUtil.getCoordValues(geo2UTMHem.tests[i].testString,'UTM (H)'));          
+        returnArray.push(ddUtil.getCoordValues(geo2UTMHem.tests[i].testString,'UTM (H)'));          
       }
       
       dojoAll(returnArray).then(dfd.callback(function (itm) {
@@ -573,19 +544,19 @@ define([
       //test to ensure inputed Lat/Long is converted correctly to GEOREF     
       //tests held in file: geo2GEOREF.json
       
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var count = 0;
       var geo2GEOREF = null;
       var dfd = this.async();
       var returnArray = [];
       
       //read in tests from the json file
-      jsonLoader("../../widgets/CoordinateConversion/tests/fromGeo2GEOREF.json", lang.hitch(this,function(response){
+      jsonLoader("../../widgets/DistanceAndDirection/tests/fromGeo2GEOREF.json", lang.hitch(this,function(response){
         geo2GEOREF = JSON.parse(response);
       }));
        
       for (var i = 0; i < geo2GEOREF.tests.length; i++) {
-        returnArray.push(ccUtil.getCoordValues(geo2GEOREF.tests[i].testString,'GEOREF'));          
+        returnArray.push(ddUtil.getCoordValues(geo2GEOREF.tests[i].testString,'GEOREF'));          
       }
       
       dojoAll(returnArray).then(dfd.callback(function (itm) {
@@ -604,19 +575,19 @@ define([
       //test to ensure inputed Lat/Long is converted correctly to GARS     
       //tests held in file: geo2GARS.json
       
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var count = 0;
       var geo2GARS = null;
       var dfd = this.async();
       var returnArray = [];
       
       //read in tests from the json file
-      jsonLoader("../../widgets/CoordinateConversion/tests/fromGeo2GARS.json", lang.hitch(this,function(response){
+      jsonLoader("../../widgets/DistanceAndDirection/tests/fromGeo2GARS.json", lang.hitch(this,function(response){
         geo2GARS = JSON.parse(response);
       }));
        
       for (var i = 0; i < geo2GARS.tests.length; i++) {
-        returnArray.push(ccUtil.getCoordValues(geo2GARS.tests[i].testString,'GARS'));          
+        returnArray.push(ddUtil.getCoordValues(geo2GARS.tests[i].testString,'GARS'));          
       }
       
       dojoAll(returnArray).then(dfd.callback(function (itm) {
@@ -636,19 +607,19 @@ define([
       
       //tests held in file: geo2mgrs.json
       
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var count = 0;
       var geo2MGRStests = null;
       var dfd = this.async();
       var returnArray = [];
       
       //read in tests from the json file
-      jsonLoader("../../widgets/CoordinateConversion/tests/fromGeo2mgrs.json", lang.hitch(this,function(response){
+      jsonLoader("../../widgets/DistanceAndDirection/tests/fromGeo2mgrs.json", lang.hitch(this,function(response){
         geo2MGRStests = JSON.parse(response);
       }));
        
       for (var i = 0; i < geo2MGRStests.MGRSTests.length; i++) {
-        returnArray.push(ccUtil.getCoordValues(geo2MGRStests.MGRSTests[i].testString,'MGRS'));          
+        returnArray.push(ddUtil.getCoordValues(geo2MGRStests.MGRSTests[i].testString,'MGRS'));          
       }
       
       dojoAll(returnArray).then(dfd.callback(function (itm) {
@@ -664,7 +635,7 @@ define([
     },    
     
     'Test Auto Input: Identify Input as DD - Lat / Long': function() {
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var passed = false;
       var match = '';      
       var count = 0;       
@@ -673,7 +644,7 @@ define([
       for (var a = 0; a < latDDArray.length; a++) {
         for (var b = 0; b < lonDDArray.length; b++) {
           for (var c = 0; c < ns.length; c++) {
-            ccUtil.getCoordinateType(latDDArray[a] + ns[c] + lonDDArray[b]).then(function(itm){
+            ddUtil.getCoordinateType(latDDArray[a] + ns[c] + lonDDArray[b]).then(function(itm){
              /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
              ** https://theintern.github.io/intern/#async-tests
              ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
@@ -706,7 +677,7 @@ define([
                 for (var f = 0; f < pLon.length; f++) {         
                   var tempLat = pLat[a].toUpperCase() + "00.0" + pss[b] + pLat[c].toUpperCase();
                   var tempLon = pLon[d].toUpperCase() + "000.0" + pss[e] + pLon[f].toUpperCase();                  
-                  ccUtil.getCoordinateType(tempLat + (" ") + tempLon).then(function(itm){
+                  ddUtil.getCoordinateType(tempLat + (" ") + tempLon).then(function(itm){
                   /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
                   ** https://theintern.github.io/intern/#async-tests
                   ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
@@ -737,7 +708,7 @@ define([
     },
      
     'Test Auto Input: Identify Input as DD - Long / Lat': function() {
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var passed = false;
       var match = '';      
       var count = 0;       
@@ -746,7 +717,7 @@ define([
       for (var a = 0; a < latDDArray.length; a++) {
         for (var b = 0; b < lonDDArray.length; b++) {
           for (var c = 0; c < ns.length; c++) {
-          ccUtil.getCoordinateType(lonDDArray[b] + ns[c] + latDDArray[a]).then(function(itm){
+          ddUtil.getCoordinateType(lonDDArray[b] + ns[c] + latDDArray[a]).then(function(itm){
            /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
            ** https://theintern.github.io/intern/#async-tests
            ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
@@ -785,7 +756,7 @@ define([
                 for (var f = 0; f < pLon.length; f++) {
                   var tempLon = pLon[d].toUpperCase() + "000.0" + pss[e] + pLon[f].toUpperCase();                 
                   var tempLat = pLat[a].toUpperCase() + "00.0" + pss[b] + pLat[c].toUpperCase(); 
-                  ccUtil.getCoordinateType(tempLon + (" ") + tempLat).then(function(itm){
+                  ddUtil.getCoordinateType(tempLon + (" ") + tempLat).then(function(itm){
                   /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
                   ** https://theintern.github.io/intern/#async-tests
                   ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
@@ -816,7 +787,7 @@ define([
     },
     
     'Test Auto Input: Identify Input as DDM - Lat / Long': function() {
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var passed = false;
       var match = '';      
       var count = 0;       
@@ -825,7 +796,7 @@ define([
       for (var a = 0; a < latDDMArray.length; a++) {
         for (var b = 0; b < lonDDMArray.length; b++) {
           for (var c = 0; c < ns.length; c++) {
-            ccUtil.getCoordinateType(latDDMArray[a] + ns[c] + lonDDMArray[b]).then(function(itm){
+            ddUtil.getCoordinateType(latDDMArray[a] + ns[c] + lonDDMArray[b]).then(function(itm){
              /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
              ** https://theintern.github.io/intern/#async-tests
              ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
@@ -858,7 +829,7 @@ define([
                 for (var f = 0; f < pLon.length; f++) {         
                   var tempLat = pLat[a].toUpperCase() + "00 00.0" + pss[b] + pLat[c].toUpperCase();
                   var tempLon = pLon[d].toUpperCase() + "000 00.0" + pss[e] + pLon[f].toUpperCase();
-                  ccUtil.getCoordinateType(tempLat + (" ") + tempLon).then(function(itm){
+                  ddUtil.getCoordinateType(tempLat + (" ") + tempLon).then(function(itm){
                   /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
                   ** https://theintern.github.io/intern/#async-tests
                   ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
@@ -889,7 +860,7 @@ define([
     },
     
     'Test Auto Input: Identify Input as DDM - Long / Lat': function() {
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var passed = false;
       var match = '';      
       var count = 0;       
@@ -898,7 +869,7 @@ define([
       for (var a = 0; a < latDDMArray.length; a++) {
         for (var b = 0; b < lonDDMArray.length; b++) {
           for (var c = 0; c < ns.length; c++) {
-          ccUtil.getCoordinateType(lonDDMArray[b] + ns[c] + latDDMArray[a]).then(function(itm){
+          ddUtil.getCoordinateType(lonDDMArray[b] + ns[c] + latDDMArray[a]).then(function(itm){
            /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
            ** https://theintern.github.io/intern/#async-tests
            ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
@@ -937,7 +908,7 @@ define([
                 for (var f = 0; f < pLon.length; f++) {
                   var tempLon = pLon[d].toUpperCase() + "000 00.0" + pss[e] + pLon[f].toUpperCase();                 
                   var tempLat = pLat[a].toUpperCase() + "00 00.0" + pss[b] + pLat[c].toUpperCase();                      
-                  ccUtil.getCoordinateType(tempLon + (" ") + tempLat).then(function(itm){
+                  ddUtil.getCoordinateType(tempLon + (" ") + tempLat).then(function(itm){
                   /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
                   ** https://theintern.github.io/intern/#async-tests
                   ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
@@ -968,7 +939,7 @@ define([
     },
     
     'Test Auto Input: Identify Input as DMS - Lat / Long': function() {
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var passed = false;
       var match = '';      
       var count = 0;       
@@ -977,7 +948,7 @@ define([
       //So just test using the space seperator we will check the seperator in the next test
       for (var a = 0; a < latDMSArray.length; a++) {
         for (var b = 0; b < lonDMSArray.length; b++) {
-          ccUtil.getCoordinateType(latDMSArray[a] + " " + lonDMSArray[b]).then(function(itm){
+          ddUtil.getCoordinateType(latDMSArray[a] + " " + lonDMSArray[b]).then(function(itm){
            /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
            ** https://theintern.github.io/intern/#async-tests
            ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
@@ -1009,7 +980,7 @@ define([
                 for (var f = 0; f < pLon.length; f++) {         
                   var tempLat = pLat[a].toUpperCase() + "00 00 00.0" + pss[b] + pLat[c].toUpperCase();
                   var tempLon = pLon[d].toUpperCase() + "000 00 00.0" + pss[e] + pLon[f].toUpperCase();               
-                  ccUtil.getCoordinateType(tempLat + ns[e] + tempLon).then(function(itm){
+                  ddUtil.getCoordinateType(tempLat + ns[e] + tempLon).then(function(itm){
                   /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
                   ** https://theintern.github.io/intern/#async-tests
                   ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
@@ -1040,7 +1011,7 @@ define([
     },
     
     'Test Auto Input: Identify Input as DMS - Long / Lat': function() {
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var passed = false;
       var match = '';      
       var count = 0;       
@@ -1048,7 +1019,7 @@ define([
       //test each the DD latitude and longitude array items against each other using each of the seperators
       for (var a = 0; a < latDMSArray.length; a++) {
         for (var b = 0; b < lonDMSArray.length; b++) {          
-          ccUtil.getCoordinateType(lonDMSArray[b] + " " + latDMSArray[a]).then(function(itm){
+          ddUtil.getCoordinateType(lonDMSArray[b] + " " + latDMSArray[a]).then(function(itm){
            /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
            ** https://theintern.github.io/intern/#async-tests
            ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
@@ -1086,7 +1057,7 @@ define([
                 for (var f = 0; f < pLon.length; f++) {
                   var tempLon = pLon[d].toUpperCase() + "000 00 00.0" + pss[e] + pLon[f].toUpperCase();                 
                   var tempLat = pLat[a].toUpperCase() + "00 00 00.0" + pss[b] + pLat[c].toUpperCase();
-                  ccUtil.getCoordinateType(tempLon + ns[e] + tempLat).then(function(itm){
+                  ddUtil.getCoordinateType(tempLon + ns[e] + tempLat).then(function(itm){
                   /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
                   ** https://theintern.github.io/intern/#async-tests
                   ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
@@ -1117,7 +1088,7 @@ define([
     },
     
     'Test Manual Input: Identify Input as DD - Lat / Long': function() {
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var passed = false;
       var match = '';      
       var count = 0;
@@ -1130,7 +1101,7 @@ define([
       ];
 
       for (var i = 0; i < validEntries.length; i++) {
-        ccUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
+        ddUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
           /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
           ** https://theintern.github.io/intern/#async-tests
           ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
@@ -1163,7 +1134,7 @@ define([
     },
     
     'Test Manual Input: Identify Input as DD - Long / Lat': function() {
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var passed = false;
       var match = '';      
       var count = 0;
@@ -1176,7 +1147,7 @@ define([
       ];
 
       for (var i = 0; i < validEntries.length; i++) {
-        ccUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
+        ddUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
           /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
           ** https://theintern.github.io/intern/#async-tests
           ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
@@ -1215,7 +1186,7 @@ define([
     },
     
     'Test Manual Input: Identify Input as DDM - Lat / Long': function() {
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var passed = false;
       var match = '';      
       var count = 0;
@@ -1228,7 +1199,7 @@ define([
       ];
 
       for (var i = 0; i < validEntries.length; i++) {
-        ccUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
+        ddUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
           /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
           ** https://theintern.github.io/intern/#async-tests
           ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
@@ -1261,7 +1232,7 @@ define([
     },
     
     'Test Manual Input: Identify Input as DDM - Long / Lat': function() {
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var passed = false;
       var match = '';      
       var count = 0;
@@ -1274,7 +1245,7 @@ define([
       ];
 
       for (var i = 0; i < validEntries.length; i++) {
-        ccUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
+        ddUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
           /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
           ** https://theintern.github.io/intern/#async-tests
           ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
@@ -1313,7 +1284,7 @@ define([
     },
     
     'Test Manual Input: Identify Input as DMS - Lat / Long': function() {
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var passed = false;
       var match = '';      
       var count = 0;
@@ -1329,7 +1300,7 @@ define([
       ];
 
       for (var i = 0; i < validEntries.length; i++) {
-        ccUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
+        ddUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
           /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
           ** https://theintern.github.io/intern/#async-tests
           ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
@@ -1362,7 +1333,7 @@ define([
     },
     
     'Test Manual Input: Identify Input as DMS - Long / Lat': function() {
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var passed = false;
       var match = '';      
       var count = 0;
@@ -1378,7 +1349,7 @@ define([
       ];
 
       for (var i = 0; i < validEntries.length; i++) {
-        ccUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
+        ddUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
           /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
           ** https://theintern.github.io/intern/#async-tests
           ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
@@ -1418,7 +1389,7 @@ define([
     },
     
     'Test Manual Input: Identify Correct Non-Geographic Formats': function() {
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var passed = false;
       var match = '';      
       var count = 0;
@@ -1461,7 +1432,7 @@ define([
       ];
 
       for (var i = 0; i < validEntries.length; i++) {
-        ccUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
+        ddUtil.getCoordinateType(validEntries[i].testString).then(function(itm){
           /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
           ** https://theintern.github.io/intern/#async-tests
           ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
@@ -1485,9 +1456,9 @@ define([
     'Test Auto Input: Process Input as DD - Lat / Long': function() {
       //test to ensure that coordinates are processed correctly before handing off to the geometry service
       
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var count = 0;      
-      //var notations = ccUtil.getNotations();
+      //var notations = ddUtil.getNotations();
       
       for (var a = 0; a < pLat.length; a++) {
         for (var b = 0; b < pss.length; b++) {
@@ -1527,7 +1498,7 @@ define([
                   }                  
                   var expectedOutput = outLatPrefix + "00.0," + outLonPrefix + "000.0";
                   var testString = (tempLat + " " + tempLon);
-                  var returnString = cc.processCoordTextInput(testString, notations[0], true);                  
+                  var returnString = tabLine.coordToolStart.inputCoordinate.processCoordTextInput(testString, notations[0], true);                  
                   assert.equal(returnString, expectedOutput, expectedOutput + "  Failed");
                   count++;     
                 }
@@ -1543,7 +1514,7 @@ define([
     'Test Auto Input: Process Input as DD - Long / Lat': function() {
       //test to ensure that coordinates are processed correctly before handing off to the geometry service
       
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var count = 0; 
       
            
@@ -1585,7 +1556,7 @@ define([
                   }                  
                   var expectedOutput = outLatPrefix + "00.0," + outLonPrefix + "000.0";
                   var testString = (tempLon + " " + tempLat);
-                  var returnString = cc.processCoordTextInput(testString, notations[1], true);                                    
+                  var returnString = tabLine.coordToolStart.inputCoordinate.processCoordTextInput(testString, notations[1], true);                                    
                   assert.equal(returnString, expectedOutput, expectedOutput + "  Failed");
                   count++;     
                 }
@@ -1601,7 +1572,7 @@ define([
     'Test Auto Input: Process Input as DDM - Lat / Long': function() {
       //test to ensure that coordinates are processed correctly before handing off to the geometry service
       
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var count = 0;      
       
       for (var a = 0; a < pLat.length; a++) {
@@ -1642,7 +1613,7 @@ define([
                   }                  
                   var expectedOutput = outLatPrefix + "00 00.0," + outLonPrefix + "000 00.0";
                   var testString = (tempLat + " " + tempLon);
-                  var returnString = cc.processCoordTextInput(testString, notations[2], true);                  
+                  var returnString = tabLine.coordToolStart.inputCoordinate.processCoordTextInput(testString, notations[2], true);                  
                   assert.equal(returnString, expectedOutput, expectedOutput + "  Failed");
                   count++;     
                 }
@@ -1658,7 +1629,7 @@ define([
     'Test Auto Input: Process Input as DDM - Long / Lat': function() {
       //test to ensure that coordinates are processed correctly before handing off to the geometry service
       
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var count = 0;      
            
       for (var a = 0; a < pLat.length; a++) {
@@ -1699,7 +1670,7 @@ define([
                   }                  
                   var expectedOutput = outLatPrefix + "00 00.0," + outLonPrefix + "000 00.0";
                   var testString = (tempLon + " " + tempLat);
-                  var returnString = cc.processCoordTextInput(testString, notations[3], true);                                    
+                  var returnString = tabLine.coordToolStart.inputCoordinate.processCoordTextInput(testString, notations[3], true);                                    
                   assert.equal(returnString, expectedOutput, expectedOutput + "  Failed");
                   count++;     
                 }
@@ -1715,7 +1686,7 @@ define([
     'Test Auto Input: Process Input as DMS - Lat / Long': function() {
       //test to ensure that coordinates are processed correctly before handing off to the geometry service
       
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var count = 0;      
       
       for (var a = 0; a < pLat.length; a++) {
@@ -1756,7 +1727,7 @@ define([
                   }                  
                   var expectedOutput = outLatPrefix + "00 00 00.0," + outLonPrefix + "000 00 00.0";
                   var testString = (tempLat + " " + tempLon);
-                  var returnString = cc.processCoordTextInput(testString, notations[4], true);                  
+                  var returnString = tabLine.coordToolStart.inputCoordinate.processCoordTextInput(testString, notations[4], true);                  
                   assert.equal(returnString, expectedOutput, expectedOutput + "  Failed");
                   count++;     
                 }
@@ -1772,7 +1743,7 @@ define([
     'Test Auto Input: Process Input as DMS - Long / Lat': function() {
       //test to ensure that coordinates are processed correctly before handing off to the geometry service
       
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var count = 0;      
       
       for (var a = 0; a < pLat.length; a++) {
@@ -1813,7 +1784,7 @@ define([
                   }                  
                   var expectedOutput = outLatPrefix + "00 00 00.0," + outLonPrefix + "000 00 00.0";
                   var testString = (tempLon + " " + tempLat);
-                  var returnString = cc.processCoordTextInput(testString, notations[5], true);                                    
+                  var returnString = tabLine.coordToolStart.inputCoordinate.processCoordTextInput(testString, notations[5], true);                                    
                   assert.equal(returnString, expectedOutput, expectedOutput + "  Failed");
                   count++;     
                 }
@@ -1827,7 +1798,7 @@ define([
     },
     
     'Test Manual Input: Check invalid input is not identified as a valid entry': function() {
-      //this.skip('Skip test for now')
+      //this.skip('Skip test for now');  
       var passed = false;
       var match = '';      
       var count = 0;      
@@ -1852,7 +1823,7 @@ define([
       ];
 
       for (var i = 0; i < invalidEntries.length; i++) {
-        ccUtil.getCoordinateType(invalidEntries[i].testString).then(function(itm){
+        ddUtil.getCoordinateType(invalidEntries[i].testString).then(function(itm){
           /* as the getCoordinateType function returns a promise and resolving the promise indicates a passing test:
           ** https://theintern.github.io/intern/#async-tests
           ** we need check whats in the promise return and set the passed boolean to true or false accordinaly
@@ -1872,6 +1843,5 @@ define([
       console.log("The number of manual tests conducted to check invalid input is not identified as a valid entry was: " + count);
       totalTestCount = totalTestCount + count;
     },
-    
   });
 });

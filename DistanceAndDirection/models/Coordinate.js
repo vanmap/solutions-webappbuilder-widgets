@@ -95,6 +95,7 @@ define([
               } else {
                 this.isManual = true;
                 this.valid = true;
+                this.formatType = itm[0].conversionType;                
                 this.inputType = itm[0].conversionType;
                 this.coordinateEsriGeometry = new EsriPoint(r[0][0],r[0][1],new EsriSpatialReference({wkid: 4326}));
                 this.message = '';
@@ -130,6 +131,7 @@ define([
                   this.isManual = true;
                   this.valid = true;
                   this.inputType = itm[0].conversionType;
+                  this.formatType = itm[0].conversionType;
                   this.coordinateEsriGeometry = new EsriPoint(r[0][0],r[0][1],new EsriSpatialReference({wkid: 4326}));
                   this.message = '';
                   this.inputTypeDef.resolve(this);
@@ -159,7 +161,7 @@ define([
     /**
      *
      **/
-    processCoordTextInput: function (withStr, asType) {
+    processCoordTextInput: function (withStr, asType, testingMode) {
         
         var match = asType.pattern.exec(withStr);            
         

@@ -118,7 +118,7 @@ define([
                         centerPoint = EsriWebMercatorUtils.geographicToWebMercator(centerPoint);
                     }
                     //Convert to meters
-                    var lengthInMeters = this.coordTool.inputCoordinate.util.convertToMeters(Number(majorLength), this.lengthUnit);
+                    var lengthInMeters = this._utils.convertToMeters(Number(majorLength), this.lengthUnit);
                     this.majorAxisLength = lengthInMeters;
                     //We do have a center point. Get the end point
                     var endPoint = this.getEndPoint(centerPoint, 0, lengthInMeters);
@@ -169,7 +169,7 @@ define([
                         centerPoint = EsriWebMercatorUtils.geographicToWebMercator(centerPoint);
                     }
                     //Convert to meters
-                    var lengthInMeters = this.coordTool.inputCoordinate.util.convertToMeters(Number(minorLength), this.lengthUnit);
+                    var lengthInMeters = this._utils.convertToMeters(Number(minorLength), this.lengthUnit);
                     this.minorAxisLength = lengthInMeters;
                     //We do have a center point. Get the end point
                     var endPoint = this.getEndPoint(centerPoint, 90, lengthInMeters);

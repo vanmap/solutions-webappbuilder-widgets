@@ -79,7 +79,7 @@ define([], function() {
       ]
     },
 
-    suites: ['tests/distance-and-direction-base-unit-test'],
+    suites: ['tests/distance-and-direction-coord-input-unit-test'],
 
     excludeInstrumentation: /^(?:test|node_modules)/
   };

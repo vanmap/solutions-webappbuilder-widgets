@@ -79,7 +79,7 @@ define([], function() {
       ]
     },
 
-    suites: ['tests/coordinate-conversion-unit-test'],
+    suites: ['tests/coordinate-conversion-coord-input-unit-test'],
 
     excludeInstrumentation: /^(?:test|node_modules)/
   };

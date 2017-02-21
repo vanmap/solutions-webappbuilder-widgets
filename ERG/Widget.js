@@ -560,11 +560,13 @@ define([
         this.inherited(arguments);
         
         //add CORS servers       
-        array.forEach(this.config.corsEnabledServers, function (corsServer) {
-          if (!this._itemExists(corsServer, esri.config.defaults.io.corsEnabledServers)) {
-            esri.config.defaults.io.corsEnabledServers.push(corsServer);
-          }  
-        }, this);
+        if (this.config.corsEnabledServers) {
+          array.forEach(this.config.corsEnabledServers, function (corsServer) {
+            if (!this._itemExists(corsServer, esri.config.defaults.io.corsEnabledServers)) {
+              esri.config.defaults.io.corsEnabledServers.push(corsServer);
+            }  
+          }, this);
+        }
       
         this.tabContainer = new TabContainer({
           tabs: [

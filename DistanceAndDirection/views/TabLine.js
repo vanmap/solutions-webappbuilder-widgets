@@ -536,6 +536,8 @@ define([
         geometry: newLine,
         geographicGeometry: newLine
       });
+      
+      this.coordToolEnd.inputCoordinate.set('coordinateEsriGeometry',  fpc);
     },
 
     /*

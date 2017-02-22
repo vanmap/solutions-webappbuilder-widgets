@@ -137,8 +137,6 @@ define([
       
       this.dt.setFillSymbol(this._circleSym);
 
-      
-
       this.syncEvents();
     },
 
@@ -342,12 +340,17 @@ define([
     /*
      * Rate Input key up event handler
      */
-    distanceInputKeyWasPressed: function (evt) {
+    distanceInputKeyWasPressed: function (evt) {      
       this.distanceInputDidChange();
       if (evt.keyCode === dojoKeys.ENTER) {
+        if(this.coordTool.inputCoordinate.outputString && this.coordTool.inputCoordinate.inputString != ''){
           this.removeManualGraphic();
           this.setGraphic(true);
-          //dojoTopic.publish('MANUAL_CIRCLE_RADIUS_INPUT_COMPLETE', this.lengthInput.value);
+        } else {
+          var alertMessage = new Message({
+              message: 'No center point set, please check your input.'
+            });
+        }
       }      
     },    
 
@@ -523,10 +526,6 @@ define([
 
       dojoDomClass.toggle(this.addPointBtn, 'jimu-state-active');
 
-      if (this.coordTool.inputCoordinate.hasError) {
-        return;
-      }
-
       if (!this.coordTool.inputCoordinate.isManual) {
         this.coordTool.set('validateOnInput', false);
         this.coordTool.set('value', this.coordTool.inputCoordinate.outputString);
@@ -554,6 +553,8 @@ define([
           geodesic: true,
           numberOfPoints: 360
       });
+      
+      
       
       var newPolygon  = new EsriPolygon(this.map.spatialReference);
       

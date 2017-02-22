@@ -154,8 +154,10 @@ define([
           this._points.push(start.offset(0, 0));
           switch (this._geometryType) {
             case esriDraw.POINT:
+              this.set('startPoint', this._points[0]);
               this._drawEnd(start.offset(0, 0));
               this._setTooltipMessage(0);
+              
               break;
             case esriDraw.POLYLINE:
               if (this._points.length === 2) {

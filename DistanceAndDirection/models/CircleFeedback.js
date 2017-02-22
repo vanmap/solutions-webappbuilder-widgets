@@ -70,10 +70,6 @@ define([
            dojoLang.hitch(this, this.manualRadiusUpdate)
         );
 
-        dojoTopic.subscribe('MANUAL_CIRCLE_RADIUS_INPUT_COMPLETE',
-           dojoLang.hitch(this, this.manualRadiusUpdateComplete)
-        );
-        
         dojoTopic.subscribe(
             'manual-circle-center-point-input',
             dojoLang.hitch(this, this.onCenterPointManualInputHandler)
@@ -112,32 +108,6 @@ define([
     },
 
     /*
-    * Draw graphic
-    */
-    manualRadiusUpdateComplete: function (radius) {
-
-        var stPt = this.get('startPoint');
-        var circleGeometry = new EsriCircle(stPt, {
-            radius: radius,
-            geodesic: true
-        });
-
-        this.tempGraphic = new EsriGraphic(
-          circleGeometry,
-          this._circleSym
-        );
-
-        this.circleGraphic = new EsriGraphic(circleGeometry, this.fillSymbol);
-        this.map.graphics.add(this.circleGraphic);
-
-        dojoConnect.disconnect(this._onMouseMoveHandlerConnect);
-        //this.cleanup();
-        this._clear();
-        this._setTooltipMessage(0);
-        this._drawEnd(this.circleGraphic.geometry);
-    },
-
-    /*
      *
      */
     _onClickHandler: function (evt) {
@@ -172,12 +142,6 @@ define([
         }
 
       this._setTooltipMessage(this._points.length);
-      /*if (this._points.length === 2 && this._geometryType === 'circle') {
-        var tooltip = this._tooltip;
-        if (tooltip) {
-          tooltip.innerHTML = 'Click to finish drawing circle';
-        }
-      }*/
     },
 
     /*

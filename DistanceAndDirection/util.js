@@ -229,12 +229,12 @@ define([
         },*/ 
         {
           name: 'UTM',
-          pattern: /^\d{1,2}[-,;:\s]*[c-hj-np-xC-HJ-NP-X]{1}[-,;:\s]*\d{1,6}.?\d*[mM]?[-,;:\s]?\d{1,7}.?\d*[mM]?$/,
+          pattern: /^\d{1,2}[-,;:\s]*[c-hj-np-xC-HJ-NP-X][-,;:\s]*\d{1,6}\.?\d*[mM]?[-,;:\s]?\d{1,7}\.?\d*[mM]?$/,
           notationType: "UTM - Band Letter",
           conversionType: "UTM"
         }, {
           name: 'UTM (H)',
-          pattern: /^\d{1,2}[-,;:\s]*[NnSs]{1}[-,;:\s]*\d{1,6}.?\d*[mM]?[-,;:\s]+\d{1,7}.?\d*[mM]?$/,
+          pattern: /^\d{1,2}[-,;:\s]*[NnSs][-,;:\s]*\d{1,6}\.?\d*[mM]?[-,;:\s]+\d{1,7}\.?\d*[mM]?$/,
           notationType: "UTM - Hemisphere (N/S)",
           conversionType: "UTM (H)"
         }

@@ -24,6 +24,7 @@ define([
     'dojo/text!./AddDialog.html',
     'dojo/NodeList-dom',
     'dojo/Deferred',
+    'dojo/topic',
 
     'dijit/_WidgetsInTemplateMixin',
     'dijit/_TemplatedMixin',
@@ -45,6 +46,7 @@ define([
     AddDialog,
     nodeListDom,
     Deferred,
+    topic,
     _WidgetsInTemplateMixin,
     _TemplatedMixin, 
     MultiSelect,
@@ -83,6 +85,7 @@ define([
         fieldRequest.then(lang.hitch(this, function(results) {
           if (results) {
             this._populateFieldsList(results);
+            topic.publish("erg-setting-get-fields-completed", {isMedia: this.showMediaFields});
           } else {
             new JimuMessage({message: 'Unable to retrieve fields from specified map service'});
           }
@@ -138,7 +141,8 @@ define([
             }
           }
         }
-        if (data.chartField) {
+
+        if (data.chartField) {       
           for(var j=0; j<this.selectFields.options.length; j++) {
             if (this.selectFields.options[j].value === data.chartField) {
               this.selectFields.selectedIndex = j;
@@ -152,18 +156,11 @@ define([
         if (this.selectFields) {          
           var fieldsOptions = [];
           array.forEach(fields, function(field){  
-             // fieldsOptions.push({
-             //  value: field.name,
-             //  label: field.name,
-             //  selected: false
-             // });  
              var opt = document.createElement("option");
              opt.value = field.name;
              opt.innerHTML = field.name;
              this.selectFields.appendChild(opt);
-          }, this);  
-          // this.selectFields.addOption(fieldsOptions);        
-          //domAttr.set(this.selectFields, "multiple", this.allowMultipleSelection);     
+          }, this);     
           if (this.allowMultipleSelection) {
             this.selectFields.setAttribute("multiple", this.allowMultipleSelection);
           } 

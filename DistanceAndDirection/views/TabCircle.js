@@ -23,7 +23,6 @@ define([
   'dojo/_base/html',
   'dojo/dom-attr',
   'dojo/dom-class',
-  'dojo/dom-style',
   'dojo/string',
   'dojo/number',
   'dojo/keys',
@@ -35,13 +34,10 @@ define([
   'dijit/popup',
   'jimu/dijit/Message',
   'esri/layers/FeatureLayer',
-  'esri/graphicsUtils',
-  'esri/geometry/geometryEngine',
   'esri/symbols/SimpleFillSymbol',
   'esri/symbols/SimpleMarkerSymbol',
   'esri/symbols/TextSymbol',
   'esri/graphic',
-  'esri/units',
   'esri/geometry/webMercatorUtils',
   'esri/geometry/Polyline',
   'esri/geometry/Polygon',
@@ -62,7 +58,6 @@ define([
   dojoHTML,
   dojoDomAttr,
   dojoDomClass,
-  dojoDomStyle,
   dojoString,
   dojoNumber,
   dojoKeys,
@@ -74,14 +69,11 @@ define([
   DijitPopup,
   Message,
   EsriFeatureLayer,
-  esriGraphicsUtils,
-  esriGeometryEngine,
   EsriSimpleFillSymbol,
   EsriSimpleMarkerSymbol,
   EsriTextSymbol,
   EsriGraphic,
-  esriUnits,
-  esriWMUtils,
+  EsriWMUtils,
   EsriPolyline,
   EsriPolygon,
   EsriPoint,
@@ -545,7 +537,7 @@ define([
       results.geometry = this.coordTool.inputCoordinate.coordinateEsriGeometry;
       results.lineGeometry = lineGeom;
       
-      var centerPoint = esriWMUtils.geographicToWebMercator(results.geometry);
+      var centerPoint = EsriWMUtils.geographicToWebMercator(results.geometry);
       
       var newCurrentCircle = new EsriCircle({
           center: centerPoint,

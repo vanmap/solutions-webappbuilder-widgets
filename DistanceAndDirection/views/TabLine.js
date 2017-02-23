@@ -21,21 +21,16 @@ define([
   'dojo/on',
   'dojo/topic',
   'dojo/_base/html',
-  'dojo/dom-attr',
   'dojo/dom-class',
-  'dojo/dom-style',
   'dojo/string',
   'dojo/number',
-  'dojo/query',
   'dojo/keys',
-  'dojo/Stateful',
   'dijit/_WidgetBase',
   'dijit/_TemplatedMixin',
   'dijit/_WidgetsInTemplateMixin',
   'dijit/TooltipDialog',
   'dijit/popup',
   'jimu/dijit/Message',
-  'esri/layers/GraphicsLayer',
   'esri/layers/FeatureLayer',
   'esri/layers/LabelClass',
   'esri/tasks/FeatureSet',
@@ -43,11 +38,9 @@ define([
   'esri/geometry/Polyline',
   'esri/geometry/Circle',
   'esri/geometry/Point',
-  'esri/symbols/SimpleLineSymbol',
   'esri/symbols/SimpleMarkerSymbol',
   'esri/symbols/TextSymbol',
   'esri/graphic',
-  'esri/units',
   'esri/geometry/webMercatorUtils',
   '../models/LineFeedback',
   '../models/ShapeModel',
@@ -62,33 +55,26 @@ define([
   dojoOn,
   dojoTopic,
   dojoHTML,
-  dojoDomAttr,
   dojoDomClass,
-  dojoDomStyle,
   dojoString,
   dojoNumber,
-  dojoQuery,
   dojoKeys,
-  dojoStateful,
   dijitWidgetBase,
   dijitTemplatedMixin,
   dijitWidgetsInTemplate,
   DijitTooltipDialog,
   DijitPopup,
   Message,
-  EsriGraphicsLayer,
   EsriFeatureLayer,
   EsriLabelClass,
   EsriFeatureSet,
-  esriGeometryEngine,
+  EsriGeometryEngine,
   EsriPolyline,
   EsriCircle,
   EsriPoint,
-  EsriSimpleLineSymbol,
   EsriSimpleMarkerSymbol,
   EsriTextSymbol,
   EsriGraphic,
-  esriUnits,
   esriWMUtils,
   DrawFeedBack,
   ShapeModel,
@@ -476,10 +462,12 @@ define([
           this._gl.refresh();
           this.emit('graphic_created', this.currentLine);
           this.dt.removeStartGraphic();
+          this.map.setExtent(this.currentLine.wmGeometry.getExtent().expand(3));
         }
       }
       this.map.enableMapNavigation();
       this.dt.deactivate();
+      
       dojoDomClass.toggle(this.addPointBtnLine, 'jimu-state-active');
     },
 
@@ -495,7 +483,7 @@ define([
       var newLine = new EsriPolyline();
       newLine.addPath([stPt, endPt]);
 
-      var lineLengthMeters = esriGeometryEngine.geodesicLength(newLine, 9001);
+      var lineLengthMeters = EsriGeometryEngine.geodesicLength(newLine, 9001);
 
       this.lengthInput.set('value',this.dt._utils.convertMetersToUnits(lineLengthMeters, this.lengthUnitDD.get('value')));
       this.angleInput.set('value',this.dt.getAngle(stPt, endPt));

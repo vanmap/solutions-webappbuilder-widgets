@@ -36,15 +36,15 @@ define([
   dojoTopic,
   dojoStateful,
   dojoOn,
-  EsriGraphic,
+  esriGraphic,
   esriDraw,
-  EsriCircle,
-  EsriPolyline,
-  EsriGeometryEngine,
+  esriCircle,
+  esriPolyline,
+  esriGeometryEngine,
   esriUnits,
-  DrawFeedBack
+  drawFeedBack
 ) {
-  var clz = dojoDeclare([DrawFeedBack], {
+  var clz = dojoDeclare([drawFeedBack], {
     /*
      *
      */
@@ -157,7 +157,7 @@ define([
       var circleGeometry = this.setCircleGeometry(this.get('startPoint'), current);
 
       this.cleanup();
-      this.circleGraphic = new EsriGraphic(circleGeometry, this.fillSymbol);
+      this.circleGraphic = new esriGraphic(circleGeometry, this.fillSymbol);
       this.map.graphics.add(this.circleGraphic);
     },
 
@@ -192,10 +192,10 @@ define([
      *
      */
     setCircleGeometry: function (stPt, endPt) {
-      var geom = new EsriPolyline(this.map.spatialReference);
+      var geom = new esriPolyline(this.map.spatialReference);
       geom.addPath([stPt, endPt]);
 
-      var length = EsriGeometryEngine.geodesicLength(geom, 9001);
+      var length = esriGeometryEngine.geodesicLength(geom, 9001);
       var unitLength = this._utils.convertMetersToUnits(length, this.lengthUnit);
       
 
@@ -205,7 +205,7 @@ define([
       
       this.set('length', unitLength);
 
-      var circleGeometry = new EsriCircle(stPt, {
+      var circleGeometry = new esriCircle(stPt, {
         radius: length,
         geodesic: true,
         numberOfPoints: 360

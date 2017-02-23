@@ -19,9 +19,10 @@ define([
     'dojo/_base/lang',
     'dojo/_base/array',
     'dojo/on',
+    'dojo/string',
+    'dojo/topic',
     'dijit/_WidgetsInTemplateMixin',
     'jimu/BaseWidgetSetting',
-    'jimu/loaderplugins/jquery-loader!https://code.jquery.com/jquery-git1.min.js',
     'jimu/dijit/Message',
     'jimu/dijit/SimpleTable',
     './AddDialog',
@@ -32,9 +33,10 @@ define([
     lang,
     array,
     on,
+    string,
+    topic,
     _WidgetsInTemplateMixin,
     BaseWidgetSetting,
-    $,
     JimuMessage,
     SimpleTable,
     AddDialog,
@@ -51,6 +53,7 @@ define([
       demoLabelAddFieldDlg: null,
       mediaTable: null,
       tableFields: null,
+      selectedDemoRow: null,
 
       postCreate: function() {
         this.inherited(arguments);
@@ -95,15 +98,31 @@ define([
         }
         this.setConfig(this.config);  
 
-        var $heads = $(".toggle-container .toggle-header");
-        $heads.click(function () {
-            var $this = $(this);
-            $this.find('i').toggleClass('icon-chevron-sign-down icon-chevron-sign-up');
-            $this.next().slideToggle("slow");
-        });           
+        var hrefLen = window.location.href.length;
+        var appId = window.location.href.substr(hrefLen-1);
+        var mod = string.substitute('jimu/loaderplugins/jquery-loader!./apps/${id}/widgets/ERG/setting/jquery-git1.min.js', {id: appId});
+
+        require([mod], function($) {
+          var $heads = $(".toggle-container .toggle-header");
+          $heads.click(function () {
+              var $this = $(this);
+              $this.find('i').toggleClass('icon-chevron-sign-down icon-chevron-sign-up');
+              $this.next().slideToggle("slow");
+          });           
+
+        });
 
         this.syncEvents();                      
+        this.syncTopics();
       },
+
+      syncTopics: function() {
+        topic.subscribe("erg-setting-get-fields-completed", lang.hitch(this, function(isMedia) {
+          if (isMedia) {
+            this._editDemoData();
+          }
+        }));
+      },      
 
       syncEvents: function() {
         this.own(on(this.windDirectionAddField, "click", lang.hitch(this, 
@@ -126,14 +145,26 @@ define([
           this._refreshMediaTable();
         })));        
         this.own(on(this.mediaTable, 'actions-edit', lang.hitch(this, function(tr) {
-          var rowData = this.mediaTable.getRowData(tr);
+          this.selectedDemoRow = tr;          
           if (!this.demoMediaDlg) {
             this._initEditDemoDialog();
-          }
+          } else{
+            this._editDemoData();
+          }    
+        }))); 
+        this.own(on(this.mediaTable, 'row-delete', lang.hitch(this, function() {
+          this._refreshMediaTable();
+        })));           
+
+      },
+
+      _editDemoData: function() {
+        if (this.demoMediaDlg) {
+          var rowData = this.mediaTable.getRowData(this.selectedDemoRow);
           this.demoMediaDlg.content.populateMediaFields(rowData);
           this.demoMediaDlg.show().then(lang.hitch(this, function() {
-            var idx = tr.rowIndex;
-            this.mediaTable.deleteRow(tr);
+            var idx = this.selectedDemoRow.rowIndex;
+            this.mediaTable.deleteRow(this.selectedDemoRow);
             var rowParam = {
               media: this.demoMediaDlg.content.getTitle(),
               chartField: this.demoMediaDlg.content.getSelectedFields()[0],
@@ -142,12 +173,8 @@ define([
               chartType: this.demoMediaDlg.content.getChartType()
             };
             this.mediaTable.addRow(rowParam, idx);              
-          }));        
-        }))); 
-        this.own(on(this.mediaTable, 'row-delete', lang.hitch(this, function() {
-          this._refreshMediaTable();
-        })));   
-
+          })); 
+        }
       },
 
       _refreshMediaTable: function() {

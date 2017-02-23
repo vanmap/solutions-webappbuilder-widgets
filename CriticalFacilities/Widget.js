@@ -202,7 +202,8 @@ define(['dojo/_base/declare',
               arrayFields: this._fsFields,
               map: this.map,
               geocodeSources: this._geocodeSources,
-              nls: this.nls
+              nls: this.nls,
+              appConfig: this.appConfig
             });
             this.myCsvStore.onHandleCsv().then(lang.hitch(this, function (obj) {
               this._updateFieldControls(this.schemaMapTable, obj, true, true);

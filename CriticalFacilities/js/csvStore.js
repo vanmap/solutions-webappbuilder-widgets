@@ -32,11 +32,12 @@ define(['dojo/_base/declare',
     'esri/renderers/SimpleRenderer',
     'esri/layers/FeatureLayer',
     'esri/tasks/locator',
-    'jimu/utils'
+    'jimu/utils',
+    './GeocodeCacheManager'
 ],
 function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvStore, Observable, Memory,
   graphicsUtils, webMercatorUtils, Point, Color, SimpleMarkerSymbol, SimpleRenderer, FeatureLayer, Locator,
-  jimuUtils) {
+  jimuUtils, GeocodeCacheManager) {
   return declare([Evented], {
       constructor: function (options) {
         this.file = options.file;
@@ -59,6 +60,11 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
         this.yFieldName = "";
         this.objectIdField = "ObjectID";
         this.nls = options.nls;
+
+        this.geocodeManager = new GeocodeCacheManager({
+          appConfig: options.appConfig,
+          nls: options.nls
+        });
       },
 
       onHandleCsv: function () {
@@ -90,49 +96,45 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
 
       onProcessForm: function () {
         var def = new Deferred();
-        this.locateData().then(lang.hitch(this, function (data) {
-
-            this.featureCollection = this._generateFC();
-            this.unmatchedFC = this._generateFC();
-          
-            //TODO I have no idea if this is really safe...are the items gaurenteed to be returned in the same order as they were sent?
-            // Has to be a safer way to do this.
-            var unmatchedI = 0;
-            for (var i = 0; i < this.storeItems.length; i++) {
-              var attributes = {};
-              var si = this.storeItems[i];
-              var di = data[i];
-              array.forEach(this.arrayFields, lang.hitch(this, function (f) {
-                attributes[f.name] = this.csvStore.getValue(si, this.mappedArrayFields[f.name]);
-              }));
-              //TODO could also have a score threshold evaluated here
-              if (di) {
-                attributes["ObjectID"] = i - unmatchedI;
-                this.featureCollection.featureSet.features.push({
-                  "geometry": di.location,
-                  "attributes": lang.clone(attributes)
-                });
-              } else {
-                attributes["ObjectID"] = unmatchedI;
-                //TODO need to handle the null location by doing something
-                this.unmatchedFC.featureSet.features.push({
-                  "geometry": new Point(0, 0, this.map.spatialReference),
-                  "attributes": lang.clone(attributes)
-                });
-                unmatchedI++;
-              }
+        this.locateData().then(lang.hitch(this, function (data) {   
+          this.featureCollection = this._generateFC();
+          this.unmatchedFC = this._generateFC();
+          var unmatchedI = 0;
+          for (var i = 0; i < this.storeItems.length; i++) {
+            var attributes = {};
+            var si = this.storeItems[i];
+            var di = data[i];
+            array.forEach(this.arrayFields, lang.hitch(this, function (f) {
+              attributes[f.name] = this.csvStore.getValue(si, this.mappedArrayFields[f.name]);
+            }));
+            //TODO could also have a score threshold evaluated here
+            if (di) {
+              attributes["ObjectID"] = i - unmatchedI;
+              this.featureCollection.featureSet.features.push({
+                "geometry": di.location,
+                "attributes": lang.clone(attributes)
+              });
+            } else {
+              attributes["ObjectID"] = unmatchedI;
+              //TODO need to handle the null location by doing something
+              this.unmatchedFC.featureSet.features.push({
+                "geometry": new Point(0, 0, this.map.spatialReference),
+                "attributes": lang.clone(attributes)
+              });
+              unmatchedI++;
             }
+          }
 
-            if (unmatchedI > 0) {
-              this.unMatchedFeatureLayer = this._initLayer(this.unmatchedFC,
-                this.file.name += "_UnMatched");
-            }
+          if (unmatchedI > 0) {
+            this.unMatchedFeatureLayer = this._initLayer(this.unmatchedFC,
+              this.file.name += "_UnMatched");
+          }
 
-            //TODO this should be the theme color
-            this.featureLayer = this._initLayer(this.featureCollection, this.file.name);
+          //TODO this should be the theme color
+          this.featureLayer = this._initLayer(this.featureCollection, this.file.name);
 
-            this.onZoomToData(this.featureLayer);
-            def.resolve('complete');
+          this.onZoomToData(this.featureLayer);
+          def.resolve('complete');
 
         }));
         return def;
@@ -151,9 +153,11 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
       locateData: function () {
         var def = new Deferred();
         if (this.useAddr) {
-          this._geocodeData().then(function (data) {
-            def.resolve(data);
-          });
+          this.geocodeManager.getCache().then(lang.hitch(this, function (itemData) {
+            this._geocodeData(itemData).then(function (data) {
+              def.resolve(data);
+            });
+          }));
         } else {
           this._xyData().then(function (data) {
             def.resolve(data);
@@ -199,13 +203,14 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
         return def;
       },
 
-      _geocodeData: function () {
+      _geocodeData: function (itemData) {
         var def = new Deferred();
 
         var fName = this.locatorSource.singleLineFieldName;
         var locator = this.locatorSource.locator;
         locator.outSpatialReference = this.map.spatialReference;
-
+        this.cachedAddresses = {};
+        this.newAddresses = {};
         var addrField, cityField, stateField, zipField;
         if (this.useMultiFields) {
           array.forEach(this.multiFields, lang.hitch(this, function (f) {
@@ -226,6 +231,7 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
         var geocodeOps = [];
         var x = 0;
         var i, j;
+        var addresses2 = [];
         for (var i = 0, j = this.storeItems.length; i < j; i += max) {
           var items = this.storeItems.slice(i, i + max);
           var addresses = [];
@@ -251,7 +257,14 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
             } else {
               addr[fName] = this.csvStore.getValue(i, this.addrFieldName);
             }
-            addresses.push(addr);
+
+            var cacheData = itemData ? itemData : {};
+            if (!(cacheData && cacheData.hasOwnProperty(addr.SingleLine) ? true : false)) {
+              addresses.push(addr);
+              addresses2.push(addr.SingleLine);
+            } else {
+              this.cachedAddresses[addr.SingleLine] = cacheData[addr.SingleLine];
+            }
           }));
           geocodeOps.push(locator.addressesToLocations({ addresses: addresses, countryCode: this.locatorSource.countryCode }));
         }
@@ -259,7 +272,9 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
         var geocodeList = new DeferredList(geocodeOps);
         geocodeList.then(lang.hitch(this, function (results) {
           var finalResults = [];
+          var test = {};
           if (results) {
+            var idx = 0;
             array.forEach(results, function (r) {
               var defResults = r[1];
               array.forEach(defResults, function (result) {
@@ -269,8 +284,13 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
               var resultsSort = geocodeDataStore.query({}, { sort: [{ attribute: "ResultID" }] });
               array.forEach(resultsSort, function (_r) {
                 finalResults.push(_r);
+                test[addresses2[_r["ResultID"] - 1]]['location'] = _r.location;
+                test[addresses2[_r["ResultID"] - 1]]['index'] = idx;
+                idx += 1;
               });
             });
+
+            this.geocodeManager.updateCache(test);
             def.resolve(finalResults);
           }
         }));

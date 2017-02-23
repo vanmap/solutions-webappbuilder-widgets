@@ -20,7 +20,9 @@
     address: "Address",
     city: "City",
     state: "State",
-    zip: "Zip"
+    zip: "Zip",
+    geocodeCache: "GeocodeCache",
+    unableToFindOrCreateCache: "Unable to find or create a geocode cache."
   }),
   "ar": 0,
   "cs": 0,

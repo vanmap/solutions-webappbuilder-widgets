@@ -130,13 +130,14 @@
 
 .add-with-icon .draw {
   display: inline-block;
-    background: url(../images/draw_point.png);
-    background-repeat: no-repeat;
-    background-color: transparent;
-    background-repeat: no-repeat;
-    background-position: center center;
-    width: 32px;
-    height: 32px;
+  background: url(../images/draw_point.png);
+  background-repeat: no-repeat;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center center;
+  width: 30px;
+  height: 30px;
+  margin-left: 5px;
 }
 
 .jimu-state-active {

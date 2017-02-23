@@ -401,10 +401,13 @@ define([
      */
     lineTypeDDDidChange: function () {
       if (this.lineTypeDD.get('value') === 'Points') {
+        this.addPointBtnLine.title = 'Draw Line';
         this.coordToolEnd.set('disabled', false);
         this.angleInput.set('disabled', true);
         this.lengthInput.set('disabled', true);
       } else {
+        this.addPointBtnLine.title = 'Add Point';
+        this.coordToolEnd.set('value', '');
         this.coordToolEnd.set('disabled', true);
         this.angleInput.set('disabled', false);
         this.lengthInput.set('disabled', false);
@@ -419,7 +422,11 @@ define([
       this.coordToolEnd.manualInput = false;
       dojoTopic.publish('clear-points');          
       this.map.disableMapNavigation();
-      this.dt.activate('polyline');
+      if (this.lineTypeDD.get('value') === 'Points') {
+        this.dt.activate('polyline');      
+      } else {
+        this.dt.activate('point');
+      }
       dojoDomClass.toggle(this.addPointBtnLine, 'jimu-state-active');
     },
 
@@ -452,26 +459,27 @@ define([
      * pass results of feedback to the shapemodel
      */
     feedbackDidComplete: function (results) {
-      if (this.lengthInput.get('value') !== undefined || this.angleInput.get('value') !== undefined) {
-        this.currentLine = new ShapeModel(results);
-        
-        this.currentLine.graphic = new EsriGraphic(
-          this.currentLine.wmGeometry,
-          this._lineSym, {
-            'GeoLength': this.lengthInput.get('value').toString() + " " + this.lengthUnitDD.get('value').charAt(0).toUpperCase() + this.lengthUnitDD.get('value').slice(1),
-            'LineAngle': this.angleInput.get('value').toString() + " " + this.angleUnitDD.get('value').charAt(0).toUpperCase() + this.angleUnitDD.get('value').slice(1),
-          }
-        );
+      if(results.geometry.type == 'polyline')
+      {
+        if (this.lengthInput.get('value') !== undefined || this.angleInput.get('value') !== undefined) {
+          this.currentLine = new ShapeModel(results);
+          
+          this.currentLine.graphic = new EsriGraphic(
+            this.currentLine.wmGeometry,
+            this._lineSym, {
+              'GeoLength': this.lengthInput.get('value').toString() + " " + this.lengthUnitDD.get('value').charAt(0).toUpperCase() + this.lengthUnitDD.get('value').slice(1),
+              'LineAngle': this.angleInput.get('value').toString() + " " + this.angleUnitDD.get('value').charAt(0).toUpperCase() + this.angleUnitDD.get('value').slice(1),
+            }
+          );
 
-        this._gl.add(this.currentLine.graphic);
-        this._gl.refresh();
-        this.emit('graphic_created', this.currentLine);
-
-        this.map.enableMapNavigation();
-
-        this.dt.deactivate();
-        this.dt.removeStartGraphic();
+          this._gl.add(this.currentLine.graphic);
+          this._gl.refresh();
+          this.emit('graphic_created', this.currentLine);
+          this.dt.removeStartGraphic();
+        }
       }
+      this.map.enableMapNavigation();
+      this.dt.deactivate();
       dojoDomClass.toggle(this.addPointBtnLine, 'jimu-state-active');
     },
 
@@ -507,7 +515,7 @@ define([
 
       var stPt = this.coordToolStart.inputCoordinate.coordinateEsriGeometry;
 
-      var l = this.coordTool.inputCoordinate.util.convertToMeters(this.lengthInput.get('value'), this.lengthUnitDD.get('value'));            
+      var l = this.coordToolStart.inputCoordinate.util.convertToMeters(this.lengthInput.get('value'), this.lengthUnitDD.get('value'));            
 
       var tempcircle = new EsriCircle(stPt, {
         geodesic:true,
@@ -528,6 +536,8 @@ define([
         geometry: newLine,
         geographicGeometry: newLine
       });
+      
+      this.coordToolEnd.inputCoordinate.set('coordinateEsriGeometry',  fpc);
     },
 
     /*

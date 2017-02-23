@@ -388,7 +388,7 @@ define([
             fr = this.calculatedRadiusInMeters * 0.000539957;
             break;
         }
-        fr = this.creationType.get('value') === 'Diameter'?fr/2:fr;
+        fr = this.creationType.get('value') === 'Diameter'?fr*2:fr;
         fr = dojoNumber.format(fr, {places: '4'});
         dojoDomAttr.set(this.lengthInput,'value',fr);
         //this.setGraphic();

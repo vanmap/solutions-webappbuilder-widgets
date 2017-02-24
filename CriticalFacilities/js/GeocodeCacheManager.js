@@ -32,6 +32,10 @@ define([
       // if the user can create/modify
       //TODO make the file name configurable??
 
+
+      appendValue: "A12234",
+
+
       constructor: function ( /*Object*/ options) {
         this.nls = options.nls;
         this.appConfig = options.appConfig;
@@ -62,9 +66,13 @@ define([
       },
 
       updateCache: function (newAddresses) {
+        var keys = Object.keys(newAddresses);
+        for (var k in keys) {
+          var _k = keys[k];
+          delete newAddresses[_k].index;
+        }
+
         var newCacheData = lang.mixin({}, this.itemData, newAddresses);
-        this.user.updateItem();
-        console.log(newCacheData);
 
         var folder = this.portalItem.ownerFolder;
         var userName = this.portalItem.owner;
@@ -75,8 +83,8 @@ define([
         var formData = new FormData();
         formData.append("itemType", "file");
         formData.append("type", "Code Sample");
-        formData.append("title", this.nls.geocodeCache + "S11");
-        formData.append("file", blob, this.nls.geocodeCache + "S11");
+        formData.append("title", this.nls.geocodeCache + this.appendValue);
+        formData.append("file", blob, this.nls.geocodeCache + this.appendValue);
         return esriRequest({
           url: portalUrlUtils.getUpdateItemUrl(this.portalUrl, userName, itemId, folder),
           form: formData,
@@ -89,7 +97,7 @@ define([
       _initCache: function () {
         //look for item by title and type
         var def = new Deferred();
-        var queryData = { q: "type: 'Code Sample' AND title: " + this.nls.geocodeCache + "S11" };
+        var queryData = { q: "type: 'Code Sample' AND title: " + this.nls.geocodeCache + this.appendValue };
         this.portal.queryItems(queryData).then(lang.hitch(this, function (result) {
           if (!(result.results && result.results.length > 0)) {
             this._createGeocodeCache().then(lang.hitch(this, function (response) {
@@ -112,8 +120,8 @@ define([
         var formData = new FormData();
         formData.append("itemType", "file");
         formData.append("type", "Code Sample");
-        formData.append("title", this.nls.geocodeCache + "S11");
-        formData.append("file", blob, this.nls.geocodeCache + "S11");
+        formData.append("title", this.nls.geocodeCache + this.appendValue);
+        formData.append("file", blob, this.nls.geocodeCache + this.appendValue);
         return esriRequest({
           url: this.baseUrl + "content/users/" + this.user.username + "/addItem",
           form: formData,

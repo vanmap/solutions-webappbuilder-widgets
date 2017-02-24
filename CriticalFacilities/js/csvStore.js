@@ -39,6 +39,13 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
   graphicsUtils, webMercatorUtils, Point, Color, SimpleMarkerSymbol, SimpleRenderer, FeatureLayer, Locator,
   jimuUtils, GeocodeCacheManager) {
   return declare([Evented], {
+
+    //TODO may move all geocode logic into GeocodeCacheManager if we go with supporting that
+    // could make it's use optional also
+    //TODO need to make sure the score comes through with what we persist to this file
+    //TODO need to implement actual multi-field geocoding rather than address concatenation...for example if
+    // I use as is now...pass in nothing for address, city and pass in "CO" for state....the conactenated addr is "CO" but the result is Colombia the country
+
       constructor: function (options) {
         this.file = options.file;
         this.map = options.map;
@@ -100,10 +107,11 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
           this.featureCollection = this._generateFC();
           this.unmatchedFC = this._generateFC();
           var unmatchedI = 0;
+          var keys = Object.keys(data);
           for (var i = 0; i < this.storeItems.length; i++) {
             var attributes = {};
             var si = this.storeItems[i];
-            var di = data[i];
+            var di = data[keys[i]];
             array.forEach(this.arrayFields, lang.hitch(this, function (f) {
               attributes[f.name] = this.csvStore.getValue(si, this.mappedArrayFields[f.name]);
             }));
@@ -154,9 +162,10 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
         var def = new Deferred();
         if (this.useAddr) {
           this.geocodeManager.getCache().then(lang.hitch(this, function (itemData) {
-            this._geocodeData(itemData).then(function (data) {
+            this._geocodeData(itemData).then(lang.hitch(this, function (data) {
+              this.geocodeManager.updateCache(data);
               def.resolve(data);
-            });
+            }));
           }));
         } else {
           this._xyData().then(function (data) {
@@ -205,12 +214,10 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
 
       _geocodeData: function (itemData) {
         var def = new Deferred();
-
         var fName = this.locatorSource.singleLineFieldName;
         var locator = this.locatorSource.locator;
         locator.outSpatialReference = this.map.spatialReference;
-        this.cachedAddresses = {};
-        this.newAddresses = {};
+        var finalResults = [];
         var addrField, cityField, stateField, zipField;
         if (this.useMultiFields) {
           array.forEach(this.multiFields, lang.hitch(this, function (f) {
@@ -227,43 +234,50 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
           }));
         }
 
-        var max = 500;
+        var max = 2;
         var geocodeOps = [];
         var x = 0;
+        var xx = 0;
         var i, j;
-        var addresses2 = [];
+        //loop through all store items 
         for (var i = 0, j = this.storeItems.length; i < j; i += max) {
           var items = this.storeItems.slice(i, i + max);
           var addresses = [];
-          array.forEach(items, lang.hitch(this, function (i) {
+          array.forEach(items, lang.hitch(this, function (item) {
             x += 1;
             var addr = { "OBJECTID": x };
             if (this.useMultiFields) {
-              var addrValue, cityValue, stateValue, zipValue;
               var concatAddr = "";
+              var v;
               if (addrField !== this.nls.noValue) {
-                concatAddr += this.csvStore.getValue(i, addrField);
+                v = this.csvStore.getValue(item, addrField);
+                concatAddr += typeof(v) === 'undefined' ? "" : v;
               }
               if (cityField !== this.nls.noValue) {
-                concatAddr += ", " + this.csvStore.getValue(i, cityField);
+                v = this.csvStore.getValue(item, cityField);
+                concatAddr += (concatAddr !== "" ? ", " : "") + (typeof(v) === 'undefined' ? "" : v);
               }
               if (stateField !== this.nls.noValue) {
-                concatAddr += ", " + this.csvStore.getValue(i, stateField);
+                v = this.csvStore.getValue(item, stateField);
+                concatAddr += (concatAddr !== "" && concatAddr.slice(-2) !== "," ? ", " : "") + (typeof (v) === 'undefined' ? "" : v);
               }
               if (zipField !== this.nls.noValue) {
-                concatAddr += " " + this.csvStore.getValue(i, zipField);
+                v = this.csvStore.getValue(item, zipField);
+                concatAddr += " " + typeof (v) === 'undefined' ? "" : v;
               }
               addr[fName] = concatAddr;
             } else {
-              addr[fName] = this.csvStore.getValue(i, this.addrFieldName);
+              addr[fName] = this.csvStore.getValue(item, this.addrFieldName);
             }
 
             var cacheData = itemData ? itemData : {};
+            //if the address is not in the cache add to the list to be geocoded
             if (!(cacheData && cacheData.hasOwnProperty(addr.SingleLine) ? true : false)) {
               addresses.push(addr);
-              addresses2.push(addr.SingleLine);
+              finalResults[addr.SingleLine] = { address: addr.SingleLine, index: xx, location: {} };
+              xx += 1
             } else {
-              this.cachedAddresses[addr.SingleLine] = cacheData[addr.SingleLine];
+              finalResults[addr.SingleLine] = { address: addr.SingleLine, index: -1, location: cacheData[addr.SingleLine].location };
             }
           }));
           geocodeOps.push(locator.addressesToLocations({ addresses: addresses, countryCode: this.locatorSource.countryCode }));
@@ -271,8 +285,6 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
 
         var geocodeList = new DeferredList(geocodeOps);
         geocodeList.then(lang.hitch(this, function (results) {
-          var finalResults = [];
-          var test = {};
           if (results) {
             var idx = 0;
             array.forEach(results, function (r) {
@@ -283,18 +295,23 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
               var geocodeDataStore = Observable(new Memory({ data: defResults, idProperty: "ResultID" }));
               var resultsSort = geocodeDataStore.query({}, { sort: [{ attribute: "ResultID" }] });
               array.forEach(resultsSort, function (_r) {
-                finalResults.push(_r);
-                test[addresses2[_r["ResultID"] - 1]]['location'] = _r.location;
-                test[addresses2[_r["ResultID"] - 1]]['index'] = idx;
+                //This may be too slow
+                var keys = Object.keys(finalResults);
+                for (var k in keys) {
+                  var _i = keys[k];
+                  if (finalResults[_i].index === idx) {
+                    finalResults[_i].location = _r.location;
+                    finalResults[_i].score = _r.attributes["Score"]
+                    keys.splice(k, 1)
+                    break;
+                  }
+                }
                 idx += 1;
               });
             });
-
-            this.geocodeManager.updateCache(test);
             def.resolve(finalResults);
           }
         }));
-
         return def;
       },
 
@@ -408,7 +425,6 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
 
       onFetchFieldsAndUpdateForm: function () {
         var def = new Deferred();
-
           this.csvFieldNames = this.csvStore.getAttributes(this.storeItems[0]);
           this.fieldTypes = {};
           array.forEach(this.csvFieldNames, lang.hitch(this, function (attr) {
@@ -426,9 +442,11 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
               }
               if (checkVal) {
                 var v = this.csvStore.getValue(si, attr);
-                this.fieldTypes[attr] = {
-                  supportsInt: ((parseInt(v) !== NaN) && parseInt(v).toString().length === v.toString().length) && fTypeInt,
-                  supportsFloat: ((parseFloat(v) !== NaN) && parseFloat(v).toString().length === v.toString().length) && fTypeFloat
+                if (v) {
+                  this.fieldTypes[attr] = {
+                    supportsInt: ((parseInt(v) !== NaN) && parseInt(v).toString().length === v.toString().length) && fTypeInt,
+                    supportsFloat: ((parseFloat(v) !== NaN) && parseFloat(v).toString().length === v.toString().length) && fTypeFloat
+                  }
                 }
               }
             }));

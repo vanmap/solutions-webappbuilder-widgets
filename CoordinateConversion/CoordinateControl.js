@@ -816,6 +816,7 @@ define([
                 var format;
 
                 var f = this._frmtdlg.content.formats[this.type];
+                f.defaultFormat = this.defaultFormat;
                 var as = this._frmtdlg.content.addSignChkBox.checked;
                 var r;
 

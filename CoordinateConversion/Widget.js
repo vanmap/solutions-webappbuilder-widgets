@@ -49,7 +49,7 @@ define([
          *
          **/
         postCreate: function () {
-            dojoTopic.subscribe(
+           dojoTopic.subscribe(
               'REMOVECONTROL',
               dojoLang.hitch(this, this.removeControl)
             );
@@ -58,35 +58,44 @@ define([
               'ADDNEWNOTATION',
               dojoLang.hitch(this, this.addOutputSrBtn)
             );
-
-            this.coordTypes = [
-              'DD',
-              'DDM',
-              'DMS',
-              'GARS',
-              'GEOREF',
-              'MGRS',
-              'USNG',
-              'UTM',
-              'UTM (H)'
-            ];
-
-            if (this.config.coordinateconversion.initialCoords &&
-              this.config.coordinateconversion.initialCoords.length > 0) {
-                this.coordTypes = this.config.coordinateconversion.initialCoords;
-            }
-
-            // Create graphics layer
-            if (!this.coordGLayer) {
+            
+            this.coordTypes = [];
+            
+            if(this.config) { 
+            
+              if(this.config.symbols.graphicLocationSymbol) {
+                var glsym = new EsriPictureMarkerSymbol(this.config.symbols.graphicLocationSymbol);
+              } else {
                 var glsym = new EsriPictureMarkerSymbol(
                     this.folderUrl + 'images/CoordinateLocation.png',
                     26,
                     26
                 );
-                glsym.setOffset(0, 13);
+                glsym.setOffset(0, 13);                
+              }
+              
+              if(this.config.initialCoords) {
+                dojoArray.forEach(this.config.initialCoords, dojoLang.hitch(this, function(tData, idx) {
+                  this.coordTypes.push(tData);
+                }))
+              } else {               
+                this.coordTypes = [
+                  {'notation': 'DD', 'defaultFormat': "Y: N X: E"},
+                  {'notation': 'DDM', 'defaultFormat': "A° B'N X° Y'E"},
+                  {'notation': 'DMS', 'defaultFormat': "A° B' C\"N X° Y' Z\"E"},
+                  {'notation': 'GARS', 'defaultFormat': "XYQK"},
+                  {'notation': 'GEOREF', 'defaultFormat': "ABCDXY"},
+                  {'notation': 'MGRS', 'defaultFormat': "ZSXY"},
+                  {'notation': 'USNG' ,'defaultFormat': "ZSXY"},
+                  {'notation': 'UTM', 'defaultFormat': "ZH X Y"},
+                  {'notation': 'UTM (H)', 'defaultFormat': "ZH X Y"}
+                ];
+              }
+            }
 
+            // Create graphics layer
+            if (!this.coordGLayer) {
                 var glrenderer = new EsriSimpleRenderer(glsym);
-
                 this.coordGLayer = new EsriGraphicsLayer();
                 this.coordGLayer.setRenderer(glrenderer);
                 this.map.addLayer(this.coordGLayer);
@@ -105,14 +114,16 @@ define([
          **/
         addOutputSrBtn: function (withType) {
             if (!withType) {
-                withType = 'DD';
+                withType.notation = 'DD';
+                withType.defaultFormat = 'YN XE';
             }
 
             var cc = new CoordinateControl({
                 parentWidget: this,
                 input: false,
                 currentClickPoint: this.inputControl.currentClickPoint,
-                type: withType
+                type: withType.notation,
+                defaultFormat: withType.defaultFormat
             });
 
             cc.placeAt(this.outputtablecontainer);
@@ -126,7 +137,8 @@ define([
             this.inputControl = new CoordinateControl({
                 parentWidget: this,
                 input: true,
-                type: 'DD'
+                type: 'DD',
+                defaultFormat: 'YN XE'
             });
             this.inputControl.placeAt(this.inputcoordcontainer);
             this.inputControl.startup();

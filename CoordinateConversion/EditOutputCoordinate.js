@@ -49,6 +49,7 @@ define([
         },
 
         ct: 'DD',
+        
         _setCtAttr: function (v) {
             this.frmtSelect.set('value', v);
         },

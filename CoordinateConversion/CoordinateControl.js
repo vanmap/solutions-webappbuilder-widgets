@@ -128,7 +128,10 @@ define([
               style: 'width: 400px',
               onClose: dojoLang.hitch(this, this.popupDidClose)
           });
-
+          
+          if(this.defaultFormat) {
+            this._frmtdlg.content.formats[this.type].defaultFormat = this.defaultFormat;          
+          }
           this.setConfig();
 
           this.initUI();
@@ -661,7 +664,10 @@ define([
          *
          **/
         newCoordnateBtnWasClicked: function () {
-            dojoTopic.publish('ADDNEWNOTATION', this.type);
+            var withType = {};
+            withType.notation = this.type;
+            withType.defaultFormat = this.defaultFormat;
+            dojoTopic.publish('ADDNEWNOTATION', withType);
         },
 
         /**
@@ -816,7 +822,6 @@ define([
                 var format;
 
                 var f = this._frmtdlg.content.formats[this.type];
-                f.defaultFormat = this.defaultFormat;
                 var as = this._frmtdlg.content.addSignChkBox.checked;
                 var r;
 

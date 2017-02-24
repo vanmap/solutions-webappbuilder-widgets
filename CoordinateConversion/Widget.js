@@ -138,7 +138,6 @@ define([
                 parentWidget: this,
                 input: true,
                 type: 'DD',
-                defaultFormat: 'YN XE'
             });
             this.inputControl.placeAt(this.inputcoordcontainer);
             this.inputControl.startup();

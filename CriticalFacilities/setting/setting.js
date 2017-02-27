@@ -165,15 +165,16 @@ define([
           }, {
             name: "actions",
             title: "",
-            width: "70px",
+            width: "80px",
             type: "actions",
-            actions: ["up", "down", "delete"]
+            actions: ["edit", "up", "down", "delete"]
           }]
         }, this.sourceList);
         html.setStyle(this.sourceList.domNode, 'height', '100%');
         this.sourceList.startup();
         this.own(on(this.sourceList, 'row-select', lang.hitch(this, this._onSourceItemSelected)));
         this.own(on(this.sourceList, 'row-delete', lang.hitch(this, this._onSourceItemRemoved)));
+        this.own(on(this.sourceList, 'row-edit', lang.hitch(this, this._onSourceItemEdit)));
       },
 
       _addLayerRows: function () {
@@ -202,7 +203,8 @@ define([
         if (rowData && rowData.rdoLayer) {
           var editFields = new EditFields({
             nls: this.nls,
-            _layerInfo: this._getRowConfig(tr)
+            _layerInfo: this._getRowConfig(tr),
+            type: 'fieldInfos'
           });
           editFields.popupEditPage();
         } else {
@@ -574,6 +576,10 @@ define([
           return;
         }
         this._createNewLocatorSourceSettingFromSourceList(config, config._definition || {}, tr);
+      },
+
+      _onSourceItemEdit: function(tr){
+        alert('edit');
       },
 
       _setRowConfig: function (tr, source) {

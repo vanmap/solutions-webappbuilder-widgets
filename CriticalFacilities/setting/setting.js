@@ -63,12 +63,10 @@ define([
       baseClass: 'jimu-widget-setting-critical-facilities',
 
       //TODO disable OK when no layer is selected or if all locators have been removed
-      //TODO understand the fee vs paid loacting options https://developers.arcgis.com/rest/geocode/api-reference/geocoding-free-vs-paid.htm#ESRI_SECTION1_B9D659BA26584F26A65CBA24E59AFE6E
 
       //Questions
       //TODO should we support an option for configure user to mark certain fields as required or optional?
-      //TODO should lat/lon input be a configurable choice?
-
+      //TODO should lat/lon, single, multi-field input be a configurable choice?
 
       _operLayerInfos: null,
       _layersTable: null,

@@ -101,9 +101,16 @@ define(['dojo/_base/declare',
             }
           }));
 
-          var multiAddrFields = [this.nls.address, this.nls.city, this.nls.state, this.nls.zip];
-          array.forEach(multiAddrFields, lang.hitch(this, function (addr) {
-            this.addFieldRow(this.addressMultiTable, addr, addr);
+          //var multiAddrFields = [this.nls.address, this.nls.city, this.nls.state, this.nls.zip];
+          //array.forEach(multiAddrFields, lang.hitch(this, function (addr) {
+          //  this.addFieldRow(this.addressMultiTable, addr, addr);
+          //}));
+
+          //TODO need to understand what we should do if they have multiple locators and each locator has multiple fileds that differ from each other
+          //for now I will just add from the first source
+          var addressFields = this._geocodeSources[0].addressFields;
+          array.forEach(addressFields, lang.hitch(this, function (addr) {
+            this.addFieldRow(this.addressMultiTable, addr.name, addr.alias);
           }));
 
           this.addFieldRow(this.addressTable, this.nls.addressFieldLabel, this.nls.addressFieldLabel);
@@ -289,11 +296,13 @@ define(['dojo/_base/declare',
         for (var i = 0; i < arrayFields.length; i++) {
           var af = arrayFields[i];
           if (af.name === node.keyField) {
-            for (var ii = 0; ii < af.isRecognizedValues.length; ii++) {
-              var irv = af.isRecognizedValues[ii];
-              if (fields.indexOf(irv) > -1) {
-                kf = irv;
-                break;
+            if (typeof (af.isRecognizedValues) !== 'undefined') {
+              for (var ii = 0; ii < af.isRecognizedValues.length; ii++) {
+                var irv = af.isRecognizedValues[ii];
+                if (fields.indexOf(irv) > -1) {
+                  kf = irv;
+                  break;
+                }
               }
             }
           }

@@ -182,7 +182,7 @@ define(
 
       showValidationTip: function() {
         this._showValidationErrorTip(this.locatorUrl);
-        this._showValidationErrorTip(this.locatorName);
+        //this._showValidationErrorTip(this.locatorName);
       },
 
       getConfig: function() {
@@ -191,26 +191,15 @@ define(
           //name: jimuUtils.stripHTML(this.locatorName.get('value')),
           singleLineFieldName: this.singleLineFieldName,
           addressFields: this.addressFields,
-          //placeholder: jimuUtils.stripHTML(this.placeholder.get('value')),
           countryCode: jimuUtils.stripHTML(this.countryCode.get('value')),
-          //zoomScale: this.zoomScale.get('value') || 50000,
-          //maxSuggestions: this.maxSuggestions.get('value') || 6,
-          //maxResults: this.maxResults.get('value') || 6,
-          //enableLocalSearch: this.enableLocalSearch.getValue(),
-          //localSearchMinScale: this.localSearchMinScale.get('value'),
-          //localSearchDistance: this.localSearchDistance.get('value'),
           type: "locator"
         };
         return geocode;
       },
 
-      //_onLocatorNameBlur: function() {
-      //  this.locatorName.set('value', jimuUtils.stripHTML(this.locatorName.get('value')));
-      //},
-
-      //_onPlaceholderBlur: function() {
-      //  this.placeholder.set('value', jimuUtils.stripHTML(this.placeholder.get('value')));
-      //},
+      _onLocatorNameBlur: function() {
+        //this.locatorName.set('value', jimuUtils.stripHTML(this.locatorName.get('value')));
+      },
 
       _onCountryCodeBlur: function() {
         this.countryCode.set('value', jimuUtils.stripHTML(this.countryCode.get('value')));
@@ -218,20 +207,12 @@ define(
 
       _disableSourceItems: function() {
         //this.locatorName.set('disabled', true);
-        //this.placeholder.set('disabled', true);
         this.countryCode.set('disabled', true);
-        //this.maxSuggestions.set('disabled', true);
-        //this.maxResults.set('disabled', true);
-        //this.zoomScale.set('disabled', true);
       },
 
       _enableSourceItems: function() {
         //this.locatorName.set('disabled', false);
-        //this.placeholder.set('disabled', false);
         this.countryCode.set('disabled', false);
-        //this.maxSuggestions.set('disabled', false);
-        //this.maxResults.set('disabled', false);
-        //this.zoomScale.set('disabled', false);
       },
 
       _setSourceItems: function() {
@@ -247,9 +228,6 @@ define(
         if (config.singleLineFieldName) {
           this.singleLineFieldName = config.singleLineFieldName;
         }
-        //if (config.placeholder) {
-        //  this.placeholder.set('value', jimuUtils.stripHTML(config.placeholder));
-        //}
         if (config.countryCode) {
           this.countryCode.set('value', jimuUtils.stripHTML(config.countryCode));
         }
@@ -270,20 +248,6 @@ define(
           //this.enableLocalSearch.setValue(false);
           //html.setStyle(this.enableLocalSearch.domNode, 'display', 'none');
         }
-
-        //this._suggestible = this._locatorDefinition && this._locatorDefinition.capabilities &&
-        //  this._locatorDefinition.capabilities.indexOf("Suggest") > -1;
-        //if (!this._suggestible) {
-        //  this._showSuggestibleTips();
-        //} else {
-        //  this._hideSuggestibleTips();
-        //}
-
-        //this.zoomScale.set('value', config.zoomScale || 50000);
-
-        //this.maxSuggestions.set('value', config.maxSuggestions || 6);
-
-        //this.maxResults.set('value', config.maxResults || 6);
 
         this._enableSourceItems();
       },
@@ -522,24 +486,6 @@ define(
         }
       },
 
-      //_processSingleField: function (enable) {
-      //  if (this.singleFieldList) {
-      //    html.setStyle(this.singleFieldList, 'display', enable ? 'block' : 'none');
-      //  }
-      //},
-
-      //_processMultiField: function (enable) {
-      //  if (this.multiFieldList) {
-      //    html.setStyle(this.multiFieldList, 'display', enable ? 'block' : 'none');
-      //  }
-      //},
-
-      //_processXYField: function (enable) {
-      //  if (this.xyFieldList) {
-      //    html.setStyle(this.xyFieldList, 'display', enable ? 'block' : 'none');
-      //  }
-      //},
-
       _toggleNode: function (domNode, enable) {
         if (domNode) {
           html.setStyle(domNode, 'display', enable ? 'block' : 'none');
@@ -554,16 +500,6 @@ define(
           html.addClass(this.countryCodeRow, 'hide-country-code-row');
         }
       },
-
-      //_showSuggestibleTips: function() {
-      //  html.addClass(this.tipsNode, 'source-tips-show');
-      //  html.setStyle(this.maxSuggestions.domNode, 'display', 'none');
-      //},
-
-      //_hideSuggestibleTips: function() {
-      //  html.removeClass(this.tipsNode, 'source-tips-show');
-      //  html.setStyle(this.maxSuggestions.domNode, 'display', 'block');
-      //},
 
       _createAddressFieldsTable: function(){
         this.sourceList = new SimpleTable({

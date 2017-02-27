@@ -22,8 +22,6 @@ define(['dojo/_base/declare',
     'dojo/DeferredList',
     'dojo/Evented',
     'dojox/data/CsvStore',
-    'dojo/store/Observable',
-    'dojo/store/Memory',
     'esri/graphicsUtils',
     'esri/geometry/webMercatorUtils',
     'esri/geometry/Point',
@@ -34,7 +32,7 @@ define(['dojo/_base/declare',
     'esri/tasks/locator',
     'jimu/utils'
 ],
-function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvStore, Observable, Memory,
+function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvStore,
   graphicsUtils, webMercatorUtils, Point, Color, SimpleMarkerSymbol, SimpleRenderer, FeatureLayer, Locator,
   jimuUtils) {
   return declare([Evented], {
@@ -200,80 +198,78 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
       },
 
       _geocodeData: function () {
+        //TODO pass additional user configured parameters
+
+        //TODO see if the classification fields for the address elements
+        // can be determined from the locator and handled more effectively
         var def = new Deferred();
 
-        var fName = this.locatorSource.singleLineFieldName;
-        var locator = this.locatorSource.locator;
-        locator.outSpatialReference = this.map.spatialReference;
+          var fName = this.locatorSource.singleLineFieldName;
+          var locator = this.locatorSource.locator;
+          locator.outSpatialReference = this.map.spatialReference;
 
-        var addrField, cityField, stateField, zipField;
-        if (this.useMultiFields) {
-          array.forEach(this.multiFields, lang.hitch(this, function (f) {
-            switch (f.keyField) {
-              case this.nls.address:
-                addrField = f.value;
-              case this.nls.city:
-                cityField = f.value;
-              case this.nls.state:
-                stateField = f.value;
-              case this.nls.zip:
-                zipField = f.value;
-            }
-          }));
-        }
-
-        var max = 500;
-        var geocodeOps = [];
-        var x = 0;
-        var i, j;
-        for (var i = 0, j = this.storeItems.length; i < j; i += max) {
-          var items = this.storeItems.slice(i, i + max);
-          var addresses = [];
-          array.forEach(items, lang.hitch(this, function (i) {
-            x += 1;
-            var addr = { "OBJECTID": x };
-            if (this.useMultiFields) {
-              var addrValue, cityValue, stateValue, zipValue;
-              var concatAddr = "";
-              if (addrField !== this.nls.noValue) {
-                concatAddr += this.csvStore.getValue(i, addrField);
+          var addrField, cityField, stateField, zipField;
+          if (this.useMultiFields) {
+            array.forEach(this.multiFields, lang.hitch(this, function (f) {
+              switch (f.keyField) {
+                case this.nls.address:
+                  addrField = f.value;
+                case this.nls.city:
+                  cityField = f.value;
+                case this.nls.state:
+                  stateField = f.value;
+                case this.nls.zip:
+                  zipField = f.value;
               }
-              if (cityField !== this.nls.noValue) {
-                concatAddr += ", " + this.csvStore.getValue(i, cityField);
-              }
-              if (stateField !== this.nls.noValue) {
-                concatAddr += ", " + this.csvStore.getValue(i, stateField);
-              }
-              if (zipField !== this.nls.noValue) {
-                concatAddr += " " + this.csvStore.getValue(i, zipField);
-              }
-              addr[fName] = concatAddr;
-            } else {
-              addr[fName] = this.csvStore.getValue(i, this.addrFieldName);
-            }
-            addresses.push(addr);
-          }));
-          geocodeOps.push(locator.addressesToLocations({ addresses: addresses, countryCode: this.locatorSource.countryCode }));
-        }
-
-        var geocodeList = new DeferredList(geocodeOps);
-        geocodeList.then(lang.hitch(this, function (results) {
-          var finalResults = [];
-          if (results) {
-            array.forEach(results, function (r) {
-              var defResults = r[1];
-              array.forEach(defResults, function (result) {
-                result.ResultID = result.attributes.ResultID;
-              });
-              var geocodeDataStore = Observable(new Memory({ data: defResults, idProperty: "ResultID" }));
-              var resultsSort = geocodeDataStore.query({}, { sort: [{ attribute: "ResultID" }] });
-              array.forEach(resultsSort, function (_r) {
-                finalResults.push(_r);
-              });
-            });
-            def.resolve(finalResults);
+            }));
           }
-        }));
+
+          var max = 500;
+          var geocodeOps = [];
+          var x = 0;
+          var i, j;
+          for (var i = 0, j = this.storeItems.length; i < j; i += max) {
+            var items = this.storeItems.slice(i, i + max);
+            var addresses = [];
+            array.forEach(items, lang.hitch(this, function (i) {
+              x += 1;
+              var addr = { "OBJECTID": x };
+              if (this.useMultiFields) {
+                var addrValue, cityValue, stateValue, zipValue;
+                var concatAddr = "";
+                if (addrField !== this.nls.noValue) {
+                  concatAddr += this.csvStore.getValue(i, addrField);
+                }
+                if (cityField !== this.nls.noValue) {
+                  concatAddr += ", " + this.csvStore.getValue(i, cityField);
+                }
+                if (stateField !== this.nls.noValue) {
+                  concatAddr += ", " + this.csvStore.getValue(i, stateField);
+                }
+                if (zipField !== this.nls.noValue) {
+                  concatAddr += " " + this.csvStore.getValue(i, zipField);
+                }
+                addr[fName] = concatAddr;
+              } else {
+                addr[fName] = this.csvStore.getValue(i, this.addrFieldName);
+              }
+              addresses.push(addr);
+            }));
+            geocodeOps.push(locator.addressesToLocations({ addresses: addresses, countryCode: this.locatorSource.countryCode }));
+          }
+
+          var geocodeList = new DeferredList(geocodeOps);
+          geocodeList.then(lang.hitch(this, function (results) {
+            var finalResults = [];
+            if (results) {
+              array.forEach(results, function (r) {
+                array.forEach(r[1], function (_r) {
+                  finalResults.push(_r);
+                });
+              });
+              def.resolve(finalResults);
+            }
+          }));
 
         return def;
       },

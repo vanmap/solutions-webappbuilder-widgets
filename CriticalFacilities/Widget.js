@@ -51,11 +51,14 @@ define(['dojo/_base/declare',
     //TODO need a way to update map results
     //TODO need a way for the user to process the results prior to submit
 
-    //TODO need to handle geocode errors...for example they choose a field that is not addresses or they have bad addresses
+    //TODO need to handle geocode errors...for example they choose a field that is not addresses or they have bad addressed
     //TODO test web mercator points in CSV 
+    //TODO test a larger CSV
 
     //TODO need to handle the chunking of geocode requests...done...need to verify that errors or null features returned
     // are being handled properly
+
+    //TODO add to map needs to be disabled until one of the location mapping options have been chosen
 
     postCreate: function () {
       this.inherited(arguments);
@@ -187,7 +190,9 @@ define(['dojo/_base/declare',
 
     onDrop: function (event) {
       if (this._valid) {
-        this.onClearClick();
+        if (this.myCsvStore) {
+          this.myCsvStore.clear();
+        }
         event.preventDefault();
 
         var dataTransfer = event.dataTransfer,
@@ -364,25 +369,16 @@ define(['dojo/_base/declare',
     },
 
     toggleContainer: function (e) {
-      this._toggle(this[e.currentTarget.dataset.clickParams], false);
-    },
+      var container = this[e.currentTarget.dataset.clickParams];
+      var removeClass = domClass.contains(container, 'content-show') ? 'content-show' : 'content-hide';
+      domClass.remove(container, removeClass);
+      domClass.add(container, removeClass === 'content-show' ? 'content-hide' : 'content-show');
 
-    _toggle: function (container, forceClose) {
-      var removeClass;
-      if (forceClose) {
-        if (domClass.contains(container, 'content-show')) {
-          domClass.remove(container, 'content-show');
-          domClass.add(container, 'content-hide');
-        }
-      } else {
-        removeClass = domClass.contains(container, 'content-show') ? 'content-show' : 'content-hide';
-        domClass.remove(container, removeClass);
-        domClass.add(container, removeClass === 'content-show' ? 'content-hide' : 'content-show');
-      }
       var accordian = container.previousElementSibling;
       if (domClass.contains(accordian, 'bottom-radius')) {
         domStyle.set(accordian, 'border-radius', removeClass === 'content-hide' ? '0 0 0 0' : '0 0 4px 4px');
       }
+
       domClass.remove(accordian.children[1], removeClass === 'content-hide' ? 'image-down' : 'image-up');
       domClass.add(accordian.children[1], removeClass === 'content-hide' ? 'image-up' : 'image-down');
     },
@@ -392,14 +388,13 @@ define(['dojo/_base/declare',
       domStyle.set(this.submitData, "display", "none");
       domStyle.set(this.updateData, "display", "none");
       domStyle.set(this.addToMap, "display", "block");
+
       domStyle.set(this.mainContainer, "display", "none");
       domStyle.set(this.schemaMapInstructions, "display", "block");
+
       domStyle.set(this.processingNode, 'display', 'none');
-      this._toggle(this.locationMapContainer, true);
-      this._toggle(this.schemaMapContainer, true);
-      if (this.myCsvStore) {
-        this.myCsvStore.clear();
-      }
+
+      this.myCsvStore.clear();
     },
 
     onSubmitClick: function () {

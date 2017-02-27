@@ -30,12 +30,18 @@ define(['dojo/_base/declare',
       templateString: '<div><div data-dojo-attach-point="fieldsTable"></div></div>',
       _layerInfo: null,
       isRecognizedValues: null,
+      type: "",
+      addressFields: null,
 
       postCreate: function() {
         this.inherited(arguments);
         this.nls = lang.mixin(this.nls, window.jimuNls.common);
         this._initFieldsTable();
-        this._setFieldsTable(this._layerInfo.fieldInfos);
+        if (this.type === 'fieldInfos') {
+          this._setFieldsTable(this._layerInfo.fieldInfos);
+        } else {
+          this._setAddressFieldsTable(this.addressFields);
+        }
       },
 
       popupEditPage: function() {
@@ -102,6 +108,7 @@ define(['dojo/_base/declare',
         this._fieldsTable = new SimpleTable({
           fields: fields,
           selectable: false,
+          autoHeight: true,
           style: {
             'height': '300px',
             'maxHeight': '300px'
@@ -139,6 +146,18 @@ define(['dojo/_base/declare',
               isRecognizedValues: fieldInfo.isRecognizedValues
             });
           }
+        }, this);
+      },
+
+      _setAddressFieldsTable: function (fields) {
+        array.forEach(fields, function (field) {
+          this._fieldsTable.addRow({
+            fieldName: field.name,
+            label: field.alias,
+            visible: field.hasOwnProperty('visible') ? field.visible : false,
+            type: "STRING",
+            isRecognizedValues: field.recognizedNames
+          });
         }, this);
       },
 

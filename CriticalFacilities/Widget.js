@@ -96,20 +96,18 @@ define(['dojo/_base/declare',
         if (this._configLayerInfo) {
           array.forEach(this._configLayerInfo.fieldInfos, lang.hitch(this, function (field) {
             if (field && field.visible) {
-              this._fsFields.push({ "name": field.fieldName, "value": field.type, isRecognizedValues: field.isRecognizedValues });
+              this._fsFields.push({
+                name: field.fieldName,
+                value: field.type,
+                isRecognizedValues: field.isRecognizedValues
+              });
               this.addFieldRow(this.schemaMapTable, field.fieldName, field.label);
             }
           }));
 
-          //var multiAddrFields = [this.nls.address, this.nls.city, this.nls.state, this.nls.zip];
-          //array.forEach(multiAddrFields, lang.hitch(this, function (addr) {
-          //  this.addFieldRow(this.addressMultiTable, addr, addr);
-          //}));
-
           //TODO need to understand what we should do if they have multiple locators and each locator has multiple fileds that differ from each other
           //for now I will just add from the first source
-          var addressFields = this._geocodeSources[0].addressFields;
-          array.forEach(addressFields, lang.hitch(this, function (addr) {
+          array.forEach(this._geocodeSources[0].addressFields, lang.hitch(this, function (addr) {
             this.addFieldRow(this.addressMultiTable, addr.name, addr.alias);
           }));
 

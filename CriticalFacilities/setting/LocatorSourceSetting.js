@@ -30,7 +30,6 @@ define(
     "jimu/dijit/LoadingShelter",
     "esri/request",
     "esri/lang",
-    "../locatorUtils",
     './LookupList',
     './EditFields',
     "jimu/utils",
@@ -56,7 +55,6 @@ define(
     LoadingShelter,
     esriRequest,
     esriLang,
-    utils,
     LookupList,
     EditFields,
     jimuUtils,
@@ -86,20 +84,10 @@ define(
         this.exampleHint = this.nls.locatorExample +
           ": http://&lt;myServerName&gt;/arcgis/rest/services/World/GeocodeServer";
 
-        //TODO default state should be set based on locator exposing multi-fields
-        //this.enableMultiField = new CheckBox({
-        //  checked: false,
-        //  label: this.nls.enableMultiField
-        //}, this.enableMultiField);
-        //this._processMultiField(false);
-        //this.own(on(this.enableMultiField, 'change', lang.hitch(this, function () {
-        //  this._processMultiField(this.enableMultiField.getValue());
-        //})));
-
-        //TODO if this works then consolidate the toggle function
-        this._initCheckBox(this.enableSingleField, this.nls.enableSingleField, false, this.singleFieldList);
-        this._initCheckBox(this.enableMultiField, this.nls.enableMultiField, false, this.multiFieldList);
-        this._initCheckBox(this.enableXYField, this.nls.enableXYField, false, this.xyFieldList);
+        //TODO is it safe to pass this.instance here? seems like it works ok but 
+        this._initCheckBox(this.enableSingleField, this.nls.enableSingleField, this.singleFieldList);
+        this._initCheckBox(this.enableMultiField, this.nls.enableMultiField, this.multiFieldList);
+        this._initCheckBox(this.enableXYField, this.nls.enableXYField, this.xyFieldList);
 
         this._setMessageNodeContent(this.exampleHint);
 
@@ -107,12 +95,12 @@ define(
         this.setConfig(this.config);
       },
 
-      _initCheckBox: function (domNode, nlsValue, defaultState, listNode) {
+      _initCheckBox: function (domNode, nlsValue, listNode) {
         domNode = new CheckBox({
-          checked: defaultState,
+          checked: false,
           label: nlsValue
         }, domNode);
-        this._toggleNode(listNode, defaultState);
+        this._toggleNode(listNode, false);
         this.own(on(domNode, 'change', lang.hitch(this, function () {
           this._toggleNode(listNode, domNode.getValue());
         })));
@@ -407,8 +395,9 @@ define(
           return;
         }
         this.shelter.show();
+        var url = evt[0].url;
         esriRequest({
-          url: evt[0].url,
+          url: url,
           content: {
             f: 'json'
           },
@@ -419,36 +408,23 @@ define(
           if (response &&
             response.singleLineAddressField &&
             response.singleLineAddressField.name) {
+
             this._enableSourceItems();
-            this.locatorUrl.set('value', evt[0].url);
-            //if(!this.locatorName.get('value')){
-            //  this.locatorName.set('value', utils.getGeocoderName(evt[0].url));
-            //}
-            //if ('capabilities' in response) {
-            //  html.setStyle(this.enableLocalSearch.domNode, 'display', '');
-            //  if (this._isEsriLocator(evt[0].url)) {
-            //    this.enableLocalSearch.setValue(true);
-            //  } else {
-            //    this.enableLocalSearch.setValue(false);
-            //  }
-            //} else {
-            //  this.enableLocalSearch.setValue(false);
-            //  html.setStyle(this.enableLocalSearch.domNode, 'display', 'none');
-            //}
+            this.locatorUrl.set('value', url);
+            if (!this.locatorName.get('value')) {
+              if (typeof url !== "string") {
+                return "geocoder";
+              }
+              var strs = url.split('/');
+              this.locatorName.set('value', strs[strs.length - 2] || "geocoder");
+            }
 
             this.singleLineFieldName = response.singleLineAddressField.name;
 
-            this._processCountryCodeRow(evt[0].url);
+            this._processCountryCodeRow(url);
 
             this._locatorDefinition = response;
-            this._locatorDefinition.url = evt[0].url;
-            //this._suggestible = response.capabilities &&
-            //  this._locatorDefinition.capabilities.indexOf("Suggest") > -1;
-            //if (!this._suggestible) {
-            //  this._showSuggestibleTips();
-            //} else {
-            //  this._hideSuggestibleTips();
-            //}
+            this._locatorDefinition.url = url;
 
             if (this._clickSet) {
               this.emit('reselect-locator-url-ok', this.getConfig());
@@ -471,7 +447,7 @@ define(
           this.shelter.hide();
           new Message({
             'message': esriLang.substitute({
-                'URL': this._getRequestUrl(evt[0].url)
+                'URL': this._getRequestUrl(url)
               }, lang.clone(this.nls.invalidUrlTip))
           });
         }));

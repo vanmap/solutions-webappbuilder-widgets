@@ -213,29 +213,13 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
       },
 
       _geocodeData: function (itemData) {
+        //TODO this needs to go to true multi-field...make sure it does not affect cache
         var def = new Deferred();
-        var fName = this.locatorSource.singleLineFieldName;
         var locator = this.locatorSource.locator;
         locator.outSpatialReference = this.map.spatialReference;
-        var finalResults = [];
-        var addrField, cityField, stateField, zipField;
-        if (this.useMultiFields) {
-          array.forEach(this.multiFields, lang.hitch(this, function (f) {
-            switch (f.keyField) {
-              case this.nls.address:
-                addrField = f.value;
-              case this.nls.city:
-                cityField = f.value;
-              case this.nls.state:
-                stateField = f.value;
-              case this.nls.zip:
-                zipField = f.value;
-            }
-          }));
-        }
-
-        var max = 2;
+        var finalResults = [];        
         var geocodeOps = [];
+        var max = 500;
         var x = 0;
         var xx = 0;
         var i, j;
@@ -247,40 +231,38 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
             x += 1;
             var addr = { "OBJECTID": x };
             if (this.useMultiFields) {
-              var concatAddr = "";
-              var v;
-              if (addrField !== this.nls.noValue) {
-                v = this.csvStore.getValue(item, addrField);
-                concatAddr += typeof(v) === 'undefined' ? "" : v;
-              }
-              if (cityField !== this.nls.noValue) {
-                v = this.csvStore.getValue(item, cityField);
-                concatAddr += (concatAddr !== "" ? ", " : "") + (typeof(v) === 'undefined' ? "" : v);
-              }
-              if (stateField !== this.nls.noValue) {
-                v = this.csvStore.getValue(item, stateField);
-                concatAddr += (concatAddr !== "" && concatAddr.slice(-2) !== "," ? ", " : "") + (typeof (v) === 'undefined' ? "" : v);
-              }
-              if (zipField !== this.nls.noValue) {
-                v = this.csvStore.getValue(item, zipField);
-                concatAddr += " " + typeof (v) === 'undefined' ? "" : v;
-              }
-              addr[fName] = concatAddr;
+              array.forEach(this.multiFields, lang.hitch(this, function (f) {
+                if (f.value !== this.nls.noValue) {
+                  addr[f.keyField] = this.csvStore.getValue(item, f.value);
+                }
+              }));
             } else {
-              addr[fName] = this.csvStore.getValue(item, this.addrFieldName);
+              addr[this.locatorSource.singleLineFieldName] = this.csvStore.getValue(item, this.addrFieldName);
             }
 
             var cacheData = itemData ? itemData : {};
+            //TODO should/can I just store the addr here??
             //if the address is not in the cache add to the list to be geocoded
             if (!(cacheData && cacheData.hasOwnProperty(addr.SingleLine) ? true : false)) {
               addresses.push(addr);
-              finalResults[addr.SingleLine] = { address: addr.SingleLine, index: xx, location: {} };
+              finalResults[addr.SingleLine] = {
+                address: addr.SingleLine,
+                index: xx,
+                location: {}
+              };
               xx += 1
             } else {
-              finalResults[addr.SingleLine] = { address: addr.SingleLine, index: -1, location: cacheData[addr.SingleLine].location };
+              finalResults[addr.SingleLine] = {
+                address: addr.SingleLine,
+                index: -1,
+                location: cacheData[addr.SingleLine].location
+              };
             }
           }));
-          geocodeOps.push(locator.addressesToLocations({ addresses: addresses, countryCode: this.locatorSource.countryCode }));
+          geocodeOps.push(locator.addressesToLocations({
+            addresses: addresses,
+            countryCode: this.locatorSource.countryCode
+          }));
         }
 
         var geocodeList = new DeferredList(geocodeOps);
@@ -292,7 +274,10 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
               array.forEach(defResults, function (result) {
                 result.ResultID = result.attributes.ResultID;
               });
-              var geocodeDataStore = Observable(new Memory({ data: defResults, idProperty: "ResultID" }));
+              var geocodeDataStore = Observable(new Memory({
+                data: defResults,
+                idProperty: "ResultID"
+              }));
               var resultsSort = geocodeDataStore.query({}, { sort: [{ attribute: "ResultID" }] });
               array.forEach(resultsSort, function (_r) {
                 //This may be too slow

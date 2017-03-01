@@ -66,7 +66,15 @@ define([
 
       //Questions
       //TODO should we support an option for configure user to mark certain fields as required or optional?
-      //TODO should lat/lon, single, multi-field input be a configurable choice?
+
+      //TODO should lat/lon, single, multi-field input be a configurable choice? spoke with Nikki...yes but it is a lower priority
+      //TODO clear should be enabled after drop
+      //TODO persist fields
+      //TODO persist alias name change and make sure it's what shows...allowing the user to define the label for each field type
+      //TODO change up how the simple tables are configured to make it more apparnt what you can edit
+      //TODO persist is recognized names for each input type
+      //TODO force to upper for is recognized name compare
+
 
       _operLayerInfos: null,
       _layersTable: null,
@@ -461,7 +469,8 @@ define([
       _createNewLocatorSourceSettingFromMenuItem: function (setting, definition) {
         var locatorSetting = new LocatorSourceSetting({
           nls: this.nls,
-          map: this.map
+          map: this.map,
+          defaultXYFields: this.config.defaultXYFields
         });
         locatorSetting.setDefinition(definition);
         locatorSetting.setConfig({
@@ -519,7 +528,8 @@ define([
 
         this._currentSourceSetting = new LocatorSourceSetting({
           nls: this.nls,
-          map: this.map
+          map: this.map,
+          defaultXYFields: this.config.defaultXYFields
         });
         this._currentSourceSetting.setDefinition(definition);
         this._currentSourceSetting.setConfig({

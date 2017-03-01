@@ -33,8 +33,27 @@
   position: relative;
   padding-left: 16px;
   color: #518dca;
-  background: url(images/add_icon.png) no-repeat left;
+  background: url(images/add.png) no-repeat left;
   cursor: pointer;
+}
+
+.jimu-rtl .jimu-widget-setting-critical-facilities .add-button {
+  margin: 8px;
+  margin-left: 0;
+  display: inline-block;
+  position: relative;
+  padding-right: 16px;
+  color: #518dca;
+  background: url(images/add.png) no-repeat right;
+  cursor: pointer;
+}
+
+.jimu-widget-setting-critical-facilities .add-button:hover {
+  background: url(images/add_hover.png) no-repeat left;
+}
+
+.jimu-rtl .jimu-widget-setting-critical-facilities .add-button:hover {
+  background: url(images/add_hover.png) no-repeat right;
 }
 
 .jimu-widget-setting-critical-facilities .sources{
@@ -255,11 +274,81 @@
   position: relative;
   padding-left: 16px;
   color: #518dca;
-  background: url(images/add_icon.png) no-repeat left;
+  background: url(images/add.png) no-repeat left;
   cursor: pointer;
+}
+
+.jimu-widget-setting-critical-facilities .is-recognized-add-button:hover {
+  background: url(images/add_hover.png) no-repeat left;
 }
 
 .jimu-widget-setting-critical-facilities .is-recognized-source-list{
   height: 300px;
 }
 
+.jimu-widget-setting-critical-facilities .is-recognized-source-list{
+  height: 300px;
+}
+
+/*.jimu-widget-setting-critical-facilities .sHeight{
+  min-height: 25px;
+  display: block;
+  left: 10px;
+}
+
+.jimu-rtl .jimu-widget-setting-critical-facilities .sHeight{
+  min-height: 25px;
+  display: block;
+  right: 10px;
+}*/
+
+.jimu-widget-setting-critical-facilities .edit-fields {
+  display: block;
+  width: 25px;
+  height: 25px;
+  background-repeat: no-repeat;
+}
+
+.jimu-widget-setting-critical-facilities .fields-table > tbody > tr {
+  margin: 10px;
+  cursor: pointer;
+}
+
+.jimu-widget-setting-critical-facilities .fields-table > tbody > tr:hover > td .edit-fields {
+  background-image: url(images/edit_default.png);
+}
+
+.jimu-widget-setting-critical-facilities .fields-table > tbody > tr:hover > td .edit-fields:hover {
+  background-image: url(images/edit_hover.png);
+}
+
+.jimu-widget-setting-critical-facilities .fields-table > tbody > tr:hover > td .edit-fields-disabled {
+  display: block;
+  width: 25px;
+  height: 25px;
+  background-image: url(images/edit_disabled.png);
+}
+
+.jimu-widget-setting-critical-facilities .edit-fields-disabled {
+  display: block;
+  width: 25px;
+  height: 25px;
+  background-repeat: no-repeat;
+  cursor: default;
+}
+
+.jimu-widget-setting-critical-facilities .jimu-checkbox .label{
+  cursor: pointer;
+}
+
+.jimu-widget-setting-critical-facilities .fields-table > tbody > tr > td > .tip{
+  font-size: 12px;
+  color: #999;
+  width: 100%;
+  display: inline-block;
+}
+
+.jimu-widget-setting-critical-facilities .pad-sides {
+  padding-left: 20px;
+  padding-right: 20px;
+}

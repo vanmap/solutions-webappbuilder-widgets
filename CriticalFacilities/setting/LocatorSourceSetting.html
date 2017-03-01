@@ -25,6 +25,14 @@
   <div class="source-details-section" data-dojo-attach-point="detailsSection">
     <table class="source-table" cellspacing="0">
       <tbody>
+        <tr>
+          <td class="first">${nls.locatorName}</td>
+          <td class="second">
+            <input type="text" data-dojo-type="dijit/form/ValidationTextBox" data-dojo-attach-point="locatorName" data-dojo-attach-event="Blur: _onLocatorNameBlur"
+                   placeHolder="${nls.locatorName}"
+                   required="true" data-dojo-props='style:{width:"100%"}' />
+          </td>
+        </tr>
         <tr class="hide-country-code-row country-code-row" data-dojo-attach-point="countryCodeRow">
           <td class="first">${nls.countryCode}</td>
           <td class="second">
@@ -32,45 +40,60 @@
             data-dojo-attach-event="Blur:_onCountryCodeBlur"
             placeHolder="${nls.countryCodeEg} USA,CHN" data-dojo-props='style:{width:"97%"}'/>
             <a class="jimu-float-trailing" target="_blank" href="https://developers.arcgis.com/rest/geocode/api-reference/geocode-coverage.htm" style="line-height:30px;">?</a>
-            <span class="example">${nls.countryCodeHint}</span>
+            <span class="tip">${nls.countryCodeHint}</span>
           </td>
         </tr>
-        <tr>
-          <td class="first" colspan="2">
-            <span class="source-label" data-dojo-attach-point="enableSingleField"></span>
-          </td>
-        </tr>
-        <tr>
-          <td colspan="2">
-            <div class="" data-dojo-attach-point="singleFieldList"></div>
-          </td>
-        </tr>
-
-        <tr>
-          <td class="first" colspan="2">
-            <span class="source-label" data-dojo-attach-point="enableMultiField"></span>
-          </td>
-        </tr>
-        <tr>
-          <td colspan="2">
-            <div class="" data-dojo-attach-point="multiFieldList"></div>
-          </td>
-        </tr>
-
-        <tr>
-          <td class="first" colspan="2">
-            <span class="source-label" data-dojo-attach-point="enableXYField"></span>
-          </td>
-        </tr>
-        <tr>
-          <td colspan="2">
-            <div class="" data-dojo-attach-point="xyFieldList"></div>
-          </td>
-        </tr>
-
       </tbody>
     </table>  
   </div>
+  <div class="source-fields-section">
+    <table class="fields-table" cellspacing="0">
+      <tbody>
+        <tr>
+          <td colspan="1" style="padding-top:10px;">
+            <div class="source-label" data-dojo-attach-point="enableSingleField"></div>
+          </td>
+          <td colspan="1" style="padding-top:10px; padding-left:20px;">
+            <div data-dojo-attach-point="editSingleFields" class="sHeight edit-fields"></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="pad-sides" colspan="2">
+            <span class="tip">${nls.singleFieldHint}</span>
+          </td>
+        </tr>
+
+        <tr>
+          <td colspan="1" style="padding-top:10px;">
+            <div class="source-edit-fields" data-dojo-attach-point="enableMultiField"></div>
+          </td>
+          <td colspan="1" style="padding-top:10px; padding-left:20px;">
+            <div data-dojo-attach-point="editMultiFields" class="sHeight edit-fields"></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="pad-sides" colspan="2">
+            <span class="tip">${nls.multiFieldHint}</span>
+          </td>
+        </tr>
+
+        <tr>
+          <td colspan="1" style="padding-top:10px;">
+            <div class="source-label" data-dojo-attach-point="enableXYField"></div>
+          </td>
+          <td colspan="1" style="padding-top:10px; padding-left:20px;">
+            <div data-dojo-attach-point="editXYFields" class="sHeight edit-fields"></div>
+          </td>
+        </tr>
+        <tr>
+          <td class="pad-sides" colspan="2">
+            <span class="tip">${nls.xyFieldHint}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
   <div data-dojo-attach-point="shelter" data-dojo-type="jimu/dijit/LoadingShelter" data-dojo-props="hidden:true"></div>
   
 </div>

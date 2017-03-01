@@ -240,11 +240,20 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
               addr[this.locatorSource.singleLineFieldName] = this.csvStore.getValue(item, this.addrFieldName);
             }
 
+            //is addr.SingleLine even safe...should just use this.locatorSource.singleLineFieldName
+
             var cacheData = itemData ? itemData : {};
             //TODO should/can I just store the addr here??
             //if the address is not in the cache add to the list to be geocoded
+            //The single line address used to be the key for this...however...will need a new strategy
+            //Will have to be a way that will ensure that the value stored can be checked in the same way
             if (!(cacheData && cacheData.hasOwnProperty(addr.SingleLine) ? true : false)) {
               addresses.push(addr);
+
+              //TODO this will need to change to really support this.
+              //I am thinking that I should sort the multiField values in some way to ensure that we can compare later
+              // then concatenate just for the sake of the cache and key for this object
+              //rather than actually trying to construct the address that may be different witn non-typical US type addresses
               finalResults[addr.SingleLine] = {
                 address: addr.SingleLine,
                 index: xx,

@@ -38,6 +38,7 @@ define(['dojo/_base/declare',
         this.nls = lang.mixin(this.nls, window.jimuNls.common);
         this._initFieldsTable();
         if (this.type === 'fieldInfos') {
+          this.popupTitle = this.nls.configureFields;
           this._setFieldsTable(this._layerInfo.fieldInfos);
         } else {
           this._setAddressFieldsTable(this.addressFields);
@@ -46,7 +47,7 @@ define(['dojo/_base/declare',
 
       popupEditPage: function() {
         var fieldsPopup = new Popup({
-          titleLabel: this.nls.configureFields,
+          titleLabel: this.popupTitle,
           width: 640,
           maxHeight: 600,
           autoHeight: true,
@@ -74,7 +75,8 @@ define(['dojo/_base/declare',
           name: 'visible',
           title: this.nls.display,
           type: 'checkbox',
-          'class': 'display'
+          'class': 'display',
+          hidden: typeof (this.disableDisplayOption) === 'undefined' ? false : this.disableDisplayOption
         }, {
           name: 'fieldName',
           title: this.nls.editpageName,
@@ -156,7 +158,7 @@ define(['dojo/_base/declare',
             label: field.alias,
             visible: field.hasOwnProperty('visible') ? field.visible : false,
             type: "STRING",
-            isRecognizedValues: field.recognizedNames
+            isRecognizedValues: field.recognizedNames[navigator.language.toLowerCase()]//TODO check if this is a safe way to get the locale
           });
         }, this);
       },
@@ -186,7 +188,9 @@ define(['dojo/_base/declare',
             "isRecognizedValues": fieldData.isRecognizedValues
           });
         });
-        this._layerInfo.fieldInfos = newFieldInfos;
+        if (this.type === 'fieldInfos') {
+          this._layerInfo.fieldInfos = newFieldInfos;
+        }
       },
 
       _onEditFieldsClick: function (tr) {

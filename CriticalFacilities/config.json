@@ -1,6 +1,19 @@
 {    
   "selectedFeatureService" : "",
-  "latitudeField" : "",
-  "longitudeField" : "",    
-  "layerInfos": []
+  "layerInfos": [ ],
+  "defaultXYFields": [
+    {
+      "name": "X",
+      "alias": "X",
+      "visible": true,
+      "isRecognizedValues": [ "X", "Lon", "Longitude" ],
+      "type": "STRING"
+    }, {
+      "name": "Y",
+      "alias": "Y",
+      "visible": true,
+      "isRecognizedValues": [ "Y", "Lat", "Latitude"],
+      "type": "STRING"
+    }
+  ]
 }

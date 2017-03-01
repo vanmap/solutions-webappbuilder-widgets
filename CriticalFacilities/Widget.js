@@ -162,7 +162,7 @@ define(['dojo/_base/declare',
       //}));
 
       //TODO this x stuff is a temp workaround...not all fields are actually required for multi-field input
-      //need to think through this more
+      //need to think through this more...would be easy if fields were marked as required/optional
       var x = 0;
       array.forEach(controlNodes, lang.hitch(this, function (node) {
         var selectNode = query('.field-select-node', node)[0];

@@ -20,6 +20,7 @@ define(
     "dojo/on",
     "dojo/Evented",
     "dojo/Deferred",
+    'dojo/query',
     "dijit/_WidgetBase",
     "dijit/_TemplatedMixin",
     "dijit/_WidgetsInTemplateMixin",
@@ -45,6 +46,7 @@ define(
     on,
     Evented,
     Deferred,
+    query,
     _WidgetBase,
     _TemplatedMixin,
     _WidgetsInTemplateMixin,
@@ -64,6 +66,11 @@ define(
     return declare([
       _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, Evented
     ], {
+
+      //TODO need to persist changes to multi-fields, single-fields, and xy-fields
+      // also need to be able to reload from the persisted options
+
+
       baseClass: "jimu-widget-search-locator-source-setting",
       tr: null,
       nls: null,
@@ -85,9 +92,13 @@ define(
           ": http://&lt;myServerName&gt;/arcgis/rest/services/World/GeocodeServer";
 
         //TODO is it safe to pass this.instance here? seems like it works ok but 
-        this._initCheckBox(this.enableSingleField, this.nls.enableSingleField, this.singleFieldList);
-        this._initCheckBox(this.enableMultiField, this.nls.enableMultiField, this.multiFieldList);
-        this._initCheckBox(this.enableXYField, this.nls.enableXYField, this.xyFieldList);
+        this.enableSingleField = this._initCheckBox(this.enableSingleField, this.nls.enableSingleField, this.editSingleFields);
+        this.enableMultiField = this._initCheckBox(this.enableMultiField, this.nls.enableMultiField, this.editMultiFields);
+        this.enableXYField = this._initCheckBox(this.enableXYField, this.nls.enableXYField, this.editXYFields);
+       
+        this.own(on(this.editSingleFields, 'click', lang.hitch(this, this._editFields, 'single')));
+        this.own(on(this.editMultiFields, 'click', lang.hitch(this, this._editFields, 'multi')));
+        this.own(on(this.editXYFields, 'click', lang.hitch(this, this._editFields, 'xy')));
 
         this._setMessageNodeContent(this.exampleHint);
 
@@ -95,15 +106,16 @@ define(
         this.setConfig(this.config);
       },
 
-      _initCheckBox: function (domNode, nlsValue, listNode) {
+      _initCheckBox: function (domNode, nlsValue, editNode) {
         domNode = new CheckBox({
           checked: false,
           label: nlsValue
         }, domNode);
-        this._toggleNode(listNode, false);
+        this._toggleNode(editNode, false);
         this.own(on(domNode, 'change', lang.hitch(this, function () {
-          this._toggleNode(listNode, domNode.getValue());
+          this._toggleNode(editNode, domNode.getValue());
         })));
+        return domNode;
       },
 
       setRelatedTr: function(tr) {
@@ -159,7 +171,8 @@ define(
         }
       },
 
-      isValidConfig: function() {
+      isValidConfig: function () {
+        //TODO this needs some updating 
         var config = this.getConfig();
         if (config.url && config.name && config.singleLineFieldName) {
           return true;
@@ -170,23 +183,78 @@ define(
 
       showValidationTip: function() {
         this._showValidationErrorTip(this.locatorUrl);
-        //this._showValidationErrorTip(this.locatorName);
+        this._showValidationErrorTip(this.locatorName);
       },
 
       getConfig: function() {
-        var geocode = {
+        return {
           url: this.locatorUrl.get('value'),
-          //name: jimuUtils.stripHTML(this.locatorName.get('value')),
+          name: jimuUtils.stripHTML(this.locatorName.get('value')),
           singleLineFieldName: this.singleLineFieldName,
           addressFields: this.addressFields,
+          xyFields: [],
           countryCode: jimuUtils.stripHTML(this.countryCode.get('value')),
           type: "locator"
         };
-        return geocode;
+      },
+
+      _editFields: function(type){
+        switch (type) {
+          case 'single':
+            if (this.enableSingleField.getValue()) {
+              this._editSingleAddressFieldsTableValues();
+            }
+            break;
+          case 'multi':
+            if (this.enableMultiField.getValue()) {
+              this._editMultiAddressFieldsTableValues();
+            }
+            break;
+          case 'xy':
+            if (this.enableXYField.getValue()) {
+              this._editXYFieldsTableValues();
+            }
+            break;
+        }
+      },
+
+      _editSingleAddressFieldsTableValues: function (fields) {
+        if (this.singleLineField) {
+          this.editSingleAddressFields = new EditFields({
+            nls: this.nls,
+            type: 'locatorFields',
+            addressFields: fields || [this.singleLineField],
+            popupTitle: this.nls.configureSingleFields,
+            disableDisplayOption: true
+          });
+          this.editSingleAddressFields.popupEditPage();
+        }
+      },
+
+      _editMultiAddressFieldsTableValues: function () {
+        this.editMultiAddressFields = new EditFields({
+          nls: this.nls,
+          type: 'locatorFields',
+          addressFields: this.addressFields,
+          popupTitle: this.nls.configureMultiFields,
+          disableDisplayOption: false
+        });
+        this.editMultiAddressFields.popupEditPage();
+      },
+
+      _editXYFieldsTableValues: function (fields) {
+        this.editXYFields = new EditFields({
+          nls: this.nls,
+          type: 'locatorFields',
+          addressFields: fields || this.defaultXYFields,
+          popupTitle: this.nls.configureXYFields,
+          disableDisplayOption: true
+        });
+        this.editXYFields.popupEditPage();
       },
 
       _onLocatorNameBlur: function() {
-        //this.locatorName.set('value', jimuUtils.stripHTML(this.locatorName.get('value')));
+        this.locatorName.set('value', jimuUtils.stripHTML(this.locatorName.get('value')));
       },
 
       _onCountryCodeBlur: function() {
@@ -194,12 +262,12 @@ define(
       },
 
       _disableSourceItems: function() {
-        //this.locatorName.set('disabled', true);
+        this.locatorName.set('disabled', true);
         this.countryCode.set('disabled', true);
       },
 
       _enableSourceItems: function() {
-        //this.locatorName.set('disabled', false);
+        this.locatorName.set('disabled', false);
         this.countryCode.set('disabled', false);
       },
 
@@ -210,9 +278,9 @@ define(
           this.locatorUrl.set('value', config.url);
           this._processCountryCodeRow(config.url);
         }
-        //if (config.name) {
-        //  this.locatorName.set('value', jimuUtils.stripHTML(config.name));
-        //}
+        if (config.name) {
+          this.locatorName.set('value', jimuUtils.stripHTML(config.name));
+        }
         if (config.singleLineFieldName) {
           this.singleLineFieldName = config.singleLineFieldName;
         }
@@ -254,7 +322,7 @@ define(
         }).then(lang.hitch(this, function (response) {
           if (response && response.addressFields) {
             this.addressFields = response.addressFields;
-            this._setAddressFieldsTableValues();
+            //this._setAddressFieldsTableValues();
           } else {
             //disable the checkbox and hide the table
             //html.setStyle(this.enableMultiField, 'enable', 'false');
@@ -263,11 +331,8 @@ define(
 
           if (response && response.singleLineAddressField && response.singleLineAddressField.name) {
             this.singleLineFieldName = response.singleLineAddressField.name;
-            this._setSingleAddressFieldsTableValues([response.singleLineAddressField]);
+            this.singleLineField = response.singleLineAddressField;
           }
-
-          //TODO not the correct place to do it
-          this._setXYFieldsTableValues();
         }), lang.hitch(this, function (err) {
           console.error(err);
         }));
@@ -420,6 +485,7 @@ define(
             }
 
             this.singleLineFieldName = response.singleLineAddressField.name;
+            this.singleLineField = response.singleLineAddressField;
 
             this._processCountryCodeRow(url);
 
@@ -464,7 +530,11 @@ define(
 
       _toggleNode: function (domNode, enable) {
         if (domNode) {
-          html.setStyle(domNode, 'display', enable ? 'block' : 'none');
+          //domClass.remove(domNode, enable ? 'edit-fields-disabled' : 'edit-fields');
+          //domClass.add(domNode, enable ? 'edit-fields' : 'edit-fields-disabled');
+
+          html.removeClass(domNode, enable ? 'edit-fields-disabled' : 'edit-fields');
+          html.addClass(domNode, enable ? 'edit-fields' : 'edit-fields-disabled');
         }
       },
 
@@ -477,66 +547,33 @@ define(
         }
       },
 
-      _createAddressFieldsTable: function(){
-        this.sourceList = new SimpleTable({
-          autoHeight: false,
-          selectable: true,
-          fields: [{
-            name: "name",
-            title: this.nls.name,
-            width: "auto",
-            type: "text",
-            editable: false
-          }, {
-            name: "actions",
-            title: "",
-            width: "80px",
-            type: "actions",
-            actions: ["edit", "up", "down", "delete"]
-          }]
-        }, this.sourceList);
-        html.setStyle(this.sourceList.domNode, 'height', '100%');
-        this.sourceList.startup();
-        this.own(on(this.sourceList, 'row-select', lang.hitch(this, this._onSourceItemSelected)));
-        this.own(on(this.sourceList, 'row-delete', lang.hitch(this, this._onSourceItemRemoved)));
-        this.own(on(this.sourceList, 'row-edit', lang.hitch(this, this._onSourceItemEdit)));
-      },
+      //_createAddressFieldsTable: function(){
+      //  this.sourceList = new SimpleTable({
+      //    autoHeight: false,
+      //    selectable: true,
+      //    fields: [{
+      //      name: "name",
+      //      title: this.nls.name,
+      //      width: "auto",
+      //      type: "text",
+      //      editable: false
+      //    }, {
+      //      name: "actions",
+      //      title: "",
+      //      width: "80px",
+      //      type: "actions",
+      //      actions: ["edit", "up", "down", "delete"]
+      //    }]
+      //  }, this.sourceList);
+      //  html.setStyle(this.sourceList.domNode, 'height', '100%');
+      //  this.sourceList.startup();
+      //  this.own(on(this.sourceList, 'row-select', lang.hitch(this, this._onSourceItemSelected)));
+      //  this.own(on(this.sourceList, 'row-delete', lang.hitch(this, this._onSourceItemRemoved)));
+      //  this.own(on(this.sourceList, 'row-edit', lang.hitch(this, this._onSourceItemEdit)));
+      //},
 
       _getAddressFieldsTableValues: function () {
         //var data = this.editAddressFields.someMethodToGetTheData();
-      },
-
-      _setAddressFieldsTableValues: function () {
-        this.editAddressFields = new EditFields({
-          nls: this.nls,
-          type: 'locatorFields',
-          addressFields: this.addressFields
-        });
-        if (this.editAddressFields) {
-          this.editAddressFields.placeAt(this.multiFieldList);
-        }
-      },
-
-      _setSingleAddressFieldsTableValues: function (fields) {
-        this.editSingleAddressFields = new EditFields({
-          nls: this.nls,
-          type: 'locatorFields',
-          addressFields: fields
-        });
-        if (this.editSingleAddressFields) {
-          this.editSingleAddressFields.placeAt(this.singleFieldList);
-        }
-      },
-
-      _setXYFieldsTableValues: function (fields) {
-        this.editXYFields = new EditFields({
-          nls: this.nls,
-          type: 'locatorFields',
-          addressFields: fields
-        });
-        if (this.editXYFields) {
-          this.editXYFields.placeAt(this.xyFieldList);
-        }
       },
 
       _showValidationErrorTip: function(_dijit) {

@@ -98,8 +98,8 @@ define([
         }
         this.setConfig(this.config);  
 
-        var hrefLen = window.location.href.length;
-        var appId = window.location.href.substr(hrefLen-1);
+        var equalsIndex = window.location.href.indexOf("=");
+        var appId = window.location.href.substring(equalsIndex+1);
         var mod = string.substitute('jimu/loaderplugins/jquery-loader!./apps/${id}/widgets/ERG/setting/jquery-git1.min.js', {id: appId});
 
         require([mod], function($) {

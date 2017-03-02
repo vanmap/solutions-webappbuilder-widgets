@@ -16,6 +16,7 @@
 define(['dojo/_base/declare',
     'dojo/_base/array',
     'dojo/_base/lang',
+    'dojo/_base/html',
     'dojo/query',
     'dojo/on',
     'dojo/Deferred',
@@ -36,7 +37,7 @@ define(['dojo/_base/declare',
     './GeocodeCacheManager',
     './UnMatchedList'
 ],
-function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvStore, Observable, Memory,
+function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented, CsvStore, Observable, Memory,
   graphicsUtils, webMercatorUtils, Point, Color, SimpleMarkerSymbol, SimpleRenderer, FeatureLayer, Locator,
   jimuUtils, GeocodeCacheManager, UnMatchedList) {
   return declare([Evented], {
@@ -52,6 +53,7 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
         this.map = options.map;
         this.fsFields = options.fsFields;
         this.geocodeSources = options.geocodeSources;
+        this.testList = options.testList;
 
         this.data = null;
         this.separatorCharacter = null;
@@ -139,12 +141,14 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
               this.file.name += "_UnMatched");
 
             var unmatchedList = new UnMatchedList();
-            this.testList = unmatchedList.createList({
-              data: this.unmatchedFC.featureSet.features,
+            unmatchedList.createList({
+              featureSet: this.unmatchedFC.featureSet,
               map: this.map,
               fields: this.fsFields,
               configFields: this.mappedArrayFields
             });
+
+            html.place(unmatchedList.list.domNode, this.testList);
           }
 
           //TODO this should be the theme color

@@ -1,5 +1,5 @@
 ﻿///////////////////////////////////////////////////////////////////////////
-// Copyright © 2014 - 2016 Esri. All Rights Reserved.
+// Copyright © 2017 Esri. All Rights Reserved.
 //
 // Licensed under the Apache License Version 2.0 (the "License");
 // you may not use this file except in compliance with the License.
@@ -54,10 +54,17 @@ function (declare, _WidgetBase, _TemplatedMixin, Button, lang, array, html, domC
       this.store = new Observable(new Memory());
     },
 
-    //options = {data: <Object>, map: <Object>, fields: [], configFields: []}
+    //options = {featureSet: <Object>, map: <Object>, fields: [], configFields: []}
     createList: function (options) {
+      var featureSet = options.featureSet;
+      for (var j = 0; j < featureSet.features.length; j++) {
+        var feature = featureSet.features[j];
+        this.store.put(feature, {
+          id: parseInt(feature.attributes["OBJECTID"])
+        });
+      };
+
       this.list = new (declare([List, Selection]))({
-        data: options.data,
         map: options.map,
         store: this.store,
         fields: options.fields,
@@ -138,14 +145,14 @@ function (declare, _WidgetBase, _TemplatedMixin, Button, lang, array, html, domC
             if (this.localUpdates && this.localUpdates.hasOwnProperty(id)) {
               v = this.localUpdates[id];
             } else {
-              v = feature.attributes[fieldName];
+              v = feature.attributes[fieldName.name];
             }
             //do this so we can have the OID in the query to support selection
             // but avoid drawing in the widget
-            if (typeof (this.configFields[fieldName]) !== 'undefined') {
+            //if (typeof (this.configFields[fieldName]) !== 'undefined') {
               domConstruct.create('label', {
                 className: "fieldItemLabel",
-                innerHTML: this.configFields[fieldName] + ":"
+                innerHTML: fieldName.name + ":" //this.configFields[fieldName] + ":"
               }, contentDiv);
               domConstruct.create('input', {
                 className: "fieldItemValue",
@@ -176,7 +183,7 @@ function (declare, _WidgetBase, _TemplatedMixin, Button, lang, array, html, domC
                 idx += 1;
               }
             }
-          }
+          //}
 
           var alignContainer = domConstruct.create('div', {
             className: "fieldItemLabel"
@@ -188,7 +195,24 @@ function (declare, _WidgetBase, _TemplatedMixin, Button, lang, array, html, domC
 
           domConstruct.create('button', {
             className: "my-btn",
-            innerHTML: "Zoom To Feature",
+            innerHTML: "Locate Feature",
+            onclick: lang.hitch(this, function (evt) {
+              var row = evt.target.parentElement.parentElement.parentElement;
+              var rowData = this.row(row.id).data;
+              if (rowData) {
+                var geom = rowData.geometry;
+                if (geom.type === "point") {
+                  var res = geometryEngine.buffer([geom], 1, 9035, false);
+                  geom = res[0];
+                }
+                this.map.setExtent(geom.getExtent());
+              }
+            })
+          }, btnContainer);
+
+          domConstruct.create('button', {
+            className: "my-btn",
+            innerHTML: "Update Feature Collection",
             onclick: lang.hitch(this, function (evt) {
               var row = evt.target.parentElement.parentElement.parentElement;
               var rowData = this.row(row.id).data;

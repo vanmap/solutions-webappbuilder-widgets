@@ -69,12 +69,9 @@ define([
 
       //TODO should lat/lon, single, multi-field input be a configurable choice? spoke with Nikki...yes but it is a lower priority
       //TODO clear should be enabled after drop
-      //TODO persist fields
+
       //TODO persist alias name change and make sure it's what shows...allowing the user to define the label for each field type
       //TODO change up how the simple tables are configured to make it more apparnt what you can edit
-      //TODO persist is recognized names for each input type
-      //TODO force to upper for is recognized name compare
-
 
       //TODO something is messed up with multi field when I choose some...ok my way out...save....and repoen the config
       //TODO add logic for needing at least one of the checkboxes checked...ok should disable
@@ -352,7 +349,7 @@ define([
 
       _getWebmapFieldInfos: function (layerObject) {
         var fieldInfos = [];
-        var wFieldInfos = this.getFieldInfosFromWebmap(layerObject.id, this._operLayerInfos);
+        var wFieldInfos = this._getFieldInfosFromWebmap(layerObject.id, this._operLayerInfos);
         if (wFieldInfos) {
           array.forEach(wFieldInfos, function (fi) {
             if ((fi.isEditableOnLayer !== undefined && fi.isEditableOnLayer) &&
@@ -376,7 +373,7 @@ define([
         return fieldInfos;
       },
 
-      getFieldInfosFromWebmap: function(layerId, jimuLayerInfos) {
+      _getFieldInfosFromWebmap: function(layerId, jimuLayerInfos) {
         var fieldInfos = null;
         var jimuLayerInfo = jimuLayerInfos.getLayerInfoByTopLayerId(layerId);
         if(jimuLayerInfo) {

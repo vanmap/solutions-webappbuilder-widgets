@@ -69,7 +69,9 @@ define([
         var keys = Object.keys(newAddresses);
         for (var k in keys) {
           var _k = keys[k];
-          delete newAddresses[_k].index;
+          if (newAddresses.hasOwnProperty(_k)) {
+            delete newAddresses[_k].index;
+          }
         }
 
         var newCacheData = lang.mixin({}, this.itemData, newAddresses);

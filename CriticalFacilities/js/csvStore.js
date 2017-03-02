@@ -33,11 +33,12 @@ define(['dojo/_base/declare',
     'esri/layers/FeatureLayer',
     'esri/tasks/locator',
     'jimu/utils',
-    './GeocodeCacheManager'
+    './GeocodeCacheManager',
+    './UnMatchedList'
 ],
 function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvStore, Observable, Memory,
   graphicsUtils, webMercatorUtils, Point, Color, SimpleMarkerSymbol, SimpleRenderer, FeatureLayer, Locator,
-  jimuUtils, GeocodeCacheManager) {
+  jimuUtils, GeocodeCacheManager, UnMatchedList) {
   return declare([Evented], {
 
     //TODO may move all geocode logic into GeocodeCacheManager if we go with supporting that
@@ -49,11 +50,8 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
       constructor: function (options) {
         this.file = options.file;
         this.map = options.map;
-        this.arrayFields = options.arrayFields;
+        this.fsFields = options.fsFields;
         this.geocodeSources = options.geocodeSources;
-        this.singleAddressFields = options.singleAddressFields,
-        this.multiAddressFields = options.multiAddressFields,
-        this.xyFields = options.xyFields,
 
         this.data = null;
         this.separatorCharacter = null;
@@ -115,11 +113,11 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
             var attributes = {};
             var si = this.storeItems[i];
             var di = data[keys[i]];
-            array.forEach(this.arrayFields, lang.hitch(this, function (f) {
+            array.forEach(this.fsFields, lang.hitch(this, function (f) {
               attributes[f.name] = this.csvStore.getValue(si, this.mappedArrayFields[f.name]);
             }));
             //TODO could also have a score threshold evaluated here
-            if (di) {
+            if (di && di.score > 80) {
               attributes["ObjectID"] = i - unmatchedI;
               this.featureCollection.featureSet.features.push({
                 "geometry": di.location,
@@ -139,6 +137,14 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
           if (unmatchedI > 0) {
             this.unMatchedFeatureLayer = this._initLayer(this.unmatchedFC,
               this.file.name += "_UnMatched");
+
+            var unmatchedList = new UnMatchedList();
+            this.testList = unmatchedList.createList({
+              data: this.unmatchedFC.featureSet.features,
+              map: this.map,
+              fields: this.fsFields,
+              configFields: this.mappedArrayFields
+            });
           }
 
           //TODO this should be the theme color
@@ -220,8 +226,9 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
         var def = new Deferred();
         var locator = this.locatorSource.locator;
         locator.outSpatialReference = this.map.spatialReference;
-        var finalResults = [];        
+        var finalResults = {};
         var geocodeOps = [];
+        var oid = "OBJECTID";
         var max = 500;
         var x = 0;
         var xx = 0;
@@ -232,50 +239,46 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
           var addresses = [];
           array.forEach(items, lang.hitch(this, function (item) {
             x += 1;
-            var addr = { "OBJECTID": x };
+            var addr = {};
+            addr[oid] = x;
             if (this.useMultiFields) {
               array.forEach(this.multiFields, lang.hitch(this, function (f) {
                 if (f.value !== this.nls.noValue) {
-                  addr[f.keyField] = this.csvStore.getValue(item, f.value);
+                  var val = this.csvStore.getValue(item, f.value);
+                  addr[f.keyField] = val;
                 }
               }));
             } else {
-              addr[this.locatorSource.singleLineFieldName] = this.csvStore.getValue(item, this.addrFieldName);
+              addr[this.locatorSource.singleLineFieldName] = cacheKey;
             }
 
-            //is addr.SingleLine even safe...should just use this.locatorSource.singleLineFieldName
+            var clone = Object.assign({}, addr);
+            delete clone[oid]
+            var cacheKey = JSON.stringify(clone);
 
             var cacheData = itemData ? itemData : {};
-            //TODO should/can I just store the addr here??
-            //if the address is not in the cache add to the list to be geocoded
-            //The single line address used to be the key for this...however...will need a new strategy
-            //Will have to be a way that will ensure that the value stored can be checked in the same way
-            if (!(cacheData && cacheData.hasOwnProperty(addr.SingleLine) ? true : false)) {
+            if (!(cacheData && cacheData.hasOwnProperty(cacheKey) ? true : false)) {
               addresses.push(addr);
 
-              //TODO this will need to change to really support this.
-              //I am thinking that I should sort the multiField values in some way to ensure that we can compare later
-              // then concatenate just for the sake of the cache and key for this object
-              //rather than actually trying to construct the address that may be different witn non-typical US type addresses
-              finalResults[addr.SingleLine] = {
-                address: addr.SingleLine,
+              finalResults[cacheKey] = {
                 index: xx,
                 location: {}
               };
               xx += 1
             } else {
-              finalResults[addr.SingleLine] = {
-                address: addr.SingleLine,
+              finalResults[cacheKey] = {
                 index: -1,
-                location: cacheData[addr.SingleLine].location
+                location: cacheData[cacheKey].location
               };
             }
           }));
           geocodeOps.push(locator.addressesToLocations({
             addresses: addresses,
-            countryCode: this.locatorSource.countryCode
+            countryCode: this.locatorSource.countryCode,
+            outFields: ["ResultID", "Score"]
           }));
         }
+        var keys = Object.keys(finalResults);
 
         var geocodeList = new DeferredList(geocodeOps);
         geocodeList.then(lang.hitch(this, function (results) {
@@ -292,14 +295,12 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
               }));
               var resultsSort = geocodeDataStore.query({}, { sort: [{ attribute: "ResultID" }] });
               array.forEach(resultsSort, function (_r) {
-                //This may be too slow
-                var keys = Object.keys(finalResults);
                 for (var k in keys) {
                   var _i = keys[k];
                   if (finalResults[_i].index === idx) {
                     finalResults[_i].location = _r.location;
                     finalResults[_i].score = _r.attributes["Score"]
-                    keys.splice(k, 1)
+                    delete keys[k];
                     break;
                   }
                 }
@@ -346,7 +347,7 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
           }
         };
 
-        array.forEach(this.arrayFields, lang.hitch(this, function (af) {
+        array.forEach(this.fsFields, lang.hitch(this, function (af) {
           lyr.layerDefinition.fields.push({
             "name": af.name,
             "alias": af.name,
@@ -369,7 +370,7 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
           this.unMatchedFeatureLayer.clear();
         }
         this.file = undefined;
-        this.arrayFields = undefined;
+        this.fsFields = undefined;
         this.data = undefined;
         this.separatorCharacter = undefined;
         this.csvStore = undefined;
@@ -451,10 +452,7 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
           def.resolve({
             fields: this.csvFieldNames,
             fieldTypes: this.fieldTypes,
-            arrayFields: this.arrayFields,
-            singleAddressFields: this.singleAddressFields,
-            multiAddressFields: this.multiAddressFields,
-            xyFields: this.xyFields
+            fsFields: this.fsFields
           });
 
         return def;
@@ -479,22 +477,12 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
             if (source && source.url && source.type === 'locator') {
               var _source = {
                 locator: new Locator(source.url || ""),
-                outFields: ["*"],
+                outFields: ["ResultID", "Score"],
                 singleLineFieldName: source.singleLineFieldName || "",
                 name: jimuUtils.stripHTML(source.name || ""),
                 placeholder: jimuUtils.stripHTML(source.placeholder || ""),
-                countryCode: source.countryCode || "",
-                maxSuggestions: source.maxSuggestions,
-                maxResults: source.maxResults || 6,
-                zoomScale: source.zoomScale || 50000
+                countryCode: source.countryCode || ""
               };
-
-              if (source.enableLocalSearch) {
-                _source.localSearchOptions = {
-                  minScale: source.localSearchMinScale,
-                  distance: source.localSearchDistance
-                };
-              }
               def.resolve(_source);
             } else {
               def.resolve(null);

@@ -36,7 +36,7 @@ define(['dojo/_base/declare',
 
     baseClass: 'jimu-widget-critical-facilities',
 
-    arrayFields: null,
+    fsFields: null,
     myCsvStore: null,
     csvStores: [],
     correctArrayFields: null,
@@ -261,20 +261,17 @@ define(['dojo/_base/declare',
           if (file.name.indexOf(".csv") !== -1) {
             this.myCsvStore = new CsvStore({
               file: file,
-              arrayFields: this._fsFields,
-              singleAddressFields: this.singleAddressFields, //TODO double check but I don't think I'll have any need to pass these through to the store...should just pass them directly with the calls to update field controls below
-              multiAddressFields: this.multiAddressFields,
-              xyFields: this.xyFields,
+              fsFields: this._fsFields,
               map: this.map,
               geocodeSources: this._geocodeSources,
               nls: this.nls,
               appConfig: this.appConfig
             });
             this.myCsvStore.onHandleCsv().then(lang.hitch(this, function (obj) {
-              this._updateFieldControls(this.schemaMapTable, obj, true, true, obj.arrayFields);
-              this._updateFieldControls(this.xyTable, obj, true, true, obj.xyFields);
-              this._updateFieldControls(this.addressTable, obj, false, true, obj.singleAddressFields);
-              this._updateFieldControls(this.addressMultiTable, obj, false, true, obj.multiAddressFields);
+              this._updateFieldControls(this.schemaMapTable, obj, true, true, obj.fsFields);
+              this._updateFieldControls(this.xyTable, obj, true, true, this.xyFields);
+              this._updateFieldControls(this.addressTable, obj, false, true, this.singleAddressFields);
+              this._updateFieldControls(this.addressMultiTable, obj, false, true, this.multiAddressFields);
               this.validateValues();
               domStyle.set(this.schemaMapInstructions, "display", "none");
               domStyle.set(this.mainContainer, "display", "block");
@@ -307,9 +304,7 @@ define(['dojo/_base/declare',
       }
 
       var fields = obj.fields;
-      //var upperFields = fields.map(function (v) { return v.toUpperCase() });
       var fieldTypes = obj.fieldTypes;
-      //var arrayFields = obj.arrayFields;
       var controlNodes = query('.field-node-tr', table);
       var noValue = this.nls.noValue;
       var selectMatchField = false;
@@ -372,7 +367,6 @@ define(['dojo/_base/declare',
             }
           }
         }
-
         node.selectFields.set('value', kf);
       });
     },

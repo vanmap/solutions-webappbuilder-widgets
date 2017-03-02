@@ -51,6 +51,9 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
         this.map = options.map;
         this.arrayFields = options.arrayFields;
         this.geocodeSources = options.geocodeSources;
+        this.singleAddressFields = options.singleAddressFields,
+        this.multiAddressFields = options.multiAddressFields,
+        this.xyFields = options.xyFields,
 
         this.data = null;
         this.separatorCharacter = null;
@@ -448,7 +451,10 @@ function (declare, array, lang, query, on, Deferred, DeferredList, Evented, CsvS
           def.resolve({
             fields: this.csvFieldNames,
             fieldTypes: this.fieldTypes,
-            arrayFields: this.arrayFields
+            arrayFields: this.arrayFields,
+            singleAddressFields: this.singleAddressFields,
+            multiAddressFields: this.multiAddressFields,
+            xyFields: this.xyFields
           });
 
         return def;

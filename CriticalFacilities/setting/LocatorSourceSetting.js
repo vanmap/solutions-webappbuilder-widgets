@@ -113,7 +113,19 @@ define(
         }, domNode);
         this._toggleNode(editNode, false);
         this.own(on(domNode, 'change', lang.hitch(this, function () {
-          this._toggleNode(editNode, domNode.getValue());
+          var enabled = domNode.getValue();
+          switch (domNode.label) {
+            case this.nls.enableSingleField:
+              this.singleEnabled = enabled;
+              break;
+            case this.nls.enableMultiField:
+              this.multiEnabled = enabled;
+              break;
+            case this.nls.enableXYField:
+              this.xyEnabled = enabled;
+              break;
+          }
+          this._toggleNode(editNode, enabled);
         })));
         return domNode;
       },
@@ -145,6 +157,19 @@ define(
         }
         this.config = config;
 
+        if (typeof (this.config.singleEnabled) !== 'undefined') {
+          this.singleEnabled = this.config.singleEnabled;
+          this.enableSingleField.setValue(this.config.singleEnabled);
+        }
+        if (typeof (this.config.multiEnabled) !== 'undefined') {
+          this.multiEnabled = this.config.multiEnabled;
+          this.enableMultiField.setValue(this.config.multiEnabled);
+        }
+        if (typeof (this.config.xyEnabled) !== 'undefined') {
+          this.xyEnabled = this.config.xyEnabled;
+          this.enableXYField.setValue(this.config.xyEnabled);
+        }
+
         this.shelter.show();
         if (this._locatorDefinition.url !== url) {
           this._getDefinitionFromRemote(url).then(lang.hitch(this, function(response) {
@@ -152,7 +177,8 @@ define(
               this._locatorDefinition = response;
               this._locatorDefinition.url = url;
               this._setSourceItems();
-              this._setAddressFields(url);
+              this._setAddressFields(url, this.config);
+              this._setXYFields(this.defaultXYFields, this.config);
               this._setMessageNodeContent(this.exampleHint);
             } else if (url && (response && response.type === 'error')) {
               this._setSourceItems();
@@ -166,6 +192,7 @@ define(
         } else {
           this._setSourceItems();
           this._setAddressFields(url);
+          this._setXYFields(this.defaultXYFields);
           this._setMessageNodeContent(this.exampleHint);
           this.shelter.hide();
         }
@@ -190,9 +217,13 @@ define(
         return {
           url: this.locatorUrl.get('value'),
           name: jimuUtils.stripHTML(this.locatorName.get('value')),
+          singleEnabled: this.singleEnabled,
+          multiEnabled: this.multiEnabled,
+          xyEnabled: this.xyEnabled,
           singleLineFieldName: this.singleLineFieldName,
           addressFields: this.addressFields,
-          xyFields: [],
+          singleAddressFields: this.singleAddressFields,
+          xyFields: this.xyFields,
           countryCode: jimuUtils.stripHTML(this.countryCode.get('value')),
           type: "locator"
         };
@@ -201,18 +232,18 @@ define(
       _editFields: function(type){
         switch (type) {
           case 'single':
-            if (this.enableSingleField.getValue()) {
-              this._editSingleAddressFieldsTableValues();
+            if (this.singleEnabled) {
+              this._editSingleAddressFieldsTableValues(this.singleAddressFields);
             }
             break;
           case 'multi':
-            if (this.enableMultiField.getValue()) {
+            if (this.multiEnabled) {
               this._editMultiAddressFieldsTableValues();
             }
             break;
           case 'xy':
-            if (this.enableXYField.getValue()) {
-              this._editXYFieldsTableValues();
+            if (this.xyEnabled) {
+              this._editXYFieldsTableValues(this.xyFields);
             }
             break;
         }
@@ -220,37 +251,46 @@ define(
 
       _editSingleAddressFieldsTableValues: function (fields) {
         if (this.singleLineField) {
-          this.editSingleAddressFields = new EditFields({
+          var editFields = new EditFields({
             nls: this.nls,
             type: 'locatorFields',
             addressFields: fields || [this.singleLineField],
             popupTitle: this.nls.configureSingleFields,
             disableDisplayOption: true
           });
-          this.editSingleAddressFields.popupEditPage();
+          this.own(on(editFields, 'edit-fields-popup-ok', lang.hitch(this, function () {
+            this.singleAddressFields = editFields.fieldInfos;
+          })));
+          editFields.popupEditPage();
         }
       },
 
       _editMultiAddressFieldsTableValues: function () {
-        this.editMultiAddressFields = new EditFields({
+        var editFields = new EditFields({
           nls: this.nls,
           type: 'locatorFields',
           addressFields: this.addressFields,
           popupTitle: this.nls.configureMultiFields,
           disableDisplayOption: false
         });
-        this.editMultiAddressFields.popupEditPage();
+        this.own(on(editFields, 'edit-fields-popup-ok', lang.hitch(this, function () {
+          this.addressFields = editFields.fieldInfos;
+        })));
+        editFields.popupEditPage();
       },
 
       _editXYFieldsTableValues: function (fields) {
-        this.editXYFields = new EditFields({
+        var editFields = new EditFields({
           nls: this.nls,
           type: 'locatorFields',
           addressFields: fields || this.defaultXYFields,
           popupTitle: this.nls.configureXYFields,
           disableDisplayOption: true
         });
-        this.editXYFields.popupEditPage();
+        this.own(on(editFields, 'edit-fields-popup-ok', lang.hitch(this, function () {
+          this.xyFields = editFields.fieldInfos;
+        })));
+        editFields.popupEditPage();
       },
 
       _onLocatorNameBlur: function() {
@@ -264,11 +304,17 @@ define(
       _disableSourceItems: function() {
         this.locatorName.set('disabled', true);
         this.countryCode.set('disabled', true);
+        this.enableSingleField.set('disabled', true);
+        this.enableMultiField.set('disabled', true);
+        this.enableXYField.set('disabled', true);
       },
 
       _enableSourceItems: function() {
         this.locatorName.set('disabled', false);
         this.countryCode.set('disabled', false);
+        this.enableSingleField.set('disabled', false);
+        this.enableMultiField.set('disabled', false);
+        this.enableXYField.set('disabled', false);
       },
 
       _setSourceItems: function() {
@@ -308,34 +354,43 @@ define(
         this._enableSourceItems();
       },
 
-      _setAddressFields: function (url) {
-        if (!(url)) {
+      _setAddressFields: function (url, config) {
+        if (!(url) && !config) {
           return;
         }
-        esriRequest({
-          url: url,
-          content: {
-            f: 'json'
-          },
-          handleAs: 'json',
-          callbackParamName: 'callback'
-        }).then(lang.hitch(this, function (response) {
-          if (response && response.addressFields) {
-            this.addressFields = response.addressFields;
-            //this._setAddressFieldsTableValues();
-          } else {
-            //disable the checkbox and hide the table
-            //html.setStyle(this.enableMultiField, 'enable', 'false');
-            html.setStyle(this.multiFieldList, 'display', 'none');
-          }
+        if (config && config.addressFields && config.singleAddressFields) {
+          this.addressFields = config.addressFields;
+          this.singleLineFieldName = config.singleLineFieldName;
+          this.singleLineField = config.singleAddressFields[0];//TODO get rid of this
+          this.singleAddressFields = config.singleAddressFields;
+        } else {
+          esriRequest({
+            url: url,
+            content: {
+              f: 'json'
+            },
+            handleAs: 'json',
+            callbackParamName: 'callback'
+          }).then(lang.hitch(this, function (response) {
+            if (response && response.addressFields) {
+              this.addressFields = response.addressFields;
+            }
 
-          if (response && response.singleLineAddressField && response.singleLineAddressField.name) {
-            this.singleLineFieldName = response.singleLineAddressField.name;
-            this.singleLineField = response.singleLineAddressField;
-          }
-        }), lang.hitch(this, function (err) {
-          console.error(err);
-        }));
+            if (response && response.singleLineAddressField && response.singleLineAddressField.name) {
+              this.singleLineFieldName = response.singleLineAddressField.name;
+              this.singleLineField = response.singleLineAddressField;//TODO get rid of this
+              this.singleAddressFields = [response.singleLineAddressField];
+            }
+          }), lang.hitch(this, function (err) {
+            console.error(err);
+          }));
+        }
+      },
+
+      _setXYFields: function (xyFields, config) {
+        var useConfig = config && config.xyFields &&
+          config.xyFields.hasOwnProperty('length') && config.xyFields.length > 0;
+        this.xyFields = useConfig ? config.xyFields : xyFields;
       },
 
       _isEsriLocator: function(url) {
@@ -530,9 +585,6 @@ define(
 
       _toggleNode: function (domNode, enable) {
         if (domNode) {
-          //domClass.remove(domNode, enable ? 'edit-fields-disabled' : 'edit-fields');
-          //domClass.add(domNode, enable ? 'edit-fields' : 'edit-fields-disabled');
-
           html.removeClass(domNode, enable ? 'edit-fields-disabled' : 'edit-fields');
           html.addClass(domNode, enable ? 'edit-fields' : 'edit-fields-disabled');
         }
@@ -545,35 +597,6 @@ define(
         } else {
           html.addClass(this.countryCodeRow, 'hide-country-code-row');
         }
-      },
-
-      //_createAddressFieldsTable: function(){
-      //  this.sourceList = new SimpleTable({
-      //    autoHeight: false,
-      //    selectable: true,
-      //    fields: [{
-      //      name: "name",
-      //      title: this.nls.name,
-      //      width: "auto",
-      //      type: "text",
-      //      editable: false
-      //    }, {
-      //      name: "actions",
-      //      title: "",
-      //      width: "80px",
-      //      type: "actions",
-      //      actions: ["edit", "up", "down", "delete"]
-      //    }]
-      //  }, this.sourceList);
-      //  html.setStyle(this.sourceList.domNode, 'height', '100%');
-      //  this.sourceList.startup();
-      //  this.own(on(this.sourceList, 'row-select', lang.hitch(this, this._onSourceItemSelected)));
-      //  this.own(on(this.sourceList, 'row-delete', lang.hitch(this, this._onSourceItemRemoved)));
-      //  this.own(on(this.sourceList, 'row-edit', lang.hitch(this, this._onSourceItemEdit)));
-      //},
-
-      _getAddressFieldsTableValues: function () {
-        //var data = this.editAddressFields.someMethodToGetTheData();
       },
 
       _showValidationErrorTip: function(_dijit) {

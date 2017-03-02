@@ -107,13 +107,7 @@ define(['dojo/_base/declare',
 
           //TODO need to understand what we should do if they have multiple locators and each locator has multiple fileds that differ from each other
           //for now I will just add from the first source
-          array.forEach(this._geocodeSources[0].addressFields, lang.hitch(this, function (addr) {
-            this.addFieldRow(this.addressMultiTable, addr.name, addr.alias);
-          }));
-
-          this.addFieldRow(this.addressTable, this.nls.addressFieldLabel, this.nls.addressFieldLabel);
-          this.addFieldRow(this.xyTable, this.nls.xyFieldsLabelX, this.nls.xyFieldsLabelX);
-          this.addFieldRow(this.xyTable, this.nls.xyFieldsLabelY, this.nls.xyFieldsLabelY);
+          this._addLocationFieldRows(this._geocodeSources[0]);
         }
 
         LayerInfos.getInstance(this.map, this.map.itemInfo).then(lang.hitch(this, function (operLayerInfos) {
@@ -123,6 +117,64 @@ define(['dojo/_base/declare',
       } else {
         domStyle.set(this.schemaMapInstructions, "display", "none");
         domStyle.set(this.loadWarning, "display", "block");
+      }
+    },
+
+    _addLocationFieldRows: function (src) {
+      this.singleAddressFields = [];
+      if (src.singleEnabled) {
+        //domStyle.set(this.useAddrNode, 'display', 'inline-block');
+        var field = src.singleAddressFields[0];
+        this.singleAddressFields.push({
+          name: field.fieldName,
+          value: field.type,
+          isRecognizedValues: field.isRecognizedValues
+        });
+        this.addFieldRow(this.addressTable, field.fieldName, field.label);
+      } else {
+        //domStyle.set(this.useAddrNode, 'display', 'none');
+      }
+
+      this.multiAddressFields = [];
+      if (src.multiEnabled) {
+        //domStyle.set(this.useMultiAddrNode, 'display', 'inline-block');
+
+        array.forEach(src.addressFields, lang.hitch(this, function (field) {
+          if (field.visible) {
+            this.multiAddressFields.push({
+              name: field.fieldName,
+              value: field.type,
+              isRecognizedValues: field.isRecognizedValues
+            });
+            this.addFieldRow(this.addressMultiTable, field.fieldName, field.label);
+          }
+        }));
+      } else {
+        //domStyle.set(this.useMultiAddrNode, 'display', 'none');
+      }
+
+      this.xyFields = [];
+      if (src.xyEnabled) {
+        //domStyle.set(this.useXYNode, 'display', 'inline-block');
+        var xField = src.xyFields[0].fieldName === this.nls.xyFieldsLabelX ? src.xyFields[0] : src.xyFields[1];
+        var yField = src.xyFields[1].fieldName === this.nls.xyFieldsLabelY ? src.xyFields[1] : src.xyFields[0];
+
+        this.xyFields.push({
+          name: xField.fieldName,
+          value: xField.type,
+          isRecognizedValues: xField.isRecognizedValues
+        });
+
+        this.xyFields.push({
+          name: yField.fieldName,
+          value: yField.type,
+          isRecognizedValues: yField.isRecognizedValues
+        });
+
+        this.addFieldRow(this.xyTable, xField.fieldName, xField.label);
+        this.addFieldRow(this.xyTable, yField.fieldName, yField.label);
+      } else {
+        //domStyle.set(this.useXYNode, 'display', 'none');
       }
     },
 
@@ -210,16 +262,19 @@ define(['dojo/_base/declare',
             this.myCsvStore = new CsvStore({
               file: file,
               arrayFields: this._fsFields,
+              singleAddressFields: this.singleAddressFields, //TODO double check but I don't think I'll have any need to pass these through to the store...should just pass them directly with the calls to update field controls below
+              multiAddressFields: this.multiAddressFields,
+              xyFields: this.xyFields,
               map: this.map,
               geocodeSources: this._geocodeSources,
               nls: this.nls,
               appConfig: this.appConfig
             });
             this.myCsvStore.onHandleCsv().then(lang.hitch(this, function (obj) {
-              this._updateFieldControls(this.schemaMapTable, obj, true, true);
-              this._updateFieldControls(this.xyTable, obj, true, false);
-              this._updateFieldControls(this.addressTable, obj, false, false);
-              this._updateFieldControls(this.addressMultiTable, obj, false, false);
+              this._updateFieldControls(this.schemaMapTable, obj, true, true, obj.arrayFields);
+              this._updateFieldControls(this.xyTable, obj, true, true, obj.xyFields);
+              this._updateFieldControls(this.addressTable, obj, false, true, obj.singleAddressFields);
+              this._updateFieldControls(this.addressMultiTable, obj, false, true, obj.multiAddressFields);
               this.validateValues();
               domStyle.set(this.schemaMapInstructions, "display", "none");
               domStyle.set(this.mainContainer, "display", "block");
@@ -239,10 +294,22 @@ define(['dojo/_base/declare',
       domStyle.set(this.xyBodyContainer, "display", type === "xy" ? "block" : "none");
     },
 
-    _updateFieldControls: function (table, obj, checkFieldTypes, checkArrayFields) {
+    _updateFieldControls: function (table, obj, checkFieldTypes, checkArrayFields, arrayFields) {
+      if (typeof Array.prototype.rxIndexOf === 'undefined') {
+        Array.prototype.rxIndexOf = function (rx) {
+          for (var i in this) {
+            if (this[i].toString().match(rx)) {
+              return i;
+            }
+          }
+          return -1;
+        };
+      }
+
       var fields = obj.fields;
+      //var upperFields = fields.map(function (v) { return v.toUpperCase() });
       var fieldTypes = obj.fieldTypes;
-      var arrayFields = obj.arrayFields;
+      //var arrayFields = obj.arrayFields;
       var controlNodes = query('.field-node-tr', table);
       var noValue = this.nls.noValue;
       var selectMatchField = false;
@@ -296,9 +363,9 @@ define(['dojo/_base/declare',
           if (af.name === node.keyField) {
             if (typeof (af.isRecognizedValues) !== 'undefined') {
               for (var ii = 0; ii < af.isRecognizedValues.length; ii++) {
-                var irv = af.isRecognizedValues[ii];
-                if (fields.indexOf(irv) > -1) {
-                  kf = irv;
+                var idx = fields.rxIndexOf(new RegExp(af.isRecognizedValues[ii], "i"));//case insensitive
+                if (idx > -1) {
+                  kf = fields[idx];
                   break;
                 }
               }

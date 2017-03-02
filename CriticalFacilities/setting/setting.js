@@ -76,6 +76,9 @@ define([
       //TODO force to upper for is recognized name compare
 
 
+      //TODO something is messed up with multi field when I choose some...ok my way out...save....and repoen the config
+      //TODO add logic for needing at least one of the checkboxes checked...ok should disable
+
       _operLayerInfos: null,
       _layersTable: null,
       _editablePointLayerInfos: null,
@@ -85,8 +88,26 @@ define([
       startup: function () {
         this.inherited(arguments);
 
+        this.nls = lang.mixin(this.nls, window.jimuNls.common);
+
         if (!(this.config && this.config.sources)) {
           this.config.sources = [];
+        }
+
+        if (!this.config.defaultXYFields) {
+          this.config.defaultXYFields = [{
+            "name": this.nls.xyFieldsLabelX,
+            "alias": this.nls.xyFieldsLabelX,
+            "visible": true,
+            "isRecognizedValues": [this.nls.xyFieldsLabelX, this.nls.longitude],
+            "type": "STRING"
+          }, {
+            "name": this.nls.xyFieldsLabelY,
+            "alias": this.nls.xyFieldsLabelY,
+            "visible": true,
+            "isRecognizedValues": [this.nls.xyFieldsLabelX, this.nls.latitude],
+            "type": "STRING"
+          }];
         }
 
         LayerInfos.getInstance(this.map, this.map.itemInfo)
@@ -97,6 +118,7 @@ define([
             _utils.setMap(this.map);
             _utils.setLayerInfosObj(this._operLayerInfos);
             _utils.setAppConfig(this.appConfig);
+            _utils.setDefaultXYFields(this.config.defaultXYFields);
             when(_utils.getConfigInfo(this.config)).then(lang.hitch(this, function (config) {
               if (!this.domNode) {
                 return;
@@ -173,14 +195,13 @@ define([
             title: "",
             width: "80px",
             type: "actions",
-            actions: ["edit", "up", "down", "delete"]
+            actions: ["up", "down", "delete"]
           }]
         }, this.sourceList);
         html.setStyle(this.sourceList.domNode, 'height', '100%');
         this.sourceList.startup();
         this.own(on(this.sourceList, 'row-select', lang.hitch(this, this._onSourceItemSelected)));
         this.own(on(this.sourceList, 'row-delete', lang.hitch(this, this._onSourceItemRemoved)));
-        this.own(on(this.sourceList, 'row-edit', lang.hitch(this, this._onSourceItemEdit)));
       },
 
       _addLayerRows: function () {
@@ -477,11 +498,13 @@ define([
           url: setting.url || "",
           name: setting.name || "",
           singleLineFieldName: setting.singleLineFieldName || "",
-          placeholder: setting.placeholder || "",
           countryCode: setting.countryCode || "",
-          zoomScale: setting.zoomScale || 50000,
-          maxSuggestions: setting.maxSuggestions || 6,
-          maxResults: setting.maxResults || 6,
+          addressFields: setting.addressFields || [],
+          singleAddressFields: setting.singleAddressFields || [],
+          xyFields: setting.xyFields || [],
+          singleEnabled: setting.singleEnabled || false,
+          multiEnabled: setting.multiEnabled || false,
+          xyEnabled: setting.xyEnabled || false,
           type: "locator"
         });
         locatorSetting._openLocatorChooser();
@@ -498,7 +521,6 @@ define([
               locatorSetting.setRelatedTr(addResult.tr);
               locatorSetting.placeAt(this.sourceSettingNode);
               this.sourceList.selectRow(addResult.tr);
-
               this._currentSourceSetting = locatorSetting;
             }
           }))
@@ -536,14 +558,13 @@ define([
           url: setting.url || "",
           name: setting.name || "",
           singleLineFieldName: setting.singleLineFieldName || "",
-          placeholder: setting.placeholder || "",
           countryCode: setting.countryCode || "",
-          zoomScale: setting.zoomScale || 50000,
-          maxSuggestions: setting.maxSuggestions || 6,
-          maxResults: setting.maxResults || 6,
-          enableLocalSearch: !!setting.enableLocalSearch,
-          localSearchMinScale: setting.localSearchMinScale,
-          localSearchDistance: setting.localSearchDistance,
+          addressFields: setting.addressFields,
+          singleAddressFields: setting.singleAddressFields,
+          xyFields: setting.xyFields,
+          singleEnabled: setting.singleEnabled,
+          multiEnabled: setting.multiEnabled,
+          xyEnabled: setting.xyEnabled,
           type: "locator"
         });
         this._currentSourceSetting.setRelatedTr(relatedTr);
@@ -584,10 +605,6 @@ define([
           return;
         }
         this._createNewLocatorSourceSettingFromSourceList(config, config._definition || {}, tr);
-      },
-
-      _onSourceItemEdit: function(tr){
-        alert('edit');
       },
 
       _setRowConfig: function (tr, source) {

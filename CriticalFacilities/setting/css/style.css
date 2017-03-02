@@ -290,18 +290,6 @@
   height: 300px;
 }
 
-/*.jimu-widget-setting-critical-facilities .sHeight{
-  min-height: 25px;
-  display: block;
-  left: 10px;
-}
-
-.jimu-rtl .jimu-widget-setting-critical-facilities .sHeight{
-  min-height: 25px;
-  display: block;
-  right: 10px;
-}*/
-
 .jimu-widget-setting-critical-facilities .edit-fields {
   display: block;
   width: 25px;
@@ -311,7 +299,7 @@
 
 .jimu-widget-setting-critical-facilities .fields-table > tbody > tr {
   margin: 10px;
-  cursor: pointer;
+  cursor: default;
 }
 
 .jimu-widget-setting-critical-facilities .fields-table > tbody > tr:hover > td .edit-fields {

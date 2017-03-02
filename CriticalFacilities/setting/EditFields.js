@@ -18,14 +18,15 @@ define(['dojo/_base/declare',
     'dojo/_base/array',
     'dojo/query',
     'dojo/on',
+    'dojo/Evented',
     'dijit/_TemplatedMixin',
     'jimu/BaseWidgetSetting',
     'jimu/dijit/SimpleTable',
     'jimu/dijit/Popup',
     './LookupList'
   ],
-  function (declare, lang, array, query, on, _TemplatedMixin, BaseWidgetSetting, SimpleTable, Popup, LookupList) {
-    return declare([BaseWidgetSetting, _TemplatedMixin], {
+  function (declare, lang, array, query, on, Evented, _TemplatedMixin, BaseWidgetSetting, SimpleTable, Popup, LookupList) {
+    return declare([BaseWidgetSetting, _TemplatedMixin, Evented], {
       baseClass: "jimu-widget-setting-fields-critical-facilities",
       templateString: '<div><div data-dojo-attach-point="fieldsTable"></div></div>',
       _layerInfo: null,
@@ -37,6 +38,8 @@ define(['dojo/_base/declare',
         this.inherited(arguments);
         this.nls = lang.mixin(this.nls, window.jimuNls.common);
         this._initFieldsTable();
+
+        //Accepts data from a layers fieldInfos, the locators field definitions, XY fields that are defined in the config file
         if (this.type === 'fieldInfos') {
           this.popupTitle = this.nls.configureFields;
           this._setFieldsTable(this._layerInfo.fieldInfos);
@@ -45,7 +48,7 @@ define(['dojo/_base/declare',
         }
       },
 
-      popupEditPage: function() {
+      popupEditPage: function () {
         var fieldsPopup = new Popup({
           titleLabel: this.popupTitle,
           width: 640,
@@ -57,15 +60,18 @@ define(['dojo/_base/declare',
             onClick: lang.hitch(this, function() {
               this._resetFieldInfos();
               fieldsPopup.close();
+              this.emit('edit-fields-popup-ok');
             })
           }, {
             label: this.nls.cancel,
             classNames: ['jimu-btn-vacation'],
             onClick: lang.hitch(this, function() {
               fieldsPopup.close();
+              this.emit('edit-fields-popup-cancel');
             })
           }],
-          onClose: lang.hitch(this, function() {
+          onClose: lang.hitch(this, function () {
+            this.emit('edit-fields-popup-close');
           })
         });
       },
@@ -153,21 +159,27 @@ define(['dojo/_base/declare',
 
       _setAddressFieldsTable: function (fields) {
         array.forEach(fields, function (field) {
-          this._fieldsTable.addRow({
-            fieldName: field.name,
-            label: field.alias,
-            visible: field.hasOwnProperty('visible') ? field.visible : false,
-            type: "STRING",
-            isRecognizedValues: field.recognizedNames[navigator.language.toLowerCase()]//TODO check if this is a safe way to get the locale
-          });
+          //TODO check if this is a safe way to get the locale
+          var l = navigator.language.toLowerCase();
+          if (field.hasOwnProperty('fieldName') && field.hasOwnProperty('isRecognizedValues')) {
+            this._fieldsTable.addRow(field);
+          } else {
+            this._fieldsTable.addRow({
+              fieldName: field.localizedNames && field.hasOwnProperty(l) ? field.localizedNames[l] : field.name,
+              label: field.localizedNames && field.hasOwnProperty(l) ? field.localizedNames[l] : field.alias,
+              visible: field.hasOwnProperty('visible') ? field.visible : false,
+              type: "STRING",
+              isRecognizedValues: field.recognizedNames ? field.recognizedNames[l] : field.isRecognizedValues
+            });
+          }
         }, this);
       },
 
       _onDisplayFieldChanged: function(tr) {
         var rowData = this._fieldsTable.getRowData(tr);
-        if (!rowData.visible) {
+        //if (!rowData.visible) {
           this._fieldsTable.editRow(tr, rowData);
-        }
+        //}
       },
 
       _onIsRecognizedListChanged: function (tr) {
@@ -190,6 +202,8 @@ define(['dojo/_base/declare',
         });
         if (this.type === 'fieldInfos') {
           this._layerInfo.fieldInfos = newFieldInfos;
+        } else {
+          this.fieldInfos = newFieldInfos;
         }
       },
 

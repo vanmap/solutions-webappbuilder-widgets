@@ -319,11 +319,11 @@
 }
 
 .upImage{
-  background-image: url(./images/nav_up.png);
+  background-image: url(../images/nav_up.png);
 }
 
 .downImage{
-  background-image: url(./images/nav_down.png);
+  background-image: url(../images/nav_down.png);
 }
 
 .baseImage{

@@ -93,7 +93,7 @@ define([
 
         if (!this.config.defaultXYFields) {
           this.config.defaultXYFields = [{
-            "name": this.nls.xyFieldsLabelX,
+            "fieldName": this.nls.xyFieldsLabelX,
             "alias": this.nls.xyFieldsLabelX,
             "visible": true,
             "isRecognizedValues": [this.nls.xyFieldsLabelX, this.nls.longitude],

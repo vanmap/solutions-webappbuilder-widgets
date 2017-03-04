@@ -31,7 +31,9 @@ define([
       // if the file exists and user can read
       // if the user can create/modify
       //TODO make the file name configurable??
-
+      //TODO add logic for free suggestion verification...idea is to double check the suggestion result and prompt the user
+      // to make a decision when the x/y in the cache don't match that of the first suggestion...if they choose to use 
+      // the new value that would again incur another credit to get the updated geometry
 
       appendValue: "A12234",
 

@@ -121,16 +121,19 @@ define(['dojo/_base/declare',
     },
 
     _addLocationFieldRows: function (src) {
+      var l = navigator.language.toLowerCase();
       this.singleAddressFields = [];
       if (src.singleEnabled) {
         //domStyle.set(this.useAddrNode, 'display', 'inline-block');
         var field = src.singleAddressFields[0];
+        var rv = (field.recognizedNames && field.recognizedNames.hasOwnProperty(l)) ? field.recognizedNames[l] : [];
+
         this.singleAddressFields.push({
-          name: field.fieldName,
-          value: field.type,
-          isRecognizedValues: field.isRecognizedValues
+          name: field.fieldName || field.name,
+          value: field.type, //TODO ??
+          isRecognizedValues: field.isRecognizedValues || rv
         });
-        this.addFieldRow(this.addressTable, field.fieldName, field.label);
+        this.addFieldRow(this.addressTable, field.fieldName || field.name, field.label || field.alias);
       } else {
         //domStyle.set(this.useAddrNode, 'display', 'none');
       }
@@ -141,12 +144,13 @@ define(['dojo/_base/declare',
 
         array.forEach(src.addressFields, lang.hitch(this, function (field) {
           if (field.visible) {
+            var rv = (field.recognizedNames && field.recognizedNames.hasOwnProperty(l)) ? field.recognizedNames[l] : [];
             this.multiAddressFields.push({
-              name: field.fieldName,
-              value: field.type,
-              isRecognizedValues: field.isRecognizedValues
+              name: field.fieldName || field.name,
+              value: field.type, //TODO ??
+              isRecognizedValues: field.isRecognizedValues || rv
             });
-            this.addFieldRow(this.addressMultiTable, field.fieldName, field.label);
+            this.addFieldRow(this.addressMultiTable, field.fieldName || field.name, field.label || field.alias);
           }
         }));
       } else {
@@ -156,23 +160,25 @@ define(['dojo/_base/declare',
       this.xyFields = [];
       if (src.xyEnabled) {
         //domStyle.set(this.useXYNode, 'display', 'inline-block');
-        var xField = src.xyFields[0].fieldName === this.nls.xyFieldsLabelX ? src.xyFields[0] : src.xyFields[1];
-        var yField = src.xyFields[1].fieldName === this.nls.xyFieldsLabelY ? src.xyFields[1] : src.xyFields[0];
+        var fieldOne = src.xyFields[0].fieldName || src.xyFields[0].name;
+        var xField = fieldOne === this.nls.xyFieldsLabelX ? src.xyFields[0] : src.xyFields[1];
+        var fieldTwo = src.xyFields[1].fieldName || src.xyFields[1].name;
+        var yField = fieldTwo === this.nls.xyFieldsLabelY ? src.xyFields[1] : src.xyFields[0];
 
         this.xyFields.push({
-          name: xField.fieldName,
+          name: xField.fieldName || xField.name,
           value: xField.type,
           isRecognizedValues: xField.isRecognizedValues
         });
 
         this.xyFields.push({
-          name: yField.fieldName,
+          name: yField.fieldName || yField.name,
           value: yField.type,
           isRecognizedValues: yField.isRecognizedValues
         });
 
-        this.addFieldRow(this.xyTable, xField.fieldName, xField.label);
-        this.addFieldRow(this.xyTable, yField.fieldName, yField.label);
+        this.addFieldRow(this.xyTable, xField.fieldName || xField.name, xField.label || xField.alias);
+        this.addFieldRow(this.xyTable, yField.fieldName || yField.name, yField.label || yField.alias);
       } else {
         //domStyle.set(this.useXYNode, 'display', 'none');
       }

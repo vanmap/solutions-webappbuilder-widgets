@@ -223,7 +223,7 @@ define(
           singleLineFieldName: this.singleLineFieldName,
           addressFields: this.addressFields,
           singleAddressFields: this.singleAddressFields,
-          xyFields: this.xyFields,
+          xyFields: this.xyFields || this.config.defaultXYFields,
           countryCode: jimuUtils.stripHTML(this.countryCode.get('value')),
           type: "locator"
         };
@@ -405,8 +405,10 @@ define(
           resultDef.resolve({
             singleLineAddressField: {
               name: "SingleLine",
+              fieldName: "SingleLine",
               type: "esriFieldTypeString",
               alias: "Single Line Input",
+              label: "Single Line Input",
               required: false,
               length: 200,
               localizedNames: {},

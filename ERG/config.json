@@ -21,7 +21,7 @@
     },
     "demographicLayer": {
         "url": "http://sampleserver6.arcgisonline.com/arcgis/rest/services/Census/MapServer/1",
-        "label": "Age under 5",
+        "label": "Demographic Data",
         "labelField": "NAME",
         "fields": ["*"],
         "medias": [{

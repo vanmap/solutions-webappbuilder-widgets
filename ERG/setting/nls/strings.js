@@ -17,7 +17,7 @@ define({
     facilitiesLabelField: "Label Field",
     demographicLabelField: "Label Field",
     demographicLabel: "Description",
-    demographicMedia: "Medias"
+    demographicMedia: "Media"
   },
   "ar": false,
   "cs": true,

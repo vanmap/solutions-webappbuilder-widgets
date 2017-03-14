@@ -50,7 +50,7 @@
     configureXYFields: "Configure X/Y Fields",
     display: "Display",
     noSelectField: "Please select the Feature Layer option first",
-    newNamePlaceholder: "Double-click the row to edit",
+    newNamePlaceholder: "",
     xyFieldsLabelX: "X",
     xyFieldsLabelY: "Y"
   }),

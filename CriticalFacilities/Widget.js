@@ -70,38 +70,7 @@ define(['dojo/_base/declare',
       this.singleEnabled = this.config.sources[0].singleEnabled;
       this.multiEnabled = this.config.sources[0].multiEnabled;
 
-      var numEnabled = 0;
-      if (this.singleEnabled) {
-        numEnabled += 1;
-        this.own(on(this.useAddrNode, 'click', lang.hitch(this, this.onChooseType, 'addr')));
-        domStyle.set(this.addressBodyContainer, "display", "block");
-      } else {
-        domStyle.set(this.addressBodyContainer, "display", "none");
-        domStyle.set(this.useAddrNodeContainer, "display", "none");
-      }
-      if (this.multiEnabled) {
-        numEnabled += 1;
-        this.own(on(this.useMultiAddrNode, 'click', lang.hitch(this, this.onChooseType, 'multi-addr')));
-        domStyle.set(this.addressMultiBodyContainer, "display", !this.singleEnabled ? "block" : "none");
-      } else {
-        domStyle.set(this.addressMultiBodyContainer, "display", "none");
-        domStyle.set(this.useMultiAddrNodeContainer, "display", "none");
-      }
-      if (this.xyEnabled) {
-        numEnabled += 1;
-        this.own(on(this.useXYNode, 'click', lang.hitch(this, this.onChooseType, 'xy')));
-        domStyle.set(this.xyBodyContainer, "display", (!this.singleEnabled && !this.multiEnabled) ? "block" : "none");
-      } else {
-        domStyle.set(this.xyBodyContainer, "display", "none");
-        domStyle.set(this.useXYNodeContainer, "display", "none");
-      }
-
-      //if only one is enabled hide the radio btn and label and adjust the padding
-      if (numEnabled === 1) {
-        domStyle.set(this.singleEnabled ? this.useAddrNodeContainer : this.multiEnabled ? this.useMultiAddrNodeContainer : this.useXYNodeContainer, "display", "none");
-        var bodyContainer = this.singleEnabled ? this.addressBodyContainer : this.multiEnabled ? this.addressMultiBodyContainer : this.xyBodyContainer;
-        domStyle.set(bodyContainer, window.isRTL ? "padding-right" : "padding-left", "0px");
-      }
+      this._initLocationUI();
     
       domStyle.set(this.processingNode, 'display', 'none');
 
@@ -134,9 +103,7 @@ define(['dojo/_base/declare',
             }
           }));
 
-          //TODO need to understand what we should do if they have multiple locators and each locator has multiple fileds that differ from each other
-          //for now I will just add from the first source
-          this._addLocationFieldRows(this._geocodeSources[0]);
+          this._addLocationFieldRows();
         }
 
         LayerInfos.getInstance(this.map, this.map.itemInfo).then(lang.hitch(this, function (operLayerInfos) {
@@ -149,37 +116,96 @@ define(['dojo/_base/declare',
       }
     },
 
-    _addLocationFieldRows: function (src) {
-      var l = navigator.language.toLowerCase();
-      this.singleAddressFields = [];
-      if (src.singleEnabled) {
-        var field = src.singleAddressFields[0];
-        var rv = (field.recognizedNames && field.recognizedNames.hasOwnProperty(l)) ? field.recognizedNames[l] : [];
-
-        this.singleAddressFields.push({
-          name: field.fieldName || field.name,
-          value: field.type, //TODO ??
-          isRecognizedValues: field.isRecognizedValues || rv
-        });
-        this.addFieldRow(this.addressTable, field.fieldName || field.name, field.label || field.alias);
+    _initLocationUI: function () {
+      var numEnabled = 0;
+      if (this.singleEnabled) {
+        numEnabled += 1;
+        this.own(on(this.useAddrNode, 'click', lang.hitch(this, this.onChooseType, 'addr')));
+        domStyle.set(this.addressBodyContainer, "display", "block");
+      } else {
+        domStyle.set(this.addressBodyContainer, "display", "none");
+        domStyle.set(this.useAddrNodeContainer, "display", "none");
+      }
+      if (this.multiEnabled) {
+        numEnabled += 1;
+        this.own(on(this.useMultiAddrNode, 'click', lang.hitch(this, this.onChooseType, 'multi-addr')));
+        domStyle.set(this.addressMultiBodyContainer, "display", !this.singleEnabled ? "block" : "none");
+      } else {
+        domStyle.set(this.addressMultiBodyContainer, "display", "none");
+        domStyle.set(this.useMultiAddrNodeContainer, "display", "none");
+      }
+      if (this.xyEnabled) {
+        numEnabled += 1;
+        this.own(on(this.useXYNode, 'click', lang.hitch(this, this.onChooseType, 'xy')));
+        domStyle.set(this.xyBodyContainer, "display", (!this.singleEnabled && !this.multiEnabled) ? "block" : "none");
+      } else {
+        domStyle.set(this.xyBodyContainer, "display", "none");
+        domStyle.set(this.useXYNodeContainer, "display", "none");
       }
 
+      if (numEnabled === 1) {
+        domStyle.set(this.singleEnabled ? this.useAddrNodeContainer : this.multiEnabled ? this.useMultiAddrNodeContainer : this.useXYNodeContainer, "display", "none");
+        var bodyContainer = this.singleEnabled ? this.addressBodyContainer : this.multiEnabled ? this.addressMultiBodyContainer : this.xyBodyContainer;
+        domStyle.set(bodyContainer, window.isRTL ? "padding-right" : "padding-left", "0px");
+      }
+    },
+
+    _addLocationFieldRows: function () {
+      var l = navigator.language.toLowerCase();
+      this.singleAddressFields = [];
       this.multiAddressFields = [];
-      if (src.multiEnabled) {
-        array.forEach(src.addressFields, lang.hitch(this, function (field) {
-          if (field.visible) {
-            var rv = (field.recognizedNames && field.recognizedNames.hasOwnProperty(l)) ? field.recognizedNames[l] : [];
-            this.multiAddressFields.push({
-              name: field.fieldName || field.name,
+      this.xyFields = [];
+
+      var singleFieldAliases = [];
+      var multiFieldAliases = [];
+      var xyFieldAliases = [];
+
+      for (var i = 0; i < this._geocodeSources.length; i++) {
+        var src = this._geocodeSources[0];
+        var name = "";
+        var label = "";
+
+        if (src.singleEnabled) {
+          var field = src.singleAddressFields[0];
+          var rv = (field.recognizedNames && field.recognizedNames.hasOwnProperty(l)) ? field.recognizedNames[l] : [];
+          label = field.label || field.alias;
+          name = field.fieldName || field.name;
+          if (singleFieldAliases.indexOf(label) === -1) {
+            singleFieldAliases.push(label);
+            this.singleAddressFields.push({
+              name: name,
               value: field.type, //TODO ??
               isRecognizedValues: field.isRecognizedValues || rv
             });
-            this.addFieldRow(this.addressMultiTable, field.fieldName || field.name, field.label || field.alias);
+            this.addFieldRow(this.addressTable, name, label);
+          } else {
+            //update isRecognizedValues
           }
-        }));
+        }
+     
+        if (src.multiEnabled) {
+          array.forEach(src.addressFields, lang.hitch(this, function (field) {
+            if (field.visible) {
+              label = field.label || field.alias;
+              name = field.fieldName || field.name;
+              var rv = (field.recognizedNames && field.recognizedNames.hasOwnProperty(l)) ? field.recognizedNames[l] : [];
+              if (multiFieldAliases.indexOf(label) === -1) {
+                multiFieldAliases.push(label);
+                this.multiAddressFields.push({
+                  name: name,
+                  value: field.type, //TODO ??
+                  isRecognizedValues: field.isRecognizedValues || rv
+                });
+                this.addFieldRow(this.addressMultiTable, name, label);
+              } else {
+                //update isRecognizedValues
+              }
+            }
+          }));
+        }
       }
 
-      this.xyFields = [];
+      //independant of configured locators
       if (this.xyEnabled) {
         var fieldOne = this.config.xyFields[0].fieldName || this.config.xyFields[0].name;
         var xField = fieldOne === this.nls.xyFieldsLabelX ? this.config.xyFields[0] : this.config.xyFields[1];

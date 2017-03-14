@@ -66,11 +66,6 @@ define(
     return declare([
       _WidgetBase, _TemplatedMixin, _WidgetsInTemplateMixin, Evented
     ], {
-
-      //TODO need to persist changes to multi-fields, single-fields, and xy-fields
-      // also need to be able to reload from the persisted options
-
-
       baseClass: "jimu-widget-search-locator-source-setting",
       tr: null,
       nls: null,
@@ -78,7 +73,6 @@ define(
       singleLineFieldName: null,
       templateString: template,
 
-      //_suggestible: false,
       _locatorDefinition: null,
       _esriLocatorRegExp: /http(s)?:\/\/geocode(.){0,3}\.arcgis.com\/arcgis\/rest\/services\/World\/GeocodeServer/g,
       serviceChooserContent: null,
@@ -273,7 +267,6 @@ define(
         this.countryCode.set('disabled', true);
         this.enableSingleField.set('disabled', true);
         this.enableMultiField.set('disabled', true);
-        ////this.enableXYField.set('disabled', true);
       },
 
       _enableSourceItems: function() {
@@ -281,7 +274,6 @@ define(
         this.countryCode.set('disabled', false);
         this.enableSingleField.set('disabled', false);
         this.enableMultiField.set('disabled', false);
-        ////this.enableXYField.set('disabled', false);
       },
 
       _setSourceItems: function() {
@@ -509,7 +501,7 @@ define(
 
             this._locatorDefinition = response;
             this._locatorDefinition.url = url;
-
+            //this._setAddressFields(url, this.config);
             if (this._clickSet) {
               this.emit('reselect-locator-url-ok', this.getConfig());
             } else {

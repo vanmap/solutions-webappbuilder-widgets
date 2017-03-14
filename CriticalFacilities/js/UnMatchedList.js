@@ -196,7 +196,7 @@ function (declare, _WidgetBase, _TemplatedMixin, Button, lang, array, html, domC
 
           domConstruct.create('div', {
             className: "locate-btn",
-            title: this.nls.locateFeature,
+            title: "this.nls.locateFeature",
             onclick: lang.hitch(this, function (evt) {
               var row = evt.target.parentElement.parentElement.parentElement;
               var rowData = this.row(row.id).data;

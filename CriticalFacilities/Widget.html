@@ -7,7 +7,7 @@
       </div>
       <div class="content-container content-hide box-shadow" data-dojo-attach-point="locationMapContainer">
         <!--Single Line Address-->
-        <div data-dojo-attach-point="useAddrNode">
+        <div data-dojo-attach-point="useAddrNodeContainer">
           <input name="locationOption" type="radio" data-dojo-type="jimu/dijit/RadioBtn" value="addr"
                   checked=true data-dojo-attach-point="useAddrNode">
           <label>${nls.useAddress}</label>
@@ -20,7 +20,7 @@
           </div>
         </div>
         <!--Multi-line Address-->
-        <div class="" data-dojo-attach-point="useMultiAddrNode">
+        <div class="" data-dojo-attach-point="useMultiAddrNodeContainer">
           <input name="locationOption" type="radio" data-dojo-type="jimu/dijit/RadioBtn" value="MultiAddr"
                   data-dojo-attach-point="useMultiAddrNode">
           <label>${nls.useMultiAddress}</label>
@@ -33,7 +33,7 @@
           </div>
         </div>
         <!--X/Y-->
-        <div data-dojo-attach-point="useXYNode">
+        <div data-dojo-attach-point="useXYNodeContainer">
           <input name="locationOption" type="radio" data-dojo-type="jimu/dijit/RadioBtn" value="xy"
                   data-dojo-attach-point="useXYNode">
           <label>${nls.useXY}</label>

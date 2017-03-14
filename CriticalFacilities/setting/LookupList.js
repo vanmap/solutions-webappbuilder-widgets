@@ -109,7 +109,7 @@ define(['dojo/_base/declare',
       _createTextBox: function (td) {
         var labelBox = new TextBox({
           style: {
-            'height': '90%',
+            'height': '85%',
             'width': '100%'
           }
         });

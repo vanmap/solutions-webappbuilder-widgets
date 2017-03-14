@@ -138,7 +138,7 @@ define(['dojo/_base/declare',
         //will default to field.name if blank
         var labelBox = new TextBox({
           style: {
-            'height': '90%',
+            'height': '85%',
             'width': '100%'
           }
         });

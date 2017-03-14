@@ -47,6 +47,9 @@ define(['dojo/_base/declare',
     _useAddr: true,
     _valid: false,
     addrType: "addr",
+    xyEnabled: false,
+    singleEnabled: false,
+    multiEnabled: false,
 
     //TODO need a way to update map results
     //TODO need a way for the user to process the results prior to submit
@@ -63,13 +66,43 @@ define(['dojo/_base/declare',
       this.own(on(this.map.container, "dragover", this.onDragOver));
       this.own(on(this.map.container, "drop", lang.hitch(this, this.onDrop)));
 
-      this.own(on(this.useAddrNode, 'click', lang.hitch(this, this.onChooseType, 'addr')));
-      this.own(on(this.useMultiAddrNode, 'click', lang.hitch(this, this.onChooseType, 'multi-addr')));
-      this.own(on(this.useXYNode, 'click', lang.hitch(this, this.onChooseType, 'xy')));
+      this.xyEnabled = this.config.xyEnabled;
+      this.singleEnabled = this.config.sources[0].singleEnabled;
+      this.multiEnabled = this.config.sources[0].multiEnabled;
 
-      domStyle.set(this.addressBodyContainer, "display", "block");
-      domStyle.set(this.xyBodyContainer, "display", "none");
-      domStyle.set(this.addressMultiBodyContainer, "display", "none");
+      var numEnabled = 0;
+      if (this.singleEnabled) {
+        numEnabled += 1;
+        this.own(on(this.useAddrNode, 'click', lang.hitch(this, this.onChooseType, 'addr')));
+        domStyle.set(this.addressBodyContainer, "display", "block");
+      } else {
+        domStyle.set(this.addressBodyContainer, "display", "none");
+        domStyle.set(this.useAddrNodeContainer, "display", "none");
+      }
+      if (this.multiEnabled) {
+        numEnabled += 1;
+        this.own(on(this.useMultiAddrNode, 'click', lang.hitch(this, this.onChooseType, 'multi-addr')));
+        domStyle.set(this.addressMultiBodyContainer, "display", !this.singleEnabled ? "block" : "none");
+      } else {
+        domStyle.set(this.addressMultiBodyContainer, "display", "none");
+        domStyle.set(this.useMultiAddrNodeContainer, "display", "none");
+      }
+      if (this.xyEnabled) {
+        numEnabled += 1;
+        this.own(on(this.useXYNode, 'click', lang.hitch(this, this.onChooseType, 'xy')));
+        domStyle.set(this.xyBodyContainer, "display", (!this.singleEnabled && !this.multiEnabled) ? "block" : "none");
+      } else {
+        domStyle.set(this.xyBodyContainer, "display", "none");
+        domStyle.set(this.useXYNodeContainer, "display", "none");
+      }
+
+      //if only one is enabled hide the radio btn and label and adjust the padding
+      if (numEnabled === 1) {
+        domStyle.set(this.singleEnabled ? this.useAddrNodeContainer : this.multiEnabled ? this.useMultiAddrNodeContainer : this.useXYNodeContainer, "display", "none");
+        var bodyContainer = this.singleEnabled ? this.addressBodyContainer : this.multiEnabled ? this.addressMultiBodyContainer : this.xyBodyContainer;
+        domStyle.set(bodyContainer, window.isRTL ? "padding-right" : "padding-left", "0px");
+      }
+    
       domStyle.set(this.processingNode, 'display', 'none');
 
       this.panalManager = PanelManager.getInstance();
@@ -120,7 +153,6 @@ define(['dojo/_base/declare',
       var l = navigator.language.toLowerCase();
       this.singleAddressFields = [];
       if (src.singleEnabled) {
-        //domStyle.set(this.useAddrNode, 'display', 'inline-block');
         var field = src.singleAddressFields[0];
         var rv = (field.recognizedNames && field.recognizedNames.hasOwnProperty(l)) ? field.recognizedNames[l] : [];
 
@@ -130,14 +162,10 @@ define(['dojo/_base/declare',
           isRecognizedValues: field.isRecognizedValues || rv
         });
         this.addFieldRow(this.addressTable, field.fieldName || field.name, field.label || field.alias);
-      } else {
-        //domStyle.set(this.useAddrNode, 'display', 'none');
       }
 
       this.multiAddressFields = [];
       if (src.multiEnabled) {
-        //domStyle.set(this.useMultiAddrNode, 'display', 'inline-block');
-
         array.forEach(src.addressFields, lang.hitch(this, function (field) {
           if (field.visible) {
             var rv = (field.recognizedNames && field.recognizedNames.hasOwnProperty(l)) ? field.recognizedNames[l] : [];
@@ -149,17 +177,14 @@ define(['dojo/_base/declare',
             this.addFieldRow(this.addressMultiTable, field.fieldName || field.name, field.label || field.alias);
           }
         }));
-      } else {
-        //domStyle.set(this.useMultiAddrNode, 'display', 'none');
       }
 
       this.xyFields = [];
-      if (src.xyEnabled) {
-        //domStyle.set(this.useXYNode, 'display', 'inline-block');
-        var fieldOne = src.xyFields[0].fieldName || src.xyFields[0].name;
-        var xField = fieldOne === this.nls.xyFieldsLabelX ? src.xyFields[0] : src.xyFields[1];
-        var fieldTwo = src.xyFields[1].fieldName || src.xyFields[1].name;
-        var yField = fieldTwo === this.nls.xyFieldsLabelY ? src.xyFields[1] : src.xyFields[0];
+      if (this.xyEnabled) {
+        var fieldOne = this.config.xyFields[0].fieldName || this.config.xyFields[0].name;
+        var xField = fieldOne === this.nls.xyFieldsLabelX ? this.config.xyFields[0] : this.config.xyFields[1];
+        var fieldTwo = this.config.xyFields[1].fieldName || this.config.xyFields[1].name;
+        var yField = fieldTwo === this.nls.xyFieldsLabelY ? this.config.xyFields[1] : this.config.xyFields[0];
 
         this.xyFields.push({
           name: xField.fieldName || xField.name,
@@ -175,8 +200,6 @@ define(['dojo/_base/declare',
 
         this.addFieldRow(this.xyTable, xField.fieldName || xField.name, xField.label || xField.alias);
         this.addFieldRow(this.xyTable, yField.fieldName || yField.name, yField.label || yField.alias);
-      } else {
-        //domStyle.set(this.useXYNode, 'display', 'none');
       }
     },
 

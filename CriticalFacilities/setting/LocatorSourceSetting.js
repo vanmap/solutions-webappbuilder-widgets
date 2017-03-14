@@ -91,14 +91,11 @@ define(
         this.exampleHint = this.nls.locatorExample +
           ": http://&lt;myServerName&gt;/arcgis/rest/services/World/GeocodeServer";
 
-        //TODO is it safe to pass this.instance here? seems like it works ok but 
         this.enableSingleField = this._initCheckBox(this.enableSingleField, this.nls.enableSingleField, this.editSingleFields);
         this.enableMultiField = this._initCheckBox(this.enableMultiField, this.nls.enableMultiField, this.editMultiFields);
-        this.enableXYField = this._initCheckBox(this.enableXYField, this.nls.enableXYField, this.editXYFields);
        
         this.own(on(this.editSingleFields, 'click', lang.hitch(this, this._editFields, 'single')));
         this.own(on(this.editMultiFields, 'click', lang.hitch(this, this._editFields, 'multi')));
-        this.own(on(this.editXYFields, 'click', lang.hitch(this, this._editFields, 'xy')));
 
         this._setMessageNodeContent(this.exampleHint);
 
@@ -120,9 +117,6 @@ define(
               break;
             case this.nls.enableMultiField:
               this.multiEnabled = enabled;
-              break;
-            case this.nls.enableXYField:
-              this.xyEnabled = enabled;
               break;
           }
           this._toggleNode(editNode, enabled);
@@ -165,10 +159,6 @@ define(
           this.multiEnabled = this.config.multiEnabled;
           this.enableMultiField.setValue(this.config.multiEnabled);
         }
-        if (typeof (this.config.xyEnabled) !== 'undefined') {
-          this.xyEnabled = this.config.xyEnabled;
-          this.enableXYField.setValue(this.config.xyEnabled);
-        }
 
         this.shelter.show();
         if (this._locatorDefinition.url !== url) {
@@ -178,7 +168,6 @@ define(
               this._locatorDefinition.url = url;
               this._setSourceItems();
               this._setAddressFields(url, this.config);
-              this._setXYFields(this.defaultXYFields, this.config);
               this._setMessageNodeContent(this.exampleHint);
             } else if (url && (response && response.type === 'error')) {
               this._setSourceItems();
@@ -192,7 +181,6 @@ define(
         } else {
           this._setSourceItems();
           this._setAddressFields(url);
-          this._setXYFields(this.defaultXYFields);
           this._setMessageNodeContent(this.exampleHint);
           this.shelter.hide();
         }
@@ -219,11 +207,9 @@ define(
           name: jimuUtils.stripHTML(this.locatorName.get('value')),
           singleEnabled: this.singleEnabled,
           multiEnabled: this.multiEnabled,
-          xyEnabled: this.xyEnabled,
           singleLineFieldName: this.singleLineFieldName,
           addressFields: this.addressFields,
           singleAddressFields: this.singleAddressFields,
-          xyFields: this.xyFields || this.config.defaultXYFields,
           countryCode: jimuUtils.stripHTML(this.countryCode.get('value')),
           type: "locator"
         };
@@ -239,11 +225,6 @@ define(
           case 'multi':
             if (this.multiEnabled) {
               this._editMultiAddressFieldsTableValues();
-            }
-            break;
-          case 'xy':
-            if (this.xyEnabled) {
-              this._editXYFieldsTableValues(this.xyFields);
             }
             break;
         }
@@ -279,20 +260,6 @@ define(
         editFields.popupEditPage();
       },
 
-      _editXYFieldsTableValues: function (fields) {
-        var editFields = new EditFields({
-          nls: this.nls,
-          type: 'locatorFields',
-          addressFields: fields || this.defaultXYFields,
-          popupTitle: this.nls.configureXYFields,
-          disableDisplayOption: true
-        });
-        this.own(on(editFields, 'edit-fields-popup-ok', lang.hitch(this, function () {
-          this.xyFields = editFields.fieldInfos;
-        })));
-        editFields.popupEditPage();
-      },
-
       _onLocatorNameBlur: function() {
         this.locatorName.set('value', jimuUtils.stripHTML(this.locatorName.get('value')));
       },
@@ -306,7 +273,7 @@ define(
         this.countryCode.set('disabled', true);
         this.enableSingleField.set('disabled', true);
         this.enableMultiField.set('disabled', true);
-        this.enableXYField.set('disabled', true);
+        ////this.enableXYField.set('disabled', true);
       },
 
       _enableSourceItems: function() {
@@ -314,7 +281,7 @@ define(
         this.countryCode.set('disabled', false);
         this.enableSingleField.set('disabled', false);
         this.enableMultiField.set('disabled', false);
-        this.enableXYField.set('disabled', false);
+        ////this.enableXYField.set('disabled', false);
       },
 
       _setSourceItems: function() {
@@ -385,12 +352,6 @@ define(
             console.error(err);
           }));
         }
-      },
-
-      _setXYFields: function (xyFields, config) {
-        var useConfig = config && config.xyFields &&
-          config.xyFields.hasOwnProperty('length') && config.xyFields.length > 0;
-        this.xyFields = useConfig ? config.xyFields : xyFields;
       },
 
       _isEsriLocator: function(url) {

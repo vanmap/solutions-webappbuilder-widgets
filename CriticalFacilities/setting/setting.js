@@ -76,6 +76,9 @@ define([
       //TODO something is messed up with multi field when I choose some...ok my way out...save....and repoen the config
       //TODO add logic for needing at least one of the checkboxes checked...ok should disable
 
+      //TODO XY locating should be supported independant of locators
+
+
       _operLayerInfos: null,
       _layersTable: null,
       _editablePointLayerInfos: null,
@@ -199,6 +202,33 @@ define([
         this.sourceList.startup();
         this.own(on(this.sourceList, 'row-select', lang.hitch(this, this._onSourceItemSelected)));
         this.own(on(this.sourceList, 'row-delete', lang.hitch(this, this._onSourceItemRemoved)));
+
+        this.enableXYField = this._initCheckBox(this.enableXYField, this.nls.enableXYField, this.editXYFields);
+        this.own(on(this.editXYFields, 'click', lang.hitch(this, this._editFields, 'xy')));
+
+      },
+
+      //addded for xy fields may simplify
+      _initCheckBox: function (domNode, nlsValue, editNode) {
+        domNode = new CheckBox({
+          checked: false,
+          label: nlsValue
+        }, domNode);
+        this._toggleNode(editNode, false);
+        this.own(on(domNode, 'change', lang.hitch(this, function () {
+          var enabled = domNode.getValue();
+          this.xyEnabled = enabled;
+          this._toggleNode(editNode, enabled);
+        })));
+        return domNode;
+      },
+
+      //addded for xy fields may simplify
+      _toggleNode: function (domNode, enable) {
+        if (domNode) {
+          html.removeClass(domNode, enable ? 'edit-fields-disabled' : 'edit-fields');
+          html.addClass(domNode, enable ? 'edit-fields' : 'edit-fields-disabled');
+        }
       },
 
       _addLayerRows: function () {
@@ -277,6 +307,13 @@ define([
           var radio = query('input', tr.firstChild)[0];
           radio.checked = true;
         }
+
+        if (typeof (this.config.xyEnabled) !== 'undefined') {
+          this.xyEnabled = this.config.xyEnabled;
+          this.enableXYField.setValue(this.config.xyEnabled);
+        }
+
+        this._setXYFields(this.defaultXYFields, this.config);
       },
 
       _getEditablePointLayerInfos: function () {
@@ -477,7 +514,39 @@ define([
         } else {
           this.config.layerInfos = checkedLayerInfos;
         }
+        this.config.xyFields = this.xyFields || this.config.defaultXYFields;
+        this.config.xyEnabled = this.xyEnabled;
         return this.config;
+      },
+
+      _editFields: function (type) {
+        switch (type) {
+          case 'xy':
+            if (this.xyEnabled) {
+              this._editXYFieldsTableValues(this.xyFields);
+            }
+            break;
+        }
+      },
+
+      _editXYFieldsTableValues: function (fields) {
+        var editFields = new EditFields({
+          nls: this.nls,
+          type: 'locatorFields',
+          addressFields: fields || this.defaultXYFields,
+          popupTitle: this.nls.configureXYFields,
+          disableDisplayOption: true
+        });
+        this.own(on(editFields, 'edit-fields-popup-ok', lang.hitch(this, function () {
+          this.xyFields = editFields.fieldInfos;
+        })));
+        editFields.popupEditPage();
+      },
+
+      _setXYFields: function (xyFields, config) {
+        var useConfig = config && config.xyFields &&
+          config.xyFields.hasOwnProperty('length') && config.xyFields.length > 0;
+        this.xyFields = useConfig ? config.xyFields : xyFields;
       },
 
       _onAddClick: function (evt) {

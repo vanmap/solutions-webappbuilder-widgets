@@ -56,22 +56,23 @@ function (declare, _WidgetBase, _TemplatedMixin, Button, lang, array, html, domC
 
     //options = {featureSet: <Object>, map: <Object>, fields: [], configFields: []}
     createList: function (options) {
+      lang.mixin(options.nls, this.nls);
+
       var featureSet = options.featureSet;
       for (var j = 0; j < featureSet.features.length; j++) {
         var feature = featureSet.features[j];
         this.store.put(feature, {
-          id: parseInt(feature.attributes["OBJECTID"])
+          id: parseInt(feature.attributes["ObjectID"]) //TODO make sure this is good
         });
       };
 
-      this.list = new (declare([List, Selection]))({
+      this.list = new (declare([List]))({
         map: options.map,
         store: this.store,
         fields: options.fields,
         configFields: options.configFields,
         rowState: {},
         cleanEmptyObservers: false,
-        selectionMode: this.isNative ? "extended" : "toggle", //TODO
         renderRow: function (feature) {
           var isOpen = false;
           if (typeof (this.rowState) !== 'undefined') {
@@ -81,7 +82,7 @@ function (declare, _WidgetBase, _TemplatedMixin, Button, lang, array, html, domC
           }
 
           var divNode = domConstruct.create('div', {
-            className: "bottomBorder"
+            className: "bottomBorder jimu-main-background"
           });
 
           var titleDiv = domConstruct.create('div', {
@@ -139,20 +140,20 @@ function (declare, _WidgetBase, _TemplatedMixin, Button, lang, array, html, domC
 
           var idx = 0;
           for (var i = 0; i < this.fields.length; i++) {
-            var fieldName = this.fields[i];
+            var fieldName = this.fields[i].name;
             var v = "";
             var id = fieldName + "-_-" + feature.id;
             if (this.localUpdates && this.localUpdates.hasOwnProperty(id)) {
               v = this.localUpdates[id];
             } else {
-              v = feature.attributes[fieldName.name];
+              v = feature.attributes[fieldName];
             }
             //do this so we can have the OID in the query to support selection
             // but avoid drawing in the widget
             //if (typeof (this.configFields[fieldName]) !== 'undefined') {
               domConstruct.create('label', {
                 className: "fieldItemLabel",
-                innerHTML: fieldName.name + ":" //this.configFields[fieldName] + ":"
+                innerHTML: fieldName + ":" //this.configFields[fieldName] + ":"
               }, contentDiv);
               domConstruct.create('input', {
                 className: "fieldItemValue",
@@ -193,9 +194,9 @@ function (declare, _WidgetBase, _TemplatedMixin, Button, lang, array, html, domC
             className: "btnParent"
           }, alignContainer);
 
-          domConstruct.create('button', {
-            className: "my-btn",
-            innerHTML: "Locate Feature",
+          domConstruct.create('div', {
+            className: "locate-btn",
+            title: this.nls.locateFeature,
             onclick: lang.hitch(this, function (evt) {
               var row = evt.target.parentElement.parentElement.parentElement;
               var rowData = this.row(row.id).data;
@@ -210,39 +211,29 @@ function (declare, _WidgetBase, _TemplatedMixin, Button, lang, array, html, domC
             })
           }, btnContainer);
 
-          domConstruct.create('button', {
-            className: "my-btn",
-            innerHTML: "Update Feature Collection",
-            onclick: lang.hitch(this, function (evt) {
-              var row = evt.target.parentElement.parentElement.parentElement;
-              var rowData = this.row(row.id).data;
-              if (rowData) {
-                var geom = rowData.geometry;
-                if (geom.type === "point") {
-                  var res = geometryEngine.buffer([geom], 1, 9035, false);
-                  geom = res[0];
-                }
-                this.map.setExtent(geom.getExtent());
-              }
-            })
-          }, btnContainer);
-
-          //if (this.dataProxy.supportsSelection) {
-          //  domConstruct.create('button', {
-          //    className: "my-btn",
-          //    innerHTML: "Select Feature",
-          //    onclick: lang.hitch(this, function (evt) {
-          //      var row = evt.target.parentElement.parentElement.parentElement;
-          //      this.dataProxy.selectFeaturesByObjectIds([row.id]);
-          //    })
-          //  }, btnContainer);
-          //}
+          //domConstruct.create('button', {
+          //  className: "my-btn",
+          //  innerHTML: "Update Feature Collection",
+          //  onclick: lang.hitch(this, function (evt) {
+          //    var row = evt.target.parentElement.parentElement.parentElement;
+          //    var rowData = this.row(row.id).data;
+          //    if (rowData) {
+          //      var geom = rowData.geometry;
+          //      if (geom.type === "point") {
+          //        var res = geometryEngine.buffer([geom], 1, 9035, false);
+          //        geom = res[0];
+          //      }
+          //      this.map.setExtent(geom.getExtent());
+          //    }
+          //  })
+          //}, btnContainer);
 
           return divNode;
         }
       }, this.listDiv);
 
       this.list.startup();
+
       return this.list;
     },
 

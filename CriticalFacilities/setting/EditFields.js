@@ -159,17 +159,19 @@ define(['dojo/_base/declare',
 
       _setAddressFieldsTable: function (fields) {
         array.forEach(fields, function (field) {
-          //TODO check if this is a safe way to get the locale
           var l = navigator.language.toLowerCase();
           if (field.hasOwnProperty('fieldName') && field.hasOwnProperty('isRecognizedValues')) {
             this._fieldsTable.addRow(field);
           } else {
+            var locNames = field.localizedNames && field.hasOwnProperty(l);
+            var recNames = field.recognizedNames && field.recognizedNames.hasOwnProperty(l);
+            var recVals = field.isRecognizedValues;
             this._fieldsTable.addRow({
-              fieldName: field.localizedNames && field.hasOwnProperty(l) ? field.localizedNames[l] : field.name,
-              label: field.localizedNames && field.hasOwnProperty(l) ? field.localizedNames[l] : field.alias,
+              fieldName: locNames ? field.localizedNames[l] : field.name,
+              label: locNames ? field.localizedNames[l] : field.alias,
               visible: field.hasOwnProperty('visible') ? field.visible : false,
               type: "STRING",
-              isRecognizedValues: field.recognizedNames ? field.recognizedNames[l] : field.isRecognizedValues
+              isRecognizedValues: recNames ? field.recognizedNames[l] : recVals ? field.isRecognizedValues : [field.name]
             });
           }
         }, this);

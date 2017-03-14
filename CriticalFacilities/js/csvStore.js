@@ -53,7 +53,7 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
         this.map = options.map;
         this.fsFields = options.fsFields;
         this.geocodeSources = options.geocodeSources;
-        this.testList = options.testList;
+        this.unMatchedContainer = options.unMatchedContainer;
 
         this.data = null;
         this.separatorCharacter = null;
@@ -145,10 +145,11 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
               featureSet: this.unmatchedFC.featureSet,
               map: this.map,
               fields: this.fsFields,
-              configFields: this.mappedArrayFields
+              configFields: this.mappedArrayFields,
+              nls: this.nls
             });
 
-            html.place(unmatchedList.list.domNode, this.testList);
+            html.place(unmatchedList.list.domNode, this.unMatchedContainer);
           }
 
           //TODO this should be the theme color

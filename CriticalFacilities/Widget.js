@@ -51,12 +51,8 @@ define(['dojo/_base/declare',
     //TODO need a way to update map results
     //TODO need a way for the user to process the results prior to submit
 
-    //TODO need to handle geocode errors...for example they choose a field that is not addresses or they have bad addressed
+    //TODO need to handle geocode errors...for example they choose a field that is not addresses or they have bad address
     //TODO test web mercator points in CSV 
-    //TODO test a larger CSV
-
-    //TODO need to handle the chunking of geocode requests...done...need to verify that errors or null features returned
-    // are being handled properly
 
     //TODO add to map needs to be disabled until one of the location mapping options have been chosen
 
@@ -272,7 +268,7 @@ define(['dojo/_base/declare',
               geocodeSources: this._geocodeSources,
               nls: this.nls,
               appConfig: this.appConfig,
-              testList: this.testList
+              unMatchedContainer: this.unMatchedContainer
             });
             this.myCsvStore.onHandleCsv().then(lang.hitch(this, function (obj) {
               this._updateFieldControls(this.schemaMapTable, obj, true, true, obj.fsFields);

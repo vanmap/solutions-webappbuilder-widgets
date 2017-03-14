@@ -20,7 +20,7 @@
   text-align: center;
   font-size: 14px;
   font-weight: bold;
-  color: #86909c;
+  /*color: #86909c;*/
 }
 
 .jimu-widget-critical-facilities .schema-map-body{
@@ -239,8 +239,12 @@
 .dgrid.list {
   margin: 0;
   padding: 0;
-  height: 100%;
-  width: 100%;
+  /*height: 100%;
+  width: 100%;*/
+}
+
+.dgrid-selected {
+background-color: none;
 }
 
 .list{
@@ -257,6 +261,7 @@
 .btnParent{
   position: relative; 
   text-align: center;
+  margin: 10px 0 10px 0;
 }
 
 .my-btn{
@@ -286,12 +291,12 @@
 
 .titleDiv:hover .image-up-highlight{
   background-image: url(../images/fold_up.png);
-  background-color: #083F77;
+  /*background-color: #083F77;*/
 }
 
 .titleDiv:hover .image-down-highlight{
   background-image: url(../images/fold_down.png);
-  background-color: #083F77;
+  /*background-color: #083F77;*/
 }
 
 .titleDiv {
@@ -308,6 +313,7 @@
   overflow: hidden;
   margin-left: 8px;
   display: inline;
+  color: white;
 }
 
 .rowOn{
@@ -336,15 +342,16 @@
   display: inline-block;
   margin-left: 5px;
   background-size: 11px 7px;
-  background-color: white;
+  /*background-color: white;
   border-radius: 50%;
-  border: 1px solid #083F77;
+  border: 1px solid #083F77;*/
 }
 
 .fieldItemLabel{
   position: relative;
   margin-top: 5px;
   margin-left: 5px;
+  color: white;
 }
 
 .fieldItemValue{
@@ -353,6 +360,55 @@
   margin-left: 10px;
   margin-right: 10px;
   width: 90%;
+}
+
+.locate-btn {
+  /*display: block;*/
+  width: 15px;
+  height: 15px;
+  background-image: url(../images/locate.png);
+    vertical-align:middle;
+  /*width: 15px;
+  height: 15px;*/
+  background-repeat: no-repeat;
+  background-position: 50% 50%;
+  background-size: contain;
+  display: inline-block;
+  /*margin-left: 5px;
+  background-size: 11px 7px;*/
+}
+
+.locate-btn:hover {
+  background-image: url(../images/locate_hover.png);
+  cursor: pointer;
+}
+
+/*#grid {
+height: auto;
+}
+#grid .dgrid-scroller {
+position: relative;
+overflow-y: hidden;
+}
+#grid .dgrid-header-scroll {
+display: none;
+}
+#grid .dgrid-header {
+right: 0;
+}*/
+
+.dgrid-autoheight {
+  height: auto;
+}
+.dgrid-autoheight .dgrid-scroller {
+  position: relative;
+  overflow-y: hidden;
+}
+.dgrid-autoheight .dgrid-header-scroll {
+  display: none;
+}
+.dgrid-autoheight .dgrid-header {
+  right: 0;
 }
 /*end unmatched-list*/
 

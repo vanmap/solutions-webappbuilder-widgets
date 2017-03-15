@@ -118,6 +118,8 @@ define(['dojo/_base/declare',
 
     _initLocationUI: function () {
       var numEnabled = 0;
+
+      //set state of single line address controls
       if (this.singleEnabled) {
         numEnabled += 1;
         this.own(on(this.useAddrNode, 'click', lang.hitch(this, this.onChooseType, 'addr')));
@@ -126,6 +128,8 @@ define(['dojo/_base/declare',
         domStyle.set(this.addressBodyContainer, "display", "none");
         domStyle.set(this.useAddrNodeContainer, "display", "none");
       }
+
+      //set state of multi line address controls
       if (this.multiEnabled) {
         numEnabled += 1;
         this.own(on(this.useMultiAddrNode, 'click', lang.hitch(this, this.onChooseType, 'multi-addr')));
@@ -134,6 +138,8 @@ define(['dojo/_base/declare',
         domStyle.set(this.addressMultiBodyContainer, "display", "none");
         domStyle.set(this.useMultiAddrNodeContainer, "display", "none");
       }
+
+      //set state of x/y controls
       if (this.xyEnabled) {
         numEnabled += 1;
         this.own(on(this.useXYNode, 'click', lang.hitch(this, this.onChooseType, 'xy')));
@@ -143,6 +149,7 @@ define(['dojo/_base/declare',
         domStyle.set(this.useXYNodeContainer, "display", "none");
       }
 
+      //if only a single type is enabled adjust the UI..no need to see the radio 
       if (numEnabled === 1) {
         domStyle.set(this.singleEnabled ? this.useAddrNodeContainer : this.multiEnabled ? this.useMultiAddrNodeContainer : this.useXYNodeContainer, "display", "none");
         var bodyContainer = this.singleEnabled ? this.addressBodyContainer : this.multiEnabled ? this.addressMultiBodyContainer : this.xyBodyContainer;
@@ -161,7 +168,7 @@ define(['dojo/_base/declare',
       var xyFieldAliases = [];
 
       for (var i = 0; i < this._geocodeSources.length; i++) {
-        var src = this._geocodeSources[0];
+        var src = this._geocodeSources[i];
         var name = "";
         var label = "";
 
@@ -175,11 +182,18 @@ define(['dojo/_base/declare',
             this.singleAddressFields.push({
               name: name,
               value: field.type, //TODO ??
-              isRecognizedValues: field.isRecognizedValues || rv
+              isRecognizedValues: field.isRecognizedValues || rv,
+              label: label
             });
             this.addFieldRow(this.addressTable, name, label);
           } else {
-            //update isRecognizedValues
+            for (var i = 0; i < this.singleAddressFields.length; i++) {
+              var f = this.singleAddressFields[i];
+              if (f.label === label) {
+                f.isRecognizedValues.push.apply(f.isRecognizedValues, field.isRecognizedValues || rv);
+                break;
+              }
+            }
           }
         }
      
@@ -194,11 +208,18 @@ define(['dojo/_base/declare',
                 this.multiAddressFields.push({
                   name: name,
                   value: field.type, //TODO ??
-                  isRecognizedValues: field.isRecognizedValues || rv
+                  isRecognizedValues: field.isRecognizedValues || rv,
+                  label: label
                 });
                 this.addFieldRow(this.addressMultiTable, name, label);
               } else {
-                //update isRecognizedValues
+                for (var i = 0; i < this.multiAddressFields.length; i++) {
+                  var f = this.multiAddressFields[i];
+                  if (f.label === label) {
+                    f.isRecognizedValues.push.apply(f.isRecognizedValues, field.isRecognizedValues || rv);
+                    break;
+                  }
+                }
               }
             }
           }));
@@ -254,6 +275,7 @@ define(['dojo/_base/declare',
       })));
       tr.selectFields = selectFields;
       tr.keyField = keyField;
+      tr.label = label;
     },
 
     validateValues: function(){
@@ -320,10 +342,10 @@ define(['dojo/_base/declare',
               unMatchedContainer: this.unMatchedContainer
             });
             this.myCsvStore.onHandleCsv().then(lang.hitch(this, function (obj) {
-              this._updateFieldControls(this.schemaMapTable, obj, true, true, obj.fsFields);
-              this._updateFieldControls(this.xyTable, obj, true, true, this.xyFields);
-              this._updateFieldControls(this.addressTable, obj, false, true, this.singleAddressFields);
-              this._updateFieldControls(this.addressMultiTable, obj, false, true, this.multiAddressFields);
+              this._updateFieldControls(this.schemaMapTable, obj, true, true, obj.fsFields, 'keyField');
+              this._updateFieldControls(this.xyTable, obj, true, true, this.xyFields, 'keyField');
+              this._updateFieldControls(this.addressTable, obj, false, true, this.singleAddressFields, 'label');
+              this._updateFieldControls(this.addressMultiTable, obj, false, true, this.multiAddressFields, 'label');
               this.validateValues();
               domStyle.set(this.schemaMapInstructions, "display", "none");
               domStyle.set(this.mainContainer, "display", "block");
@@ -343,7 +365,8 @@ define(['dojo/_base/declare',
       domStyle.set(this.xyBodyContainer, "display", type === "xy" ? "block" : "none");
     },
 
-    _updateFieldControls: function (table, obj, checkFieldTypes, checkArrayFields, arrayFields) {
+    _updateFieldControls: function (table, obj, checkFieldTypes, checkArrayFields, arrayFields, type) {
+
       if (typeof Array.prototype.rxIndexOf === 'undefined') {
         Array.prototype.rxIndexOf = function (rx) {
           for (var i in this) {
@@ -405,15 +428,18 @@ define(['dojo/_base/declare',
 
         //Select Matching Field Name if found
         var kf = noValue;
+        array_field_loop:
         for (var i = 0; i < arrayFields.length; i++) {
           var af = arrayFields[i];
-          if (af.name === node.keyField) {
+          var tester = type === 'keyField' ? af.name : af.label;
+          if (tester === node[type]) {
             if (typeof (af.isRecognizedValues) !== 'undefined') {
+              is_rec_loop:
               for (var ii = 0; ii < af.isRecognizedValues.length; ii++) {
-                var idx = fields.rxIndexOf(new RegExp(af.isRecognizedValues[ii], "i"));//case insensitive
+                var idx = fields.rxIndexOf(new RegExp("\\b(" + af.isRecognizedValues[ii] + ")\\b", "i"));//case insensitive
                 if (idx > -1) {
                   kf = fields[idx];
-                  break;
+                  break array_field_loop;
                 }
               }
             }

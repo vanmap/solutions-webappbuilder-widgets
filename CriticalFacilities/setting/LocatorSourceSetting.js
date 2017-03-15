@@ -77,6 +77,7 @@ define(
       _esriLocatorRegExp: /http(s)?:\/\/geocode(.){0,3}\.arcgis.com\/arcgis\/rest\/services\/World\/GeocodeServer/g,
       serviceChooserContent: null,
       geocoderPopup: null,
+      addressFields: null,
 
       _clickSet: false,
 
@@ -161,7 +162,7 @@ define(
               this._locatorDefinition = response;
               this._locatorDefinition.url = url;
               this._setSourceItems();
-              this._setAddressFields(url, this.config);
+              //this._setAddressFields(url, this.config);
               this._setMessageNodeContent(this.exampleHint);
             } else if (url && (response && response.type === 'error')) {
               this._setSourceItems();
@@ -174,7 +175,7 @@ define(
           }));
         } else {
           this._setSourceItems();
-          this._setAddressFields(url);
+          //this._setAddressFields(url);
           this._setMessageNodeContent(this.exampleHint);
           this.shelter.hide();
         }
@@ -282,6 +283,7 @@ define(
           // this.validService = true;
           this.locatorUrl.set('value', config.url);
           this._processCountryCodeRow(config.url);
+          this._setAddressFields(config.url, this.config);
         }
         if (config.name) {
           this.locatorName.set('value', jimuUtils.stripHTML(config.name));
@@ -292,25 +294,8 @@ define(
         if (config.countryCode) {
           this.countryCode.set('value', jimuUtils.stripHTML(config.countryCode));
         }
-
-        if ('capabilities' in this._locatorDefinition) {
-          //TODO make sure we have multi fieldss
-
-          //html.setStyle(this.enableLocalSearch.domNode, 'display', '');
-          //this._processlocalSearchTable(config.enableLocalSearch);
-          //this.enableLocalSearch.setValue(config.enableLocalSearch);
-          //if (config.localSearchMinScale && config.enableLocalSearch) {
-          //  this.localSearchMinScale.set('value', config.localSearchMinScale);
-          //}
-          //if (config.localSearchDistance && config.enableLocalSearch) {
-          //  this.localSearchDistance.set('value', config.localSearchDistance);
-          //}
-        } else {
-          //this.enableLocalSearch.setValue(false);
-          //html.setStyle(this.enableLocalSearch.domNode, 'display', 'none');
-        }
-
         this._enableSourceItems();
+        
       },
 
       _setAddressFields: function (url, config) {
@@ -501,7 +486,7 @@ define(
 
             this._locatorDefinition = response;
             this._locatorDefinition.url = url;
-            //this._setAddressFields(url, this.config);
+            this._setAddressFields(url, this.config);
             if (this._clickSet) {
               this.emit('reselect-locator-url-ok', this.getConfig());
             } else {

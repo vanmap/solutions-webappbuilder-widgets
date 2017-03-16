@@ -151,6 +151,8 @@ define(['dojo/_base/declare',
 
       //if only a single type is enabled adjust the UI..no need to see the radio 
       if (numEnabled === 1) {
+        this._useAddr = this.singleEnabled || this.multiEnabled ? true : false;
+        this.addrType = this.singleEnabled ? "addr" : this.multiEnabled ? "multi-addr" : "xy";
         domStyle.set(this.singleEnabled ? this.useAddrNodeContainer : this.multiEnabled ? this.useMultiAddrNodeContainer : this.useXYNodeContainer, "display", "none");
         var bodyContainer = this.singleEnabled ? this.addressBodyContainer : this.multiEnabled ? this.addressMultiBodyContainer : this.xyBodyContainer;
         domStyle.set(bodyContainer, window.isRTL ? "padding-right" : "padding-left", "0px");
@@ -343,9 +345,15 @@ define(['dojo/_base/declare',
             });
             this.myCsvStore.onHandleCsv().then(lang.hitch(this, function (obj) {
               this._updateFieldControls(this.schemaMapTable, obj, true, true, obj.fsFields, 'keyField');
-              this._updateFieldControls(this.xyTable, obj, true, true, this.xyFields, 'keyField');
-              this._updateFieldControls(this.addressTable, obj, false, true, this.singleAddressFields, 'label');
-              this._updateFieldControls(this.addressMultiTable, obj, false, true, this.multiAddressFields, 'label');
+              if (this.xyEnabled) {
+                this._updateFieldControls(this.xyTable, obj, true, true, this.xyFields, 'keyField');
+              }
+              if (this.singleEnabled) {
+                this._updateFieldControls(this.addressTable, obj, false, true, this.singleAddressFields, 'label');
+              }
+              if (this.multiEnabled) {
+                this._updateFieldControls(this.addressMultiTable, obj, false, true, this.multiAddressFields, 'label');
+              }
               this.validateValues();
               domStyle.set(this.schemaMapInstructions, "display", "none");
               domStyle.set(this.mainContainer, "display", "block");
@@ -476,7 +484,7 @@ define(['dojo/_base/declare',
           switch (node.keyField) {
             case this.nls.addressFieldLabel:
               this.myCsvStore.addrFieldName = node.selectFields.value;
-              multiFields.push({ keyField: node.keyField, value: node.selectFields.value });
+              multiFields.push({ keyField: node.keyField, value: node.selectFields.value, label: node.label });
               break;
             case this.nls.xyFieldsLabelX:
               this.myCsvStore.xFieldName = node.selectFields.value;
@@ -486,7 +494,7 @@ define(['dojo/_base/declare',
               break;
             default:
               useMultiFields = true;
-              multiFields.push({ keyField: node.keyField, value: node.selectFields.value });
+              multiFields.push({ keyField: node.keyField, value: node.selectFields.value, label: node.label });
               break;
           }
         }));

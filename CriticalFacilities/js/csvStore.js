@@ -94,8 +94,10 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
 
       onProcessCsvData: function () {
         var def = new Deferred();
-        this._convertSources().then(lang.hitch(this, function (source) {
-          this.locatorSource = source;
+        //why the def.then here??
+        this._convertSources().then(lang.hitch(this, function (sources) {
+          //can setting of this.locatorSource be skipped here and handled elsewhere??
+          //this.locatorSource = sources[0];
           this.onGetSeparator();
           this.onGetCsvStore().then(lang.hitch(this, function (a) {
             def.resolve(a)
@@ -176,9 +178,39 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
         var def = new Deferred();
         if (this.useAddr) {
           this.geocodeManager.getCache().then(lang.hitch(this, function (itemData) {
-            this._geocodeData(itemData).then(lang.hitch(this, function (data) {
-              this.geocodeManager.updateCache(data);
-              def.resolve(data);
+            var index = 0;
+            var length = this._geocodeSources.length;
+            this.locatorSource = this._geocodeSources[index];
+            this._geocodeData(itemData, this.storeItems).then(lang.hitch(this, function (data) {
+              //this.geocodeManager.updateCache(data);
+              var initalResults = data.finalResults;
+              if (length > 1) {
+                //check data for unmatched
+                //if unmatched results are found call geocodeData again
+                //thinking I'll use the result ID to query the store for the appropriate items
+
+                //var geocodeDataStore = Observable(new Memory({
+                //  data: defResults,
+                //  idProperty: "ResultID"
+                //}));
+                //var resultsSort = geocodeDataStore.query({}, { sort: [{ attribute: "ResultID" }] });
+                var unMatchedStoreItems = [];
+                if (data.unmatchedResultIDs && data.unmatchedResultIDs.length > 0) {
+                  for (var i = 0; i < data.unmatchedResultIDs.length; i++) {
+                    unMatchedStoreItems.push(this.storeItems[data.unmatchedResultIDs[i]]);
+                  }
+                }
+
+                //really this needs to be a recursive type call but need to see how that works with promises
+                //THIS IS JUST FOR INITIAL TESTING!!!
+                this.locatorSource = this._geocodeSources[index + 1];
+                this._geocodeData({}, unMatchedStoreItems).then(lang.hitch(this, function (d) {
+                  //this.geocodeManager.updateCache(d);
+                  def.resolve(lang.mixin(d.finalResults, initalResults));
+                }));
+              } else {
+                def.resolve(data.finalResults);
+              }  
             }));
           }));
         } else {
@@ -226,12 +258,12 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
         return def;
       },
 
-      _geocodeData: function (itemData) {
-        //TODO this needs to go to true multi-field...make sure it does not affect cache
+      _geocodeData: function (itemData, storeItems) {
         var def = new Deferred();
         var locator = this.locatorSource.locator;
         locator.outSpatialReference = this.map.spatialReference;
         var finalResults = {};
+        var unmatchedResultIDs = [];
         var geocodeOps = [];
         var oid = "OBJECTID";
         var max = 500;
@@ -239,8 +271,8 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
         var xx = 0;
         var i, j;
         //loop through all store items 
-        for (var i = 0, j = this.storeItems.length; i < j; i += max) {
-          var items = this.storeItems.slice(i, i + max);
+        for (var i = 0, j = storeItems.length; i < j; i += max) {
+          var items = storeItems.slice(i, i + max);
           var addresses = [];
           array.forEach(items, lang.hitch(this, function (item) {
             x += 1;
@@ -303,8 +335,13 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
                 for (var k in keys) {
                   var _i = keys[k];
                   if (finalResults[_i].index === idx) {
-                    finalResults[_i].location = _r.location;
-                    finalResults[_i].score = _r.attributes["Score"]
+                    if (_r.attributes["Score"] < 90) {
+                      unmatchedResultIDs.push(finalResults[_i].index);
+                      delete finalResults[_i];
+                    } else {
+                      finalResults[_i].location = _r.location;
+                      finalResults[_i].score = _r.attributes["Score"];
+                    }
                     delete keys[k];
                     break;
                   }
@@ -312,7 +349,7 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
                 idx += 1;
               });
             });
-            def.resolve(finalResults);
+            def.resolve({ finalResults: finalResults, unmatchedResultIDs: unmatchedResultIDs });
           }
         }));
         return def;
@@ -486,13 +523,13 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
                 singleLineFieldName: source.singleLineFieldName || "",
                 name: jimuUtils.stripHTML(source.name || ""),
                 placeholder: jimuUtils.stripHTML(source.placeholder || ""),
-                countryCode: source.countryCode || ""
+                countryCode: source.countryCode || "",
+                addressFields: source.addressFields
               };
-              def.resolve(_source);
-            } else {
-              def.resolve(null);
+              return _source;
             }
           }));
+          def.resolve(this._geocodeSources);
         } else {
           def.resolve(null);
         }

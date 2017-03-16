@@ -76,7 +76,8 @@ define([
       //TODO something is messed up with multi field when I choose some...ok my way out...save....and repoen the config
       //TODO add logic for needing at least one of the checkboxes checked...ok should disable
 
-      //TODO XY locating should be supported independant of locators
+      //TODO XY locating...should it be removed when all locators are removed?
+
 
 
       _operLayerInfos: null,

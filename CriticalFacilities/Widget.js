@@ -59,6 +59,12 @@ define(['dojo/_base/declare',
 
     //TODO add to map needs to be disabled until one of the location mapping options have been chosen
 
+    //TODO when I use a mix of single vs multi between the locators in a list the alias idea is not working correctly
+    //...at least on re-config....may just be an issue with the UI updates but need to investigate
+
+    //TOOD also seemd like when I did the simple sinlge line that I stood up tat the feature had the correct location but wrong attributres after the updates to use multi-locators
+    // need to investigate further
+
     postCreate: function () {
       this.inherited(arguments);
 

@@ -73,8 +73,12 @@ define(['dojo/_base/declare',
       this.own(on(this.map.container, "drop", lang.hitch(this, this.onDrop)));
 
       this.xyEnabled = this.config.xyEnabled;
-      this.singleEnabled = this.config.sources[0].singleEnabled;
-      this.multiEnabled = this.config.sources[0].multiEnabled;
+      
+      for (var i = 0; i < this.config.sources.length; i++) {
+        var src = this.config.sources[i];
+        this.singleEnabled = src.singleEnabled ? true : this.singleEnabled;
+        this.multiEnabled = src.multiEnabled ? true : this.multiEnabled;
+      }
 
       this._initLocationUI();
     
@@ -349,7 +353,7 @@ define(['dojo/_base/declare',
               appConfig: this.appConfig,
               unMatchedContainer: this.unMatchedContainer
             });
-            this.myCsvStore.onHandleCsv().then(lang.hitch(this, function (obj) {
+            this.myCsvStore.handleCsv().then(lang.hitch(this, function (obj) {
               this._updateFieldControls(this.schemaMapTable, obj, true, true, obj.fsFields, 'keyField');
               if (this.xyEnabled) {
                 this._updateFieldControls(this.xyTable, obj, true, true, this.xyFields, 'keyField');
@@ -509,7 +513,7 @@ define(['dojo/_base/declare',
         this.myCsvStore.multiFields = multiFields;
         this.myCsvStore.useAddr = this._useAddr;
         this.myCsvStore.mappedArrayFields = mappedFields;
-        this.myCsvStore.onProcessForm().then(lang.hitch(this, function () {
+        this.myCsvStore.processForm().then(lang.hitch(this, function () {
           domStyle.set(this.processingNode, 'display', 'none');
           domStyle.set(this.clearMapData, "display", "block");
           domStyle.set(this.submitData, "display", "block");

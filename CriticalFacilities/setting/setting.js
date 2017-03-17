@@ -62,24 +62,13 @@ define([
     return declare([BaseWidgetSetting, _WidgetsInTemplateMixin], {
       baseClass: 'jimu-widget-setting-critical-facilities',
 
-      //TODO disable OK when no layer is selected or if all locators have been removed
+      //TODO disable OK when no layer is selected
+      //TODO add logic for needing at least one of the checkboxes checked...ok should disable
+      //TODO figure out what's up with the css for all SimpleTable instances with the rows. I handled in some way for IS but it was not correct
 
       //Questions
       //TODO should we support an option for configure user to mark certain fields as required or optional?
-
-      //TODO should lat/lon, single, multi-field input be a configurable choice? spoke with Nikki...yes but it is a lower priority
-      //TODO clear should be enabled after drop
-
-      //TODO persist alias name change and make sure it's what shows...allowing the user to define the label for each field type
-      //TODO change up how the simple tables are configured to make it more apparnt what you can edit
-
-      //TODO something is messed up with multi field when I choose some...ok my way out...save....and repoen the config
-      //TODO add logic for needing at least one of the checkboxes checked...ok should disable
-
-      //TODO XY locating...should it be removed when all locators are removed?
-
-
-
+      
       _operLayerInfos: null,
       _layersTable: null,
       _editablePointLayerInfos: null,
@@ -205,7 +194,7 @@ define([
         this.own(on(this.sourceList, 'row-delete', lang.hitch(this, this._onSourceItemRemoved)));
 
         this.enableXYField = this._initCheckBox(this.enableXYField, this.nls.enableXYField, this.editXYFields);
-        this.own(on(this.editXYFields, 'click', lang.hitch(this, this._editFields, 'xy')));
+        this.own(on(this.editXYFields, 'click', lang.hitch(this, this._editFields)));
 
       },
 
@@ -520,13 +509,9 @@ define([
         return this.config;
       },
 
-      _editFields: function (type) {
-        switch (type) {
-          case 'xy':
-            if (this.xyEnabled) {
-              this._editXYFieldsTableValues(this.xyFields);
-            }
-            break;
+      _editFields: function () {
+        if (this.xyEnabled) {
+          this._editXYFieldsTableValues(this.xyFields);
         }
       },
 
@@ -589,6 +574,11 @@ define([
               locatorSetting.placeAt(this.sourceSettingNode);
               this.sourceList.selectRow(addResult.tr);
               this._currentSourceSetting = locatorSetting;
+            }
+            var xy = query('.xy-table-no-locator');
+            if (xy.length > 0) {
+              html.removeClass(xy[0], 'xy-table-no-locator');
+              html.addClass(xy[0], 'xy-table');
             }
           }))
         );
@@ -657,6 +647,16 @@ define([
         if (currentTr === tr) {
           this._currentSourceSetting.destroy();
           this._currentSourceSetting = null;
+        }
+        var rows = this.sourceList.getRows();
+        if (rows.length > 0) {
+          this._onSourceItemSelected(rows[0]);
+        } else {
+          var xy = query('.xy-table');
+          if (xy.length > 0) {
+            html.removeClass(xy[0], 'xy-table');
+            html.addClass(xy[0], 'xy-table-no-locator');
+          }
         }
       },
 

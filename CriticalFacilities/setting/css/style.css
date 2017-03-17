@@ -61,7 +61,7 @@
 
 .jimu-widget-setting-critical-facilities .source-list{
   width: 270px;
-  height: 125px;
+  height: 155px;
 }
 
 .jimu-widget-setting-critical-facilities .source-setting{
@@ -350,6 +350,16 @@
 .jimu-rtl .jimu-widget-setting-critical-facilities .xy-table{
   position: relative;
   padding-right: 304px;
+}
+
+.jimu-widget-setting-critical-facilities .xy-table-no-locator{
+  position: relative;
+  padding-left: 34px;
+}
+
+.jimu-rtl .jimu-widget-setting-critical-facilities .xy-table-no-locator{
+  position: relative;
+  padding-right: 34px;
 }
 
 .jimu-widget-setting-critical-facilities .xy-table > tbody > tr > td > .tip{

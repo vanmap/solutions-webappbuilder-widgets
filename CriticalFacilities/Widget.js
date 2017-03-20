@@ -471,58 +471,98 @@ define(['dojo/_base/declare',
       if (!domClass.contains(this.addToMap, 'disabled')) {
         domStyle.set(this.addToMap, "display", "none");
 
-        var useMultiFields = false;
-        var multiFields = [];
-        var mappedFields = {};
-        array.forEach(this._fsFields, lang.hitch(this, function (setField) {
-          if (setField) {
-            var fieldName = setField.name;
-            var controlNodes = query('.field-node-tr', this.schemaMapTable);
-            var mappedField = "";
-            for (var i = 0; i < controlNodes.length; i++) {
-              var node = controlNodes[i];
-              if (node.keyField === fieldName) {
-                mappedField = node.selectFields.value;
-                break;
-              }
-            }
-            mappedFields[fieldName] = mappedField;
-          }
-        }));
-        var controlNodes = query('.field-node-tr', this._useAddr ? this.addrType === "addr" ? this.addressTable : this.addressMultiTable : this.xyTable);
-        array.forEach(controlNodes, lang.hitch(this, function (node) {
-          switch (node.keyField) {
-            case this.nls.addressFieldLabel:
-              this.myCsvStore.addrFieldName = node.selectFields.value;
-              multiFields.push({ keyField: node.keyField, value: node.selectFields.value, label: node.label });
-              break;
-            case this.nls.xyFieldsLabelX:
-              this.myCsvStore.xFieldName = node.selectFields.value;
-              break;
-            case this.nls.xyFieldsLabelY:
-              this.myCsvStore.yFieldName = node.selectFields.value;
-              break;
-            default:
-              useMultiFields = true;
-              multiFields.push({ keyField: node.keyField, value: node.selectFields.value, label: node.label });
-              break;
-          }
-        }));
+        this._setMappedFields(this._fsFields, this.schemaMapTable);
+
+        this._setFieldsFromNodes(this.singleEnabled ? query('.field-node-tr', this.addressTable) : [], 'single');
+        this._setFieldsFromNodes(this.multiEnabled ? query('.field-node-tr', this.addressMultiTable) : [], 'multi');
+        this._setFieldsFromNodes(this.xyEnabled ? query('.field-node-tr', this.xyTable) : [], 'xy');
+
         domStyle.set(this.processingNode, 'display', 'block');
-        this.myCsvStore.useMultiFields = useMultiFields;
-        this.myCsvStore.multiFields = multiFields;
-        this.myCsvStore.useAddr = this._useAddr;
-        this.myCsvStore.mappedArrayFields = mappedFields;
+        this.myCsvStore.useMultiFields = this.myCsvStore.multiFields && this.myCsvStore.multiFields.length > 0; //TODO this may no longer be necessary if all will be supported
+        this.myCsvStore.useAddr = this._useAddr; //TODO this may no longer be necessary if all will be supported
         this.myCsvStore.processForm().then(lang.hitch(this, function () {
           domStyle.set(this.processingNode, 'display', 'none');
           domStyle.set(this.clearMapData, "display", "block");
           domStyle.set(this.submitData, "display", "block");
           domStyle.set(this.updateData, "display", "block");
+          this._toggleUnmatched(this.myCsvStore.hasUnmatched);
         }), lang.hitch(this, function (err) {
           domStyle.set(this.processingNode, 'display', 'none');
           domStyle.set(this.addToMap, "display", "block");
         }));
       }
+    },
+
+    _toggleUnmatched: function (show) {
+      //TODO simplify this and handle bottom-radius
+      //make sure anything that is set he is reset when clear occurs
+
+      //this is not being handled correctly yet
+      this._toggle(this.unMatchedContainerRow, show ? 'content-hide' : 'content-show', undefined);
+
+      var removeRadiusClass = show ? 'bottom-radius' : undefined;
+      var addRadiusClass = !show ? 'bottom-radius' : undefined;
+      this._toggle(this.schemaMapContainerRow, removeRadiusClass, addRadiusClass);
+      this._toggle(this.schemaMapContainer, removeRadiusClass, addRadiusClass);
+    },
+
+    _toggle: function (container, remove, add) {
+      if (typeof (remove) !== 'undefined') {
+        if (domClass.contains(container, remove)) {
+          domClass.remove(container, remove);
+        }
+      }
+      if (typeof (add) !== 'undefined') {
+        domClass.add(container, add);
+      }
+    },
+
+    _setMappedFields: function (fields, table) {
+      var mappedFields = {};
+      array.forEach(fields, function (setField) {
+        if (setField) {
+          var fieldName = setField.name;
+          var controlNodes = query('.field-node-tr', table); //does this still work correctly with the context chnge
+          var mappedField = "";
+          for (var i = 0; i < controlNodes.length; i++) {
+            var node = controlNodes[i];
+            if (node.keyField === fieldName) {
+              mappedField = node.selectFields.value;
+              break;
+            }
+          }
+          mappedFields[fieldName] = mappedField;
+        }
+      });
+      this.myCsvStore.mappedArrayFields = mappedFields;
+    },
+
+    _setFieldsFromNodes: function (controlNodes, type) {
+      var single = false;
+      var multi = false;
+      var fields = [];
+      array.forEach(controlNodes, lang.hitch(this, function (node) {
+        switch (type) {
+          case 'single':
+            single = true;
+            //TODO this would not work correctly if multiple single fields are enabled
+            this.myCsvStore.addrFieldName = node.selectFields.value;
+            fields.push({ keyField: node.keyField, value: node.selectFields.value, label: node.label });
+            break;
+          case this.nls.xyFieldsLabelX: //TODO are these still ok...or can the user change? Thinking the usre should be able to change
+            this.myCsvStore.xFieldName = node.selectFields.value;
+            break;
+          case this.nls.xyFieldsLabelY: //TODO are these still ok...or can the user change? Thinking the usre should be able to change
+            this.myCsvStore.yFieldName = node.selectFields.value;
+            break;
+          default:
+            multi = true;
+            fields.push({ keyField: node.keyField, value: node.selectFields.value, label: node.label });
+            break;
+        }
+      }));
+      this.myCsvStore.multiFields = multi ? fields : this.myCsvStore.multiFields;
+      this.myCsvStore.singleFields = single ? fields : this.myCsvStore.singleFields;
     },
 
     onUpdateClick: function () {
@@ -558,6 +598,7 @@ define(['dojo/_base/declare',
       domStyle.set(this.schemaMapInstructions, "display", "block");
 
       domStyle.set(this.processingNode, 'display', 'none');
+      this._toggleUnmatched(false);
 
       this.myCsvStore.clear();
     },

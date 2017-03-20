@@ -42,11 +42,17 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
   jimuUtils, GeocodeCacheManager, UnMatchedList) {
   return declare([Evented], {
 
+    //Should multi and single be supported within a single locator?
+
+    //may just move away from the this.useMultiFields alltogether since each source should know what it supports
+    //but each source can use either actually...need to really think through this
+    //so if they flag single and multi on a single locator...that locator should actually be processed twice
+    //once for multi and once for single is what I am thinking 
+
     //TODO may move all geocode logic into GeocodeCacheManager if we go with supporting that
     // Main doubt with the cache idea is for proper handeling if the locations provided by the world geocoder change
     // would basically need to test each address in the cahce individually to avoid additional credit consumption. This could be way too chatty
     // could make it's use optional also
-    //TODO need to make sure the score comes through with what we persist to this file
 
     constructor: function (options) {
       this.file = options.file;
@@ -64,12 +70,16 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
       this.featureLayer = null;
       this.mappedArrayFields = null;
 
+      this.hasUnmatched = false;
       this.useAddr = true;
       this.addrFieldName = ""; //double check but I don't think this is necessary anymore
       this.xFieldName = "";
       this.yFieldName = "";
       this.objectIdField = "ObjectID";
       this.nls = options.nls;
+
+      //TODO this may need to be configurable
+      this.minScore = 90;
 
       //TODO still deciding on this
       this.geocodeManager = new GeocodeCacheManager({
@@ -110,32 +120,38 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
         this.unmatchedFC = this._generateFC();
         var unmatchedI = 0;
         var keys = Object.keys(data);
-        for (var i = 0; i < this.storeItems.length; i++) {
-          var attributes = {};
-          var si = this.storeItems[i];
-          var di = data[keys[i]];
-          array.forEach(this.fsFields, lang.hitch(this, function (f) {
-            attributes[f.name] = this.csvStore.getValue(si, this.mappedArrayFields[f.name]);
-          }));
-          //TODO could also have a score threshold evaluated here
-          if (di && di.score > 80) {
-            attributes["ObjectID"] = i - unmatchedI;
-            this.featureCollection.featureSet.features.push({
-              "geometry": di.location,
-              "attributes": lang.clone(attributes)
-            });
-          } else {
-            attributes["ObjectID"] = unmatchedI;
-            //TODO need to handle the null location by doing something
-            this.unmatchedFC.featureSet.features.push({
-              "geometry": new Point(0, 0, this.map.spatialReference),
-              "attributes": lang.clone(attributes)
-            });
-            unmatchedI++;
-          }
+        for (var i = 0; i < keys.length; i++) {
+            var attributes = {};           
+            var di = data[keys[i]];
+            var si = this.storeItems[di.csvIndex];
+            array.forEach(this.fsFields, lang.hitch(this, function (f) {
+              attributes[f.name] = this.csvStore.getValue(si, this.mappedArrayFields[f.name]);
+            }));
+
+            if (di && di.score > this.minScore) {
+              attributes["ObjectID"] = i - unmatchedI;
+              this.featureCollection.featureSet.features.push({
+                "geometry": di.location,
+                "attributes": lang.clone(attributes)
+              });
+            } else {
+              attributes["ObjectID"] = unmatchedI;
+              //TODO need to handle the null location by doing something
+              this.unmatchedFC.featureSet.features.push({
+                "geometry": new Point(0, 0, this.map.spatialReference),
+                "attributes": lang.clone(attributes)
+              });
+              unmatchedI++;
+            }
         }
 
         if (unmatchedI > 0) {
+          //TODO need to clear this.unMatchedContainer
+          if (this.unMatchedContainer.children.length > 0) {
+            array.forEach(this.unMatchedContainer.children, html.destroy);
+          }
+
+          this.hasUnmatched = true;
           this.unMatchedFeatureLayer = this._initLayer(this.unmatchedFC,
             this.file.name += "_UnMatched");
 
@@ -175,37 +191,28 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
     _locateData: function (useAddress) {
       var def = new Deferred();
       if (useAddress) {
-        var geocodeSources = this._geocodeSources;
         this.geocodeManager.getCache().then(lang.hitch(this, function (cacheData) {
-          //var index = 0;
           //recursive function that will process un-matched records when more than one locator has been provided
-          var _geocodeData = lang.hitch(this, function (cacheData, storeItems, locatorSource, _idx, finalResults) {
+          var _geocodeData = lang.hitch(this, function (cacheData, storeItems, _idx, finalResults) {
             var def = new Deferred();
+            var locatorSource = this._geocodeSources[_idx];
             var locator = locatorSource.locator;
             locator.outSpatialReference = this.spatialReference;
-            var unmatchedResultIDs = [];
+            var unMatchedStoreItems = [];
             var geocodeOps = [];
             var oid = "OBJECTID";
             var max = 500;
             var x = 0;
-            var xx = 0;
             var i, j;
-            //loop through all store items 
-
+            //loop through all provided store items 
             for (var i = 0, j = storeItems.length; i < j; i += max) {
               var items = storeItems.slice(i, i + max);
               var addresses = [];
               if (locatorSource.singleEnabled || locatorSource.multiEnabled) {
                 array.forEach(items, lang.hitch(this, function (item) {
-                  x += 1;
+                  var csvID = item._csvId;
                   var addr = {};
-                  addr[oid] = x;
-                  //TODO may need to verify that the locator source also supports it now that
-                  // we are processing multiple locators
-                  //Actually may just move away from the this.useMultiFields alltogether since each source should know what it supports
-                  //but each source can use either actually...need to really think through this
-                  //so if they flag single and multi on a single locator...that locator should actually be processed twice
-                  //once for multi and once for single is what I am thinking 
+                  addr[oid] = csvID;
                   if (this.useMultiFields && locatorSource.multiEnabled) {
                     array.forEach(this.multiFields, lang.hitch(this, function (f) {
                       if (f.value !== this.nls.noValue) {
@@ -214,23 +221,30 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
                       }
                     }));
                   } else if (locatorSource.singleEnabled) {
-                    //TODO this needs to be updated...it is currently not using the correct value
-                    //needs to pull from item using the mapped field name similar to how multi-fields is handled above
-                    addr[locatorSource.singleLineFieldName] = cacheKey;
+                    if (this.singleFields[0].value !== this.nls.noValue) {
+                      var s_val = this.csvStore.getValue(item, this.singleFields[0].value);
+                      if (typeof (s_val) === 'undefined') {
+                        //otherwise multiple undefined values are seen as the same key
+                        // may need to think through other potential duplicates
+                        s_val = typeof (s_val) + csvID;
+                      }
+                      addr[locatorSource.singleLineFieldName] = s_val;
+                    }
                   }
 
+                  //most of this is to support the cahce concept that I'm not sure if it will stick around
                   var clone = Object.assign({}, addr);
                   delete clone[oid]
                   var cacheKey = JSON.stringify(clone);
-
                   var _cacheData = cacheData ? cacheData : {};
                   if (!(_cacheData && _cacheData.hasOwnProperty(cacheKey) ? true : false)) {
                     addresses.push(addr);
                     finalResults[cacheKey] = {
-                      index: xx,
+                      index: x,
+                      csvIndex: csvID,
                       location: {}
                     };
-                    xx += 1
+                    x += 1
                   } else {
                     finalResults[cacheKey] = {
                       index: -1,
@@ -246,10 +260,13 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
               }));
             }
             var keys = Object.keys(finalResults);
-
             var geocodeList = new DeferredList(geocodeOps);
             geocodeList.then(lang.hitch(this, function (results) {
+              _idx += 1;
+              //var storeItems = this.storeItems;
+              var additionalLocators = this._geocodeSources.length > _idx;
               if (results) {
+                var minScore = this.minScore;
                 var idx = 0;
                 array.forEach(results, function (r) {
                   var defResults = r[1];
@@ -264,13 +281,16 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
                   array.forEach(resultsSort, function (_r) {
                     for (var k in keys) {
                       var _i = keys[k];
-                      if (finalResults[_i].index === idx) {
-                        if (_r.attributes["Score"] < 90) {
-                          unmatchedResultIDs.push(finalResults[_i].index);
-                          delete finalResults[_i];
+                      if (finalResults[_i] && finalResults[_i].index === idx) {
+                        if (_r.attributes["Score"] < minScore) {
+                          if (additionalLocators) {
+                            unMatchedStoreItems.push(storeItems[finalResults[_i].csvIndex]);
+                            delete finalResults[_i];
+                          }
                         } else {
                           finalResults[_i].location = _r.location;
                           finalResults[_i].score = _r.attributes["Score"];
+                          delete finalResults[_i].index
                         }
                         delete keys[k];
                         break;
@@ -279,19 +299,8 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
                     idx += 1;
                   });
                 });
-
-                var unMatchedStoreItems = [];
-                if (unmatchedResultIDs && unmatchedResultIDs.length > 0) {
-                  for (var i = 0; i < unmatchedResultIDs.length; i++) {
-                    unMatchedStoreItems.push(this.storeItems[unmatchedResultIDs[i]]);
-                  }
-                }
-                //index += 1;
-                _idx += 1;
-                if (this._geocodeSources.length > _idx && unMatchedStoreItems.length > 0) {
-                  //TODO is passing finalResults as the first arg "cacheData" arg the right thing to do?
-                  //TODO do I really even need to pass geocodeSources each time if I set a var once above??
-                  _geocodeData(finalResults, unMatchedStoreItems, this._geocodeSources[_idx], _idx, finalResults).then(lang.hitch(this, function (data) {
+                if (additionalLocators && unMatchedStoreItems.length > 0) {
+                  _geocodeData(finalResults, unMatchedStoreItems, _idx, finalResults).then(lang.hitch(this, function (data) {
                     def.resolve(data);
                   }));
                 } else {
@@ -304,7 +313,7 @@ function (declare, array, lang, html, query, on, Deferred, DeferredList, Evented
           });
 
           //make the inital call to this recursive function
-          _geocodeData(cacheData, this.storeItems, this._geocodeSources[0], 0, {}).then(lang.hitch(this, function (a) {
+          _geocodeData(cacheData, this.storeItems, 0, {}).then(lang.hitch(this, function (a) {
             def.resolve(a);
           }));
         }));

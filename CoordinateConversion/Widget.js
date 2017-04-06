@@ -62,9 +62,10 @@ define([
             this.coordTypes = [];
             
             if(this.config) { 
-            
-              if(this.config.symbols.graphicLocationSymbol) {
-                var glsym = new EsriPictureMarkerSymbol(this.config.symbols.graphicLocationSymbol);
+              if (this.config.symbols) {
+                if(this.config.symbols.graphicLocationSymbol) {
+                  var glsym = new EsriPictureMarkerSymbol(this.config.symbols.graphicLocationSymbol);
+                } 
               } else {
                 var glsym = new EsriPictureMarkerSymbol(
                     this.folderUrl + 'images/CoordinateLocation.png',

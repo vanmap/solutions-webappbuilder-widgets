@@ -18,8 +18,8 @@
 UnitTestUtiliites.py
 --------------------------------------------------
 requirments:
-* ArcGIS Desktop 10.X+ or ArcGIS Pro 1.X+
-* Python 2.7 or Python 3.4
+* ArcGIS Desktop 10.X+
+* Python 2.7
 author: ArcGIS Solutions
 company: Esri
 ==================================================
@@ -205,7 +205,7 @@ def handleGeneralError():
     Configuration.Logger.error(pymsg)
     print(msgs)
     Configuration.Logger.error(msgs)
-    
+
 def geoObjectsExist(objects):
     ''' Return true if all of the input list of geo-objects exist, false otherwise '''
     allExist = True
@@ -213,7 +213,7 @@ def geoObjectsExist(objects):
         if not arcpy.Exists(obj):
             allExist = False
     return allExist
-    
+
 def folderPathsExist(paths):
     ''' Return true if all input paths exist, false otherwise '''
     allExist = True
@@ -221,10 +221,9 @@ def folderPathsExist(paths):
         if not os.path.exists(p):
             allExist = False
     return allExist
-    
+
 def deleteIfExists(dataset):
     ''' Delete the input dataset if it exists '''
     if (arcpy.Exists(dataset)):
         arcpy.Delete_management(dataset)
         arcpy.AddMessage("deleted dataset: " + dataset)
-    

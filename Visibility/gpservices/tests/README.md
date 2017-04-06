@@ -1,6 +1,6 @@
-#Running tests for Visibility tool
+# Running tests for Visibility tool
 
-##Sections
+## Sections
 * [Introduction](#introduction)
 * [Requirements](#requirements)
 	* [For ArcGIS Pro](#for-arcgis-pro)

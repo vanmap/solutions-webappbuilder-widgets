@@ -25,27 +25,23 @@
  ==================================================
 '''
 
-# Import arcpy module
-import arcpy, math
+import arcpy
+import math
 import os
 
 ####
 ########Script Parameters##################
 ####
 inputPoints = arcpy.GetParameterAsText(0)
-
-Radius2_Input = arcpy.GetParameterAsText(1)
-Azimuth1_Input = arcpy.GetParameterAsText(2)
-Azimuth2_Input = arcpy.GetParameterAsText(3)
-OffsetA_Input = arcpy.GetParameterAsText(4)
-Radius1_Input = arcpy.GetParameterAsText(5)
-viewshed = arcpy.GetParameterAsText(6)
-wedge = arcpy.GetParameterAsText(7)
-fullwedge = arcpy.GetParameterAsText(8)
-
-# CHANGE PATH TO RASTER DATASET:
-elevation = r'D:\Workspace\Data\n36prj.tif'
-
+elevationRaster = arcpy.GetParameterAsText(1)
+Radius2_Input = arcpy.GetParameterAsText(2)
+Azimuth1_Input = arcpy.GetParameterAsText(3)
+Azimuth2_Input = arcpy.GetParameterAsText(4)
+OffsetA_Input = arcpy.GetParameterAsText(5)
+Radius1_Input = arcpy.GetParameterAsText(6)
+viewshed = arcpy.GetParameterAsText(7)
+sectorWedge = arcpy.GetParameterAsText(8)
+fullWedge = arcpy.GetParameterAsText(9)
 
 DEBUG = False
 
@@ -57,13 +53,14 @@ def drawWedge(cx,cy,r1,r2,start,end):
     x_end = cx + r2*math.cos(start)
     y_end = cy + r2*math.sin(start)
 
-    #Calculate the step value for the x,y coordiantes, use 50 points for each radius
-    i = math.radians(0.1)
+    #Calculate the step value for the x,y coordinates, use 5 degrees for each circle point
+    intervalInDegrees = 5
+    intervalInRadians = math.radians(intervalInDegrees)
 
     #Calculate the outer edge of the wedge
     a = start
 
-    #If r1 == 0 then create a wedge from the centre point
+    #If r1 == 0 then create a wedge from the center point
     if r1 == 0:
         #Add the start point to the array
         point.X = cx
@@ -74,7 +71,7 @@ def drawWedge(cx,cy,r1,r2,start,end):
             point.X = cx + r2*math.cos(a)
             point.Y = cy + r2*math.sin(a)
             array.add(point)
-            a -= i
+            a -= intervalInRadians
         #Close the polygon
         point.X = cx
         point.Y = cy
@@ -84,16 +81,16 @@ def drawWedge(cx,cy,r1,r2,start,end):
         while a >= end:
             point.X = cx + r2*math.cos(a)
             point.Y = cy + r2*math.sin(a)
-            a -= i
+            a -= intervalInRadians
             array.add(point)
 
-        #Caluclate the inner edge of the wedge
+        #Calculate the inner edge of the wedge
         a = end
 
         while a <= start:
-            a += i
             point.X = cx + r1*math.cos(a)
             point.Y = cy + r1*math.sin(a)
+            a += intervalInRadians
             array.add(point)
 
         #Close the polygon by adding the end point
@@ -136,7 +133,7 @@ def extentToPoly(extent, sr):
         return extent.polygon
 
 def main():
-    elevDesc = arcpy.Describe(elevation)
+    elevDesc = arcpy.Describe(elevationRaster)
     Output_CS = elevDesc.spatialReference
 
     if not Output_CS.type == "Projected":
@@ -146,8 +143,8 @@ def main():
 
     arcpy.env.outputCoordinateSystem = Output_CS
 
-    polylist = []
-    wedges = []
+    donutWedges = []
+    pieWedges = []
 
     ####
     ########End of Script Parameters##################
@@ -157,9 +154,9 @@ def main():
     arcpy.CopyFeatures_management(inputPoints, Point_Input)
 
     #Check if point extent falls within surface extent
-    isWithin = surfaceContainsPoint(Point_Input, elevation)
+    isWithin = surfaceContainsPoint(Point_Input, elevationRaster)
     if not isWithin:
-        msgErrorPointNotInSurface = "Error: Input Observer(s) does not fall within the extent of the input surface: {0}!".format(os.path.basename(elevation))
+        msgErrorPointNotInSurface = "Error: Input Observer(s) does not fall within the extent of the input surface: {0}!".format(os.path.basename(elevationRaster))
         arcpy.AddError(msgErrorPointNotInSurface)
         raise Exception(msgErrorPointNotInSurface)
 
@@ -178,14 +175,15 @@ def main():
     xMax = desc.Extent.XMax
     yMax = desc.Extent.YMax
     Extent = str(xMin) + " " + str(yMin) + " " + str(xMax) + " " + str(yMax)
-    # Call image service a second time to get corrected extents
+
     arcpy.env.extent = Extent
     arcpy.env.mask = "in_memory\\OutBuffer"
     arcpy.AddMessage("Clipping image to observer buffer...")
-    # arcpy.MakeImageServerLayer_management(elevation, "elevation", Extent, "#", "#", "#", "#", "#", elevDesc.meanCellWidth)
-    arcpy.Clip_management(elevation, Extent, "in_memory\clip")
+    arcpy.Clip_management(elevationRaster, Extent, "in_memory\clip")
+
     arcpy.AddMessage("Calculating viewshed...")
     arcpy.Viewshed_3d("in_memory\clip", Point_Input, "in_memory\intervis", "1", "FLAT_EARTH", "0.13")
+
     arcpy.AddMessage("Creating features from raster...")
     arcpy.RasterToPolygon_conversion(in_raster="in_memory\intervis", out_polygon_features="in_memory\unclipped",simplify="NO_SIMPLIFY")
 
@@ -197,25 +195,29 @@ def main():
             cy = row[0][1]
             r1 = row[1]
             r2 = row[2]
-            start = math.radians(90 - row[3])
-            if row[3] > row[4]:
-                end = row[4] + 360
-                end =  math.radians(90 - end)
-            else:
-                end = math.radians(90 - row[4])
+            startAz = row[3]
+            endAz = row[4]
 
-            poly = drawWedge(cx,cy,r1,r2,start,end)
-            polylist.append(poly)
-            fullWedge = drawWedge(cx,cy,0,r2,start,end)
-            wedges.append(fullWedge)
+            # Convert from north bearing to XY angle 
+            start = math.radians(90 - startAz)
+            # Adjust end if it crosses 360
+            if startAz > endAz:
+                endAz = endAz + 360
 
+            end = math.radians(90 - endAz)
 
-    arcpy.CopyFeatures_management(polylist,wedge)
-    arcpy.CopyFeatures_management(wedges,fullwedge)
+            donutWedge = drawWedge(cx,cy,r1,r2,start,end)
+            donutWedges.append(donutWedge)
+
+            pieWedge = drawWedge(cx,cy,0,r2,start,end)
+            pieWedges.append(pieWedge)
+
+    arcpy.CopyFeatures_management(donutWedges, sectorWedge)
+    arcpy.CopyFeatures_management(pieWedges, fullWedge)
+
     arcpy.AddMessage("Finishing output features...")
-    arcpy.Clip_analysis("in_memory\unclipped", wedge, "in_memory\\dissolve")
+    arcpy.Clip_analysis("in_memory\unclipped", sectorWedge, "in_memory\\dissolve")
     arcpy.Dissolve_management("in_memory\\dissolve", viewshed, "gridcode", "", "MULTI_PART", "DISSOLVE_LINES")
-
 
 # MAIN =============================================
 if __name__ == "__main__":

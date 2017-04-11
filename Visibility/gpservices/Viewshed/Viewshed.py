@@ -54,7 +54,7 @@ def drawWedge(cx,cy,r1,r2,start,end):
     y_end = cy + r2*math.sin(start)
 
     #Calculate the step value for the x,y coordinates, use 5 degrees for each circle point
-    intervalInDegrees = 5
+    intervalInDegrees = 1
     intervalInRadians = math.radians(intervalInDegrees)
 
     #Calculate the outer edge of the wedge
@@ -133,6 +133,11 @@ def extentToPoly(extent, sr):
         return extent.polygon
 
 def main():
+
+    inputPointsCount = int(arcpy.GetCount_management(inputPoints).getOutput(0))
+    if (inputPointsCount == 0) :
+        raise Exception('No features in input feature set: ' + str(inputPoints))
+
     elevDesc = arcpy.Describe(elevationRaster)
     Output_CS = elevDesc.spatialReference
 
@@ -150,7 +155,7 @@ def main():
     ########End of Script Parameters##################
     ####
 
-    Point_Input = "in_memory\\tempPoints"
+    Point_Input = r"in_memory\tempPoints"
     arcpy.CopyFeatures_management(inputPoints, Point_Input)
 
     #Check if point extent falls within surface extent
@@ -160,16 +165,36 @@ def main():
         arcpy.AddError(msgErrorPointNotInSurface)
         raise Exception(msgErrorPointNotInSurface)
 
-    arcpy.CalculateField_management(Point_Input, "OFFSETB", "0", "PYTHON_9.3", "")
-    arcpy.CalculateField_management(Point_Input, "RADIUS2", Radius2_Input, "PYTHON_9.3", "")
-    arcpy.CalculateField_management(Point_Input, "AZIMUTH1", Azimuth1_Input, "PYTHON_9.3", "")
-    arcpy.CalculateField_management(Point_Input, "AZIMUTH2", Azimuth2_Input, "PYTHON_9.3", "")
-    arcpy.CalculateField_management(Point_Input, "OFFSETA", OffsetA_Input, "PYTHON_9.3", "")
-    arcpy.CalculateField_management(Point_Input, "RADIUS1", Radius1_Input, "PYTHON_9.3", "")
-    arcpy.AddMessage("Buffering observers...")
-    arcpy.Buffer_analysis(Point_Input, "in_memory\OuterBuffer", "RADIUS2", "FULL", "ROUND", "NONE", "", "GEODESIC")
+    desc = arcpy.Describe(Point_Input)
+    if "OFFSETB" not in desc.Fields : 
+        arcpy.AddField_management(Point_Input, "OFFSETB", "SHORT")
+    # Set Target Height to 0
+    arcpy.CalculateField_management(Point_Input, "OFFSETB", "0")
 
-    desc = arcpy.Describe("in_memory\OuterBuffer")
+    if "RADIUS2" not in desc.Fields : 
+        arcpy.AddField_management(Point_Input, "RADIUS2", "SHORT")
+    arcpy.CalculateField_management(Point_Input, "RADIUS2", Radius2_Input)
+
+    if "AZIMUTH1" not in desc.Fields : 
+        arcpy.AddField_management(Point_Input, "AZIMUTH1", "SHORT")
+    arcpy.CalculateField_management(Point_Input, "AZIMUTH1", Azimuth1_Input)
+
+    if "AZIMUTH2" not in desc.Fields : 
+        arcpy.AddField_management(Point_Input, "AZIMUTH2", "SHORT")
+    arcpy.CalculateField_management(Point_Input, "AZIMUTH2", Azimuth2_Input)
+
+    if "OFFSETA" not in desc.Fields : 
+        arcpy.AddField_management(Point_Input, "OFFSETA", "SHORT")
+    arcpy.CalculateField_management(Point_Input, "OFFSETA", OffsetA_Input)
+
+    if "RADIUS1" not in desc.Fields : 
+        arcpy.AddField_management(Point_Input, "RADIUS1", "SHORT")
+    arcpy.CalculateField_management(Point_Input, "RADIUS1", Radius1_Input)
+
+    arcpy.AddMessage("Buffering observers...")
+    arcpy.Buffer_analysis(Point_Input, r"in_memory\OuterBuffer", "RADIUS2", "FULL", "ROUND", "NONE", "", "GEODESIC")
+
+    desc = arcpy.Describe(r"in_memory\OuterBuffer")
     xMin = desc.Extent.XMin
     yMin = desc.Extent.YMin
     xMax = desc.Extent.XMax
@@ -177,15 +202,20 @@ def main():
     Extent = str(xMin) + " " + str(yMin) + " " + str(xMax) + " " + str(yMax)
 
     arcpy.env.extent = Extent
-    arcpy.env.mask = "in_memory\\OutBuffer"
+
+    # TODO: investigate why this doesn't work in ArcGIS Pro (setting mask to in_memory or %scatchGDB%)
+    # This output is clipped to the wedge below, so not entirely necessary 
+    if arcpy.GetInstallInfo()['ProductName'] != 'ArcGISPro':
+        arcpy.env.mask = r"in_memory\OutBuffer"
+
     arcpy.AddMessage("Clipping image to observer buffer...")
-    arcpy.Clip_management(elevationRaster, Extent, "in_memory\clip")
+    arcpy.Clip_management(elevationRaster, Extent, r"in_memory\clip")
 
     arcpy.AddMessage("Calculating viewshed...")
-    arcpy.Viewshed_3d("in_memory\clip", Point_Input, "in_memory\intervis", "1", "FLAT_EARTH", "0.13")
+    arcpy.Viewshed_3d("in_memory\clip", Point_Input, r"in_memory\intervis", "1", "FLAT_EARTH", "0.13")
 
     arcpy.AddMessage("Creating features from raster...")
-    arcpy.RasterToPolygon_conversion(in_raster="in_memory\intervis", out_polygon_features="in_memory\unclipped",simplify="NO_SIMPLIFY")
+    arcpy.RasterToPolygon_conversion(in_raster=r"in_memory\intervis", out_polygon_features=r"in_memory\unclipped",simplify="NO_SIMPLIFY")
 
     fields = ["SHAPE@XY","RADIUS1","RADIUS2","AZIMUTH1","AZIMUTH2"]
     ## get the attributes from the input point
@@ -216,9 +246,13 @@ def main():
     arcpy.CopyFeatures_management(pieWedges, fullWedge)
 
     arcpy.AddMessage("Finishing output features...")
-    arcpy.Clip_analysis("in_memory\unclipped", sectorWedge, "in_memory\\dissolve")
-    arcpy.Dissolve_management("in_memory\\dissolve", viewshed, "gridcode", "", "MULTI_PART", "DISSOLVE_LINES")
+    arcpy.Clip_analysis(r"in_memory\unclipped", sectorWedge, r"in_memory\dissolve")
+    arcpy.Dissolve_management(r"in_memory\dissolve", viewshed, "gridcode", "", "MULTI_PART", "DISSOLVE_LINES")
 
 # MAIN =============================================
 if __name__ == "__main__":
+
+    if arcpy.CheckExtension("3D") != "Available":
+        raise Exception("3D license is not available.")
+
     main()

@@ -34,7 +34,7 @@ TestSuite = unittest.TestSuite()
 
 def getVisibilityTestSuites():
     ''' Add all of the tests in ./visibility_tests to the test suite '''
-    visibilityUtilitiesTests = ['test__surfaceContainsPoint']
+    visibilityUtilitiesTests = ['test_surfaceContainsPoint', 'test_toolboxTool']
 
     if Configuration.DEBUG == True:
         print("   VisibilityTestSuite.getVisibilityTestSuites")
@@ -52,7 +52,7 @@ def getVisibilityTestSuites():
 
 def addVisibilityUtilitiesTests(inputTestList):
     if Configuration.DEBUG == True: print(".....VisibilityTestSuite.addVisibilityUtilitiesTests")
-    from . import VisibilityUtilitiesTestCase
+    import VisibilityUtilitiesTestCase
     for test in inputTestList:
         print("adding test: {0}".format(str(test)))
         Configuration.Logger.info(test)

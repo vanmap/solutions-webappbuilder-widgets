@@ -2,6 +2,7 @@
 
 .observerValues{
   display: block;
+  margin: auto;
 }
 .FOVPicker{
   width: 180px;
@@ -46,6 +47,11 @@
     width:50px !important;
     top: 23px;
     display: inline-block;
+    float: left;
 }
 
-
+.jimu-btn {
+  float: left;
+  bottom: -8px;
+  position: relative;
+}

@@ -29,8 +29,9 @@
 import os
 import sys
 import traceback
-import arcpy
 import unittest
+
+import arcpy
 import UnitTestUtilities
 import Configuration
 
@@ -52,7 +53,7 @@ class VisibilityUtilitiesTestCase(unittest.TestCase):
             raise Exception("3D license is not available.")
 
         #TODO: replace with actual observer/surface datasets from test setup
-        observers =  'C:\....\TestPoints'
+        observers =  r'C:\....\TestPoints'
         elevationSurface = r'C:\MyFiles\MapData\elevation\SRTM\n36_w121_proj'
 
         Viewshed.createViewshed(observers, \

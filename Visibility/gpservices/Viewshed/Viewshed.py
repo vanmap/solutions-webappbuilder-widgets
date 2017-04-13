@@ -25,28 +25,36 @@
  ==================================================
 '''
 
-import arcpy
 import math
 import os
+import arcpy
 
-DEBUG = True
+DEBUG = False
 
-def drawWedge(cx,cy,r1,r2,start,end):
+def drawWedge(cx, cy, r1, r2, startBearing, endBearing):
+
+    # Convert to radians and from north bearing to XY angle 
+    start = math.radians(90.0 - startBearing)
+    # Adjust end if it crosses 360
+    if startBearing > endBearing:
+        endBearing = endBearing + 360.0
+    end = math.radians(90.0 - endBearing)
+
     point = arcpy.Point()
     array = arcpy.Array()
 
-    #Calculate the end x,y for the wedge
+    # Calculate the end x,y for the wedge
     x_end = cx + r2*math.cos(start)
     y_end = cy + r2*math.sin(start)
 
-    #Calculate the step value for the x,y coordinates, use 5 degrees for each circle point
-    intervalInDegrees = 1
+    # Use intervalInDegrees as the angle step value for each circle point
+    intervalInDegrees = 5
     intervalInRadians = math.radians(intervalInDegrees)
 
-    #Calculate the outer edge of the wedge
+    # Calculate the outer edge of the wedge
     a = start
 
-    #If r1 == 0 then create a wedge from the center point
+    # If r1 == 0 then create a wedge from the center point
     if r1 == 0:
         #Add the start point to the array
         point.X = cx
@@ -62,24 +70,25 @@ def drawWedge(cx,cy,r1,r2,start,end):
         point.X = cx
         point.Y = cy
         array.add(point)
-
     else:
+        # Calculate the outer edge of the wedge (clockwise)
         while a >= end:
             point.X = cx + r2*math.cos(a)
             point.Y = cy + r2*math.sin(a)
             a -= intervalInRadians
             array.add(point)
 
-        #Calculate the inner edge of the wedge
-        a = end
+        # Step back one interval - so angle matches last point added above  
+        a += intervalInRadians
 
+        # Calculate the inner edge of the wedge (counter-clockwise)
         while a <= start:
             point.X = cx + r1*math.cos(a)
             point.Y = cy + r1*math.sin(a)
             a += intervalInRadians
             array.add(point)
 
-        #Close the polygon by adding the end point
+        # Close the polygon by adding the end point
         point.X = x_end
         point.Y = y_end
         array.add(point)
@@ -96,11 +105,11 @@ def surfaceContainsPoint(pointFeatures, surfRaster):
     '''
     surfDesc = arcpy.Describe(surfRaster)
     pointsDesc = arcpy.Describe(pointFeatures)
-    
+
     surfaceSR = surfDesc.spatialReference
     pointsSR = pointsDesc.spatialReference
 
-    if surfaceSR.Name != pointsSR.Name : 
+    if surfaceSR.Name != pointsSR.Name :
         raise Exception('surfaceContainsPoint: Spatial References do not match: ' \
             + pointsSR.Name + ' != ' + surfaceSR.Name)
 
@@ -135,37 +144,71 @@ def surfaceContainsPoint(pointFeatures, surfRaster):
 # create destination feature class using the source as a template to establish schema
 # and set destination spatial reference
 def copyFeaturesAndProject(source_fc, out_projected_fc, spatial_reference):
-  """ projects source_fc to out_projected_fc using cursors (and supports in_memory workspace) """
-  path, name = os.path.split(out_projected_fc)
-  arcpy.management.CreateFeatureclass(path, name,
-                                      arcpy.Describe(source_fc).shapeType,
-                                      template=source_fc,
-                                      spatial_reference=spatial_reference)
+    """ projects source_fc to out_projected_fc using cursors (and supports in_memory workspace) """
+    path, name = os.path.split(out_projected_fc)
+    arcpy.management.CreateFeatureclass(path, name, \
+                                        arcpy.Describe(source_fc).shapeType, \
+                                        template=source_fc, \
+                                        spatial_reference=spatial_reference)
 
-  # specify copy of all fields from source to destination
-  fields = ["Shape@"] + [f.name for f in arcpy.ListFields(source_fc) if not f.required]
+    # specify copy of all fields from source to destination
+    fields = ["Shape@"] + [f.name for f in arcpy.ListFields(source_fc) if not f.required]
 
-  # project source geometries on the fly while inserting to destination featureclass
-  with arcpy.da.SearchCursor(source_fc, fields, spatial_reference=spatial_reference) as source_curs, \
-       arcpy.da.InsertCursor(out_projected_fc, fields) as ins_curs:
-      for row in source_curs:
-        ins_curs.insertRow(row)
+    # project source geometries on the fly while inserting to destination featureclass
+    with arcpy.da.SearchCursor(source_fc, fields, spatial_reference=spatial_reference) as source_curs, \
+        arcpy.da.InsertCursor(out_projected_fc, fields) as ins_curs:
+        for row in source_curs:
+            ins_curs.insertRow(row)
 
-def createViewshed(inputPoints, elevationRaster, Radius2_Input, \
-    Azimuth1_Input, Azimuth2_Input, OffsetA_Input, \
-    Radius1_Input, viewshed, sectorWedge, fullWedge):
+def addViewshedFields(observerPointsFC, innerRadiusInput, outerRadiusInput, \
+    leftAzimuthInput, rightAzimuthInput, observerOffsetInput, targetOffsetInput):
 
-    #TODO: check inputs exist
+    desc = arcpy.Describe(observerPointsFC)
 
-    inputPointsCount = int(arcpy.GetCount_management(inputPoints).getOutput(0))
-    if (inputPointsCount == 0) :
-        raise Exception('No features in input feature set: ' + str(inputPoints))
+    if "RADIUS1" not in desc.Fields : 
+        arcpy.AddField_management(observerPointsFC, "RADIUS1", "SHORT")
+    arcpy.CalculateField_management(observerPointsFC, "RADIUS1", innerRadiusInput, "PYTHON_9.3", "")
+
+    if "RADIUS2" not in desc.Fields : 
+        arcpy.AddField_management(observerPointsFC, "RADIUS2", "SHORT")
+    arcpy.CalculateField_management(observerPointsFC, "RADIUS2", outerRadiusInput, "PYTHON_9.3", "")
+
+    if "AZIMUTH1" not in desc.Fields : 
+        arcpy.AddField_management(observerPointsFC, "AZIMUTH1", "SHORT")
+    arcpy.CalculateField_management(observerPointsFC, "AZIMUTH1", leftAzimuthInput, "PYTHON_9.3", "")
+
+    if "AZIMUTH2" not in desc.Fields : 
+        arcpy.AddField_management(observerPointsFC, "AZIMUTH2", "SHORT")
+    arcpy.CalculateField_management(observerPointsFC, "AZIMUTH2", rightAzimuthInput, "PYTHON_9.3", "")
+
+    if "OFFSETA" not in desc.Fields : 
+        arcpy.AddField_management(observerPointsFC, "OFFSETA", "SHORT")
+    arcpy.CalculateField_management(observerPointsFC, "OFFSETA", observerOffsetInput, "PYTHON_9.3", "")
+
+    if "OFFSETB" not in desc.Fields : 
+        arcpy.AddField_management(observerPointsFC, "OFFSETB", "SHORT")
+    arcpy.CalculateField_management(observerPointsFC, "OFFSETB", targetOffsetInput, "PYTHON_9.3", "")
+
+def createViewshed(inputObserverPoints, elevationRaster, outerRadiusInput, \
+    leftAzimuthInput, rightAzimuthInput, observerOffsetInput, \
+    innerRadiusInput, viewshed, sectorWedge, fullWedge):
+
+    if not arcpy.Exists(inputObserverPoints) :
+        raise Exception('Dataset does not exist: ' + str(inputObserverPoints))
+
+    if not arcpy.Exists(elevationRaster) :
+        raise Exception('Dataset does not exist: ' + str(elevationRaster))
+
+    inputPointsCount = int(arcpy.GetCount_management(inputObserverPoints).getOutput(0))
+    if inputPointsCount == 0 :
+        raise Exception('No features in input feature set: ' + str(inputObserverPoints))
 
     elevDesc = arcpy.Describe(elevationRaster)
     elevationSR = elevDesc.spatialReference
 
     if not elevationSR.type == "Projected":
-        msgErrorNonProjectedSurface = "Error: Input elevation raster must be in a projected coordinate system. Existing elevation raster is in {0}.".format(elevationSR.name)
+        msgErrorNonProjectedSurface = \
+            "Error: Input elevation raster must be in a projected coordinate system. Existing elevation raster is in {0}.".format(elevationSR.name)
         arcpy.AddError(msgErrorNonProjectedSurface)
         raise Exception(msgErrorNonProjectedSurface)
 
@@ -174,44 +217,24 @@ def createViewshed(inputPoints, elevationRaster, Radius2_Input, \
     donutWedges = []
     pieWedges = []
 
-    Point_Input = r"in_memory\tempPoints"
-    copyFeaturesAndProject(inputPoints, Point_Input, elevationSR)
+    tempObserverPoints = r"in_memory\tempPoints"
+    copyFeaturesAndProject(inputObserverPoints, tempObserverPoints, elevationSR)
 
-    #Check if points falls within surface extent
-    isWithin = surfaceContainsPoint(Point_Input, elevationRaster)
+    # Check if points falls within surface extent
+    isWithin = surfaceContainsPoint(tempObserverPoints, elevationRaster)
     if not isWithin:
-        msgErrorPointNotInSurface = "Error: Input Observer(s) does not fall within the extent of the input surface: {0}!".format(os.path.basename(elevationRaster))
+        msgErrorPointNotInSurface = \
+            "Error: Input Observer(s) does not fall within the extent of the input surface: {0}!".format(os.path.basename(elevationRaster))
         arcpy.AddError(msgErrorPointNotInSurface)
         raise Exception(msgErrorPointNotInSurface)
 
-    desc = arcpy.Describe(Point_Input)
-    if "OFFSETB" not in desc.Fields : 
-        arcpy.AddField_management(Point_Input, "OFFSETB", "SHORT")
-    # Set Target Height to 0
-    arcpy.CalculateField_management(Point_Input, "OFFSETB", "0", "PYTHON_9.3", "")
-
-    if "RADIUS2" not in desc.Fields : 
-        arcpy.AddField_management(Point_Input, "RADIUS2", "SHORT")
-    arcpy.CalculateField_management(Point_Input, "RADIUS2", Radius2_Input, "PYTHON_9.3", "")
-
-    if "AZIMUTH1" not in desc.Fields : 
-        arcpy.AddField_management(Point_Input, "AZIMUTH1", "SHORT")
-    arcpy.CalculateField_management(Point_Input, "AZIMUTH1", Azimuth1_Input, "PYTHON_9.3", "")
-
-    if "AZIMUTH2" not in desc.Fields : 
-        arcpy.AddField_management(Point_Input, "AZIMUTH2", "SHORT")
-    arcpy.CalculateField_management(Point_Input, "AZIMUTH2", Azimuth2_Input, "PYTHON_9.3", "")
-
-    if "OFFSETA" not in desc.Fields : 
-        arcpy.AddField_management(Point_Input, "OFFSETA", "SHORT")
-    arcpy.CalculateField_management(Point_Input, "OFFSETA", OffsetA_Input, "PYTHON_9.3", "")
-
-    if "RADIUS1" not in desc.Fields : 
-        arcpy.AddField_management(Point_Input, "RADIUS1", "SHORT")
-    arcpy.CalculateField_management(Point_Input, "RADIUS1", Radius1_Input, "PYTHON_9.3", "")
+    addViewshedFields(tempObserverPoints, innerRadiusInput, outerRadiusInput, \
+        leftAzimuthInput, rightAzimuthInput, observerOffsetInput, \
+        0) # Set Target Height to 0
 
     arcpy.AddMessage("Buffering observers...")
-    arcpy.Buffer_analysis(Point_Input, r"in_memory\OuterBuffer", "RADIUS2", "FULL", "ROUND", "NONE", "", "GEODESIC")
+    arcpy.Buffer_analysis(tempObserverPoints, \
+        r"in_memory\OuterBuffer", "RADIUS2", "FULL", "ROUND", "NONE", "", "GEODESIC")
 
     desc = arcpy.Describe(r"in_memory\OuterBuffer")
     xMin = desc.Extent.XMin
@@ -231,34 +254,27 @@ def createViewshed(inputPoints, elevationRaster, Radius2_Input, \
     arcpy.Clip_management(elevationRaster, Extent, r"in_memory\clip")
 
     arcpy.AddMessage("Calculating viewshed...")
-    arcpy.Viewshed_3d("in_memory\clip", Point_Input, r"in_memory\intervis", "1", "FLAT_EARTH", "0.13")
+    arcpy.Viewshed_3d("in_memory\clip", tempObserverPoints, r"in_memory\intervis", "1", "FLAT_EARTH", "0.13")
 
     arcpy.AddMessage("Creating features from raster...")
     arcpy.RasterToPolygon_conversion(in_raster=r"in_memory\intervis", out_polygon_features=r"in_memory\unclipped",simplify="NO_SIMPLIFY")
 
     fields = ["SHAPE@XY","RADIUS1","RADIUS2","AZIMUTH1","AZIMUTH2"]
     ## get the attributes from the input point
-    with arcpy.da.SearchCursor(Point_Input,fields) as cursor:
+    with arcpy.da.SearchCursor(tempObserverPoints,fields) as cursor:
         for row in cursor:
-            cx = row[0][0]
-            cy = row[0][1]
-            r1 = row[1]
-            r2 = row[2]
-            startAz = row[3]
-            endAz = row[4]
+            centerX      = row[0][0]
+            centerY      = row[0][1]
+            radiusInner  = row[1]
+            radiusOuter  = row[2]
+            startBearing = row[3]
+            endBearing   = row[4]
 
-            # Convert from north bearing to XY angle 
-            start = math.radians(90 - startAz)
-            # Adjust end if it crosses 360
-            if startAz > endAz:
-                endAz = endAz + 360
-
-            end = math.radians(90 - endAz)
-
-            donutWedge = drawWedge(cx,cy,r1,r2,start,end)
+            # TODO/IMPORTANT: radius must be in map units
+            donutWedge = drawWedge(centerX, centerY, radiusInner, radiusOuter, startBearing, endBearing)
             donutWedges.append(donutWedge)
 
-            pieWedge = drawWedge(cx,cy,0,r2,start,end)
+            pieWedge = drawWedge(centerX, centerY, 0, radiusOuter, startBearing, endBearing)
             pieWedges.append(pieWedge)
 
     arcpy.CopyFeatures_management(donutWedges, sectorWedge)
@@ -272,20 +288,20 @@ def main():
 
     ########Script Parameters########
 
-    inputPoints = arcpy.GetParameterAsText(0)
-    elevationRaster = arcpy.GetParameterAsText(1)
-    Radius2_Input = arcpy.GetParameterAsText(2)
-    Azimuth1_Input = arcpy.GetParameterAsText(3)
-    Azimuth2_Input = arcpy.GetParameterAsText(4)
-    OffsetA_Input = arcpy.GetParameterAsText(5)
-    Radius1_Input = arcpy.GetParameterAsText(6)
-    viewshed = arcpy.GetParameterAsText(7)
+    inputObserverPoints = arcpy.GetParameterAsText(0)
+    elevationRaster     = arcpy.GetParameterAsText(1)
+    outerRadiusInput    = arcpy.GetParameterAsText(2)
+    leftAzimuthInput    = arcpy.GetParameterAsText(3)
+    rightAzimuthInput   = arcpy.GetParameterAsText(4)
+    observerOffsetInput = arcpy.GetParameterAsText(5)
+    innerRadiusInput    = arcpy.GetParameterAsText(6)
+    viewshed    = arcpy.GetParameterAsText(7)
     sectorWedge = arcpy.GetParameterAsText(8)
-    fullWedge = arcpy.GetParameterAsText(9)
+    fullWedge   = arcpy.GetParameterAsText(9)
 
-    createViewshed(inputPoints, elevationRaster, \
-        Radius2_Input, Azimuth1_Input, Azimuth2_Input, OffsetA_Input, \
-        Radius1_Input, viewshed, sectorWedge, fullWedge)
+    createViewshed(inputObserverPoints, elevationRaster, \
+        outerRadiusInput, leftAzimuthInput, rightAzimuthInput, observerOffsetInput, \
+        innerRadiusInput, viewshed, sectorWedge, fullWedge)
 
 # MAIN =============================================
 if __name__ == "__main__":

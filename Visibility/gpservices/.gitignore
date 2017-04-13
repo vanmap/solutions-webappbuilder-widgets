@@ -1,0 +1,8 @@
+*.py[co]
+
+*.suo
+*.user
+*.sln
+*.pyproj
+
+*.zip

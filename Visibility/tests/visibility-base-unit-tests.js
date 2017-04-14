@@ -8,9 +8,9 @@ define([
   'esri/geometry/Point',
   'esri/graphic',
   'esri/geometry/Extent',
+  'esri/tasks/Geoprocessor',  
   'esri/tasks/FeatureSet',  
-  'jimu/dijit/DrawBox',  
-  'Vis/VisibilityControl'
+  'Vis/VisibilityControl',
 ], function(
 	registerSuite, 
     assert, 
@@ -21,8 +21,8 @@ define([
 	esriPoint,
 	esriGraphic,
 	Extent, 
+	Geoprocessor,
 	FeatureSet,
-	DrawBox,
 	VisibilityControl
 	){
 	var vis, map;
@@ -41,9 +41,18 @@ define([
 
 			map = new Map("map", {
 				basemap: "topo",
-				center: [-122.45, 37.75],
-				zoom: 13,
-				sliderStyle: "small"
+				center: [-13567710.133162694, 4382857.914599498],
+				zoom: 5,
+				sliderStyle: "small",
+		        extent: new Extent({
+					xmin:-13583666.362817202,
+					ymin:4374488.060002282,
+					xmax:-13546976.589240368,
+					ymax:4391877.483937137,
+					spatialReference:{
+						wkid:102100
+					}		        	
+		        })				
 			});
 		  
 		  	//unittests
@@ -58,15 +67,7 @@ define([
 
 		//before each test executes
 		beforeEach: function() {
-			if (vis === undefined || vis === null) {
-			  	vis = new VisibilityControl({
-					viewshedService: {
-						url: 'https://nationalsecurity.esri.com:6443/arcgis/rest/services/Tasks/Viewshed/GPServer/Viewshed'
-					},
-					map: map
-				}, domConstruct.create("div")).placeAt("visNode");	
-				vis.startup();					
-			}
+			//TODO
 		},
 
 		// after the suite is done (all tests)
@@ -89,22 +90,32 @@ define([
 		},
 
 		'Test execute viewshed': function() {
-			var pt = new esriPoint(-13044299.165624933, 4036556.738114527, map.spatialReference);
-			var g = new esriGraphic(pt);
-			var featureSet = new FeatureSet();
-			featureSet.features = [g];
+			var dfd = this.async(10000);
 
+			var pt = new esriPoint(-13567710.133162694, 4382857.914599498, map.extent.spatialReference);		
+			var graphic = new esriGraphic(pt, null, null, null);
+			vis.graphicsLayer.add(graphic);
+
+			var featureSet = new FeatureSet();
+			featureSet.features = [graphic];
 
 			var params = {
 				"Input_Observer": featureSet,
 				"Near_Distance__RADIUS1_": 3000,
 				"Maximum_Distance__RADIUS2_": 5000,
 				"Left_Azimuth__AZIMUTH1_": 45,
-				"Right_Azimuth__AZIMUTH2_": 35,
+				"Right_Azimuth__AZIMUTH2_": 135,
 				"Observer_Offset__OFFSETA_": 2
 			}; 
 
-			vis.viewshed(params);
+			vis.gp.execute(params).then(dfd.callback(function(results, messages){
+				assert.lengthOf(results, 3, "Results has 3 items");
+				vis.drawViewshed(results, messages);
+				assert.lengthOf(vis.graphicsLayer.graphics, 5, "Graphics layer has 5 graphics");
+				dfd.resolve();
+			}), dfd.callback(function(error) {
+				dfd.reject(error);
+			}));
 		}
   	})
 });

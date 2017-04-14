@@ -53,13 +53,25 @@ class VisibilityUtilitiesTestCase(unittest.TestCase):
             raise Exception("3D license is not available.")
 
         #TODO: replace with actual observer/surface datasets from test setup
-        observers =  r'C:\....\TestPoints'
+        observers =  r'C:\....\TestObservers'
         elevationSurface = r'C:\MyFiles\MapData\elevation\SRTM\n36_w121_proj'
+
+        viewshedFC   = r'in_memory\viewshed'
+        donutWedgeFC = r'in_memory\wedge'
+        pieWedgeFC   = r'in_memory\fullwedge'
 
         Viewshed.createViewshed(observers, \
            elevationSurface, \
            '3000', '40', '120', '20', '1000', \
-           r'in_memory\viewshed', r'in_memory\wedge', r'in_memory\fullwedge')
+           viewshedFC, donutWedgeFC, pieWedgeFC)
+
+        viewshedFeaturesCount = int(arcpy.GetCount_management(viewshedFC).getOutput(0))
+        donutFeaturesCount    = int(arcpy.GetCount_management(donutWedgeFC).getOutput(0))
+        pieFeaturesCount      = int(arcpy.GetCount_management(pieWedgeFC).getOutput(0))
+
+        self.assertGreater(viewshedFeaturesCount, 0, "No output features created for " + str(viewshedFC))
+        self.assertGreater(donutFeaturesCount, 0, "No output features created for " + str(donutWedgeFC))
+        self.assertGreater(pieFeaturesCount, 0, "No output features created for " + str(pieWedgeFC))
 
     def test_surfaceContainsPoint(self):
         '''

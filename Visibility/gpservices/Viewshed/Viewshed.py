@@ -98,10 +98,9 @@ def drawWedge(cx, cy, r1, r2, startBearing, endBearing):
 
     return polygon
 
-def surfaceContainsPoint(pointFeatures, surfRaster):
+def surfaceContainsPoints(pointFeatures, surfRaster):
     '''
     Check if points fall within surface extent, return True or False
-    Assumes pointFeatures have been projected to the same SR as surfRaster prior to this call
     '''
     surfDesc = arcpy.Describe(surfRaster)
     pointsDesc = arcpy.Describe(pointFeatures)
@@ -109,30 +108,40 @@ def surfaceContainsPoint(pointFeatures, surfRaster):
     surfaceSR = surfDesc.spatialReference
     pointsSR = pointsDesc.spatialReference
 
-    if surfaceSR.Name != pointsSR.Name :
-        raise Exception('surfaceContainsPoint: Spatial References do not match: ' \
-            + pointsSR.Name + ' != ' + surfaceSR.Name)
+    # Warn if not the same Spatial Reference
+    if (surfaceSR.Name != pointsSR.Name) or (surfaceSR.FactoryCode != pointsSR.FactoryCode) :
+        arcpy.AddWarning('SurfaceContainsPoints: Spatial References do not match: ' \
+            + pointsSR.Name + ' != ' + surfaceSR.Name + ' -or- ' \
+            + str(pointsSR.FactoryCode) + ' != ' + str(surfaceSR.FactoryCode))
 
     surfaceExtent = surfDesc.extent
+
+    srWGS84 = arcpy.SpatialReference(4326) # GCS_WGS_1984
+    projSurfaceExtent = surfaceExtent.projectAs(srWGS84) 
 
     pointRows = arcpy.da.SearchCursor(pointFeatures, ["SHAPE@"])
 
     for pointRow in pointRows:
     
         point = pointRow[0]   
-        x = point.firstPoint.X  
-        y = point.firstPoint.Y 
+        projPoint = point.projectAs(srWGS84).firstPoint
+
+        isWithin = projSurfaceExtent.contains(projPoint) # pointProj.within(surfaceExtent)  
+
+        x = projPoint.X  
+        y = projPoint.Y 
+
 
         # WORKAROUND: 
         # these were not returning reliable results, so computing manually:
         # pointProj = point.projectAs(surfaceSR)   
         # isWithin = surfaceExtent.contains(pointProj) # pointProj.within(surfaceExtent)  
-        isWithin = (x >= surfaceExtent.XMin) and (x <= surfaceExtent.XMax) and \
-            (y >= surfaceExtent.YMin) and (y <= surfaceExtent.YMax)
+        #isWithin = (x >= surfaceExtent.XMin) and (x <= surfaceExtent.XMax) and \
+        #    (y >= surfaceExtent.YMin) and (y <= surfaceExtent.YMax)
           
         if not isWithin : 
             arcpy.AddMessage("Point:({0}, {1})\n Within:({2})\n sr: {3}\n".format(x, y, \
-                surfaceExtent, surfaceSR.name))
+                projSurfaceExtent, surfaceSR.name))
             break
 
     if DEBUG: arcpy.AddMessage("Input Points Within Surface: {0}".format(isWithin))
@@ -221,12 +230,12 @@ def createViewshed(inputObserverPoints, elevationRaster, outerRadiusInput, \
     copyFeaturesAndProject(inputObserverPoints, tempObserverPoints, elevationSR)
 
     # Check if points falls within surface extent
-    isWithin = surfaceContainsPoint(tempObserverPoints, elevationRaster)
+    isWithin = surfaceContainsPoints(tempObserverPoints, elevationRaster)
     if not isWithin:
         msgErrorPointNotInSurface = \
             "Error: Input Observer(s) does not fall within the extent of the input surface: {0}!".format(os.path.basename(elevationRaster))
         arcpy.AddError(msgErrorPointNotInSurface)
-        raise Exception(msgErrorPointNotInSurface)
+        return
 
     addViewshedFields(tempObserverPoints, innerRadiusInput, outerRadiusInput, \
         leftAzimuthInput, rightAzimuthInput, observerOffsetInput, \

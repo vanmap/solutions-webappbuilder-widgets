@@ -62,7 +62,7 @@ class VisibilityUtilitiesTestCase(unittest.TestCase):
 
         Viewshed.createViewshed(observers, \
            elevationSurface, \
-           '3000', '40', '120', '20', '1000', \
+           '1000', '90', '180', '20', '500', \
            viewshedFC, donutWedgeFC, pieWedgeFC)
 
         viewshedFeaturesCount = int(arcpy.GetCount_management(viewshedFC).getOutput(0))
@@ -77,13 +77,12 @@ class VisibilityUtilitiesTestCase(unittest.TestCase):
         '''
         Check if elevation dataset contains the specified point
         '''
-        runToolMessage = ".....VisibilityUtilityTestCase.test_surfaceContainsPoint"
+        runToolMessage = ".....VisibilityUtilityTestCase.test_surfaceContainsPoints"
         arcpy.AddMessage(runToolMessage)
         Configuration.Logger.info(runToolMessage)
 
         # List of coordinates
-        # coordinates = [[-117.196717216, 34.046944853]]
-        coordinates = [[-120.5, 36.5]]
+        coordinates = [[-120.5, 36.5], [-120.2, 36.1]]
 
         # Create an in_memory feature class to initially contain the coordinate pairs
         feature_class = arcpy.CreateFeatureclass_management(
@@ -107,10 +106,6 @@ class VisibilityUtilitiesTestCase(unittest.TestCase):
         #TODO: replace with actual surface from test setup
         elevationDataset = r"C:\MyFiles\MapData\elevation\SRTM\n36_w121_proj"
 
-        try:
-            # This should throw an exception since Spatial Refs do not match
-            pointsIn = Viewshed.surfaceContainsPoint(Point_Input, elevationDataset)
-        except Exception:
-            pass
-        else:
-            self.fail('ExpectedException not raised')
+        pointsIn = Viewshed.surfaceContainsPoints(Point_Input, elevationDataset)
+
+        self.assertTrue(pointsIn, 'Points not within Surface as Expected')

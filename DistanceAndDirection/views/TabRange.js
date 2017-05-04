@@ -314,11 +314,13 @@ define([
       // validate input
       if(this.ringIntervalInput.get('value').indexOf(",") != -1)
       {
-        this.numRingsInput.set('value','0'),
+        this.numRingsInput.set('value','0');
         this.numRingsInput.set('disabled', true);
+        this.distanceLabel.innerText = "Distance From Origin";
       } else {
-        this.numRingsInput.set('value','3'),
+        this.numRingsInput.set('value','3');
         this.numRingsInput.set('disabled', false);
+        this.distanceLabel.innerText = "Distance Between Rings";
       }      
     },    
     
@@ -355,9 +357,7 @@ define([
               ringIntervalUnitsDD: this.ringIntervalUnitsDD.get('value'),
               circleSym: this._circleSym
           };
-          this.createRangeRings(params);
-          this.coordTool.clear();
-      }
+          this.createRangeRings(params);      }
     },
 
     /*
@@ -510,7 +510,6 @@ define([
       }
 
       dojoDomClass.remove(this.addPointBtn, 'jimu-state-active');
-      this.coordTool.clear();
       this.dt.deactivate();
       this.map.enableMapNavigation();
     },

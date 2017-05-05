@@ -130,14 +130,6 @@ def surfaceContainsPoints(pointFeatures, surfRaster):
 
         x = projPoint.X  
         y = projPoint.Y 
-
-
-        # WORKAROUND: 
-        # these were not returning reliable results, so computing manually:
-        # pointProj = point.projectAs(surfaceSR)   
-        # isWithin = surfaceExtent.contains(pointProj) # pointProj.within(surfaceExtent)  
-        #isWithin = (x >= surfaceExtent.XMin) and (x <= surfaceExtent.XMax) and \
-        #    (y >= surfaceExtent.YMin) and (y <= surfaceExtent.YMax)
           
         if not isWithin : 
             arcpy.AddMessage("Point:({0}, {1})\n Within:({2})\n sr: {3}\n".format(x, y, \

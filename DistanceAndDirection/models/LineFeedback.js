@@ -131,7 +131,6 @@ define([
             this.set('startPoint', this._points[0]);
             this._drawEnd(start.offset(0, 0));
             this._setTooltipMessage(0);
-            
             break;
           case esriDraw.POLYLINE:
             if (this._points.length === 2) {
@@ -158,7 +157,6 @@ define([
             } else {
               this.set('endPoint', this._points[1]);
               this._graphic.geometry._insertPoints([start.offset(0, 0)], 0);
-              // map.graphics.remove(this._tGraphic, true);
               this._graphic.setGeometry(this._graphic.geometry).setSymbol(this.lineSymbol);
 
               tGraphic = this._tGraphic;
@@ -171,7 +169,7 @@ define([
         }
 
         this._setTooltipMessage(this._points.length);
-        if (this._points.length === 2 && this._geometryType === 'polyline') {
+        if (this._points.length === 1 && this._geometryType === 'polyline') {
           var tooltip = this._tooltip;
           if (tooltip) {
             tooltip.innerHTML = 'Click to finish drawing line';
@@ -216,13 +214,17 @@ define([
         var start = (this._geometryType === esriDraw.POLYLINE) ? this._points[0] : this._points[this._points.length - 1];
 
         var end = snappingPoint || evt.mapPoint;
+        
+        /**
+         * if your network & ArcGIS Server can support a high volume of requests, and you want the end point coordinate to update as
+         * the mouse moves then uncomment the line below (use with caution and conduct internal test before making public)
+        **/         
 
-        this.set('currentEndPoint', end);
+        //this.set('currentEndPoint', end);
         
         var tGraphic = this._tGraphic;
         var geom = tGraphic.geometry;
 
-        //_tGraphic.setGeometry(dojo.mixin(_tGraphic.geometry, { paths:[[[start.x, start.y], [end.x, end.y]]] }));
         geom.setPoint(0, 0, { x: start.x, y: start.y });
         geom.setPoint(0, 1, { x: end.x, y: end.y });
 

@@ -213,8 +213,8 @@ define([
           this.own(dojoOn(
             this.addNewCoordinateNotationBtn,
             'click',
-            dojoLang.hitch(this, this.newCoordnateBtnWasClicked
-          )));
+            dojoLang.hitch(this, this.newCoordnateBtnWasClicked)
+          ));
 
           this.own(dojoOn(
             this.zoomButton,
@@ -663,10 +663,11 @@ define([
         /**
          *
          **/
-        newCoordnateBtnWasClicked: function () {
+        newCoordnateBtnWasClicked: function (evt) {
             var withType = {};
             withType.notation = this.type;
             withType.defaultFormat = this.defaultFormat;
+            this.showToolTip(evt.currentTarget.id, "New Notation Added");
             dojoTopic.publish('ADDNEWNOTATION', withType);
         },
 

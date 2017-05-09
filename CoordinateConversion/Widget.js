@@ -127,7 +127,7 @@ define([
                 defaultFormat: withType.defaultFormat
             });
 
-            cc.placeAt(this.outputtablecontainer);
+            cc.placeAt(this.outputtablecontainer, "after", this.outputtablesubtitle);            
             cc.startup();
         },
 

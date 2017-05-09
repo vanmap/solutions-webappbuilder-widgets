@@ -77,7 +77,7 @@ define([
           type: 'text'
         }, {
           name: 'defaultFormat',
-          title: 'Edit Default Format',
+          title: 'Default Format',
           width: '30%',
           type: 'text'
         }, {

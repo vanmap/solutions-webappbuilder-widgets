@@ -925,26 +925,42 @@ define([
                     break;
                 case 'UTM':
                     r = this.util.getFormattedUTMStr(withValue, format, as);
-
-                    this['cc_' + cntrlid + 'sub1val'].value = r.zone;
-                    this['cc_' + cntrlid + 'sub2val'].value = r.bandLetter;
-                    this['cc_' + cntrlid + 'sub3val'].value = r.easting;
-                    this['cc_' + cntrlid + 'sub4val'].value = r.westing;
                     
-                    r.bandLetter.match(/^[AaBbYyZz]/)?this.coordName.set('value','UPS'):this.coordName.set('value','UTM');
-
+                    if(r.bandLetter.match(/^[AaBbYyZz]/)){
+                      //do not calculate values if out side of the UTM range (i.e. polar regions)
+                      this['cc_' + cntrlid + 'sub1val'].value = '';
+                      this['cc_' + cntrlid + 'sub2val'].value = '';
+                      this['cc_' + cntrlid + 'sub3val'].value = '';
+                      this['cc_' + cntrlid + 'sub4val'].value = '';
+                      r.formatResult = '';
+                    } else {
+                      this['cc_' + cntrlid + 'sub1val'].value = r.zone;
+                      this['cc_' + cntrlid + 'sub2val'].value = r.bandLetter;
+                      this['cc_' + cntrlid + 'sub3val'].value = r.easting;
+                      this['cc_' + cntrlid + 'sub4val'].value = r.westing;
+                    }
+                    
+                    //r.bandLetter.match(/^[AaBbYyZz]/)?this.coordName.set('value','UPS'):this.coordName.set('value','UTM');
                     formattedStr = r.formatResult;
                     break;
                 case 'UTM (H)':
                     r = this.util.getFormattedUTMHStr(withValue, format, as);
                     
-                    this['cc_' + cntrlid + 'sub1val'].value = r.zone;
-                    this['cc_' + cntrlid + 'sub2val'].value = r.hemisphere;
-                    this['cc_' + cntrlid + 'sub3val'].value = r.easting;
-                    this['cc_' + cntrlid + 'sub4val'].value = r.westing;
+                    if(r.hemisphere.match(/^[AaBbYyZz]/)){
+                      //do not calculate values if out side of the UTM range (i.e. polar regions)
+                      this['cc_' + cntrlid + 'sub1val'].value = '';
+                      this['cc_' + cntrlid + 'sub2val'].value = '';
+                      this['cc_' + cntrlid + 'sub3val'].value = '';
+                      this['cc_' + cntrlid + 'sub4val'].value = '';
+                      r.formatResult = '';                      
+                    } else {
+                      this['cc_' + cntrlid + 'sub1val'].value = r.zone;
+                      this['cc_' + cntrlid + 'sub2val'].value = r.hemisphere;
+                      this['cc_' + cntrlid + 'sub3val'].value = r.easting;
+                      this['cc_' + cntrlid + 'sub4val'].value = r.westing;
+                    }
                     
-                    r.hemisphere.match(/^[AaBbYyZz]/)?this.coordName.set('value','UPS'):this.coordName.set('value','UTM (H)');
-
+                    //r.hemisphere.match(/^[AaBbYyZz]/)?this.coordName.set('value','UPS'):this.coordName.set('value','UTM (H)');
                     formattedStr = r.formatResult;
                     break;
                 }                

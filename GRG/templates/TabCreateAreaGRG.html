@@ -34,7 +34,7 @@
     <div class="controlGroup">
       <label>Cell Width</label>
       <div class="controlItem">
-        <input class="jimu-input dijitNumberTextBox" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:0,pattern: "#0.##############"},
+        <input class="jimu-input dijitNumberTextBox" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:0},
           invalidMessage:"The value entered is not valid.",
           required: true,
           rangeMessage:"Value must be greater than 0."' data-dojo-attach-point="cellWidth" value="1000" ></input>
@@ -44,7 +44,7 @@
     <div class="controlGroup">
       <label>Cell Height</label>
       <div class="controlItem">
-        <input class="jimu-input textInput" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:0},
+        <input class="jimu-input dijitNumberTextBox" data-dojo-type="dijit/form/NumberTextBox" data-dojo-props='constraints:{min:0},
           invalidMessage:"The value entered is not valid.",          
           required: true,
           rangeMessage:"Value must be greater than 0."' data-dojo-attach-point="cellHeight" value="1000"></input>

@@ -50,7 +50,7 @@
     },
     {
       "notation": "UTM (H)",
-      "defaultFormat": "ZB X Y"
+      "defaultFormat": "ZH X Y"
     }
   ]
 }

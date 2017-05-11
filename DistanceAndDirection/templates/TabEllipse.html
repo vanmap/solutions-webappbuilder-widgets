@@ -28,7 +28,7 @@
     <fieldset>
       <legend>Axis</legend>
         <div class="controlGroup">
-          <label>Major</label>
+          <label data-dojo-attach-point="majorAxisLabel">Major (Radius)</label>
           <div class="controlItem">
             <input class="jimu-input coordInput" data-dojo-type="dijit/form/NumberTextBox" 
               data-dojo-props='constraints:{min:1},
@@ -39,7 +39,7 @@
         </div>
 
         <div class="controlGroup">
-          <label>Minor</label>
+          <label data-dojo-attach-point="minorAxisLabel">Minor (Radius)</label>
           <div class="controlItem">
             <input class="jimu-input coordInput" data-dojo-type="dijit/form/NumberTextBox" 
               data-dojo-props='constraints:{min:1},

@@ -26,6 +26,7 @@ define([
   'esri/geometry/Point',
   'esri/geometry/Polyline',
   'esri/geometry/Polygon',
+  'esri/geometry/Circle',
   'esri/geometry/geometryEngine',
   'esri/geometry/webMercatorUtils',
   'esri/geometry/geodesicUtils',
@@ -42,6 +43,7 @@ define([
   esriPoint,
   esriPolyLine,
   esriPolygon,
+  esriCircle,
   esriGeometryEngine,
   esriWebMercatorUtils,
   geodesicUtils,
@@ -105,8 +107,7 @@ define([
     /*
     Handler for major axis manual input
     */
-    onMajorAxisManualInputHandler: function (majorLength) {
-      if(majorLength.isValid()){
+    onMajorAxisManualInputHandler: function (majorLength) {      
         //Check if we have a center point
         if (this._points.length >= 1) {
           var centerPoint = this._points[0];
@@ -114,7 +115,7 @@ define([
             centerPoint = esriWebMercatorUtils.geographicToWebMercator(centerPoint);
           }
           //Convert to meters
-          var lengthInMeters = this._utils.convertToMeters(Number(majorLength), this.lengthUnit);
+          var lengthInMeters = this._utils.convertToMeters(majorLength, this.lengthUnit);
           this.majorAxisLength = lengthInMeters;
           //We do have a center point. Get the end point
           var endPoint = this.getEndPoint(centerPoint, 0, lengthInMeters);
@@ -147,54 +148,51 @@ define([
           this._majGraphicB.geometry = esriGeometryEngine.rotate(majorLine,180,centerPoint);
           this.map.graphics.add(this._majGraphicB);   
         }
-      }
     },
 
     /*
     Handler for minor axis manual input
     */
     onMinorAxisManualInputHandler: function (minorLength) {
-      if(minorLength.isValid()){
-      //Check if we have a center point and max point
-        if (this._points.length >= 2) {
-          var centerPoint = this._points[0];
-          if (centerPoint.spatialReference.wkid === 4326) {
-            centerPoint = esriWebMercatorUtils.geographicToWebMercator(centerPoint);
-          }
-          //Convert to meters
-          var lengthInMeters = this._utils.convertToMeters(Number(minorLength), this.lengthUnit);
-          this.minorAxisLength = lengthInMeters;
-          //We do have a center point. Get the end point
-          var endPoint = this.getEndPoint(centerPoint, 90, lengthInMeters);
-          //Add major length point to array
-          this._points.splice(2, 0, endPoint);
-          while (this._points.length > 3)
-          {
-            this._points.pop();
-          }
-          //Clear major length graphic first
-          if (this._minGraphic) {
-            this.map.graphics.remove(this._minGraphic);
-          }
-          if (this._minGraphicB) {
-            this.map.graphics.remove(this._minGraphicB);
-          }
-          // create and add our minor graphic
-          var minorLine = new esriPolyLine({
-            paths: [[
-              [centerPoint.x, centerPoint.y],
-              [endPoint.x, endPoint.y]]
-            ],
-            spatialReference: this.map.spatialReference
-          });
-
-          this._minGraphic = new esriGraphic(minorLine, this.lineSymbol);
-          this.map.graphics.add(this._minGraphic);
-          
-          this._minGraphicB = new esriGraphic(minorLine, this.lineSymbol);
-          this._minGraphicB.geometry = esriGeometryEngine.rotate(minorLine,180,centerPoint);
-          this.map.graphics.add(this._minGraphicB);
+      //Check if we have a center point and a major axis point
+      if (this._points.length >= 2) {
+        var centerPoint = this._points[0];
+        if (centerPoint.spatialReference.wkid === 4326) {
+          centerPoint = esriWebMercatorUtils.geographicToWebMercator(centerPoint);
         }
+        //Convert to meters
+        var lengthInMeters = this._utils.convertToMeters(minorLength, this.lengthUnit);
+        this.minorAxisLength = lengthInMeters;
+        //We do have a center point. Get the end point
+        var endPoint = this.getEndPoint(centerPoint, 90, lengthInMeters);
+        //Add major length point to array
+        this._points.splice(2, 0, endPoint);
+        while (this._points.length > 3)
+        {
+          this._points.pop();
+        }
+        //Clear major length graphic first
+        if (this._minGraphic) {
+          this.map.graphics.remove(this._minGraphic);
+        }
+        if (this._minGraphicB) {
+          this.map.graphics.remove(this._minGraphicB);
+        }
+        // create and add our minor graphic
+        var minorLine = new esriPolyLine({
+          paths: [[
+            [centerPoint.x, centerPoint.y],
+            [endPoint.x, endPoint.y]]
+          ],
+          spatialReference: this.map.spatialReference
+        });
+
+        this._minGraphic = new esriGraphic(minorLine, this.lineSymbol);
+        this.map.graphics.add(this._minGraphic);
+        
+        this._minGraphicB = new esriGraphic(minorLine, this.lineSymbol);
+        this._minGraphicB.geometry = esriGeometryEngine.rotate(minorLine,180,centerPoint);
+        this.map.graphics.add(this._minGraphicB);
       }
     },
 
@@ -220,20 +218,18 @@ define([
     },
 
     /*
-    Retrieves the end point of a line given a start point and length
+    Retrieves the geodesic end point of a line given a start point and length
     */
     getEndPoint: function (startPoint, angle, distance) {
       var rotation = angle ? angle : 0;
-      var result = {};
-      result.x = Math.round(Math.cos(rotation * Math.PI / 180) * distance + startPoint.x);
-      result.y = Math.round(Math.sin(rotation * Math.PI / 180) * distance + startPoint.y);
-      return new esriPoint({
-        x: result.x,
-        y: result.y,
-        spatialReference: {
-          wkid: startPoint.spatialReference.wkid
-        }
-      });
+      
+      var circleGeometry = new esriCircle(startPoint, {
+        radius: distance,
+        geodesic: true,
+        numberOfPoints: 60
+      });      
+      var circleRotated =  esriGeometryEngine.rotate(circleGeometry,rotation,startPoint);      
+      return circleRotated.getPoint(0,0);
     },
 
     /*

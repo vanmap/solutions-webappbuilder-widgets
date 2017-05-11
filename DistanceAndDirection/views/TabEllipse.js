@@ -116,7 +116,7 @@ define([
       // add extended toolbar
       this.dt = new DrawFeedBack(this.map,this.coordTool.inputCoordinate.util);
       this.dt.setLineSymbol(this._ellipseSym);
-      this.dt.set('lengthUnit', 'feet');
+      this.dt.set('lengthUnit', 'meters');
       this.dt.set('angle', 0);
       this.dt.set('ellipseType', 'semi');
 
@@ -155,7 +155,7 @@ define([
           ]
         };
 
-        var lblexp = {'labelExpressionInfo': {'value': 'Major: {MAJOR} Minor: {MINOR} Angle: {ORIENTATION_ANGLE}'}};
+        var lblexp = {'labelExpressionInfo': {'value': 'Major Axis {MAJOR}; Minor Axis {MINOR}; Angle: {ORIENTATION_ANGLE}'}};
         var lblClass = new EsriLabelClass(lblexp);
         lblClass.symbol = this._labelSym;
 
@@ -166,7 +166,7 @@ define([
           featureSet: fs
         };
 
-        this._gl = new EsriFeatureLayer(featureCollection, {showLabels: true});
+        this._gl = new EsriFeatureLayer(featureCollection, {id:'Distance & Direction Widget - Ellipse Graphics', showLabels: true});
 
         this._gl.setLabelingInfo([lblClass]);
 
@@ -199,6 +199,8 @@ define([
 
       this.own(
         this.dt.on('draw-complete',dojoLang.hitch(this, this.feedbackDidComplete)),
+        
+        this.ellipseType.on('change',dojoLang.hitch(this, this.ellipseTypeDDDidChange)),
         
         this.angleUnitDD.on('change',dojoLang.hitch(this, this.angleUnitDDDidChange)),
         
@@ -246,14 +248,20 @@ define([
      *
      */
     onMajorAxisInputKeyupHandler: function (evt) {
-      dojoTopic.publish('manual-ellipse-major-axis-input', this.majorAxisInput);
+      if(this.majorAxisInput.isValid())
+      {
+        dojoDomAttr.get(this.ellipseType, 'value') == "full"?dojoTopic.publish('manual-ellipse-major-axis-input', this.majorAxisInput.displayedValue/2):dojoTopic.publish('manual-ellipse-major-axis-input', this.majorAxisInput.displayedValue);      
+      }
     },
 
     /*
      *
      */
     onMinorAxisInputKeyupHandler: function (evt) {
-      dojoTopic.publish('manual-ellipse-minor-axis-input', this.minorAxisInput);
+      if(this.minorAxisInput.isValid())
+      {
+        dojoDomAttr.get(this.ellipseType, 'value') == "full"?dojoTopic.publish('manual-ellipse-minor-axis-input', this.minorAxisInput.displayedValue/2):dojoTopic.publish('manual-ellipse-minor-axis-input', this.minorAxisInput.displayedValue);      
+      }
     },        
     
     /*
@@ -276,14 +284,14 @@ define([
      * update the gui with the major axis length
      */
     majorLengthDidChange: function (number) {
-      this.majorAxisInput.setValue(number);
+      dojoDomAttr.get(this.ellipseType, 'value') == "full"?this.majorAxisInput.setValue(number * 2):this.majorAxisInput.setValue(number);
     },
 
     /*
      * update the gui with the min axis length
      */
     minorLengthDidChange: function (number) {
-      this.minorAxisInput.setValue(number);            
+      dojoDomAttr.get(this.ellipseType, 'value') == "full"?this.minorAxisInput.setValue(number * 2):this.minorAxisInput.setValue(number);      
     },
     
     /*
@@ -355,6 +363,14 @@ define([
     /*
      *
      */
+    ellipseTypeDDDidChange: function () {
+      dojoDomAttr.get(this.ellipseType, 'value') == "full"?this.majorAxisLabel.textContent = 'Major (Diameter)':this.majorAxisLabel.textContent = 'Major (Radius)';
+      dojoDomAttr.get(this.ellipseType, 'value') == "full"?this.minorAxisLabel.textContent = 'Minor (Diameter)':this.minorAxisLabel.textContent = 'Minor (Radius)';
+    },    
+    
+    /*
+     *
+     */
     angleUnitDDDidChange: function () {
       this.currentAngleUnit = this.angleUnitDD.get('value');
       this.dt.set('angleUnit', this.currentAngleUnit);
@@ -376,18 +392,12 @@ define([
     feedbackDidComplete: function (results) {
       var currentEllipse = new EsriGraphic(results.geometry.geometry,this._ellipseSym);
       
-      var unitForDistance = dijit.byId('lengthUnitDD').get('displayedValue');
-      var unitForAngle = dijit.byId('angleUnitDD').get('displayedValue');
+      var type = this.majorAxisLabel.textContent.split(" ")[1];
       
-      var majorValue = dojoDomAttr.get(this.majorAxisInput, 'value'); 
-      if ((dojoDomAttr.get(this.ellipseType, 'value') == "full")) {
-          majorValue = majorValue * 2;
-      }
-
       currentEllipse.setAttributes({
-        'MINOR': dojoDomAttr.get(this.minorAxisInput, 'value').toString() + " " + unitForDistance,
-        'MAJOR': majorValue.toString() + " " + unitForDistance,
-        'ORIENTATION_ANGLE': this.angleInput.displayedValue.toString() + " " + unitForAngle,
+        'MINOR': type + ": " + dojoDomAttr.get(this.minorAxisInput, 'value').toString() + " " + dijit.byId('lengthUnitDD').get('displayedValue'),
+        'MAJOR': type + ": " + dojoDomAttr.get(this.majorAxisInput, 'value').toString() + " " + dijit.byId('lengthUnitDD').get('displayedValue'),
+        'ORIENTATION_ANGLE': this.angleInput.displayedValue.toString() + " " + dijit.byId('angleUnitDD').get('displayedValue'),
       });
 
       this._gl.add(currentEllipse);

@@ -172,7 +172,7 @@ define([
          {notation: 'MGRS', format: 'ZSXY'},
          {notation: 'USNG', format: 'ZSXY'},
          {notation: 'UTM', format: 'ZB X Y'},
-         {notation: 'UTM (H)', format: 'ZB X Y'}
+         {notation: 'UTM (H)', format: 'ZH X Y'}
        ];
        this._setNotationTable(notations,this.config.initialCoords);
       this.scale.set('value', this.config.coordinateconversion.zoomScale);

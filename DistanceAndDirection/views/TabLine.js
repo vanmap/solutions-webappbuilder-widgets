@@ -508,15 +508,15 @@ define([
       var tempcircle = new EsriCircle(stPt, {
         geodesic:true,
         radius: l,
-        numberOfPoints: this.angleInput.constraints.max              
+        numberOfPoints: 64000              
       });
-
-      var fpc =  new EsriPoint(
-        tempcircle.rings[0][parseInt(this.angleInput.get('value'))][0],
-        tempcircle.rings[0][parseInt(this.angleInput.get('value'))][1],
-        tempcircle.spatialReference
-      );
-
+      
+      var currentAngle = this.angleInput.get('value');
+      
+      this.currentAngleUnit === 'degrees'?currentAngle = parseInt(10*currentAngle*17.777777778):currentAngle = parseInt(10*currentAngle);
+      
+      var fpc = tempcircle.getPoint(0,currentAngle);
+      
       var newLine = new EsriPolyline();
       newLine.addPath([stPt, fpc]);
 

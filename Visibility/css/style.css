@@ -1,57 +1,121 @@
-@import url("../RangeSlider/nouislider.min.css");
-
-.observerValues{
-  display: block;
-  margin: auto;
-}
-.FOVPicker{
-  width: 180px;
-  display: inline-block;
+.claro .dijitTextBox .dijitInputInner {
+  height: 20px;
+  text-align: right;
 }
 
-.heightText{
+.jimu-widget-visibility-control  {
+    
+}
+
+.jimu-widget-visibility  fieldset {
+    border: 1px solid #CCC;
+    padding: 6px;
+    margin-top: 10px;
+}
+
+.jimu-widget-visibility  fieldset > div {
+    margin: 3px;
+}
+
+.jimu-widget-visibility  fieldset > div > label {
+    width: 50px;
     display: inline-block;
-      /* FF3.5+ */
-  -moz-transform: rotate(-90.0deg);
-  /* Opera 10.5 */
-  -o-transform: rotate(-90.0deg);
-  /* Saf3.1+, Chrome */
-  -webkit-transform: rotate(-90.0deg);
-  /* IE6,IE7 */
-  filter: progid: DXImageTransform.Microsoft.BasicImage(rotation=0.083);
-  /* IE8 */
-  -ms-filter: "progid:DXImageTransform.Microsoft.BasicImage(rotation=0.083)";
-  /* Standard */
-  transform: rotate(-90.0deg);
-    border-bottom-width: 0;
-    border-top-width: 0;
-    height: 0;
-    margin: 2px -99px 0 -125px;
-    padding-left: 147px;
-    top: 25;
-    width: 250px;
 }
 
-.obsHeightSlider{
-    display: inline-block;
-    height: 170px;
-    }    
+.jimu-widget-visibility-control .controls {
+    display: table;
+    margin: 0 auto;
+    border-bottom: 1px solid #CCC;
+    padding-bottom: 20px;
+}
 
-.distanceSlider{
-    margin-top: 15px;
-    width: 237px;
+.jimu-widget-visibility-control .buttonContainer {
+    width: 100%;
     text-align: center;
-    }
-
-.observerInput {
-    width:50px !important;
-    top: 23px;
-    display: inline-block;
-    float: left;
+    margin-top: 20px;
 }
 
-.jimu-btn {
-  float: left;
-  bottom: -8px;
-  position: relative;
+.jimu-widget-visibility-control .controlItem {
+    display: flex !important;
+}
+
+.jimu-widget-visibility-control .controlGroup {
+    margin-top: 13px;
+}
+
+.jimu-widget-visibility-control .controlGroup .warning{
+    color: #F00;
+    font-weight: bold;
+    width: 260px;
+    display: inline-block;
+}
+
+.jimu-widget-visibility .controlGroup .controlGroupChild{
+    margin-top: 6px;
+}
+
+.jimu-widget-visibility .controlGroup .splitRight {
+    position: absolute;
+    right: 25px;
+}
+
+.jimu-widget-visibility .controlGroup > label {
+    width: 100px;
+}
+
+.jimu-widget-visibility-control .controlSpace {
+    margin-left: 6px;
+}
+
+
+
+
+/**
+ * Coordinate Format Dialog
+ **/
+
+
+.btnContainer {
+    text-align: right;
+    margin-top: 6px;
+}
+
+.settingsContainer {
+    margin-top: 6px;
+}
+
+.controlContainer {
+    margin-top: 6px;
+}
+
+.add-with-icon {
+    display: inline-block;
+    height: 32px;
+    line-height:37px;
+    color: #838383;
+}
+
+.add-with-icon .draw {
+  display: inline-block;
+  background: url(../images/draw_point.png);
+  background-repeat: no-repeat;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center center;
+  width: 30px;
+  height: 30px;
+  margin-left: 5px;
+}
+
+.jimu-state-active {
+    background-color: #c0c0c0 !important;
+}
+
+.controlItem .paddedLeft{
+   padding-left: 14px;
+}
+
+.center {
+    display: table !important;
+    margin: 0 auto;
 }

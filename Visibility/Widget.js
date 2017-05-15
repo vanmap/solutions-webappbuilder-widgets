@@ -9,7 +9,7 @@ define([
     'dijit/registry',
     'jimu/BaseWidget',
     'jimu/dijit/Message',
-    './VisibilityControl'
+    './js/VisibilityControl'
 	],
 
 function(
@@ -38,6 +38,19 @@ function(
           }
         }        
         var visibilityCtrl = new VisibilityControl({
+          appConfig: this.appConfig,
+          pointSymbol: {
+              'color': [255,0,0,64],
+              'size': 12,
+              'type': 'esriSMS',
+              'style': 'esriSMSCircle',
+              'outline': {
+                  'color': [0,0,0,255],
+                  'width': 1,
+                  'type': 'esriSLS',
+                  'style': 'esriSLSSolid'
+              }
+          },
           viewshedService: this.config.viewshedService,
           map: this.map
         }, domConstruct.create("div")).placeAt(this.visibilityContainer);

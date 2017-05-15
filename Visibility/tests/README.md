@@ -30,7 +30,7 @@ folder(web).
 	```
 	npm install intern
 	```
-6. Change this [line](https://github.com/Esri/solutions-webappbuilder-widgets/blob/dev/Visibility/jquery.knob.min.js#L13) in the [jquery.knob.min.js](https://github.com/Esri/solutions-webappbuilder-widgets/blob/dev/Visibility/jquery.knob.min.js) file from path specific format to URL of your deployed app. Intern.js will understand to reference this file if a URL is specified.
+6. Change this [line](https://github.com/Esri/solutions-webappbuilder-widgets/blob/dev/Visibility/js/jquery.knob.min.js#L13) in the [jquery.knob.min.js](https://github.com/Esri/solutions-webappbuilder-widgets/blob/dev/Visibility/js/jquery.knob.min.js) file from path specific format to URL of your deployed app. Intern.js will understand to reference this file if a URL is specified.
 6. Open a browser and navigate to http://hostname/path-to-visibility-folder/node_modules/intern/client.html?config=widgets/Visibility/tests/intern
 7. View the results in the browser console window. 
 

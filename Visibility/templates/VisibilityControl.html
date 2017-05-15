@@ -1,0 +1,80 @@
+<div>
+  <div class="controls">
+    <div class="controlGroup">
+      <label data-dojo-attach-point="coordInputLabel">Observer Location</label>
+      <div class="controlItem">
+          <input class="jimu-input coordInput" data-dojo-attach-point="observerCoords" placeholder="Enter Coordinates" />
+          <div class="controlItem paddedLeft">
+            <div class='add-with-icon'>
+              <span title="Format Input" class="jimu-icon jimu-icon-setting" data-dojo-attach-point="coordinateFormatButton"></span>
+            </div>
+            <div class='add-with-icon'>
+              <div title="Add Observer" class="draw" data-dojo-attach-point="addPointBtn"></div>
+            </div>
+          </div>
+      </div>
+    </div>
+      <div class="controlGroup">
+        <label data-dojo-attach-point="FOVLabel">Field of View</label>
+        <div class="center">
+          <input type="text" value="270" class="fov" data-displayInput="true"data-cursor="true" />
+        </div>
+      </div>
+      <div class="controlGroup">
+        <label>Observer Height</label>
+          <div class="controlItem">
+            <input
+              data-dojo-type='dijit/form/NumberTextBox'
+              required="true" value="2" data-dojo-props="
+              constraints: {min: 0},
+              invalidMessage: 'Please enter a numeric value.',
+              rangeMessage: 'Invalid Observer Height'"
+              data-dojo-attach-point="observerHeight"></input>
+            <select style="width: 100px" class="controlSpace" data-dojo-type="dijit/form/Select" data-dojo-attach-point="observerHeightDD" >
+              <option value="feet">Feet</option>
+              <option value="kilometers">Kilometers</option>
+              <option value="miles">Miles</option>
+              <option value="meters" selected="selected">Meters</option>
+              <option value="nautical-miles">Nautical Miles</option>
+              <option value="yards">Yards</option>
+            </select>
+          </div>
+        </div>        
+        <div class="controlGroup">
+          <label>Minimum Observable Range</label>
+            <div class="controlItem">
+              <input
+                data-dojo-type='dijit/form/NumberTextBox'
+                required="true" value="3" data-dojo-props="
+                constraints: {min: 1},
+                invalidMessage: 'Please enter a numeric value.',
+                rangeMessage: 'Invalid Minimum Observable Range'"
+                data-dojo-attach-point="minObsRange"></input>
+              <select style="width: 100px" class="controlSpace" data-dojo-type="dijit/form/Select" data-dojo-attach-point="distanceUnitDD" >
+                <option value="feet">Feet</option>
+                <option value="kilometers" selected="selected">Kilometers</option>
+                <option value="miles">Miles</option>
+                <option value="meters">Meters</option>
+                <option value="nautical-miles">Nautical Miles</option>
+                <option value="yards">Yards</option>
+              </select>
+            </div>
+        </div>        
+        <div class="controlGroup">
+          <label>Maximum Observable Range</label>
+            <div class="controlItem">
+              <input
+                data-dojo-type='dijit/form/NumberTextBox'
+                required="true" value="5" data-dojo-props="
+                constraints: {min: 0},
+                invalidMessage: 'Please enter a numeric value.',
+                rangeMessage: 'Maximum Observable Range must be greater than the Minimum Observable Range'"
+                data-dojo-attach-point="maxObsRange"></input>              
+            </div>
+        </div> 
+    </div>
+    <div class="buttonContainer">
+      <div class="jimu-btn" data-dojo-attach-point="btnCreate">Create</div>
+      <div class="jimu-btn controlSpace" data-dojo-attach-point="btnClear">Clear</div>
+    </div>      
+</div>

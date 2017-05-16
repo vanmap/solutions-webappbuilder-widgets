@@ -24,6 +24,7 @@ define([
     'dojo/topic',
     'dojo/dom',
     'dojo/dom-class',
+    'dojo/mouse',
 
     'dijit/_WidgetBase',
     'dijit/_TemplatedMixin',
@@ -60,6 +61,7 @@ define([
     dojoTopic,
     dojoDom,
     dojoDomClass,
+    dojoMouse,
     dijitWidgetBase,
     dijitTemplatedMixin,    
     dijitWidgetsInTemplate,
@@ -115,15 +117,19 @@ define([
         },      
 
         startup: function(){
-            var updateValues = dojoLang.hitch(this,function(a,b) {this.LA = a;this.FOV = b});
+            var updateValues = dojoLang.hitch(this,function(a,b,c) {
+              this.angleUnits.checked?this.LA = a/17.777777777778:this.LA = a;
+              this.FOV = Math.round(b);
+              this.angleUnits.checked?this.tooltip.innerHTML  = c + " mils":this.tooltip.innerHTML  = c + " degrees";              
+            });
               $("input.fov").knob({
                 'min':0,
                 'max':360,
-                'cursor':270,
+                'cursor':0,
                 'inputColor': '#ccc',
                 'width': 160,
                 'height': 160,
-                'draw': function(){updateValues(this.v,this.o.cursor)}
+                'draw': function(){updateValues(this.v,this.o.cursor,this.cv)}
               });
 
             this.gp = new Geoprocessor(this.viewshedService.url);
@@ -158,6 +164,22 @@ define([
               dojoOn(this.btnClear, "click", dojoLang.hitch(this, this.onClearBtnClicked)),
               
               dojoOn(this.minObsRange,'keyup', dojoLang.hitch(this, this.minObsRangeKeyWasPressed)),
+              
+              dojoOn(this.FOVInput,'mousemove', dojoLang.hitch(this, this.mouseMoveOverFOVInput)),
+              
+              dojoOn(this.FOVInput,dojoMouse.leave, dojoLang.hitch(this, this.mouseMoveOutFOVInput)),
+              
+              dojoOn(this.FOVGroup,dojoMouse.leave, dojoLang.hitch(this, function(){this.tooltip.hidden = true;})),
+              
+              dojoOn(this.FOVGroup,dojoMouse.enter, dojoLang.hitch(this, this.mouseMoveOverFOVGroup)),
+              
+              
+              
+              dojoOn(this.FOVInput,dojoMouse.enter, dojoLang.hitch(this, function(){this.tooltip.hidden = true;})),
+              
+              this.angleUnits.on('change',dojoLang.hitch(this, this.angleUnitsDidChange)),
+              
+              
               
               this.observerHeightDD.on('change',dojoLang.hitch(this, this.distanceUnitDDDidChange)),
               
@@ -299,6 +321,69 @@ define([
           }
         },
         
+        
+        /*
+         * 
+         */
+        mouseMoveOverFOVGroup: function (evt) {
+          if(this.FOVInput.disabled == false) {             
+            this.tooltip.hidden = false;
+          }          
+        },
+        
+        /*
+         * 
+         */
+        mouseMoveOverFOVInput: function (evt) {
+          if(this.FOVInput.disabled == false)
+          {
+            $(document).ready(function(){
+                  $(document).mousemove(function(e){
+                     var cpos = { top: e.pageY + 10, left: e.pageX + 10 };
+                     $('#tooltip').offset(cpos);
+                  });
+                });
+          }            
+        },
+        
+        /*
+         * 
+         */
+        mouseMoveOutFOVInput: function (evt) {
+          this.tooltip.hidden = false;
+          this.FOVInput.blur();
+        },
+        
+        /*
+         *
+         */
+        angleUnitsDidChange: function () {
+          $("input.fov").val(0).trigger('change');
+          if(this.angleUnits.checked) {
+            $("input.fov").trigger('configure',
+              {
+                  "max": 6400,
+                  "units": 'mils',
+                  "v": 0,
+                  "units": 'mils',
+                  "milsValue": 0,
+                  "inputColor":"#f37371" 
+              }
+            ); 
+          } else {
+            $("input.fov").trigger('configure',
+              {
+                  "max": 360,
+                  "units": 'degrees',
+                  "v": 0,
+                  "units": 'degrees',
+                  "milsValue": 0,
+                  "inputColor":"#f37371"                   
+              }
+            );        
+          }
+        },
+        
         /*
          *
          */
@@ -324,6 +409,18 @@ define([
           dojoDomClass.remove(this.addPointBtn, 'jimu-state-active');
           this.dt.deactivate();
           this.map.enableMapNavigation();
+          //enable the FOV Dial
+          if(this.FOVInput.disabled)
+          {
+          this.FOVInput.disabled = false;
+            $("input.fov").trigger('configure',
+                {
+                    "fgColor":"#00ff66",
+                    "bgColor":"#f37371",
+                    "inputColor":"#f37371"                     
+                }
+            );
+          }          
         },
         
         /*
@@ -359,7 +456,7 @@ define([
          */
         createButtonWasClicked: function () {
           
-          if(this.dt.startGraphic && this.minObsRange.isValid() && this.maxObsRange.isValid() && this.observerHeight.isValid())
+          if(this.dt.startGraphic && this.minObsRange.isValid() && this.maxObsRange.isValid() && this.observerHeight.isValid() && this.FOVInput.value != 0)
           {
             var newObserver = new Graphic(this.coordTool.inputCoordinate.coordinateEsriGeometry);
             var featureSet = new FeatureSet();
@@ -375,21 +472,32 @@ define([
             this.viewshed(params);
           } else {
             var alertMessage = new Message({
-              message: '<p>The visibility creation form has missing or invalid parameters, Please ensure:</p><ul><li>An observer location has been set.</li><li>The observer height contains a valid value.</li><li>The minimum and maximum observable ranges contain valid values.</li></ul>'
+              message: '<p>The visibility creation form has missing or invalid parameters, Please ensure:</p><ul><li>An observer location has been set.</li><li>The observer Field of View is not 0.</li><li>The observer height contains a valid value.</li><li>The min and max observable distances contain valid values.</li></ul>'
             });
           }
         },
 
         gpError: function () {
             var alertMessage = new Message({
-                          message: 'An error occured whilst creating visibility. Please ensure your observer location falls within the extent of your elevation surface.</p>'
-                        });
+              message: 'An error occured whilst creating visibility. Please ensure your observer location falls within the extent of your elevation surface.</p>'
+            });
             this.map.setMapCursor("default");
         },   
 
         onClearBtnClicked: function () {
             this.graphicsLayer.clear();
             this.dt.removeStartGraphic();
+            //reset dialog
+            this.FOVInput.disabled = true;
+            $("input.fov").val(0).trigger('change');
+            $("input.fov").trigger('configure',
+                {
+                    "fgColor":"#ccc",
+                    "bgColor":"#ccc",
+                    "inputColor":"#ccc"                     
+                }
+            );
+            this.tooltip.hidden = true;
         },
 
         isNumeric: function(n) {

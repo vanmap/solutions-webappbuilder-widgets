@@ -16,9 +16,17 @@
     </div>
       <div class="controlGroup">
         <label data-dojo-attach-point="FOVLabel">Field of View</label>
-        <div class="center">
-          <input type="text" value="270" class="fov" data-displayInput="true"data-cursor="true" />
+        <div class="center" data-dojo-attach-point="FOVGroup">
+          <input type="text" value="0" class="fov" data-displayInput="true"data-cursor="true" disabled="true" data-dojo-attach-point="FOVInput"/>
+          <p class="cusrortooltip" id="tooltip" data-dojo-attach-point="tooltip" hidden='true'></p>        
         </div>
+      </div>
+      <div class="controlGroup">
+        <div class="interactive-checkbox"
+                     data-dojo-attach-point="angleUnits" 
+                     data-dojo-type="jimu/dijit/CheckBox"
+                     data-dojo-props='checked:false' 
+                     label="Use mils for bearing angles"></div> 
       </div>
       <div class="controlGroup">
         <label>Observer Height</label>
@@ -41,12 +49,12 @@
           </div>
         </div>        
         <div class="controlGroup">
-          <label>Minimum Observable Range</label>
+          <label>Min Observable Distance</label>
             <div class="controlItem">
               <input
                 data-dojo-type='dijit/form/NumberTextBox'
                 required="true" value="3" data-dojo-props="
-                constraints: {min: 1},
+                constraints: {min: 0},
                 invalidMessage: 'Please enter a numeric value.',
                 rangeMessage: 'Invalid Minimum Observable Range'"
                 data-dojo-attach-point="minObsRange"></input>
@@ -61,7 +69,7 @@
             </div>
         </div>        
         <div class="controlGroup">
-          <label>Maximum Observable Range</label>
+          <label>Max Observable Distance</label>
             <div class="controlItem">
               <input
                 data-dojo-type='dijit/form/NumberTextBox'
@@ -76,5 +84,5 @@
     <div class="buttonContainer">
       <div class="jimu-btn" data-dojo-attach-point="btnCreate">Create</div>
       <div class="jimu-btn controlSpace" data-dojo-attach-point="btnClear">Clear</div>
-    </div>      
+    </div>
 </div>

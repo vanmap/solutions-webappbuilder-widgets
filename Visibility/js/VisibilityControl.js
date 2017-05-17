@@ -173,8 +173,6 @@ define([
               
               dojoOn(this.FOVGroup,dojoMouse.enter, dojoLang.hitch(this, this.mouseMoveOverFOVGroup)),
               
-              
-              
               dojoOn(this.FOVInput,dojoMouse.enter, dojoLang.hitch(this, function(){this.tooltip.hidden = true;})),
               
               this.angleUnits.on('change',dojoLang.hitch(this, this.angleUnitsDidChange)),
@@ -199,8 +197,7 @@ define([
                 this.coordTool.inputCoordinate.set('formatString', cfs);
                 this.coordTool.inputCoordinate.set('formatType', fv);
                 this.setCoordLabel(fv);
-
-                DijitPopup.close(this.coordinateFormat);
+                DijitPopup.close(this.coordinateFormat);                
               })),
               
               dojoOn(this.coordinateFormat.content.cancelButton, 'click', dojoLang.hitch(this, function () {
@@ -305,6 +302,7 @@ define([
                 this.coordTool.inputCoordinate.set('formatString', fs.defaultFormat);
                 this.coordTool.inputCoordinate.set('formatType', r.inputType);
                 this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
+                this.enableFOVDial();
               }
             }));
           }
@@ -409,8 +407,14 @@ define([
           dojoDomClass.remove(this.addPointBtn, 'jimu-state-active');
           this.dt.deactivate();
           this.map.enableMapNavigation();
-          //enable the FOV Dial
-          if(this.FOVInput.disabled)
+          this.enableFOVDial();
+        },
+        
+        /*
+         *
+         */
+        enableFOVDial: function () { 
+        if(this.FOVInput.disabled)
           {
           this.FOVInput.disabled = false;
             $("input.fov").trigger('configure',
@@ -420,7 +424,7 @@ define([
                     "inputColor":"#f37371"                     
                 }
             );
-          }          
+          }
         },
         
         /*

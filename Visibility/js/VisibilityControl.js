@@ -26,6 +26,7 @@ define([
     'dojo/dom',
     'dojo/dom-class',
     'dojo/mouse',
+    'dojo/promise/all',
 
     'dijit/_WidgetBase',
     'dijit/_TemplatedMixin',
@@ -65,6 +66,7 @@ define([
     dojoDom,
     dojoDomClass,
     dojoMouse,
+    dojoAll,
     dijitWidgetBase,
     dijitTemplatedMixin,    
     dijitWidgetsInTemplate,
@@ -310,25 +312,12 @@ define([
          */
         aSynchronousCompleteCallback: function (jobInfo) {
           if(jobInfo.jobStatus === 'esriJobSucceeded'){
-            this.gp.getResultData(jobInfo.jobId, "Output_Viewshed", dojoLang.hitch(this,function(viewshedGraphic){
-              var processViewshed = this.drawViewshed(viewshedGraphic.value.features);
-              processViewshed.then(dojoLang.hitch(this,function(results) {
-                this.gp.getResultData(jobInfo.jobId, "Output_FullWedge", dojoLang.hitch(this,function(fullWedgeGraphic){
-                  var processFullWedge = this.drawWedge(fullWedgeGraphic.value.features,this.fullWedge);
-                  processFullWedge.then(dojoLang.hitch(this,function(results) {
-                    this.gp.getResultData(jobInfo.jobId, "Output_Wedge", dojoLang.hitch(this,function(wedgeGraphic){
-                      var processWedge = this.drawWedge(wedgeGraphic.value.features,this.wedge);
-                      processWedge.then(dojoLang.hitch(this,function(results) {
-                        this.map.setExtent(graphicsUtils.graphicsExtent(this.graphicsLayer.graphics), true);
-                        this.map.setMapCursor("default");
-                        this.busyIndicator.hide();                      
-                      }))
-                    }))  
-                  }))
-                }))
-              }))
-            }))
-          }else{
+            var processViewshed = this.gp.getResultData(jobInfo.jobId, "Output_Viewshed");
+            var processFullWedge = this.gp.getResultData(jobInfo.jobId, "Output_FullWedge");
+            var processWedge = this.gp.getResultData(jobInfo.jobId, "Output_Wedge");
+            var promises = dojoAll([processViewshed, processFullWedge,processWedge]);
+            promises.then(dojoLang.hitch(this,this.synchronousCompleteCallback));
+          } else {
             var alertMessage = new Message({
               message: 'An error occured whilst creating visibility. Please ensure your observer location falls within the extent of your elevation surface.</p>'
             });
@@ -336,7 +325,7 @@ define([
             this.busyIndicator.hide();
           }
         },
-
+        
         /*
          * 
          */

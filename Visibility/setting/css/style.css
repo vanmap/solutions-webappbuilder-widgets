@@ -3,6 +3,11 @@
   overflow: hidden;
   font-size: 14px;
 }
+
+.jimu-popup .title-label{
+  font-size: x-large; 
+}
+
 .jimu-widget-setting-gp .section.common-property{
   overflow: hidden;
 }

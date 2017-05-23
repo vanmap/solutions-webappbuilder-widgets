@@ -30,8 +30,8 @@ function(
 
 		  startup: function(){
         if (this.config) {
-          if (this.config.viewshedService.url) {
-            if (!this._isURL(this.config.viewshedService.url)) {
+          if (this.config.taskUrl) {
+            if (!this._isURL(this.config.taskUrl)) {
               new jimuMessage({message: "Please supply a valid viewshed service."});
               return;
             }
@@ -51,7 +51,8 @@ function(
                   'style': 'esriSLSSolid'
               }
           },
-          viewshedService: this.config.viewshedService,
+          viewshedService: this.config.taskUrl,
+          isSynchronous: this.config.isSynchronous,
           map: this.map
         }, domConstruct.create("div")).placeAt(this.visibilityContainer);
         visibilityCtrl.startup();

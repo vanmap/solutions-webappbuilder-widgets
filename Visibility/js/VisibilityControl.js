@@ -17,6 +17,7 @@
 /*global define*/
 define([
     'dojo/_base/declare',
+    'dojo/Deferred',
     'dojo/_base/lang',
     'dojo/on',
     'dojo/keys',
@@ -25,6 +26,7 @@ define([
     'dojo/dom',
     'dojo/dom-class',
     'dojo/mouse',
+    'dojo/promise/all',
 
     'dijit/_WidgetBase',
     'dijit/_TemplatedMixin',
@@ -39,6 +41,7 @@ define([
     
 
     'esri/map',
+    "esri/dijit/util/busyIndicator",
     'esri/toolbars/draw',
     'esri/graphic',
     'esri/layers/GraphicsLayer',
@@ -54,6 +57,7 @@ define([
     
 ], function (
     dojoDeclare,
+    dojoDeferred,
     dojoLang,
     dojoOn,
     dojoKeys,
@@ -62,6 +66,7 @@ define([
     dojoDom,
     dojoDomClass,
     dojoMouse,
+    dojoAll,
     dijitWidgetBase,
     dijitTemplatedMixin,    
     dijitWidgetsInTemplate,
@@ -72,6 +77,7 @@ define([
     Message,
     DrawFeedBack,
     Map,
+    BusyIndicator,
     Draw,
     Graphic,
     GraphicsLayer, 
@@ -92,6 +98,7 @@ define([
         FOV: 180,
         LA: 180,
         viewshedService: null,
+        isSynchronous: null,
         map: null,
         gp: null,
 
@@ -113,10 +120,26 @@ define([
             
             // add extended toolbar
             this.dt = new DrawFeedBack(this.map,this.coordTool.inputCoordinate.util);
+            
+            //set up symbology for output
+            this.visibleArea = new SimpleFillSymbol();
+            this.visibleArea.setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([0, 0, 0, 0]), 1));
+            this.visibleArea.setColor(new Color([0, 255, 0, 0.5]));
+            this.notVisibleArea = new SimpleFillSymbol();
+            this.notVisibleArea.setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([0, 0, 0, 0]), 1));
+            this.notVisibleArea.setColor(new Color([255, 0, 0, 0.5]));
+            this.fullWedge = new SimpleFillSymbol();
+            this.fullWedge.setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASH, new Color([0, 0, 0, 1]), 1));
+            this.fullWedge.setColor(new Color([0, 0, 0, 0]));
+            this.wedge = new SimpleFillSymbol();
+            this.wedge.setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255, 0, 0, 1]), 1));
+            this.wedge.setColor(new Color([0, 0, 0, 0]));
+                
             this._syncEvents(); 
         },      
 
         startup: function(){
+            this.busyIndicator = BusyIndicator.create({target: this.buttonContainer, backgroundOpacity: 0});
             var updateValues = dojoLang.hitch(this,function(a,b,c) {
               this.angleUnits.checked?this.LA = a/17.777777777778:this.LA = a;
               this.FOV = Math.round(b);
@@ -132,14 +155,13 @@ define([
                 'draw': function(){updateValues(this.v,this.o.cursor,this.cv)}
               });
 
-            this.gp = new Geoprocessor(this.viewshedService.url);
+            this.gp = new Geoprocessor(this.viewshedService);
             this.gp.setOutputSpatialReference({wkid: 102100});
         },
 
         
 
-        _syncEvents: function() {
-          
+        _syncEvents: function() {          
             this.coordTool.inputCoordinate.watch('outputString', dojoLang.hitch(this, function (r, ov, nv) {
               if(!this.coordTool.manualInput){this.coordTool.set('value', nv);}
             }));
@@ -176,8 +198,6 @@ define([
               dojoOn(this.FOVInput,dojoMouse.enter, dojoLang.hitch(this, function(){this.tooltip.hidden = true;})),
               
               this.angleUnits.on('change',dojoLang.hitch(this, this.angleUnitsDidChange)),
-              
-              
               
               this.observerHeightDD.on('change',dojoLang.hitch(this, this.distanceUnitDDDidChange)),
               
@@ -234,51 +254,88 @@ define([
               gpParams["Left_Azimuth__AZIMUTH1_"] = Azimuth1;
               gpParams["Right_Azimuth__AZIMUTH2_"] = Azimuth2;
             }
-            this.gp.execute(gpParams, dojoLang.hitch(this, this.drawViewshed), dojoLang.hitch(this, this.gpError));
+            
+            if(this.isSynchronous){
+                this.busyIndicator.show();
+                this.gp.execute(gpParams, dojoLang.hitch(this, this.synchronousCompleteCallback), dojoLang.hitch(this, this.gpError));
+            } else {
+                this.busyIndicator.show();
+                this.gp.submitJob(gpParams, dojoLang.hitch(this, this.aSynchronousCompleteCallback), dojoLang.hitch(this, this.callBack), dojoLang.hitch(this, this.gpError));              
+            }
         },
-
-        drawViewshed: function (results, messages) {         
-            var visibleArea = new SimpleFillSymbol();
-                visibleArea.setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([0, 0, 0, 0]), 1));
-                visibleArea.setColor(new Color([0, 255, 0, 0.5]));
-            var notVisibleArea = new SimpleFillSymbol();
-                notVisibleArea.setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([0, 0, 0, 0]), 1));
-                notVisibleArea.setColor(new Color([255, 0, 0, 0.5]));
-            var viewshed = results[0].value.features;
-            for (var w = 0, wl = viewshed.length; w < wl; w++) {
-              var feature = viewshed[w];
-              if(feature.attributes.gridcode != 0)
-              {
-                feature.setSymbol(visibleArea);
-                this.graphicsLayer.add(feature);
-              }
-              else
-              {
-                feature.setSymbol(notVisibleArea);
-                this.graphicsLayer.add(feature);
-              }            
-            }     
-            var fullWedge = new SimpleFillSymbol();
-                fullWedge.setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASH, new Color([0, 0, 0, 1]), 1));
-                fullWedge.setColor(new Color([0, 0, 0, 0]));
-                var fullWedgeGraphics = results[2].value.features;
-            for (var w = 0, wl = fullWedgeGraphics.length; w < wl; w++) {
-              var feature = fullWedgeGraphics[w];
-              feature.setSymbol(fullWedge);
+        
+        /*
+         * 
+         */
+        callBack: function (jobInfo){
+          console.log(jobInfo.jobStatus);
+        },
+        
+        /*
+         * 
+         */        
+        drawWedge: function (graphics,symbol){
+          var deferred = new dojoDeferred();
+          for (var w = 0, wl = graphics.length; w < wl; w++) {
+              var feature = graphics[w];
+              feature.setSymbol(symbol);
+              this.graphicsLayer.add(feature);                      
+            }
+          deferred.resolve("success");
+          return deferred.promise;
+        },
+        
+        /*
+         * 
+         */
+        drawViewshed: function (graphics){
+          var deferred = new dojoDeferred();
+          for (var w = 0, wl = graphics.length; w < wl; w++) {
+            var feature = graphics[w];
+            if(feature.attributes.gridcode != 0)
+            {
+              feature.setSymbol(this.visibleArea);
               this.graphicsLayer.add(feature);
             }
-            var wedge = new SimpleFillSymbol();
-                wedge.setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255, 0, 0, 1]), 1));
-                wedge.setColor(new Color([0, 0, 0, 0]));
-            var wedgeGraphics = results[1].value.features;
-            for (var w = 0, wl = wedgeGraphics.length; w < wl; w++) {
-              var feature = wedgeGraphics[w];
-              feature.setSymbol(wedge);
+            else
+            {
+              feature.setSymbol(this.notVisibleArea);
               this.graphicsLayer.add(feature);
-            }
-
-            this.map.setExtent(graphicsUtils.graphicsExtent(this.graphicsLayer.graphics), true);
+            }            
+          }
+          deferred.resolve("success");
+          return deferred.promise;          
+        },
+        
+        /*
+         * 
+         */
+        aSynchronousCompleteCallback: function (jobInfo) {
+          if(jobInfo.jobStatus === 'esriJobSucceeded'){
+            var processViewshed = this.gp.getResultData(jobInfo.jobId, "Output_Viewshed");
+            var processFullWedge = this.gp.getResultData(jobInfo.jobId, "Output_FullWedge");
+            var processWedge = this.gp.getResultData(jobInfo.jobId, "Output_Wedge");
+            var promises = dojoAll([processViewshed, processFullWedge,processWedge]);
+            promises.then(dojoLang.hitch(this,this.synchronousCompleteCallback));
+          } else {
+            var alertMessage = new Message({
+              message: 'An error occured whilst creating visibility. Please ensure your observer location falls within the extent of your elevation surface.</p>'
+            });
             this.map.setMapCursor("default");
+            this.busyIndicator.hide();
+          }
+        },
+        
+        /*
+         * 
+         */
+        synchronousCompleteCallback: function (results) { 
+          this.drawViewshed(results[0].value.features);           
+          this.drawWedge(results[2].value.features,this.fullWedge);
+          this.drawWedge(results[1].value.features,this.wedge);
+          this.map.setExtent(graphicsUtils.graphicsExtent(this.graphicsLayer.graphics), true);
+          this.map.setMapCursor("default");
+          this.busyIndicator.hide(); 
         },
         
         /*
@@ -317,8 +374,7 @@ define([
             this.maxObsRange.constraints.min = Number(this.minObsRange.displayedValue) + 0.001;
             this.maxObsRange.set('value',Number(this.minObsRange.displayedValue) + 1);            
           }
-        },
-        
+        },        
         
         /*
          * 
@@ -486,6 +542,7 @@ define([
               message: 'An error occured whilst creating visibility. Please ensure your observer location falls within the extent of your elevation surface.</p>'
             });
             this.map.setMapCursor("default");
+            this.busyIndicator.hide();
         },   
 
         onClearBtnClicked: function () {

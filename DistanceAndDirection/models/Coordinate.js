@@ -360,6 +360,10 @@ define([
           r = this.util.getFormattedUTMStr(fromValue, this.formatString, as);
           formattedStr = r.formatResult;
           break;
+      case 'UTM (H)':
+          r = this.util.getFormattedUTMHStr(fromValue, this.formatString, as);
+          formattedStr = r.formatResult;
+          break;
       }
       return formattedStr;
     }

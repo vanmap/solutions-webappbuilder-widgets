@@ -26,9 +26,11 @@ function(
     VisibilityControl
   ){
 	  var clazz = dojoDeclare([jimuBaseWidget, dijitWidgetsInTemplateMixin], {
+      
       baseClass: 'jimu-widget-visiblity',      
 
 		  startup: function(){
+        this.inherited(arguments);
         if (this.config) {
           if (this.config.taskUrl) {
             if (!this._isURL(this.config.taskUrl)) {
@@ -36,8 +38,9 @@ function(
               return;
             }
           }
-        }        
+        }
         var visibilityCtrl = new VisibilityControl({
+          nls: this.nls,
           appConfig: this.appConfig,
           pointSymbol: {
               'color': [255,0,0,64],

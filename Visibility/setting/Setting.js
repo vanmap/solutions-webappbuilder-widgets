@@ -102,7 +102,6 @@ function(declare, lang, html, on, _WidgetsInTemplateMixin, BaseWidgetSetting,
     setConfig: function(config){
       if(config.taskUrl){
         this.settingDetail.setConfig(config);
-
         this.urlTextBox.set('value', config.taskUrl);
       }
     },

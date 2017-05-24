@@ -17,6 +17,7 @@
 define(['dojo/_base/declare',
   'dojo/_base/lang',
   'dojo/_base/html',
+  'dojo/_base/array',
   'dojo/text!./SettingDetail.html',
   'dijit/_WidgetBase',
   'dijit/_TemplatedMixin',
@@ -24,7 +25,7 @@ define(['dojo/_base/declare',
   'jimu/dijit/Message',
   './utils'
 ],
-function(declare, lang, html, template, _WidgetBase, _TemplatedMixin, LoadingShelter, Message, gputils) {
+function(declare, lang, html, array, template, _WidgetBase, _TemplatedMixin, LoadingShelter, Message, gputils) {
   return declare([_WidgetBase, _TemplatedMixin], {
     baseClass: 'jimu-widget-setting-gp-detail',
     templateString: template,
@@ -71,7 +72,7 @@ function(declare, lang, html, template, _WidgetBase, _TemplatedMixin, LoadingShe
       //so, return it
       if(!this.config.taskUrl){
         new Message({
-          message: this.nls.serviceURLPlaceholder
+          message: this.nls.serviceURLError
         });
         return false;
       }
@@ -80,16 +81,41 @@ function(declare, lang, html, template, _WidgetBase, _TemplatedMixin, LoadingShe
 
     _changeTaskInfoToConfig: function(taskInfo){
       var taskUrl = this.config.taskUrl;
-      //this.config = taskInfo;
-      this.config.taskUrl = taskUrl;
-      this.config.executionType = taskInfo.executionType;
-      ///////
-      if(this.config.executionType === 'esriExecutionTypeSynchronous'){
-        this.config.isSynchronous = true;
-      }else{
-        this.config.isSynchronous = false;
+      var isTaskValid = this._checkTaskParameters(taskInfo.parameters);
+      if(isTaskValid){
+        this.config.taskUrl = taskUrl;
+        this.config.executionType = taskInfo.executionType;   
+        if(this.config.executionType === 'esriExecutionTypeSynchronous'){
+          this.config.isSynchronous = true;
+        }else{
+          this.config.isSynchronous = false;
+        }
+        delete this.config.executionType;
+      } else {
+        delete this.config.taskUrl;
       }
-      delete this.config.executionType;
+    },
+    
+    _checkTaskParameters: function(parameters){
+      var validParameters = ["Input_Observer", 
+                            "Maximum_Distance__RADIUS2_",
+                            "Left_Azimuth__AZIMUTH1_",
+                            "Right_Azimuth__AZIMUTH2_",
+                            "Observer_Offset__OFFSETA_",
+                            "Near_Distance__RADIUS1_",
+                            "Output_Viewshed",
+                            "Output_Wedge",
+                            "Output_FullWedge"];
+                            
+      var taskParameters = [];
+      array.forEach(parameters, function(param){
+        taskParameters.push(param.name);
+      });
+      
+      //convert both arrays to an ordered comma seperated list and compare
+      if(validParameters.sort().join(',') === taskParameters.sort().join(',')){
+          return true;
+      } else {return false;}
     },
 
     _initNavPane: function(){

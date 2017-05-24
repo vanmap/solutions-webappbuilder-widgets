@@ -9,7 +9,6 @@
   "license": "http://www.apache.org/licenses/LICENSE-2.0",
   "properties": {
     "hasConfig": true,
-    "hasStyle": true,
-    "hasLocale": false
+    "hasStyle": true
   }
 }

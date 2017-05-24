@@ -1,7 +1,8 @@
 <div data-dojo-attach-point="visibiltyWidget">
-  <div class="controls">
+  <label data-dojo-attach-point="errorText" style="display: none"></label>
+  <div class="controls" data-dojo-attach-point="controls">
     <div class="controlGroup">
-      <label data-dojo-attach-point="coordInputLabel">Observer Location</label>
+      <label data-dojo-attach-point="coordInputLabel">${nls.observerLocation}</label>
       <div class="controlItem">
           <input class="jimu-input coordInput" data-dojo-attach-point="observerCoords" placeholder="Enter Coordinates" />
           <div class="controlItem paddedLeft">
@@ -15,7 +16,7 @@
       </div>
     </div>
       <div class="controlGroup">
-        <label data-dojo-attach-point="FOVLabel">Field of View</label>
+        <label data-dojo-attach-point="FOVLabel">${nls.fieldOfView}</label>
         <div class="center" data-dojo-attach-point="FOVGroup">
           <input type="text" value="0" class="fov" data-displayInput="true"data-cursor="true" disabled="true" data-dojo-attach-point="FOVInput"/>
           <p class="cusrortooltip" id="tooltip" data-dojo-attach-point="tooltip" hidden='true'></p>        
@@ -26,10 +27,10 @@
                      data-dojo-attach-point="angleUnits" 
                      data-dojo-type="jimu/dijit/CheckBox"
                      data-dojo-props='checked:false' 
-                     label="Use mils for bearing angles"></div> 
+                     label='${nls.useMilsText}'></div> 
       </div>
       <div class="controlGroup">
-        <label>Observer Height</label>
+        <label>${nls.observerHeight}</label>
           <div class="controlItem">
             <input
               data-dojo-type='dijit/form/NumberTextBox'
@@ -39,17 +40,17 @@
               rangeMessage: 'Invalid Observer Height'"
               data-dojo-attach-point="observerHeight"></input>
             <select style="width: 100px" class="controlSpace" data-dojo-type="dijit/form/Select" data-dojo-attach-point="observerHeightDD" >
-              <option value="feet">Feet</option>
-              <option value="kilometers">Kilometers</option>
-              <option value="miles">Miles</option>
-              <option value="meters" selected="selected">Meters</option>
-              <option value="nautical-miles">Nautical Miles</option>
-              <option value="yards">Yards</option>
+              <option value="feet">${nls.feet}</option>
+              <option value="kilometers" selected="selected">${nls.kilometers}</option>
+              <option value="miles">${nls.miles}</option>
+              <option value="meters">${nls.meters}</option>
+              <option value="nautical-miles">${nls.nauticalMiles}</option>
+              <option value="yards">${nls.yards}</option>
             </select>
           </div>
         </div>        
         <div class="controlGroup">
-          <label>Min Observable Distance</label>
+          <label>${nls.minObsDistance}</label>
             <div class="controlItem">
               <input
                 data-dojo-type='dijit/form/NumberTextBox'
@@ -59,17 +60,17 @@
                 rangeMessage: 'Invalid Minimum Observable Range'"
                 data-dojo-attach-point="minObsRange"></input>
               <select style="width: 100px" class="controlSpace" data-dojo-type="dijit/form/Select" data-dojo-attach-point="distanceUnitDD" >
-                <option value="feet">Feet</option>
-                <option value="kilometers" selected="selected">Kilometers</option>
-                <option value="miles">Miles</option>
-                <option value="meters">Meters</option>
-                <option value="nautical-miles">Nautical Miles</option>
-                <option value="yards">Yards</option>
+                <option value="feet">${nls.feet}</option>
+                <option value="kilometers" selected="selected">${nls.kilometers}</option>
+                <option value="miles">${nls.miles}</option>
+                <option value="meters">${nls.meters}</option>
+                <option value="nautical-miles">${nls.nauticalMiles}</option>
+                <option value="yards">${nls.yards}</option>
               </select>
             </div>
         </div>        
         <div class="controlGroup">
-          <label>Max Observable Distance</label>
+          <label>${nls.maxObsDistance}</label>
             <div class="controlItem">
               <input
                 data-dojo-type='dijit/form/NumberTextBox'
@@ -82,8 +83,8 @@
         </div> 
     </div>
     <div class="buttonContainer" data-dojo-attach-point="buttonContainer">
-      <div class="jimu-btn" data-dojo-attach-point="btnCreate">Create</div>
-      <div class="jimu-btn controlSpace" data-dojo-attach-point="btnClear">Clear</div>
+      <div class="jimu-btn" data-dojo-attach-point="btnCreate">${nls.createBtn}</div>
+      <div class="jimu-btn controlSpace" data-dojo-attach-point="btnClear">${nls.clearBtn}</div>
 
     </div>      
 </div>

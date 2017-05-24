@@ -10,17 +10,18 @@
       </div>
     </div>
     
-    <div class="controlGroup" data-dojo-attach-point="addGRGPoint">      
+    <div class="controlGroup">
+      <label data-dojo-attach-point="coordInputLabel">GRG Center Point</label>
       <div class="controlItem">
-        <div class="addExtentBtn" data-dojo-attach-point="addGRGPointBtn"></div>
-        <label class="paddedTop">Use the draw tool to specify the GRG center</label>
-      </div>
-    </div>
-    
-    <div class="controlGroupHidden" data-dojo-attach-point="deleteGRGPoint">
-      <div class="controlItem">
-        <div class="deleteBtn" data-dojo-attach-point="deleteGRGPointBtn"></div>
-        <label class="paddedTop">Remove GRG Point</label>
+          <input class="jimu-input coordInput" data-dojo-attach-point="observerCoords" placeholder="Enter Coordinates" />
+          <div class="controlItem paddedLeft">
+            <div class='add-with-icon'>
+              <span title="Format Input" class="jimu-icon jimu-icon-setting" data-dojo-attach-point="coordinateFormatButton"></span>
+            </div>
+            <div class='add-with-icon'>
+              <div title="Add GRG Center Point" class="draw" data-dojo-attach-point="addPointBtn"></div>
+            </div>
+          </div>
       </div>
     </div>
     

@@ -97,7 +97,7 @@ define([
           
           // create graphics layer for grid extent and add to map
           this._graphicsLayerGRGExtent = new GraphicsLayer();
-          this._extentSym = new SimpleFillSymbol(this.GRGAreaFillSymbol);
+          this._extentSym = new SimpleFillSymbol(this.extentAreaFillSymbol);
           
           // create a renderer for the grg layer to override default symbology
           var gridSymbol = new SimpleFillSymbol(this.GRGAreaFillSymbol); 
@@ -133,9 +133,7 @@ define([
             outFields: ["*"]
           });
           this.GRGArea.setRenderer(gridRenderer);
-          
-          console.log(this.GRGArea);
-
+                    
           var json = {
             "labelExpressionInfo": {"value" : "{grid}"}
           };
@@ -213,7 +211,7 @@ define([
             this._graphicsLayerGRGExtent.on(
               'click',
               dojoLang.hitch(this, function(evt) {
-               this.editToolbar.activate(Edit.MOVE, evt.graphic); 
+               this.editToolbar.activate(Edit.MOVE|Edit.SCALE, evt.graphic); 
               })
           ));
           
@@ -278,8 +276,8 @@ define([
           this.map.enableMapNavigation();
           this.dt.deactivate();
           
-          this.cellWidth.setValue((geometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,1), this.cellUnits.value))/9);
-          this.cellShape.value == "default"?this.cellHeight.setValue((geometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,3), this.cellUnits.value))/9):this.cellHeight.setValue(0);
+          this.cellWidth.setValue(Math.ceil((geometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,1), this.cellUnits.value))/10));
+          this.cellShape.value == "default"?this.cellHeight.setValue(Math.ceil((geometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,3), this.cellUnits.value))/10)):this.cellHeight.setValue(0);
           
                     
           dojoClass.toggle(this.addGRGArea, "controlGroupHidden");
@@ -298,7 +296,7 @@ define([
             
             var cellWidth = drawGRG.convertUnits(this.cellUnits.value,"meters",this.cellWidth.value);
             var cellHeight = drawGRG.convertUnits(this.cellUnits.value,"meters",this.cellHeight.value);
-   
+            
             //work out how many cells are needed horizontally & Vertically to cover the whole canvas area
             var numCellsHorizontal = Math.ceil(GRGAreaWidth/cellWidth);
             

@@ -19,12 +19,14 @@ define([
     'dojo/_base/declare',
     'dojo/Deferred',
     'dojo/_base/lang',
+    'dojo/_base/array',
     'dojo/on',
     'dojo/keys',
     'dojo/string',
     'dojo/topic',
     'dojo/dom',
     'dojo/dom-class',
+    'dojo/dom-style',
     'dojo/mouse',
     'dojo/promise/all',
 
@@ -48,6 +50,7 @@ define([
     'esri/tasks/Geoprocessor',
     'esri/tasks/FeatureSet',
     'esri/graphicsUtils',
+    'esri/request',
     'esri/symbols/SimpleFillSymbol',
     'esri/symbols/SimpleLineSymbol',
     'esri/symbols/SimpleMarkerSymbol',
@@ -59,12 +62,14 @@ define([
     dojoDeclare,
     dojoDeferred,
     dojoLang,
+    dojoArray,
     dojoOn,
     dojoKeys,
     dojoString,
     dojoTopic,
     dojoDom,
     dojoDomClass,
+    dojoDomStyle,
     dojoMouse,
     dojoAll,
     dijitWidgetBase,
@@ -84,6 +89,7 @@ define([
     Geoprocessor, 
     FeatureSet, 
     graphicsUtils,
+    Request,
     SimpleFillSymbol, 
     SimpleLineSymbol, 
     SimpleMarkerSymbol, 
@@ -107,35 +113,75 @@ define([
         },
 
         postCreate: function () {
-            this._ptSym = new SimpleMarkerSymbol(this.pointSymbol);          
-            this._initGL();            
-            this.distanceUnit = this.distanceUnitDD.get('value');
-            this.observerHeightUnit = this.observerHeightDD.get('value');
-            this.coordTool = new CoordInput({appConfig: this.appConfig}, this.observerCoords);      
-            this.coordTool.inputCoordinate.formatType = 'DD';
-            this.coordinateFormat = new dijitTooltipDialog({
-              content: new EditOutputCoordinate(),
-              style: 'width: 400px'
-            });
-            
-            // add extended toolbar
-            this.dt = new DrawFeedBack(this.map,this.coordTool.inputCoordinate.util);
-            
-            //set up symbology for output
-            this.visibleArea = new SimpleFillSymbol();
-            this.visibleArea.setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([0, 0, 0, 0]), 1));
-            this.visibleArea.setColor(new Color([0, 255, 0, 0.5]));
-            this.notVisibleArea = new SimpleFillSymbol();
-            this.notVisibleArea.setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([0, 0, 0, 0]), 1));
-            this.notVisibleArea.setColor(new Color([255, 0, 0, 0.5]));
-            this.fullWedge = new SimpleFillSymbol();
-            this.fullWedge.setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASH, new Color([0, 0, 0, 1]), 1));
-            this.fullWedge.setColor(new Color([0, 0, 0, 0]));
-            this.wedge = new SimpleFillSymbol();
-            this.wedge.setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255, 0, 0, 1]), 1));
-            this.wedge.setColor(new Color([0, 0, 0, 0]));
+            //check that the gpservice is valid for this widget
+            var args = Request({
+              url: this.viewshedService,
+              content: {f: "json"},
+              handleAs:"json",
+              callbackParamName: "callback"
+            });            
+                     
+            args.then(
+              dojoLang.hitch(this, function(response) {
+                var validParameters = ["Input_Observer", 
+                            "Maximum_Distance__RADIUS2_",
+                            "Left_Azimuth__AZIMUTH1_",
+                            "Right_Azimuth__AZIMUTH2_",
+                            "Observer_Offset__OFFSETA_",
+                            "Near_Distance__RADIUS1_",
+                            "Output_Viewshed",
+                            "Output_Wedge",
+                            "Output_FullWedge"];
+                            
+                var taskParameters = [];
+                dojoArray.forEach(response.parameters, function(param){
+                  taskParameters.push(param.name);
+                });
                 
-            this._syncEvents(); 
+                //convert both arrays to an ordered comma seperated list and compare
+                if(validParameters.sort().join(',') === taskParameters.sort().join(',')){
+                  //set up symbology for input
+                  this._ptSym = new SimpleMarkerSymbol(this.pointSymbol);
+                  
+                  //set up symbology for output
+                  this.visibleArea = new SimpleFillSymbol();
+                  this.visibleArea.setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([0, 0, 0, 0]), 1));
+                  this.visibleArea.setColor(new Color([0, 255, 0, 0.5]));
+                  this.notVisibleArea = new SimpleFillSymbol();
+                  this.notVisibleArea.setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([0, 0, 0, 0]), 1));
+                  this.notVisibleArea.setColor(new Color([255, 0, 0, 0.5]));
+                  this.fullWedge = new SimpleFillSymbol();
+                  this.fullWedge.setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_DASH, new Color([0, 0, 0, 1]), 1));
+                  this.fullWedge.setColor(new Color([0, 0, 0, 0]));
+                  this.wedge = new SimpleFillSymbol();
+                  this.wedge.setOutline(new SimpleLineSymbol(SimpleLineSymbol.STYLE_SOLID, new Color([255, 0, 0, 1]), 1));
+                  this.wedge.setColor(new Color([0, 0, 0, 0]));
+
+                  //set up observer input dijit
+                  this.distanceUnit = this.distanceUnitDD.get('value');
+                  this.observerHeightUnit = this.observerHeightDD.get('value');
+                  this.coordTool = new CoordInput({appConfig: this.appConfig}, this.observerCoords);      
+                  this.coordTool.inputCoordinate.formatType = 'DD';
+                  this.coordinateFormat = new dijitTooltipDialog({
+                    content: new EditOutputCoordinate(),
+                    style: 'width: 400px'
+                  });            
+                  
+                  //initiate and add viewshed graphics layer
+                  this._initGL();
+                  
+                  // add extended toolbar
+                  this.dt = new DrawFeedBack(this.map,this.coordTool.inputCoordinate.util);
+                  
+                  //initiate synchronisation events
+                  this._syncEvents();
+                    
+                } else {
+                  this.gpTaskError(this.nls.taskURLInvalid);
+                }
+              }), dojoLang.hitch(this, function(error) {
+                this.gpTaskError(this.nls.taskURLError);
+              }));
         },      
 
         startup: function(){
@@ -158,20 +204,29 @@ define([
             this.gp = new Geoprocessor(this.viewshedService);
             this.gp.setOutputSpatialReference({wkid: 102100});
         },
-
         
+        /*
+         * initiate and add viewshed graphics layer to map
+         */        
+        _initGL: function () {        
+            this.graphicsLayer = new GraphicsLayer(),
+            this.graphicsLayer.name = "Viewshed Layer";
+            this.map.addLayer(this.graphicsLayer);
+        },        
 
-        _syncEvents: function() {          
-            this.coordTool.inputCoordinate.watch('outputString', dojoLang.hitch(this, function (r, ov, nv) {
-              if(!this.coordTool.manualInput){this.coordTool.set('value', nv);}
-            }));
+        /*
+         * initiate synchronisation events
+         */
+        _syncEvents: function() {
+            this.own(
+              this.coordTool.inputCoordinate.watch('outputString', dojoLang.hitch(this, function (r, ov, nv) {
+                if(!this.coordTool.manualInput){this.coordTool.set('value', nv);}
+              })),
             
-            this.dt.watch('startPoint' , dojoLang.hitch(this, function (r, ov, nv) {
+              this.dt.watch('startPoint' , dojoLang.hitch(this, function (r, ov, nv) {
                 this.coordTool.inputCoordinate.set('coordinateEsriGeometry', nv);
                 this.dt.addStartGraphic(nv, this._ptSym);
-              }));
-
-            this.own(           
+              })),            
             
               dojoOn(this.coordTool, 'keyup',dojoLang.hitch(this, this.coordToolKeyWasPressed)),
               
@@ -226,12 +281,10 @@ define([
             );
         },
 
-        _initGL: function () {        
-            this.graphicsLayer = new GraphicsLayer(),
-            this.graphicsLayer.name = "Viewshed Layer";
-            this.map.addLayer(this.graphicsLayer);
-        },
-
+        
+        /*
+         * 
+         */
         viewshed: function (gpParams) { 
             this.map.setMapCursor("wait");
 
@@ -537,14 +590,30 @@ define([
           }
         },
 
+        /*
+         * 
+         */
         gpError: function () {
             var alertMessage = new Message({
               message: 'An error occured whilst creating visibility. Please ensure your observer location falls within the extent of your elevation surface.</p>'
             });
             this.map.setMapCursor("default");
             this.busyIndicator.hide();
-        },   
+        },
 
+        /*
+         * 
+         */
+        gpTaskError: function (message) {
+          dojoDomStyle.set(this.controls, 'display', 'none');
+          dojoDomStyle.set(this.buttonContainer, 'display', 'none');
+          this.errorText.innerHTML = message;
+          dojoDomStyle.set(this.errorText, 'display', '');
+        },
+        
+        /*
+         * 
+         */
         onClearBtnClicked: function () {
             this.graphicsLayer.clear();
             this.dt.removeStartGraphic();
@@ -561,6 +630,9 @@ define([
             this.tooltip.hidden = true;
         },
 
+        /*
+         * 
+         */
         isNumeric: function(n) {
             return !isNaN(parseFloat(n)) && isFinite(n);
         }           

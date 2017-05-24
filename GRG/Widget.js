@@ -28,8 +28,8 @@ define([
   'dijit/_WidgetsInTemplateMixin',
   'jimu/BaseWidget',
   'jimu/dijit/TabContainer',
-  './views/TabCreateAreaGRG',
-  './views/TabCreatePointGRG'
+  './js/TabCreateAreaGRG',
+  './js/TabCreatePointGRG'
 ], function (
   dojoDeclare,
   dojoTopic,
@@ -61,6 +61,16 @@ define([
       this.createAreaGRGTab = new TabCreateAreaGRG({
         map: this.map,
         appConfig: this.appConfig,
+        extentAreaFillSymbol: {
+          type: 'esriSFS',
+          style: 'esriSFSSolid',
+          color: [155,155,155,155],
+          outline: {
+            color: [0, 0, 255, 255],
+            width: 1.25,
+            type: 'esriSLS',
+            style: 'esriSLSSolid'
+          }},
         GRGAreaFillSymbol: this.config.grg.gridSymbol || {
           type: 'esriSFS',
           style: 'esriSFSNull',

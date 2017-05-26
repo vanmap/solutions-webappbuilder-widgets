@@ -140,6 +140,7 @@ define([
           };
 
           this.GRGPoint = new esriFeatureLayer(featureCollection,{
+            id: "Point GRG",
             outFields: ["*"]
           });
           this.GRGPoint.setRenderer(gridRenderer);

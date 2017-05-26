@@ -42,14 +42,14 @@ define([
       numberOfInputs: 0,
       selectOptions: {},
         
-        constructor: function (options1) {
+        constructor: function (options1,args) {
+            dojoDeclare.safeMixin(this, args);
             this.numberOfInputs = options1.length; 
-            this.selectOptions = options1;
-            
+            this.selectOptions = options1;            
         },
         
         postCreate: function () {
-          this.label1.innerHTML = "There are " + this.numberOfInputs + " notations that match your input please confirm which you would like to use:";
+          this.label1.innerHTML = this.numberOfInputs + " " + this.nls.notationsMatch;
           for (var i = 0; i < this.selectOptions.length; i++) {
               this.comboOptions.addOption({ value: this.selectOptions[i].name , label: this.selectOptions[i].notationType});
           }

@@ -52,6 +52,10 @@ define([
         _setCtAttr: function (v) {
             this.frmtSelect.set('value', v);
         },
+        
+        constructor: function (args) {
+          dojoDeclare.safeMixin(this, args);
+        },
 
         /**
          *
@@ -126,8 +130,9 @@ define([
          *
          *
         startup: function () {
-            //this.inherited(arguments);
+            this.inherited(arguments);
         },*/
+        
         formatValDidChange: function () {
             var newvalue = dojoDomAttr.get(this.frmtVal, 'value');
             var crdType = this.frmtSelect.get('value');

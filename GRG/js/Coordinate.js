@@ -8,6 +8,7 @@ define([
   'esri/geometry/Point',
   'esri/SpatialReference',
   'esri/geometry/webMercatorUtils',
+  'jimu/dijit/Message',
   './util',
   './dialogConfirm',
   './ConfirmNotation'
@@ -21,6 +22,7 @@ define([
   EsriPoint,
   EsriSpatialReference,
   EsriWMUtils,
+  JimuMessage,
   CoordinateUtilities,
   dialogConfirm,
   ConfirmNotation
@@ -110,8 +112,9 @@ define([
               });
           } else {
             var dialog = new dialogConfirm({
-               title: 'Confirm Input Notation',
-               content: new ConfirmNotation(itm),
+               nls: this.nls,
+               title: this.nls.confirmNotationTitle,
+               content: new ConfirmNotation(itm,{nls: this.nls}),
                style: "width: 400px",
                hasSkipCheckBox: false
             });
@@ -275,7 +278,7 @@ define([
         //give user warning if lat or long is determined as having a prefix and suffix 
         if(prefixSuffixError) {
           if(!testingMode) {
-          new JimuMessage({message: 'The input coordinate has been detected as having both a prefix and suffix for the latitude or longitude value, returned coordinate is based on the prefix.'});
+          new JimuMessage({message: this.nls.prefixSuffixError});
           }
         }            
         

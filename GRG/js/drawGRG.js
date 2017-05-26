@@ -192,72 +192,11 @@ define([
     if(totalNumber > 2000) {
       // Invalid entry
       var alertMessage = new Message({
-        message: '<p>You are attempting to create a grid comprising of ' + totalNumber + ' cells. It is advisable to reduce the number of cells being created by changing the grid size or grid area.</li></ul>'
+        message: 'You are attempting to create a grid comprising of ' + totalNumber + ' cells. It is advisable to reduce the number of cells being created by changing the grid size or grid area.'
       });
       return false;
     } else {
       return true;
-    }
-  }, 
-  
-  grg.convertUnits = function (unitFrom,unitTo,amount) {          
-    if(unitFrom == unitTo){
-      return amount;
-    } else {
-      switch(unitFrom) {
-        case 'meters':
-          switch(unitTo) {
-            case 'feet':
-              return amount * 3.2808399;
-              break;
-            case 'kilometers':
-              return amount * 0.001;
-              break;
-            case 'miles':
-              return amount / 1609.34;
-              break;            
-          }
-          break;
-        case 'feet':
-          switch(unitTo) {
-            case 'meters':
-              return amount / 3.2808399;
-              break;
-            case 'kilometers':
-              return amount / 3280.83989501;
-              break;
-            case 'miles':
-              return amount * 0.0001893939394;
-              break;            
-          }
-          break;
-        case 'kilometers':
-          switch(unitTo) {
-            case 'meters':
-              return amount * 1000;
-              break;
-            case 'feet':
-              return amount * 3280.83989501;
-              break;
-            case 'miles':
-              return amount * 0.62137119223733;
-              break;            
-          }
-          break;
-        case 'miles':
-          switch(unitTo) {
-            case 'meters':
-              return amount * 1609.34;
-              break;
-            case 'feet':
-              return amount / 0.0001893939394;
-              break;
-            case 'kilometers':
-              return amount / 0.62137119223733;
-              break;            
-          }
-          break;
-      }
     }
   },
   

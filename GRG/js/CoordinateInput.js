@@ -29,9 +29,10 @@ define([
     /**
      *
      **/
-    constructor: function () {
+    constructor: function (args) {
+        dojoDeclare.safeMixin(this, args);
         this.inherited(arguments);
-        this.inputCoordinate = new Coord({appConfig: arguments[0].appConfig});
+        this.inputCoordinate = new Coord({nls: this.nls, appConfig: arguments[0].appConfig});
     },
 
     postMixinProperties: function () {

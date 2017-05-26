@@ -136,7 +136,7 @@ define([
           };
 
           this.GRGArea = new esriFeatureLayer(featureCollection,{
-            id: "GRG",
+            id: "Area GRG",
             outFields: ["*"]
           });
           this.GRGArea.setRenderer(gridRenderer);

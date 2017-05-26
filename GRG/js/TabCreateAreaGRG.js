@@ -24,10 +24,14 @@ define([
     'dojo/on',
     'dojo/topic',
     'dojo/_base/html',
+    'dojo/text!../templates/TabCreateAreaGRG.html',
+    
     'dijit/_WidgetBase',
     'dijit/_TemplatedMixin',
-    'dijit/_WidgetsInTemplateMixin',
+    'dijit/_WidgetsInTemplateMixin',    
+    
     'jimu/dijit/Message',
+    
     'esri/IdentityManager',
     'esri/arcgis/OAuthInfo',
     'esri/arcgis/Portal',
@@ -43,10 +47,10 @@ define([
     'esri/Color',
     'esri/graphic',
     'esri/toolbars/draw',
-    'esri/toolbars/edit',
     'esri/symbols/TextSymbol',
     './drawGRG',
-    'dojo/text!../templates/TabCreateAreaGRG.html',
+    './PolygonFeedback',
+    './util',
     'dijit/form/NumberSpinner'
 ], function (
     dojo,
@@ -56,36 +60,38 @@ define([
     dojoClass,
     dojoOn,
     dojoTopic,
-    html,
+    dojoHTML,
+    areaGRGtemplate,
     dijitWidgetBase,    
     dijitTemplatedMixin,
     dijitWidgetsInTemplate,
-    Message,
+    dijitMessage,
     esriId,
-    OAuthInfo,
-    arcgisPortal,
-    geometryEngine,
-    GraphicsLayer,
-    FeatureLayer,
-    LabelClass,
-    SimpleFillSymbol,
-    SimpleLineSymbol,
-    SimpleRenderer,
-    Polygon,
-    Font,
-    Color,
-    Graphic,
-    Draw,
-    Edit,
-    TextSymbol,
+    esriOAuthInfo,
+    esriPortal,
+    esriGeometryEngine,
+    esriGraphicsLayer,
+    esriFeatureLayer,
+    esriLabelClass,
+    esriSimpleFillSymbol,
+    esriSimpleMarkerSymbol,
+    esriSimpleRenderer,
+    esriPolygon,
+    esriFont,
+    esriColor,
+    esriGraphic,
+    esriDraw,
+    esriTextSymbol,
     drawGRG,
-    templateStr    
+    drawFeedBack ,
+    CoordinateUtils    
 ) {
     'use strict';
     return dojoDeclare([dijitWidgetBase, dijitTemplatedMixin, dijitWidgetsInTemplate], {
-        templateString: templateStr,
+        templateString: areaGRGtemplate,
         baseClass: 'jimu-widget-TabLine',
         GRG: null,
+        centerPoint: [],
 
         constructor: function (args) {
           dojoDeclare.safeMixin(this, args);
@@ -94,14 +100,15 @@ define([
         postCreate: function () {       
           this.angle = 0;
           this.currentUnit = 'meters';
+          this.coordTool = new CoordinateUtils(); 
           
           // create graphics layer for grid extent and add to map
-          this._graphicsLayerGRGExtent = new GraphicsLayer();
-          this._extentSym = new SimpleFillSymbol(this.extentAreaFillSymbol);
+          this._graphicsLayerGRGExtent = new esriGraphicsLayer();
+          this._extentSym = new esriSimpleFillSymbol(this.extentAreaFillSymbol);
           
           // create a renderer for the grg layer to override default symbology
-          var gridSymbol = new SimpleFillSymbol(this.GRGAreaFillSymbol); 
-          var gridRenderer = new SimpleRenderer(gridSymbol);
+          var gridSymbol = new esriSimpleFillSymbol(this.GRGAreaFillSymbol); 
+          var gridRenderer = new esriSimpleRenderer(gridSymbol);
                   
           var featureCollection = {
             "layerDefinition": {
@@ -128,7 +135,7 @@ define([
             }
           };
 
-          this.GRGArea = new FeatureLayer(featureCollection,{
+          this.GRGArea = new esriFeatureLayer(featureCollection,{
             id: "GRG",
             outFields: ["*"]
           });
@@ -139,22 +146,19 @@ define([
           };
 
           // create a text symbol to define the style of labels
-          var labelClass = new LabelClass(json);
+          var labelClass = new esriLabelClass(json);
           var textSymParams = this.cellTextSymbol || {
-            font: new Font("11", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLD, "Helvetica"),
-            color: new Color("#666633")
+            font: new esriFont("11", Font.STYLE_NORMAL, Font.VARIANT_NORMAL, Font.WEIGHT_BOLD, "Helvetica"),
+            color: new esriColor("#666633")
           }
-          labelClass.symbol = new TextSymbol(textSymParams);
+          labelClass.symbol = new esriTextSymbol(textSymParams);
           this.GRGArea.setLabelingInfo([labelClass]);
           
           this.map.addLayers([this.GRGArea,this._graphicsLayerGRGExtent]);          
           
-          // add draw toolbar
-          this.dt = new Draw(this.map);
-          
-          // add edit toolbar that will be used for rotating grid 
-          this.editToolbar = new Edit(this.map);
-                    
+          // add extended toolbar
+          this.dt = new drawFeedBack(this.map,{nls: this.nls});
+                              
           this.syncEvents();
           dojoLang.hitch(this,this.initSaveToPortal());
         },
@@ -163,7 +167,9 @@ define([
           
           dojoTopic.subscribe('DD_WIDGET_OPEN', dojoLang.hitch(this, this.setGraphicsShown));
           dojoTopic.subscribe('DD_WIDGET_CLOSE', dojoLang.hitch(this, this.setGraphicsHidden));
-          dojoTopic.subscribe('TAB_SWITCHED', dojoLang.hitch(this, this.tabSwitched));         
+          dojoTopic.subscribe('TAB_SWITCHED', dojoLang.hitch(this, this.tabSwitched));
+          dojoTopic.subscribe(drawFeedBack.drawnLineAngleDidChange,dojoLang.hitch(this, this.lineAngleDidChange));
+          dojoTopic.subscribe(drawFeedBack.midPointDidChange,dojoLang.hitch(this, this.midPointDidChange));          
           
           this.own(dojoOn(
             this.createGRGButton,
@@ -184,12 +190,6 @@ define([
           ));
           
           this.own(dojoOn(
-            this.gridAngle, 
-            'change',
-            dojoLang.hitch(this, this.angleChange)
-          ));
-          
-          this.own(dojoOn(
             this.cellUnits, 
             'change',
             dojoLang.hitch(this, this.cellUnitsChange)
@@ -205,35 +205,27 @@ define([
             this.dt.on(
               'draw-complete',
               dojoLang.hitch(this, this.drawGRGAreaComplete)
-          ));
-          
-          this.own(
-            this._graphicsLayerGRGExtent.on(
-              'click',
-              dojoLang.hitch(this, function(evt) {
-               this.editToolbar.activate(Edit.MOVE|Edit.SCALE, evt.graphic); 
-              })
-          ));
-          
-          this.editToolbar.on("graphic-move-stop", dojoLang.hitch(this,function(evt){
-            this.editToolbar.deactivate();
-          }));          
+          ))         
         },
               
-        angleChange: function () {          
-          if (this.gridAngle.isValid() && !isNaN(this.gridAngle.value) && this._graphicsLayerGRGExtent.graphics[0]){                        
-            var rotateBy = this.gridAngle.getValue() - this.angle;            
-            var geom = geometryEngine.rotate(this._graphicsLayerGRGExtent.graphics[0].geometry, rotateBy*-1);
-            this._graphicsLayerGRGExtent.clear();
-            var graphic = new Graphic(geom, this._extentSym);
-            this._graphicsLayerGRGExtent.add(graphic);            
-            this.angle = this.gridAngle.getValue();
-          }          
+        /*
+         * angle value change
+         */
+        lineAngleDidChange: function (r) {
+          this.angle = r;
+        },
+        
+        midPointDidChange: function (r) {
+          this.centerPoint = r;
         },
         
         cellUnitsChange: function () {
-          this.cellWidth.setValue(drawGRG.convertUnits(this.currentUnit,this.cellUnits.value,this.cellWidth.value));
-          this.cellShape.value == "default"?this.cellHeight.setValue(drawGRG.convertUnits(this.currentUnit,this.cellUnits.value,this.cellHeight.value)):this.cellHeight.setValue(0);
+          var tempWidthInMeters = this.coordTool.convertToMeters(this.cellWidth.value,this.currentUnit);
+          var tempHeightInMeters = this.coordTool.convertToMeters(this.cellHeight.value,this.currentUnit);
+          
+          this.cellWidth.setValue(this.coordTool.convertMetersToUnits(tempWidthInMeters,this.cellUnits.value));
+          this.cellShape.value == "default"?this.cellHeight.setValue(this.coordTool.convertMetersToUnits(tempHeightInMeters,this.cellUnits.value)):this.cellHeight.setValue(0);
+          
           this.currentUnit = this.cellUnits.value;
         },
         
@@ -247,13 +239,12 @@ define([
           
           //reset the angle
           this.angle = 0;
-          this.gridAngle.setValue(0);         
           
-          html.removeClass(this.addGRGAreaBtn, 'jimu-state-active');          
-          html.removeClass(this.addGRGArea, 'controlGroupHidden');
-          html.addClass(this.addGRGArea, 'controlGroup');
-          html.removeClass(this.deleteGRGArea, 'controlGroup');
-          html.addClass(this.deleteGRGArea, 'controlGroupHidden');          
+          dojoHTML.removeClass(this.addGRGAreaBtn, 'jimu-state-active');          
+          dojoHTML.removeClass(this.addGRGArea, 'controlGroupHidden');
+          dojoHTML.addClass(this.addGRGArea, 'controlGroup');
+          dojoHTML.removeClass(this.deleteGRGArea, 'controlGroup');
+          dojoHTML.addClass(this.deleteGRGArea, 'controlGroupHidden');          
         },        
         
         addGRGAreaButtonClicked: function () {
@@ -265,19 +256,19 @@ define([
           }
           
           this.map.disableMapNavigation();
-          this.dt.activate('rectangle');
+          this.dt.activate('polyline');
           dojoClass.toggle(this.addGRGAreaBtn, 'jimu-state-active');
-          html.addClass(this.saveGRGButton, 'controlGroupHidden');
+          dojoHTML.addClass(this.saveGRGButton, 'controlGroupHidden');
         },
 
         drawGRGAreaComplete: function (evt) {          
-          var graphic = new Graphic(evt.geometry, this._extentSym);          
+          var graphic = new esriGraphic(evt.geometry, this._extentSym);          
           this._graphicsLayerGRGExtent.add(graphic);
           this.map.enableMapNavigation();
           this.dt.deactivate();
           
-          this.cellWidth.setValue(Math.ceil((geometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,1), this.cellUnits.value))/10));
-          this.cellShape.value == "default"?this.cellHeight.setValue(Math.ceil((geometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,3), this.cellUnits.value))/10)):this.cellHeight.setValue(0);
+          this.cellWidth.setValue(Math.ceil((esriGeometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,1), this.cellUnits.value))/10));
+          this.cellShape.value == "default"?this.cellHeight.setValue(Math.ceil((esriGeometryEngine.distance(evt.geometry.getPoint(0,0), evt.geometry.getPoint(0,3), this.cellUnits.value))/10)):this.cellHeight.setValue(0);
           
                     
           dojoClass.toggle(this.addGRGArea, "controlGroupHidden");
@@ -291,11 +282,13 @@ define([
             var geom = this._graphicsLayerGRGExtent.graphics[0].geometry;
 
             //work out width and height of AOI
-            var GRGAreaWidth = geometryEngine.distance(geom.getPoint(0,0), geom.getPoint(0,1), 'meters');
-            var GRGAreaHeight = geometryEngine.distance(geom.getPoint(0,0), geom.getPoint(0,3), 'meters');
+            var GRGAreaWidth = esriGeometryEngine.distance(geom.getPoint(0,0), geom.getPoint(0,1), 'meters');
+            var GRGAreaHeight = esriGeometryEngine.distance(geom.getPoint(0,0), geom.getPoint(0,3), 'meters');
             
-            var cellWidth = drawGRG.convertUnits(this.cellUnits.value,"meters",this.cellWidth.value);
-            var cellHeight = drawGRG.convertUnits(this.cellUnits.value,"meters",this.cellHeight.value);
+            
+            var cellWidth = this.coordTool.convertToMeters(this.cellWidth.value,this.currentUnit);
+            var cellHeight = this.coordTool.convertToMeters(this.cellHeight.value,this.currentUnit);
+            
             
             //work out how many cells are needed horizontally & Vertically to cover the whole canvas area
             var numCellsHorizontal = Math.ceil(GRGAreaWidth/cellWidth);
@@ -305,20 +298,17 @@ define([
             
             if(drawGRG.checkGridSize(numCellsHorizontal,numCellsVertical))
             {
-              
-              //get center point of AOI
-              var centerPoint = geom.getCentroid();              
-              var features = drawGRG.createGRG(numCellsHorizontal,numCellsVertical,centerPoint,cellWidth,cellHeight,this.angle,this.labelStartPosition.value,this.labelStyle.value,this.cellShape.value); 
+              var features = drawGRG.createGRG(numCellsHorizontal,numCellsVertical,this.centerPoint,cellWidth,cellHeight,this.angle,this.labelStartPosition.value,this.labelStyle.value,this.cellShape.value); 
               //apply the edits to the feature layer
               this.GRGArea.applyEdits(features, null, null);
               this.deleteGRGAreaButtonClicked();              
-              html.removeClass(this.saveGRGButton, 'controlGroupHidden');
+              dojoHTML.removeClass(this.saveGRGButton, 'controlGroupHidden');
             }
           }
           else {
             // Invalid entry
-            var alertMessage = new Message({
-              message: '<p>The GRG creation form has missing or invalid parameters, Please ensure:</p><ul><li>The GRG Name is not blank.</li><li>A GRG area has been drawn.</li><li>The cell width and height contain valid values.</li></ul>'
+            var alertMessage = new dijitMessage({
+              message: this.nls.missingParametersMessage
             });          
           }
         },
@@ -343,7 +333,7 @@ define([
           }
           this.dt.deactivate();
           this.deleteGRGAreaButtonClicked();
-          html.addClass(this.saveGRGButton, 'controlGroupHidden');
+          dojoHTML.addClass(this.saveGRGButton, 'controlGroupHidden');
         },
 
         initSaveToPortal: function() {          
@@ -356,7 +346,7 @@ define([
           
           esriId.getCredential(this.appConfig.portalUrl + "/sharing", { oAuthPopupConfirmation: false }).then(dojoLang.hitch(this, function() {
             //sign in
-            new arcgisPortal.Portal(this.appConfig.portalUrl).signIn().then(dojoLang.hitch(this, function(portalUser) {
+            new esriPortal.Portal(this.appConfig.portalUrl).signIn().then(dojoLang.hitch(this, function(portalUser) {
              //Get the token
               var token = portalUser.credential.token;
               var orgId = portalUser.orgId;
@@ -376,15 +366,15 @@ define([
                       drawGRG.addDefinitionToService(addToDefinitionUrl, token, drawGRG.getLayerParams(featureServiceName, this.map, this.cellTextSymbol, this.GRGAreaFillSymbol)).then(dojoLang.hitch(this, function(response2) {
                         if (response2.success) {
                           //Push features to new layer
-                          var newFeatureLayer = new FeatureLayer(response1.serviceurl + "/0?token=" + token, {
-                            mode: FeatureLayer.MODE_SNAPSHOT,
+                          var newFeatureLayer = new esriFeatureLayer(response1.serviceurl + "/0?token=" + token, {
+                            mode: esriFeatureLayer.MODE_SNAPSHOT,
                             outFields: ["*"]                                  
                            });
                           this.map.addLayer(newFeatureLayer);
 
                           var newGraphics = [];
                           dojoArray.forEach(this.GRGArea.graphics, function (g) {
-                            newGraphics.push(new Graphic(g.geometry, null, {grid: g.attributes["grid"]}));
+                            newGraphics.push(new esriGraphic(g.geometry, null, {grid: g.attributes["grid"]}));
                           }, this);
 
                           newFeatureLayer.applyEdits(newGraphics, null, null).then(dojoLang.hitch(this, function(){
@@ -396,31 +386,31 @@ define([
                         }
                       }), function(err2) {
                         dojoTopic.publish('HIDE_BUSY');
-                        new Message({
+                        new dijitMessage({
                           message: "Add to definition: " + err2.message
                         });                              
                       });
                     } else {
                       dojoTopic.publish('HIDE_BUSY');
-                      new Message({
+                      new dijitMessage({
                         message: "Unable to create " + featureServiceName
                       });
                     }
                   }), function(err1) {
                     dojoTopic.publish('HIDE_BUSY');
-                    new Message({
+                    new dijitMessage({
                       message: "Create Service: " + err1.message
                     });
                   });
                 } else {
                     dojoTopic.publish('HIDE_BUSY');
-                    new Message({                 
+                    new dijitMessage({                 
                       message: "You already have a feature service named " + featureServiceName + ". Please choose another name."
                   });                    
                 }
               }), function(err0) {
                 dojoTopic.publish('HIDE_BUSY');
-                new Message({
+                new dijitMessage({
                   message: "Check Service: " + err0.message
                 });
               });

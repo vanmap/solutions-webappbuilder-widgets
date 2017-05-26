@@ -59,6 +59,7 @@ define([
       }
       
       this.createAreaGRGTab = new TabCreateAreaGRG({
+        nls: this.nls,
         map: this.map,
         appConfig: this.appConfig,
         extentAreaFillSymbol: {
@@ -109,6 +110,7 @@ define([
       );
       
       this.createPointGRGTab = new TabCreatePointGRG({
+        nls: this.nls,
         map: this.map,
         appConfig: this.appConfig,
         pointSymbol: {
@@ -163,12 +165,12 @@ define([
       this.tab = new TabContainer({
         tabs: [
           {
-            title: 'Create GRG By Area',
+            title: this.nls.tabAreaTitle,
             content: this.createAreaGRGTab,
                    
           },
           {
-            title: 'Create GRG By Point',
+            title: this.nls.tabPointTitle,
             content: this.createPointGRGTab
           }
         ]

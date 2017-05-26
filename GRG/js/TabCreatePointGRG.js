@@ -109,10 +109,10 @@ define([
           this._ptSym = new esriSimpleMarkerSymbol(this.pointSymbol);
           
           //set up coordinate input dijit
-          this.coordTool = new coordInput({appConfig: this.appConfig}, this.observerCoords);      
+          this.coordTool = new coordInput({nls: this.nls, appConfig: this.appConfig}, this.observerCoords);      
           this.coordTool.inputCoordinate.formatType = 'DD';
           this.coordinateFormat = new dijitTooltipDialog({
-            content: new editOutputCoordinate(),
+            content: new editOutputCoordinate({nls: this.nls}),
             style: 'width: 400px'
           });
           
@@ -231,8 +231,8 @@ define([
           if (evt.keyCode === dojoKeys.ENTER) {
             this.coordTool.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r) {
               if(r.inputType == "UNKNOWN"){
-                var alertMessage = new Message({
-                  message: 'Unable to determine input coordinate type please check your input.'
+                var alertMessage = new dijitMessage({
+                  message: this.nls.coordInputError
                 });
               } else {
                 dojoTopic.publish(
@@ -254,7 +254,7 @@ define([
          */
         setCoordLabel: function (toType) {
           this.coordInputLabel.innerHTML = dojoString.substitute(
-            'Center Point (${crdType})', {
+            'GRG Center Point (${crdType})', {
                 crdType: toType
             });
         },
@@ -306,8 +306,13 @@ define([
          *
          */
         cellPointUnitsChange: function () {
-          this.pointCellWidth.setValue(drawGRG.convertUnits(this.currentPointUnit,this.pointCellUnits.value,this.pointCellWidth.value));
-          this.pointCellShape.value == "default"?this.pointCellHeight.setValue(drawGRG.convertUnits(this.currentPointUnit,this.pointCellUnits.value,this.pointCellHeight.value)):this.pointCellHeight.setValue(0);
+          var tempWidthInMeters = this.coordTool.inputCoordinate.util.convertToMeters(this.pointCellWidth.value,this.currentPointUnit);
+          var tempHeightInMeters = this.coordTool.inputCoordinate.util.convertToMeters(this.pointCellHeight.value,this.currentPointUnit);
+          
+          
+          this.pointCellWidth.setValue(this.coordTool.inputCoordinate.util.convertMetersToUnits(tempWidthInMeters,this.pointCellUnits.value));
+          this.pointCellShape.value == "default"?this.pointCellHeight.setValue(this.coordTool.inputCoordinate.util.convertMetersToUnits(tempHeightInMeters,this.pointCellUnits.value)):this.pointCellHeight.setValue(0);
+          
           this.currentPointUnit = this.pointCellUnits.value;
         },
 
@@ -330,8 +335,8 @@ define([
             //get center point of AOI
             var centerPoint = esriWebMercatorUtils.geographicToWebMercator(this.coordTool.inputCoordinate.coordinateEsriGeometry);
             
-            var cellWidth = drawGRG.convertUnits(this.pointCellUnits.value,"meters",this.pointCellWidth.value);
-            var cellHeight = drawGRG.convertUnits(this.pointCellUnits.value,"meters",this.pointCellHeight.value);
+            var cellWidth = this.coordTool.inputCoordinate.util.convertToMeters(this.pointCellWidth.value,this.currentPointUnit);
+            var cellHeight = this.coordTool.inputCoordinate.util.convertToMeters(this.pointCellHeight.value,this.currentPointUnit);
             
             if(drawGRG.checkGridSize(this.pointCellHorizontal.value,this.pointCellVertical.value))
             {
@@ -345,7 +350,7 @@ define([
           } else {
             // Invalid entry
             var alertMessage = new dijitMessage({
-              message: '<p>The GRG creation form has missing or invalid parameters, Please ensure:</p><ul><li>The GRG Name is not blank.</li><li>A GRG point has been drawn.</li><li>The cell width and height contain valid values.</li><li>The grid angle is valid.</li></ul>'
+              message: this.nls.missingParametersMessage
             });          
           }
         },

@@ -64,6 +64,8 @@
 .jimu-widget-GRG .controls {
     display: table;
     margin: 0 auto;
+    border-bottom: 1px solid #CCC;
+    padding-bottom: 20px;
 }
 
 .jimu-widget-GRG .buttonContainer {

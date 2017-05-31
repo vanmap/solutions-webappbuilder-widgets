@@ -104,7 +104,7 @@ define([
         FOV: 180,
         LA: 180,
         viewshedService: null,
-        isSynchronous: null,
+        isSynchronous: false,
         map: null,
         gp: null,
 
@@ -132,7 +132,12 @@ define([
                             "Output_Viewshed",
                             "Output_Wedge",
                             "Output_FullWedge"];
-                            
+                
+                if(response.executionType === 'esriExecutionTypeSynchronous') {
+                  this.isSynchronous = true;
+                } else {
+                  this.isSynchronous = false;
+                }              
                 var taskParameters = [];
                 dojoArray.forEach(response.parameters, function(param){
                   taskParameters.push(param.name);

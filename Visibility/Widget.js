@@ -55,7 +55,6 @@ function(
               }
           },
           viewshedService: this.config.taskUrl,
-          isSynchronous: this.config.isSynchronous,
           map: this.map
         }, domConstruct.create("div")).placeAt(this.visibilityContainer);
         visibilityCtrl.startup();

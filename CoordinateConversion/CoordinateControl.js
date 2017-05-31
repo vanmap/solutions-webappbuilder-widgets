@@ -347,6 +347,7 @@ define([
                     return w.baseClass === 'jimu-widget-cc' && !w.input;
                 });
                 
+                fw.reverse();
 
                 w = fw.map(function (w) {
                     return w.coordtext.value;

@@ -83,14 +83,7 @@ function(declare, lang, html, array, template, _WidgetBase, _TemplatedMixin, Loa
       var taskUrl = this.config.taskUrl;
       var isTaskValid = this._checkTaskParameters(taskInfo.parameters);
       if(isTaskValid){
-        this.config.taskUrl = taskUrl;
-        this.config.executionType = taskInfo.executionType;   
-        if(this.config.executionType === 'esriExecutionTypeSynchronous'){
-          this.config.isSynchronous = true;
-        }else{
-          this.config.isSynchronous = false;
-        }
-        delete this.config.executionType;
+        this.config.taskUrl = taskUrl;        
       } else {
         delete this.config.taskUrl;
       }

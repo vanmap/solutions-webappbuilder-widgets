@@ -287,6 +287,8 @@ define([
             //this.tab.selectTab('Lines');
             
             var tabContainer1 = dijitRegistry.byId('DDTabContainer');
+            
+            this.setTabWidths(tabContainer1);
     
             dojoAspect.after(tabContainer1, "selectTab", function() {
                 dojoTopic.publish('TAB_SWITCHED');        
@@ -295,6 +297,12 @@ define([
             this.own(dojoOn(this.clearGraphicsButton, 'click', function () {
                 dojoTopic.publish('DD_CLEAR_GRAPHICS');
             }));
+        },
+        
+        setTabWidths: function(tabContainer) {          
+          for(var i = 0; i < tabContainer.tabTr.cells.length - 1; i++) {
+            tabContainer.tabTr.cells[i].width = '60px';
+          }
         }
     });
     return clz;

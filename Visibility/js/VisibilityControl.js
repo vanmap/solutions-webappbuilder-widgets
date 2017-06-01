@@ -56,7 +56,9 @@ define([
     'esri/symbols/SimpleMarkerSymbol',
     'esri/Color',
     './CoordinateInput',
-    './EditOutputCoordinate'
+    './EditOutputCoordinate',
+    'dijit/form/NumberTextBox',
+    'jimu/dijit/CheckBox'
     
 ], function (
     dojoDeclare,

@@ -9,6 +9,7 @@
   border-left: 0px solid #fff !important;
   border-top: 0px solid #fff !important;
   background-color: transparent !important;
+  font-size: 12px;
 }
 
 .jimu-tab>.control>.tab.jimu-state-selected {

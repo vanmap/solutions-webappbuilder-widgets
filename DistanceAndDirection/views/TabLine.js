@@ -182,6 +182,7 @@ define([
         };
 
         this._gl = new EsriFeatureLayer(featureCollection, {
+          id: 'Distance & Direction - Line Graphics',
           showLabels: true
         });
 

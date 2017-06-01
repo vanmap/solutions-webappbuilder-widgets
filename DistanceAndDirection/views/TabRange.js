@@ -171,7 +171,10 @@ define([
           featureSet: fs
         };
 
-        this._gl = new EsriFeatureLayer(featureCollection, {showLabels: true});
+        this._gl = new EsriFeatureLayer(featureCollection, {
+          id: 'Distance & Direction - Range Graphics',
+          showLabels: true
+        });
 
         this._gl.setLabelingInfo([lblClass]);
 

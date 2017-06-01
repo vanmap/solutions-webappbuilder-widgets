@@ -166,7 +166,10 @@ define([
           featureSet: fs
         };
 
-        this._gl = new EsriFeatureLayer(featureCollection, {id:'Distance & Direction Widget - Ellipse Graphics', showLabels: true});
+        this._gl = new EsriFeatureLayer(featureCollection, {
+          id:'Distance & Direction Widget - Ellipse Graphics',
+          showLabels: true
+        });
 
         this._gl.setLabelingInfo([lblClass]);
 

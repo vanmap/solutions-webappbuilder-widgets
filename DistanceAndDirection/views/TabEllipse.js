@@ -45,7 +45,8 @@ define([
   '../views/CoordinateInput',
   '../views/EditOutputCoordinate',
   'dojo/text!../templates/TabEllipse.html',
-  'dijit/form/NumberSpinner'
+  'dijit/form/NumberTextBox',
+  'dijit/form/Select'
 ], function (
   dojoDeclare,
   dojoLang,
@@ -489,7 +490,7 @@ define([
       this.dt.disconnectOnMouseMoveHandler();
       this.map.enableMapNavigation();
       this.dt.removeStartGraphic();
-      dojoHTML.removeClass(this.addPointBtn, 'jimu-state-active');
+      dojoDomClass.remove(this.addPointBtn, 'jimu-state-active');
     }
   });
 });

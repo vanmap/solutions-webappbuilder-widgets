@@ -1,10 +1,10 @@
+.jimu-widget-DistanceAndDirection .jimu-state-active {
+    background-color: #c0c0c0 !important;
+}
+
 .jimu-widget-DistanceAndDirection .jimu-tab3 .tab-item-td {
     padding-left: 0px;
     padding-right: 0px;
-}
-
-.jimu-widget-DistanceAndDirection {
-
 }
 
 .jimu-widget-DistanceAndDirection .tabsContainer {
@@ -21,7 +21,11 @@
 
 }
 
-.claro .dijitTextBox .dijitInputInner {
+.jimu-widget-DistanceAndDirection  .dijitTitlePaneContentOuter{
+  background-color: transparent;
+}
+
+.jimu-widget-DistanceAndDirection .dijitTextBox .dijitInputInner {
   height: 20px;
   text-align: right;
 }
@@ -89,6 +93,14 @@
     margin-left: 6px;
 }
 
+.jimu-widget-DistanceAndDirection  .noResize .dijitSelectLabel, .jimu-widget-DistanceAndDirection .noResize .dijitTextBox .dijitInputInner, .jimu-widget-DistanceAndDirection  .noResize.dijitValidationTextBox .dijitValidationContainer {
+    text-overflow: ellipsis;
+    overflow: hidden;
+    width: 58px;
+    text-align: left;
+}
+
+
 .jimu-widget-DistanceAndDirection .addPointBtn {
     background: url(../images/draw_point.png) no-repeat;
     width: 32px;
@@ -98,42 +110,20 @@
 
 }
 
-.jimu-widget-DistanceAndDirection .interactive-checkbox {
-    padding: 5px 0px 0px 10px;
-}
-
-.jimu-checkbox .label {
+.jimu-widget-DistanceAndDirection .label {
     font-size: 12px;
     margin: auto 5px;
     cursor: default;
 }
 
-/**
- * Coordinate Format Dialog
- **/
-
-
-.btnContainer {
-    text-align: right;
-    margin-top: 6px;
-}
-
-.settingsContainer {
-    margin-top: 6px;
-}
-
-.controlContainer {
-    margin-top: 6px;
-}
-
-.add-with-icon {
+.jimu-widget-DistanceAndDirection .add-with-icon {
     display: inline-block;
     height: 32px;
     line-height:37px;
     color: #838383;
 }
 
-.add-with-icon .draw {
+.jimu-widget-DistanceAndDirection .add-with-icon .draw {
   display: inline-block;
   background: url(../images/draw_point.png);
   background-repeat: no-repeat;
@@ -153,6 +143,58 @@
     background-color: transparent !important;
 }
 
-.controlItem .paddedLeft{
+.jimu-widget-DistanceAndDirection .controlItem .paddedLeft{
    padding-left: 14px;
 }
+
+/****** Dart Theme Overrides ******/
+
+.DartTheme .jimu-widget-DistanceAndDirection  .dijitSelectDisabled,
+.DartTheme .jimu-widget-DistanceAndDirection .dijitTextBoxDisabled,
+.DartTheme .jimu-widget-DistanceAndDirection .dijitTextBoxDisabled .dijitInputContainer ,
+.DartTheme .jimu-widget-DistanceAndDirection .dijitTextBoxDisabled {
+     background-color: #4c4c4c; 
+}
+
+.DartTheme .jimu-widget-DistanceAndDirection  .jimu-state-active {
+    background-color: #3c2d2d !important;
+}
+
+.DartTheme .jimu-widget-DistanceAndDirection .dijitTitlePaneTitleOpen, .DartTheme .jimu-widget-DistanceAndDirection .dijitTitlePaneTitleFixedOpen {
+    background-color: #272727;
+}
+
+.DartTheme .jimu-widget-DistanceAndDirection .dijitTitlePaneTitle {
+    background-color: #272727;
+    background-image: linear-gradient(rgb(103, 103, 103) 0%, rgba(255, 255, 255, 0) 100%);
+}
+
+.DartTheme .jimu-widget-DistanceAndDirection .controlGroup .warning {
+    font-weight: normal;
+}
+
+.DartTheme .jimu-widget-DistanceAndDirection .jimu-tab3 .tab-item-td.jimu-state-active{
+    font-weight: normal;
+}
+
+
+/**
+ * Coordinate Format Dialog
+ **/
+
+
+.btnContainer {
+    text-align: right;
+    margin-top: 6px;
+}
+
+.settingsContainer {
+    margin-top: 6px;
+}
+
+.controlContainer {
+    margin-top: 6px;
+}
+
+
+

@@ -49,7 +49,9 @@ define([
   '../models/ShapeModel',
   '../views/CoordinateInput',
   '../views/EditOutputCoordinate',
-  'dojo/text!../templates/TabCircle.html'
+  'dojo/text!../templates/TabCircle.html',
+  'dijit/form/NumberTextBox',
+  'dijit/form/Select'  
 ], function (
   dojoDeclare,
   dojoLang,
@@ -222,7 +224,7 @@ define([
 
         dojoOn(this.distanceInput, 'keyup',dojoLang.hitch(this, this.distanceInputKeyWasPressed)),
 
-        dojoOn(this.lengthInput, 'keyup',dojoLang.hitch(this, this.distanceInputKeyWasPressed)),
+        dojoOn(this.radiusInput, 'keyup',dojoLang.hitch(this, this.distanceInputKeyWasPressed)),
 
         dojoOn(this.coordinateFormat.content.applyButton, 'click',dojoLang.hitch(this, function () {
           var fs = this.coordinateFormat.content.formats[this.coordinateFormat.content.ct];
@@ -249,12 +251,8 @@ define([
      *
      */
     circleLengthDidChange: function (l) {
-      var fl = dojoNumber.format(l, {places: 2});
-      dojoDomAttr.set(
-        this.lengthInput,
-        'value',
-        fl
-      );
+      var fl = dojoNumber.format(l, {places: 2});      
+      this.radiusInput.set('value', fl);      
     },
     
     /*
@@ -305,9 +303,9 @@ define([
       this.coordTool.inputCoordinate.isManual = true;
       
       if (this.distCalcControl.get('open')) {
-        this.lengthInput.disabled = 'disabled';
+        this.radiusInput.disabled = 'disabled';
       } else {
-        this.lengthInput.disabled = false;
+        this.radiusInput.disabled = false;
       }
     },
 
@@ -315,7 +313,7 @@ define([
      *
      */
     lengthInputDidChange: function () {
-      if (this.lengthInput.value && this.lengthInput.value <= 0){
+      if (this.radiusInput.isValid()){
         this.useCalculatedDistance = false;
       }
 
@@ -328,7 +326,7 @@ define([
      *
      */
     timeInputDidChange: function () {
-      this.currentTimeInSeconds = this.timeInput.value  * this.timeUnitDD.value;
+      this.currentTimeInSeconds = this.timeInput.get('value')  * this.timeUnitDD.get('value');
       this.getCalculatedDistance();
     },
 
@@ -354,7 +352,7 @@ define([
      */
     distanceInputDidChange: function () {
       var currentRateInMetersPerSecond = (
-        this.distanceInput.value *
+        this.distanceInput.get('value') *
         this.distanceUnitDD.value.split(';')[0]
       ) / this.distanceUnitDD.value.split(';')[1];
 
@@ -393,7 +391,8 @@ define([
         }
         fr = this.creationType.get('value') === 'Diameter'?fr*2:fr;
         fr = dojoNumber.format(fr, {places: '4'});
-        dojoDomAttr.set(this.lengthInput,'value',fr);
+        
+        this.radiusInput.set('value', fr);
         //this.setGraphic();
       } else {
         this.calculatedRadiusInMeters = null;
@@ -472,7 +471,7 @@ define([
         var stPt = this.coordTool.inputCoordinate.coordinateEsriGeometry;
 
         var distInMeters = this.coordTool.util.inputCoordinate.convertToMeters(
-          this.lengthInput.value,
+          this.radiusInput.get('value'),
           this.lengthUnitDD.get('value')
         );
         
@@ -486,7 +485,7 @@ define([
           tempCircle,
           this._circleSym,
           {
-            'Label': this.lengthInput.value
+            'Label': this.radiusInput.get('value')
           }
         );
 
@@ -527,12 +526,12 @@ define([
         this.setCoordLabel(this.coordTool.inputCoordinate.formatType);
       }
 
-      if (!this.lengthInput.value || this.lengthInput.value <= 0) {return;}
+      if (!this.radiusInput.isValid()) {return;}
 
       if (this.creationType.get('value') === 'Diameter') {
-        results.calculatedDistance = dojoNumber.parse(this.lengthInput.value, {places: '0,99'})/2;
+        results.calculatedDistance = dojoNumber.parse(this.radiusInput.get('value'), {places: '0,99'})/2;
       } else {
-        results.calculatedDistance = dojoNumber.parse(this.lengthInput.value, {places: '0,99'});
+        results.calculatedDistance = dojoNumber.parse(this.radiusInput.get('value'), {places: '0,99'});
       }
 
       results.calculatedDistance = this.coordTool.inputCoordinate.util.convertToMeters(results.calculatedDistance,this.lengthUnitDD.get('value'));
@@ -559,7 +558,7 @@ define([
         newPolygon,
         this._circleSym,
         {
-          'Label': this.creationType.get('value') + " " + this.lengthInput.value.toString() + " " + this.lengthUnitDD.get('value').charAt(0).toUpperCase() + this.lengthUnitDD.get('value').slice(1)
+          'Label': this.creationType.get('value') + " " + this.radiusInput.get('value').toString() + " " + this.lengthUnitDD.get('value').charAt(0).toUpperCase() + this.lengthUnitDD.get('value').slice(1)
         }
       );      
 
@@ -602,9 +601,9 @@ define([
 
       dojoDomClass.remove(this.addPointBtn, 'jimu-state-active');
       dojoDomAttr.set(this.startPointCoords, 'value', '');
-      dojoDomAttr.set(this.lengthInput, 'value', '');
-      dojoDomAttr.set(this.timeInput, 'value', '');
-      dojoDomAttr.set(this.distanceInput, 'value', '');
+      this.radiusInput.set('value', 1000);
+      this.timeInput.set('value', 1);
+      this.distanceInput.set('value', 1);
     },
 
     /*
@@ -635,7 +634,7 @@ define([
       this.dt.set('startPoint', null);
       this.map.enableMapNavigation();
       this.dt.removeStartGraphic();
-      dojoHTML.removeClass(this.addPointBtn, 'jimu-state-active');
+      dojoDomClass.remove(this.addPointBtn, 'jimu-state-active');
     }
 
   });

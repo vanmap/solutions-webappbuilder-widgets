@@ -1,4 +1,4 @@
-  ///////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////
 // Copyright (c) 2016 Esri. All Rights Reserved.
 //
 // Licensed under the Apache License Version 2.0 (the "License");
@@ -49,7 +49,7 @@ define([
   '../views/EditOutputCoordinate',
   '../models/RangeRingFeedback',
   'dijit/form/NumberTextBox',
-  'dijit/form/ValidationTextBox'
+  'dijit/form/Select'
 ], function (
   dojoDeclare,
   dojoLang,
@@ -558,7 +558,7 @@ define([
       this.dt.disconnectOnMouseMoveHandlers();
       this.map.enableMapNavigation();
       this.dt.removeStartGraphic();
-      dojoHTML.removeClass(this.addPointBtn, 'jimu-state-active');
+      dojoDomClass.remove(this.addPointBtn, 'jimu-state-active');
     }
   });
 });

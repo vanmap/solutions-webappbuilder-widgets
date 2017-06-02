@@ -48,7 +48,8 @@ define([
   '../views/EditOutputCoordinate',
   '../models/DirectionalLineSymbol',
   'dojo/text!../templates/TabLine.html',
-  'dijit/form/NumberTextBox'
+  'dijit/form/NumberTextBox',
+  'dijit/form/Select'
 ], function (
   dojoDeclare,
   dojoLang,
@@ -568,7 +569,7 @@ define([
       this.dt.deactivate();
       this.map.enableMapNavigation();
       this.dt.removeStartGraphic();
-      dojoHTML.removeClass(this.addPointBtnLine, 'jimu-state-active');
+      dojoDomClass.remove(this.addPointBtnLine, 'jimu-state-active');
     }
   });
 });

@@ -5,9 +5,9 @@ define([
     'dojo/_base/array',
     'dojo/Deferred', 
     'dojo/dom-construct',
-    'dijit/_WidgetsInTemplateMixin',
-    'dijit/registry',
     'jimu/BaseWidget',
+    'dijit/_WidgetsInTemplateMixin',
+    'dijit/registry',    
     'jimu/dijit/Message',
     './js/VisibilityControl'
 	],
@@ -19,9 +19,9 @@ function(
     dojoArray,
     Deferred,
     domConstruct,
-    dijitWidgetsInTemplateMixin,
-    dijitRegistry,
     jimuBaseWidget,
+    dijitWidgetsInTemplateMixin,
+    dijitRegistry,    
     jimuMessage,
     VisibilityControl
   ){

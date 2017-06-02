@@ -181,6 +181,8 @@ define([
       dojoTopic.subscribe('TAB_SWITCHED', dojoLang.hitch(this, this.tabSwitched));
 
       this.distCalcControl.watch('open',dojoLang.hitch(this, this.distCalcDidExpand));
+      
+      //this.distCalcControl.watch('close',dojoLang.hitch(this, this.distCalcDidExpand));
 
       this.dt.watch('length', dojoLang.hitch(this, function (n, ov, nv) {
         this.circleLengthDidChange(nv);
@@ -224,7 +226,7 @@ define([
 
         dojoOn(this.distanceInput, 'keyup',dojoLang.hitch(this, this.distanceInputKeyWasPressed)),
 
-        dojoOn(this.radiusInput, 'keyup',dojoLang.hitch(this, this.distanceInputKeyWasPressed)),
+        dojoOn(this.radiusInput, 'keyup',dojoLang.hitch(this, this.radiusInputKeyWasPressed)),
 
         dojoOn(this.coordinateFormat.content.applyButton, 'click',dojoLang.hitch(this, function () {
           var fs = this.coordinateFormat.content.formats[this.coordinateFormat.content.ct];
@@ -303,24 +305,13 @@ define([
       this.coordTool.inputCoordinate.isManual = true;
       
       if (this.distCalcControl.get('open')) {
-        this.radiusInput.disabled = 'disabled';
+        this.radiusInput.set('disabled', true);
       } else {
-        this.radiusInput.disabled = false;
+        this.radiusInput.set('disabled', false);
+        this.timeInput.set('value', 1);
+        this.distanceInput.set('value', 1);
       }
-    },
-
-    /*
-     *
-     */
-    lengthInputDidChange: function () {
-      if (this.radiusInput.isValid()){
-        this.useCalculatedDistance = false;
-      }
-
-      if (this.coordTool.inputCoordinate) {
-        this.setGraphic();
-      }
-    },
+    },    
 
     /*
      *
@@ -331,14 +322,32 @@ define([
     },
 
     /*
-     * Rate Input key up event handler
+     * 
      */
     distanceInputKeyWasPressed: function (evt) {      
       this.distanceInputDidChange();
       if (evt.keyCode === dojoKeys.ENTER) {
         if(this.coordTool.inputCoordinate.outputString && this.coordTool.inputCoordinate.inputString != ''){
-          this.removeManualGraphic();
+          this.removeManualGraphic();          
           this.setGraphic(true);
+          this.dt._onDoubleClickHandler();
+        } else {
+          var alertMessage = new Message({
+              message: 'No center point set, please check your input.'
+            });
+        }
+      }      
+    },
+    
+    /*
+     * 
+     */
+    radiusInputKeyWasPressed: function (evt) {      
+      if (evt.keyCode === dojoKeys.ENTER) {
+        if(this.coordTool.inputCoordinate.outputString && this.coordTool.inputCoordinate.inputString != ''){
+          this.removeManualGraphic();          
+          this.setGraphic(true);
+          this.dt._onDoubleClickHandler();
         } else {
           var alertMessage = new Message({
               message: 'No center point set, please check your input.'

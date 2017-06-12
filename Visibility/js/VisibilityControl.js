@@ -192,7 +192,7 @@ define([
         },      
 
         startup: function(){
-            this.busyIndicator = BusyIndicator.create({target: this.buttonContainer, backgroundOpacity: 0});
+            this.busyIndicator = BusyIndicator.create({target: this.id, backgroundOpacity: 0});
             var updateValues = dojoLang.hitch(this,function(a,b,c) {
               this.angleUnits.checked?this.LA = a/17.777777777778:this.LA = a;
               this.FOV = Math.round(b);

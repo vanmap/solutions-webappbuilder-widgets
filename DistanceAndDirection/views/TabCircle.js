@@ -380,19 +380,19 @@ define([
         var fr = 0;
         switch (this.currentLengthUnit){
           case 'feet':
-            fr = this.calculatedRadiusInMeters * 3.28084;
+            fr = this.calculatedRadiusInMeters * 3.2808399;
             break;
           case 'meters':
             fr = this.calculatedRadiusInMeters;
             break;
           case 'yards':
-            fr = this.calculatedRadiusInMeters * 1.09361;
+            fr = this.calculatedRadiusInMeters * 1.0936133;
             break;
           case 'kilometers':
             fr = this.calculatedRadiusInMeters * 0.001;
             break;
           case 'miles':
-            fr = this.calculatedRadiusInMeters * 0.000621371;
+            fr = this.calculatedRadiusInMeters * 0.000621371192;
             break;
           case 'nautical-miles':
             fr = this.calculatedRadiusInMeters * 0.000539957;

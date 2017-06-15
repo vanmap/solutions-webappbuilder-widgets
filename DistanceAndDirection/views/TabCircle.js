@@ -51,7 +51,8 @@ define([
   '../views/EditOutputCoordinate',
   'dojo/text!../templates/TabCircle.html',
   'dijit/form/NumberTextBox',
-  'dijit/form/Select'  
+  'dijit/form/Select',
+  'jimu/dijit/CheckBox'  
 ], function (
   dojoDeclare,
   dojoLang,
@@ -173,8 +174,6 @@ define([
      * Start up event listeners
      */
     syncEvents: function () {
-      
-      dojoTopic.subscribe('DD_CLEAR_GRAPHICS',dojoLang.hitch(this, this.clearGraphics));
       //commented out as we want the graphics to remain when the widget is closed
       /*dojoTopic.subscribe('DD_WIDGET_OPEN',dojoLang.hitch(this, this.setGraphicsShown));
       dojoTopic.subscribe('DD_WIDGET_CLOSE',dojoLang.hitch(this, this.setGraphicsHidden));*/      
@@ -188,7 +187,7 @@ define([
         this.circleLengthDidChange(nv);
       }));
 
-      this.dt.watch('startPoint',dojoLang.hitch(this, function (n, ov, nv) {
+      this.dt.watch('startPoint',dojoLang.hitch(this, function (r, ov, nv) {
           if (nv !== null) {
               this.coordTool.inputCoordinate.set('coordinateEsriGeometry', nv);
               this.dt.addStartGraphic(nv, this._ptSym);
@@ -226,7 +225,9 @@ define([
 
         dojoOn(this.distanceInput, 'keyup',dojoLang.hitch(this, this.distanceInputKeyWasPressed)),
 
-        dojoOn(this.radiusInput, 'keyup',dojoLang.hitch(this, this.radiusInputKeyWasPressed)),
+        dojoOn(this.clearGraphicsButton,'click',dojoLang.hitch(this, this.clearGraphics)),
+        
+        dojoOn(this.interactiveCircle, 'change',dojoLang.hitch(this, this.interactiveCheckBoxChanged)),
 
         dojoOn(this.coordinateFormat.content.applyButton, 'click',dojoLang.hitch(this, function () {
           var fs = this.coordinateFormat.content.formats[this.coordinateFormat.content.ct];
@@ -245,7 +246,9 @@ define([
 
         dojoOn(this.coordinateFormat.content.cancelButton, 'click',dojoLang.hitch(this, function () {
           DijitPopup.close(this.coordinateFormat);
-        }))
+        })),
+        
+        dojoOn(this.okButton,'click',dojoLang.hitch(this, this.okButtonClicked)) 
       );
     },
 
@@ -255,6 +258,24 @@ define([
     circleLengthDidChange: function (l) {
       var fl = dojoNumber.format(l, {places: 2});      
       this.radiusInput.set('value', fl);      
+    },
+    
+    /*
+     * checkbox changed
+     */
+    interactiveCheckBoxChanged: function () {
+      this.tabSwitched();
+      if(this.interactiveCircle.checked) {
+        this.radiusInput.set('disabled', true);
+        this.distCalcControl.set('open', false);
+        dojoHTML.addClass(this.distCalcControlDiv, 'controlGroupHidden');
+        dojoHTML.addClass(this.okButton, 'controlGroupHidden');
+      } else {
+        this.radiusInput.set('disabled', false);
+        this.distCalcControl.set('disabled', false);
+        dojoHTML.removeClass(this.distCalcControlDiv, 'controlGroupHidden');
+        dojoHTML.removeClass(this.okButton, 'controlGroupHidden');
+      }
     },
     
     /*
@@ -268,6 +289,7 @@ define([
             var alertMessage = new Message({
               message: 'Unable to determine input coordinate type please check your input.'
             });
+            this.coordTool.inputCoordinate.coordinateEsriGeometry = null;
           } else {
             dojoTopic.publish(
               'manual-circle-center-point-input',
@@ -342,18 +364,15 @@ define([
     /*
      * 
      */
-    radiusInputKeyWasPressed: function (evt) {      
-      if (evt.keyCode === dojoKeys.ENTER) {
-        if(this.coordTool.inputCoordinate.outputString && this.coordTool.inputCoordinate.inputString != ''){
-          this.removeManualGraphic();          
-          this.setGraphic(true);
-          this.dt._onDoubleClickHandler();
-        } else {
-          var alertMessage = new Message({
-              message: 'No center point set, please check your input.'
-            });
-        }
-      }      
+    okButtonClicked: function (evt) {      
+      if(this.coordTool.inputCoordinate.coordinateEsriGeometry && this.radiusInput.isValid()){
+        this.removeManualGraphic();          
+        this.setGraphic(true);
+      } else {
+        var alertMessage = new Message({
+            message: '<p>The circle creation form contains invalid parameters.  Please ensure:</p><ul><li>You have a center point set</li><li>The radius input contains a valid value</li></ul></p>'
+          });
+      }            
     },    
 
     /*
@@ -420,7 +439,11 @@ define([
       if (this.distCalcControl.get('open')) {
         this.dt.activate('point');
       } else {
-        this.dt.activate('polyline');
+        if(!this.interactiveCircle.checked) {
+          this.dt.activate('point');
+        } else {
+          this.dt.activate('polyline');
+        }
       }
 
       dojoDomClass.toggle(this.addPointBtn, 'jimu-state-active');
@@ -447,7 +470,10 @@ define([
      *
      */
     feedbackDidComplete: function (results) {
-        if(!results.geometry.center){return;}
+        if(!results.geometry.center){
+          dojoDomClass.toggle(this.addPointBtn, 'jimu-state-active');
+          return;
+        }
         var center = results.geometry.center;
         var edge = new EsriPoint(results.geometry.rings[0][0][0],
           results.geometry.rings[0][0][1],
@@ -471,46 +497,10 @@ define([
     /*
      *
      */
-    createManualGraphic: function () {
-      if(!this.coordTool.inputCoordinate.coordinateEsriGeometry){return;}
-        if (this.tempGraphic != null) {
-            this._gl.remove(this.tempGraphic);
-        }
-
-        var stPt = this.coordTool.inputCoordinate.coordinateEsriGeometry;
-
-        var distInMeters = this.coordTool.util.inputCoordinate.convertToMeters(
-          this.radiusInput.get('value'),
-          this.lengthUnitDD.get('value')
-        );
-        
-
-        var tempCircle = new EsriCircle(stPt, {
-            radius: distInMeters,
-            geodesic: true
-        });
-
-        this.tempGraphic = new EsriGraphic(
-          tempCircle,
-          this._circleSym,
-          {
-            'Label': this.radiusInput.get('value')
-          }
-        );
-
-        this._gl.add(this.tempGraphic);
-        this._gl.refresh();
-        
-    },
-
-    /*
-     *
-     */
     removeManualGraphic: function () {
         if (this.tempGraphic != null) {
             this._gl.remove(this.tempGraphic);
         }
-
         this.dt.removeStartGraphic();
     },
 
@@ -518,6 +508,9 @@ define([
      *
      */
     setGraphic: function (isManual, lineGeom) {
+      if(!isManual) {
+        dojoDomClass.toggle(this.addPointBtn, 'jimu-state-active');
+      }
 
       var results = {};
 
@@ -527,12 +520,12 @@ define([
 
       this.dt.removeStartGraphic();
 
-      dojoDomClass.toggle(this.addPointBtn, 'jimu-state-active');
+      
 
       if (!this.coordTool.inputCoordinate.isManual) {
         this.coordTool.set('validateOnInput', false);
         this.coordTool.set('value', this.coordTool.inputCoordinate.outputString);
-        this.setCoordLabel(this.coordTool.inputCoordinate.formatType);
+        this.setCoordLabel(this.coordTool.inputCoordinate.formatType);        
       }
 
       if (!this.radiusInput.isValid()) {return;}
@@ -573,11 +566,8 @@ define([
 
       this._gl.add(cGraphic);
 
-      if (this.coordTool.inputCoordinate.isManual) {
-        this.map.setExtent(newPolygon.getExtent().expand(3));
-      } else {
-        this._gl.refresh();
-      }
+      this.map.setExtent(newPolygon.getExtent().expand(3));
+      
 
       this.emit('graphic_created', this.currentCircle);
       this.dt.set('startPoint', null);      

@@ -49,7 +49,8 @@ define([
   '../models/DirectionalLineSymbol',
   'dojo/text!../templates/TabLine.html',
   'dijit/form/NumberTextBox',
-  'dijit/form/Select'
+  'dijit/form/Select',
+  'jimu/dijit/CheckBox'
 ], function (
   dojoDeclare,
   dojoLang,
@@ -197,8 +198,6 @@ define([
      * Start up event listeners
      */
     syncEvents: function () {
-      
-      dojoTopic.subscribe('DD_CLEAR_GRAPHICS',dojoLang.hitch(this, this.clearGraphics));
       //commented out as we want the graphics to remain when the widget is closed
       /*dojoTopic.subscribe('DD_WIDGET_OPEN',dojoLang.hitch(this, this.setGraphicsShown));
       dojoTopic.subscribe('DD_WIDGET_CLOSE',dojoLang.hitch(this, this.setGraphicsHidden));*/
@@ -208,6 +207,7 @@ define([
                
       this.dt.watch('startPoint' , dojoLang.hitch(this, function (r, ov, nv) {
         this.coordToolStart.inputCoordinate.set('coordinateEsriGeometry', nv);
+        this.coordToolStart.inputCoordinate.set('inputType',this.coordToolStart.inputCoordinate.formatType);
         this.dt.addStartGraphic(nv, this._ptSym);
       }));
 
@@ -260,8 +260,6 @@ define([
 
         dojoOn(this.coordToolEnd,'keyup', dojoLang.hitch(this, this.coordToolEndKeyWasPressed)),
 
-        dojoOn(this.angleInput,'keyup',dojoLang.hitch(this, this.createManualGraphicDistanceAndBearing)),
-
         dojoOn(this.addPointBtnLine,'click',dojoLang.hitch(this, this.pointButtonWasClicked)),
 
         this.lengthUnitDD.on('change',dojoLang.hitch(this, this.lengthUnitDDDidChange)),
@@ -270,7 +268,11 @@ define([
 
         this.lineTypeDD.on('change',dojoLang.hitch(this, this.lineTypeDDDidChange)),
 
-        this.coordToolStart.on('keyup',dojoLang.hitch(this, this.coordToolKeyWasPressed))            
+        this.coordToolStart.on('keyup',dojoLang.hitch(this, this.coordToolKeyWasPressed)),
+
+        dojoOn(this.clearGraphicsButton,'click',dojoLang.hitch(this, this.clearGraphics)),
+
+        dojoOn(this.okButton,'click',dojoLang.hitch(this, this.okButtonClicked))        
       );
     },
 
@@ -315,6 +317,7 @@ define([
               var alertMessage = new Message({
                 message: 'Unable to determine input coordinate type please check your input.'
               });
+              this.coordToolEnd.inputCoordinate.coordinateEsriGeometry = null;
             } else {
               dojoTopic.publish(
                 'manual-line-end-point-input',
@@ -330,7 +333,8 @@ define([
         }
         else {
           var alertMessage = new Message({
-            message: '<p>The line creation form contains invalid parameters. Please check the start and end points contain a valid values.</p>'
+            message: '<p>The line creation form contains invalid parameters.  Please ensure:</p><ul><li>You have a start point set</li><li>The length and angle input contain a valid values</li></ul></p>'
+          
           });
         }
       }
@@ -347,6 +351,7 @@ define([
             var alertMessage = new Message({
               message: 'Unable to determine input coordinate type please check your input.'
             });
+            this.coordToolStart.inputCoordinate.coordinateEsriGeometry = null;
           } else {
             dojoTopic.publish(
               'manual-linestart-point-input',
@@ -393,12 +398,14 @@ define([
         this.coordToolEnd.set('disabled', false);
         this.angleInput.set('disabled', true);
         this.lengthInput.set('disabled', true);
+        dojoHTML.addClass(this.okButton, 'controlGroupHidden');
       } else {
         this.addPointBtnLine.title = 'Add Point';
         this.coordToolEnd.set('value', '');
         this.coordToolEnd.set('disabled', true);
         this.angleInput.set('disabled', false);
         this.lengthInput.set('disabled', false);
+        dojoHTML.removeClass(this.okButton, 'controlGroupHidden');
       }
     },
 
@@ -498,36 +505,40 @@ define([
     /*
     *
     */
-    createManualGraphicDistanceAndBearing: function (evt) {
-      if (evt.keyCode !== dojoKeys.ENTER ) {return;}
+    okButtonClicked: function (evt) {      
+      if(this.lengthInput.isValid() && this.angleInput.isValid() && this.coordToolStart.inputCoordinate.coordinateEsriGeometry) {
+        this._gl.remove(this.startGraphic);
 
-      this._gl.remove(this.startGraphic);
+        var stPt = this.coordToolStart.inputCoordinate.coordinateEsriGeometry;
 
-      var stPt = this.coordToolStart.inputCoordinate.coordinateEsriGeometry;
+        var l = this.coordToolStart.inputCoordinate.util.convertToMeters(this.lengthInput.get('value'), this.lengthUnitDD.get('value'));            
 
-      var l = this.coordToolStart.inputCoordinate.util.convertToMeters(this.lengthInput.get('value'), this.lengthUnitDD.get('value'));            
+        var tempcircle = new EsriCircle(stPt, {
+          geodesic:true,
+          radius: l,
+          numberOfPoints: 64000              
+        });
+        
+        var currentAngle = this.angleInput.get('value');
+        
+        this.currentAngleUnit === 'degrees'?currentAngle = parseInt(10*currentAngle*17.777777778):currentAngle = parseInt(10*currentAngle);
+        
+        var fpc = tempcircle.getPoint(0,currentAngle);
+        
+        var newLine = new EsriPolyline();
+        newLine.addPath([stPt, fpc]);
 
-      var tempcircle = new EsriCircle(stPt, {
-        geodesic:true,
-        radius: l,
-        numberOfPoints: 64000              
-      });
-      
-      var currentAngle = this.angleInput.get('value');
-      
-      this.currentAngleUnit === 'degrees'?currentAngle = parseInt(10*currentAngle*17.777777778):currentAngle = parseInt(10*currentAngle);
-      
-      var fpc = tempcircle.getPoint(0,currentAngle);
-      
-      var newLine = new EsriPolyline();
-      newLine.addPath([stPt, fpc]);
-
-      this.feedbackDidComplete({
-        geometry: newLine,
-        geographicGeometry: newLine
-      });
-      
-      this.coordToolEnd.inputCoordinate.set('coordinateEsriGeometry',  fpc);
+        this.feedbackDidComplete({
+          geometry: newLine,
+          geographicGeometry: newLine
+        });
+        
+        this.coordToolEnd.inputCoordinate.set('coordinateEsriGeometry',  fpc);
+      } else {
+        var alertMessage = new Message({
+          message: '<p>The line creation form contains invalid parameters.  Please ensure:</p><ul><li>You have a start point set</li><li>The length and angle input contain a valid values</li></ul></p>'
+        });
+      }      
     },
 
     /*
@@ -539,8 +550,6 @@ define([
         this.dt.removeStartGraphic();
         this.coordToolStart.clear();
         this.coordToolEnd.clear();
-        this.lengthInput.set('value', 0);
-        this.angleInput.set('value', 0);
       }
     },
 

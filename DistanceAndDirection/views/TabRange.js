@@ -49,7 +49,8 @@ define([
   '../views/EditOutputCoordinate',
   '../models/RangeRingFeedback',
   'dijit/form/NumberTextBox',
-  'dijit/form/Select'
+  'dijit/form/Select',
+  'jimu/dijit/CheckBox'
 ], function (
   dojoDeclare,
   dojoLang,
@@ -185,9 +186,7 @@ define([
     /*
      * Start up event listeners
      */
-    syncEvents: function () {
-      
-      dojoTopic.subscribe('DD_CLEAR_GRAPHICS',dojoLang.hitch(this,this.clearGraphics));
+    syncEvents: function () {      
       //commented out as we want the graphics to remain when the widget is closed
       /*dojoTopic.subscribe('DD_WIDGET_OPEN',dojoLang.hitch(this, this.setGraphicsShown));
       dojoTopic.subscribe('DD_WIDGET_CLOSE',dojoLang.hitch(this, this.setGraphicsHidden));*/
@@ -209,7 +208,9 @@ define([
         
         dojoOn(this.ringIntervalInput, 'keyup',dojoLang.hitch(this, this.ringIntervalInputKeyWasPressed)),
         
-        dojoOn(this.numRadialsInput, 'keyup',dojoLang.hitch(this, this.numRadialsInputKeyWasPressed)),
+        dojoOn(this.interactiveRings, 'change',dojoLang.hitch(this, this.interactiveCheckBoxChanged)),
+        
+        dojoOn(this.okButton,'click',dojoLang.hitch(this, this.okButtonClicked)),
         
         dojoOn(this.ringIntervalUnitsDD, 'change',dojoLang.hitch(this, this.ringIntervalUnitsDidChange)),
         
@@ -237,7 +238,9 @@ define([
         
         dojoOn(this.coordinateFormat.content.cancelButton, 'click', dojoLang.hitch(this, function () {
           DijitPopup.close(this.coordinateFormat);
-        }))
+        })),
+
+        dojoOn(this.clearGraphicsButton,'click',dojoLang.hitch(this, this.clearGraphics))
       );            
     },
 
@@ -249,7 +252,23 @@ define([
         'Center Point (${crdType})', {
             crdType: toType
         });
-    },        
+    },
+
+    /*
+    * checkbox changed
+    */
+    interactiveCheckBoxChanged: function () {
+      this.tabSwitched();
+      if(this.interactiveRings.checked) {
+        dojoHTML.addClass(this.okButton, 'controlGroupHidden');
+        dojoHTML.addClass(this.ringIntervalDiv, 'controlGroupHidden');
+        dojoHTML.addClass(this.numRingsDiv, 'controlGroupHidden');
+      } else {
+        dojoHTML.removeClass(this.okButton, 'controlGroupHidden');
+        dojoHTML.removeClass(this.ringIntervalDiv, 'controlGroupHidden');
+        dojoHTML.removeClass(this.numRingsDiv, 'controlGroupHidden');
+      }
+    },    
     
     /*
      * catch key press in start point
@@ -262,6 +281,7 @@ define([
             var alertMessage = new Message({
               message: 'Unable to determine input coordinate type please check your input.'
             });
+            this.coordTool.inputCoordinate.coordinateEsriGeometry = null;
           } else {
             dojoTopic.publish(
               'manual-rangering-center-point-input',
@@ -320,7 +340,6 @@ define([
         this.numRingsInput.set('value','0'),
         this.numRingsInput.set('disabled', true);
       } else {
-        this.numRingsInput.set('value','3'),
         this.numRingsInput.set('disabled', false);
       }      
     },    
@@ -328,9 +347,9 @@ define([
     /*
      *
      */
-    numRadialsInputKeyWasPressed: function (evt) {
+    okButtonClicked: function (evt) {
       // validate input
-      if (evt.keyCode === dojoKeys.ENTER && this.getInputsValid()) {       
+      if (this.getInputsValid() && this.coordTool.inputCoordinate.coordinateEsriGeometry) {       
           var numRings;
           var ringInterval;
           
@@ -360,6 +379,10 @@ define([
           };
           this.createRangeRings(params);
           this.coordTool.clear();
+      } else {
+        var alertMessage = new Message({
+          message: '<p>The range creation form contains invalid parameters.  Please ensure:</p><ul><li>You have a center point set</li><li>The number of rings, distance between rings and number of radials contain valid values.</li></ul></p>'
+        })
       }
     },
 
@@ -513,7 +536,7 @@ define([
       }
 
       dojoDomClass.remove(this.addPointBtn, 'jimu-state-active');
-      this.coordTool.clear();
+      //this.coordTool.clear();
       this.dt.deactivate();
       this.map.enableMapNavigation();
     },

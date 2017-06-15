@@ -24,7 +24,7 @@
         </div>
         </div>
 
-        <div class="controlGroup">
+        <div class="controlGroup" data-dojo-attach-point="numRingsDiv">
             <label>Number of Rings</label>
             <div class="controlItem">
                 <input data-dojo-attach-point="numRingsInput"
@@ -44,7 +44,7 @@
             </div>
         </div>
 
-        <div class="controlGroup">
+        <div class="controlGroup" data-dojo-attach-point="ringIntervalDiv">
             <label>Distance Between Rings</label>
             <div class="controlItem">
                 <input data-dojo-attach-point="ringIntervalInput"
@@ -87,6 +87,11 @@
              invalidMessage: 'Enter a numeric value'
            " />
             </div>
+        </div>
+        
+        <div class="buttonContainer">
+          <div class='jimu-btn' data-dojo-attach-point='okButton'>OK</div>
+          <div class='jimu-btn' data-dojo-attach-point='clearGraphicsButton'>Clear Graphics</div>
         </div>
         
     </div>

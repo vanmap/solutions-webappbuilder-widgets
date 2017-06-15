@@ -23,6 +23,13 @@
               </div>
             </div>            
         </div>
+        <div class="controlGroup">                
+            <div class="interactive-checkbox"
+                 data-dojo-attach-point="interactiveEllipse" 
+                 data-dojo-type="jimu/dijit/CheckBox"
+                 data-dojo-props='checked:false' 
+                 label="Create Ellipse Interactively"></div>
+        </div>
     </div>
 
     <fieldset>
@@ -30,7 +37,9 @@
         <div class="controlGroup">
           <label data-dojo-attach-point="majorAxisLabel">Major (Radius)</label>
           <div class="controlItem">
-            <input class="jimu-input coordInput" data-dojo-type="dijit/form/NumberTextBox" 
+            <input class="jimu-input coordInput" data-dojo-type="dijit/form/NumberTextBox"
+              required='true',
+              value='100'," 
               data-dojo-props='constraints:{min:1},
                 invalidMessage:"The value entered must be numeric.",
                 rangeMessage:"Value must be greater than 0."'
@@ -41,7 +50,9 @@
         <div class="controlGroup">
           <label data-dojo-attach-point="minorAxisLabel">Minor (Radius)</label>
           <div class="controlItem">
-            <input class="jimu-input coordInput" data-dojo-type="dijit/form/NumberTextBox" 
+            <input class="jimu-input coordInput" data-dojo-type="dijit/form/NumberTextBox"
+            required='true',
+              value='50',
               data-dojo-props='constraints:{min:1},
                 invalidMessage:"The value entered must be numeric.",
                 rangeMessage:"Value must be greater than 0."' data-dojo-attach-point="minorAxisInput" />
@@ -53,9 +64,9 @@
           <div class="controlItem">
             <select style="width: 225px" data-dojo-type="dijit/form/Select" id="lengthUnitDD" data-dojo-attach-point="lengthUnitDD">
               <option value="feet">Feet</option>
-              <option value="kilometers">Kilometers</option>
+              <option value="kilometers" selected="selected">Kilometers</option>
               <option value="miles">Miles</option>
-              <option value="meters" selected="selected">Meters</option>
+              <option value="meters">Meters</option>
               <option value="nautical-miles">Nautical Miles</option>
               <option value="yards">Yards</option>
             </select>
@@ -67,6 +78,8 @@
       <label>Orientation Angle</label>
       <div class="controlItem">
         <input class="jimu-input selectInput" data-dojo-type="dijit/form/NumberTextBox"
+              required='true',
+              value='0',
               data-dojo-props='constraints:{min:0, max:360},
               invalidMessage:"The value entered must be numeric.",
                 rangeMessage:"Value must be between 0 and 360"' data-dojo-attach-point="angleInput" />
@@ -78,6 +91,12 @@
     </div>
     <div class="controlGroup" >
       <label class="warning">Warning: Graphics generated using the ellipse tool are not geodetic</label>
+    </div>
+  
+  
+    <div class="buttonContainer">
+      <div class='jimu-btn' data-dojo-attach-point='okButton'>OK</div>
+      <div class='jimu-btn' data-dojo-attach-point='clearGraphicsButton'>Clear Graphics</div>
     </div>
   </div>
 </div>

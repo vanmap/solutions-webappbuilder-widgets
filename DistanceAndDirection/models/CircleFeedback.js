@@ -169,7 +169,9 @@ define([
       this.cleanup();
       this._clear();
       this._setTooltipMessage(0);
-      this._drawEnd(this.circleGraphic.geometry);
+      if(this.circleGraphic){
+        this._drawEnd(this.circleGraphic.geometry);
+      }
     },
     
     /**

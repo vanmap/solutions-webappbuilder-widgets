@@ -30,11 +30,6 @@
   text-align: right;
 }
 
-.jimu-widget-DistanceAndDirection .tabPanel {
-    border-bottom: 1px solid #CCC;
-    padding-bottom: 20px;
-}
-
 .jimu-widget-DistanceAndDirection .tabPanel fieldset {
     border: 1px solid #CCC;
     padding: 6px;
@@ -59,6 +54,8 @@
     width: 100%;
     text-align: center;
     margin-top: 20px;
+    border-top: 1px solid #CCC;
+    padding-top: 20px;
 }
 
 .jimu-widget-DistanceAndDirection .controlItem {
@@ -67,6 +64,10 @@
 
 .jimu-widget-DistanceAndDirection .controlGroup {
     margin-top: 13px;
+}
+
+.jimu-widget-DistanceAndDirection .controlGroupHidden {
+    display: none;
 }
 
 .jimu-widget-DistanceAndDirection .controlGroup .warning{

@@ -24,6 +24,13 @@
                   </div>
                 </div>
             </div>
+            <div class="controlGroup">                
+                <div class="interactive-checkbox"
+                     data-dojo-attach-point="interactiveCircle" 
+                     data-dojo-type="jimu/dijit/CheckBox"
+                     data-dojo-props='checked:false' 
+                     label="Create Circle Interactively"></div>
+            </div>
         </div>
 
         <div class="controlGroup">
@@ -49,7 +56,7 @@
             </div>
         </div>
 
-        <div class="controlGroup">
+        <div class="controlGroup" data-dojo-attach-point='distCalcControlDiv'>
               <div data-dojo-attach-point='distCalcControl' data-dojo-type="dijit/TitlePane" data-dojo-props="title: 'Distance Calculator', open: false">
                 <div class="controlGroup">
                     <label>Time<label>
@@ -96,5 +103,11 @@
                 </div>
             </div>
         </div>
+        
+        <div class="buttonContainer">
+          <div class='jimu-btn' data-dojo-attach-point='okButton'>OK</div>
+          <div class='jimu-btn' data-dojo-attach-point='clearGraphicsButton'>Clear Graphics</div>
+        </div>
+      
     </div>
 </div>

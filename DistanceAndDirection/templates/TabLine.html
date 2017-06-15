@@ -39,7 +39,7 @@
         <div class="controlItem">
           <input
             data-dojo-type='dijit/form/NumberTextBox'
-            required="true" value="1" data-dojo-props="
+            required="true" value="1000" data-dojo-props="
             constraints: {min: 1, max: 40030000},
             invalidMessage: 'Please enter a numeric value.',
             rangeMessage: 'Invalid Line Length'"
@@ -60,7 +60,7 @@
         <div class="controlItem">
           <input data-dojo-type="dijit/form/NumberTextBox"
             required="true"
-            value="1"
+            value="0"
             data-dojo-props="
               constraints: {min: 0, max: 360},
               invalidMessage: 'The value entered must be numeric.',
@@ -72,6 +72,11 @@
             <option value="mils">Mils</option>
           </select>
         </div>
+      </div>
+      
+      <div class="buttonContainer">
+          <div class='jimu-btn controlGroupHidden' data-dojo-attach-point='okButton'>OK</div>
+          <div class='jimu-btn' data-dojo-attach-point='clearGraphicsButton'>Clear Graphics</div>
       </div>
 
     </div>

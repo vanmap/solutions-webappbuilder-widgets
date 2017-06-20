@@ -360,7 +360,7 @@ define([
      */
     okButtonClicked: function (evt) {
       // validate input
-      if (this.getInputsValid() && this.coordTool.inputCoordinate.coordinateEsriGeometry) {       
+      if(!dojoDomClass.contains(this.okButton, "jimu-state-disabled")) {       
           var numRings;
           var ringInterval;
           
@@ -390,10 +390,6 @@ define([
           };
           this.createRangeRings(params);
           this.coordTool.clear();
-      } else {
-        var alertMessage = new Message({
-          message: '<p>The range creation form contains invalid parameters.  Please ensure:</p><ul><li>You have a center point set</li><li>The number of rings, distance between rings and number of radials contain valid values.</li></ul></p>'
-        })
       }
     },
 

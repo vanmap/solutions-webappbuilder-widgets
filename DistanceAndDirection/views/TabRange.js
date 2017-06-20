@@ -24,6 +24,7 @@ define([
   'dojo/topic',
   'dojo/_base/html',
   'dojo/string',
+  'dojo/mouse',
   'dojo/keys',
   'dojo/number',
   'dijit/_WidgetBase',
@@ -60,6 +61,7 @@ define([
   dojoTopic,
   dojoHTML,
   dojoString,
+  dojoMouse,
   dojoKeys,
   dojoNumber,
   dijitWidgetBase,
@@ -132,6 +134,8 @@ define([
       this.dt.set('lengthLayer', this._lengthLayer);
 
       this.syncEvents();
+      
+      this.checkValidInputs();
     },
     
     /*
@@ -240,7 +244,13 @@ define([
           DijitPopup.close(this.coordinateFormat);
         })),
 
-        dojoOn(this.clearGraphicsButton,'click',dojoLang.hitch(this, this.clearGraphics))
+        dojoOn(this.clearGraphicsButton,'click',dojoLang.hitch(this, this.clearGraphics)),
+        
+        dojoOn(this.numRingsDiv, dojoMouse.leave, dojoLang.hitch(this, this.checkValidInputs)),
+        
+        dojoOn(this.ringIntervalDiv, dojoMouse.leave, dojoLang.hitch(this, this.checkValidInputs)),
+        
+        dojoOn(this.numRadialsInputDiv, dojoMouse.leave, dojoLang.hitch(this, this.checkValidInputs))
       );            
     },
 
@@ -260,21 +270,20 @@ define([
     interactiveCheckBoxChanged: function () {
       this.tabSwitched();
       if(this.interactiveRings.checked) {
-        dojoHTML.addClass(this.okButton, 'controlGroupHidden');
-        dojoHTML.addClass(this.ringIntervalDiv, 'controlGroupHidden');
-        dojoHTML.addClass(this.numRingsDiv, 'controlGroupHidden');
+        this.numRingsInput.set('disabled', true);
+        this.numRadialsInput.set('disabled', true);
       } else {
-        dojoHTML.removeClass(this.okButton, 'controlGroupHidden');
-        dojoHTML.removeClass(this.ringIntervalDiv, 'controlGroupHidden');
-        dojoHTML.removeClass(this.numRingsDiv, 'controlGroupHidden');
+        this.numRingsInput.set('disabled', false);
+        this.numRadialsInput.set('disabled', false);
       }
+      this.checkValidInputs();
     },    
     
     /*
      * catch key press in start point
      */
     coordToolKeyWasPressed: function (evt) {
-      this.coordTool.manualInput = true;
+      this.dt.removeStartGraphic();
       if (evt.keyCode === dojoKeys.ENTER) {
         this.coordTool.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r) {
           if(r.inputType == "UNKNOWN"){
@@ -282,6 +291,7 @@ define([
               message: 'Unable to determine input coordinate type please check your input.'
             });
             this.coordTool.inputCoordinate.coordinateEsriGeometry = null;
+            this.checkValidInputs();
           } else {
             dojoTopic.publish(
               'manual-rangering-center-point-input',
@@ -292,6 +302,7 @@ define([
             this.coordTool.inputCoordinate.set('formatString', fs.defaultFormat);
             this.coordTool.inputCoordinate.set('formatType', r.inputType);
             this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
+            this.checkValidInputs();
           }
         }));
       }
@@ -320,7 +331,7 @@ define([
       } else {
           this.dt.activate('point');
       }
-      dojoDomClass.toggle(this.addPointBtn, 'jimu-state-active');
+      dojoDomClass.toggle(this.addPointBtn, 'jimu-state-active');      
     },
 
     /*
@@ -533,6 +544,7 @@ define([
         this.createRangeRings(params);
       } else {
         centerPoint = results.geometry;
+        this.checkValidInputs();
       }
 
       dojoDomClass.remove(this.addPointBtn, 'jimu-state-active');
@@ -552,6 +564,7 @@ define([
         this.dt.removeStartGraphic();
         this.coordTool.clear();
       }
+      this.checkValidInputs();
     },
     
     /*
@@ -570,6 +583,18 @@ define([
       if (this._gl) {
         this._gl.show();
       }
+    },
+    
+    /*
+    * Activate the ok button if all the requried inputs are valid
+    */
+    checkValidInputs: function () {
+      dojoDomClass.add(this.okButton, 'jimu-state-disabled');
+        if(!this.interactiveRings.checked) {
+          if(this.coordTool.inputCoordinate.coordinateEsriGeometry != null && this.numRingsInput.isValid() && this.ringIntervalInput.isValid() && this.numRadialsInput.isValid()){
+            dojoDomClass.remove(this.okButton, 'jimu-state-disabled');
+          }            
+        }
     },
 
     /*

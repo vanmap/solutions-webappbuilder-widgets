@@ -136,6 +136,10 @@
   margin-left: 5px;
 }
 
+.jimu-widget-DistanceAndDirection .add-with-icon .draw .hidden {
+  display: none;
+}
+
 .jimu-widget-DistanceAndDirection .jimu-tab3 .tab-item-td.jimu-state-active {
     border-bottom: 0px solid #24B5CC;
     border-top: 2px solid #24B5CC;

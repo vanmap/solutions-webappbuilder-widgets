@@ -24,18 +24,15 @@
                   </div>
                 </div>
             </div>
-            <div class="controlGroup">                
-                <div class="interactive-checkbox"
-                     data-dojo-attach-point="interactiveCircle" 
-                     data-dojo-type="jimu/dijit/CheckBox"
-                     data-dojo-props='checked:false' 
-                     label="Create Circle Interactively"></div>
+            <div class="controlGroup">
+                <input class="interactive-checkbox" type="checkbox" data-dojo-attach-point="interactiveCircle" />
+                <label data-dojo-attach-point="interactiveLabel">Create Circle Interactively</label>                
             </div>
         </div>
 
         <div class="controlGroup">
             <label data-dojo-attach-point="radiusDiameterLabel">Radius</label>
-            <div class="controlItem">
+            <div class="controlItem" data-dojo-attach-point="radiusInputDiv">
                 <input
                   data-dojo-type='dijit/form/NumberTextBox'
                   required="true" value="1000" data-dojo-props="
@@ -105,7 +102,7 @@
         </div>
         
         <div class="buttonContainer">
-          <div class='jimu-btn' data-dojo-attach-point='okButton'>OK</div>
+          <div class='jimu-btn' data-dojo-attach-point='okButton' disabled='true'>OK</div>
           <div class='jimu-btn' data-dojo-attach-point='clearGraphicsButton'>Clear Graphics</div>
         </div>
       

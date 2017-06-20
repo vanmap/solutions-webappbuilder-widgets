@@ -121,7 +121,8 @@ define([
 
       switch (this._geometryType) {
         case esriDraw.POINT:
-          this.set('startPoint', start.offset(0,0));
+          this.set('startPoint', start);
+          this.set('endPoint', start);
           this._drawEnd(start.offset(0,0));
           this._setTooltipMessage(0);
           break;

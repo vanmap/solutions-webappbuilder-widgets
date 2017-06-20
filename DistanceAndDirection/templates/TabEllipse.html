@@ -24,17 +24,14 @@
             </div>            
         </div>
         <div class="controlGroup">                
-            <div class="interactive-checkbox"
-                 data-dojo-attach-point="interactiveEllipse" 
-                 data-dojo-type="jimu/dijit/CheckBox"
-                 data-dojo-props='checked:false' 
-                 label="Create Ellipse Interactively"></div>
+            <input class="interactive-checkbox" type="checkbox" data-dojo-attach-point="interactiveEllipse" />
+            <label data-dojo-attach-point="interactiveLabel">Create Ellipse Interactively</label>
         </div>
     </div>
 
     <fieldset>
       <legend>Axis</legend>
-        <div class="controlGroup">
+        <div class="controlGroup" data-dojo-attach-point="majorAxisInputDiv">
           <label data-dojo-attach-point="majorAxisLabel">Major (Radius)</label>
           <div class="controlItem">
             <input class="jimu-input coordInput" data-dojo-type="dijit/form/NumberTextBox"
@@ -47,7 +44,7 @@
           </div>
         </div>
 
-        <div class="controlGroup">
+        <div class="controlGroup" data-dojo-attach-point="minorAxisInputDiv">
           <label data-dojo-attach-point="minorAxisLabel">Minor (Radius)</label>
           <div class="controlItem">
             <input class="jimu-input coordInput" data-dojo-type="dijit/form/NumberTextBox"
@@ -76,7 +73,7 @@
 
     <div class="controlGroup">
       <label>Orientation Angle</label>
-      <div class="controlItem">
+      <div class="controlItem" data-dojo-attach-point="angleInputDiv">
         <input class="jimu-input selectInput" data-dojo-type="dijit/form/NumberTextBox"
               required='true',
               value='0',
@@ -95,7 +92,7 @@
   
   
     <div class="buttonContainer">
-      <div class='jimu-btn' data-dojo-attach-point='okButton'>OK</div>
+      <div class='jimu-btn' data-dojo-attach-point='okButton' disabled='true'>OK</div>
       <div class='jimu-btn' data-dojo-attach-point='clearGraphicsButton'>Clear Graphics</div>
     </div>
   </div>

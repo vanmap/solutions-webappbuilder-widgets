@@ -24,6 +24,7 @@ define([
   'dojo/dom-attr',
   'dojo/dom-class',
   'dojo/string',
+  'dojo/mouse',
   'dojo/number',
   'dojo/keys',
   'dijit/_WidgetBase',
@@ -60,6 +61,7 @@ define([
   dojoDomAttr,
   dojoDomClass,
   dojoString,
+  dojoMouse,
   dojoNumber,
   dojoKeys,
   dijitWidgetBase,
@@ -129,6 +131,8 @@ define([
       this.dt.set('ellipseType', 'semi');
 
       this.syncEvents();
+      
+      this.checkValidInputs();
     },
 
     /*
@@ -249,36 +253,32 @@ define([
 
         dojoOn(this.clearGraphicsButton,'click',dojoLang.hitch(this, this.clearGraphics)),
         
-        dojoOn(this.okButton,'click',dojoLang.hitch(this, this.okButtonClicked))
+        dojoOn(this.okButton,'click',dojoLang.hitch(this, this.okButtonClicked)),
+        
+        dojoOn(this.majorAxisInputDiv, dojoMouse.leave, dojoLang.hitch(this, this.checkValidInputs)),
+        
+        dojoOn(this.minorAxisInputDiv, dojoMouse.leave, dojoLang.hitch(this, this.checkValidInputs)),
+        
+        dojoOn(this.angleInputDiv, dojoMouse.leave, dojoLang.hitch(this, this.checkValidInputs))
       );
     },
 
-    okButtonClicked: function () {   
-      
-      if (this.angleInput.isValid() && this.minorAxisInput.isValid() && this.majorAxisInput.isValid() && this.coordTool.inputCoordinate.coordinateEsriGeometry) {
-            
-            if(dojoDomAttr.get(this.ellipseType, 'value') == "full") {
-              dojoTopic.publish('create-manual-ellipse', 
-                this.majorAxisInput.get('value')/2,
-                this.minorAxisInput.get('value')/2,
-                this.angleInput.get('value'),                                
-                this.coordTool.inputCoordinate.coordinateEsriGeometry)
-            } else {
-              dojoTopic.publish('create-manual-ellipse', 
-                this.majorAxisInput.get('value'),
-                this.minorAxisInput.get('value'),
-                this.angleInput.get('value'),
-                this.coordTool.inputCoordinate.coordinateEsriGeometry);
-            }        
-            
-            //dojoDomAttr.get(this.ellipseType, 'value') == "full"?dojoTopic.publish('manual-ellipse-major-axis-input', this.majorAxisInput.get('value')/2, this.coordTool.inputCoordinate.coordinateEsriGeometry):dojoTopic.publish('manual-ellipse-major-axis-input', this.majorAxisInput.get('value'), this.coordTool.inputCoordinate.coordinateEsriGeometry);      
-            //dojoDomAttr.get(this.ellipseType, 'value') == "full"?dojoTopic.publish('manual-ellipse-minor-axis-input', this.minorAxisInput.get('value')/2, this.coordTool.inputCoordinate.coordinateEsriGeometry):dojoTopic.publish('manual-ellipse-minor-axis-input', this.minorAxisInput.get('value'), this.coordTool.inputCoordinate.coordinateEsriGeometry);    
-            //dojoTopic.publish('manual-ellipse-orientation-angle-input', this.angleInput.displayedValue);  
-          } else {
-            var alertMessage = new Message({
-              message: '<p>The ellipse creation form contains invalid parameters. Please ensure:</p><ul><li>You have a center point set</li><li>The orientation angle, major axis and minor axis contain valid values</li></ul></p>'
-            });
-          }
+    okButtonClicked: function () {
+      if(!dojoDomClass.contains(this.okButton, "jimu-state-disabled")) {
+        if(dojoDomAttr.get(this.ellipseType, 'value') == "full") {
+          dojoTopic.publish('create-manual-ellipse', 
+            this.majorAxisInput.get('value')/2,
+            this.minorAxisInput.get('value')/2,
+            this.angleInput.get('value'),                                
+            this.coordTool.inputCoordinate.coordinateEsriGeometry)
+        } else {
+          dojoTopic.publish('create-manual-ellipse', 
+            this.majorAxisInput.get('value'),
+            this.minorAxisInput.get('value'),
+            this.angleInput.get('value'),
+            this.coordTool.inputCoordinate.coordinateEsriGeometry);
+        }
+      } 
     },
     
     /*
@@ -312,20 +312,19 @@ define([
         this.majorAxisInput.set('disabled', true);
         this.minorAxisInput.set('disabled', true);
         this.angleInput.set('disabled', true);
-        dojoHTML.addClass(this.okButton, 'controlGroupHidden');
-      } else {
+        } else {
         this.majorAxisInput.set('disabled', false);
         this.minorAxisInput.set('disabled', false);
         this.angleInput.set('disabled', false);
-        dojoHTML.removeClass(this.okButton, 'controlGroupHidden');
       }
+      this.checkValidInputs();
     },
     
     /*
      * catch key press in start point
      */
     coordToolKeyWasPressed: function (evt) {
-      this.coordTool.manualInput = true;
+      this.dt.removeStartGraphic();
       if (evt.keyCode === dojoKeys.ENTER) {
         this.coordTool.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r) {
           if(r.inputType == "UNKNOWN"){
@@ -333,6 +332,7 @@ define([
               message: 'Unable to determine input coordinate type please check your input.'
             });
             this.coordTool.inputCoordinate.coordinateEsriGeometry = null;
+            this.checkValidInputs();
           } else {
             dojoTopic.publish(
               'manual-ellipse-center-point-input',
@@ -343,6 +343,7 @@ define([
             this.coordTool.inputCoordinate.set('formatString', fs.defaultFormat);
             this.coordTool.inputCoordinate.set('formatType', r.inputType);
             this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
+            this.checkValidInputs();
           }
         }));
       }
@@ -425,6 +426,8 @@ define([
 
         this._gl.add(currentEllipse);
         this._gl.refresh();
+      } else {
+        this.checkValidInputs();
       }
       this.map.enableMapNavigation();
       this.dt.deactivate();
@@ -441,6 +444,7 @@ define([
         this.coordTool.clear();
       }
       dojoDomClass.remove(this.addPointBtn, 'jimu-state-active');
+      this.checkValidInputs();
     },
 
     /*
@@ -495,6 +499,18 @@ define([
             crdType: toType
         }
       );
+    },
+    
+    /*
+    * Activate the ok button if all the requried inputs are valid
+    */
+    checkValidInputs: function () {
+      dojoDomClass.add(this.okButton, 'jimu-state-disabled');
+        if(!this.interactiveEllipse.checked) {
+          if(this.coordTool.inputCoordinate.coordinateEsriGeometry != null && this.majorAxisInput.isValid() && this.minorAxisInput.isValid() && this.angleInput.isValid()){
+            dojoDomClass.remove(this.okButton, 'jimu-state-disabled');
+          }            
+        }
     },
 
     /*

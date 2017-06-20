@@ -136,6 +136,10 @@
   margin-left: 5px;
 }
 
+.jimu-widget-DistanceAndDirection .add-with-icon .draw .hidden {
+  display: none;
+}
+
 .jimu-widget-DistanceAndDirection .jimu-tab3 .tab-item-td.jimu-state-active {
     border-bottom: 0px solid #24B5CC;
     border-top: 2px solid #24B5CC;
@@ -146,6 +150,10 @@
 
 .jimu-widget-DistanceAndDirection .controlItem .paddedLeft{
    padding-left: 14px;
+}
+
+.jimu-widget-DistanceAndDirection .disabledLabel {
+    color: #c0c0c0 !important;
 }
 
 /****** Dart Theme Overrides ******/
@@ -176,6 +184,10 @@
 
 .DartTheme .jimu-widget-DistanceAndDirection .jimu-tab3 .tab-item-td.jimu-state-active{
     font-weight: normal;
+}
+
+.DartTheme .jimu-widget-DistanceAndDirection .disabledLabel {
+    color: #c0c0c0 !important;
 }
 
 

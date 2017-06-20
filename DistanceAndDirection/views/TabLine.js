@@ -17,14 +17,16 @@
 /*global define*/
 define([
   'dojo/_base/declare',
-  'dojo/_base/lang',
+  'dojo/_base/lang',  
   'dojo/on',
   'dojo/topic',
   'dojo/_base/html',
   'dojo/dom-class',
   'dojo/string',
+  'dojo/mouse',
   'dojo/number',
   'dojo/keys',
+  'dijit/focus',
   'dijit/_WidgetBase',
   'dijit/_TemplatedMixin',
   'dijit/_WidgetsInTemplateMixin',
@@ -59,8 +61,10 @@ define([
   dojoHTML,
   dojoDomClass,
   dojoString,
+  dojoMouse,
   dojoNumber,
   dojoKeys,
+  dijitFocus,
   dijitWidgetBase,
   dijitTemplatedMixin,
   dijitWidgetsInTemplate,
@@ -135,10 +139,16 @@ define([
         style: 'width: 400px'
       });
       
-      // add extended toolbar
-      this.dt = new DrawFeedBack(this.map,this.coordToolStart.inputCoordinate.util);
+      this.coordinateFormatEnd = new DijitTooltipDialog({
+        content: new EditOutputCoordinate(),
+        style: 'width: 400px'
+      });
       
-      this.dt.setLineSymbol(this._lineSym);
+      // add start and endpoint toolbars
+      this.dtStart = new DrawFeedBack(this.map,this.coordToolStart.inputCoordinate.util);
+      this.dtEnd = new DrawFeedBack(this.map,this.coordToolEnd.inputCoordinate.util);
+      
+      this.dtStart.setLineSymbol(this._lineSym);
 
       this.lineTypeDDDidChange();
       this.syncEvents();
@@ -198,39 +208,64 @@ define([
      * Start up event listeners
      */
     syncEvents: function () {
-      //commented out as we want the graphics to remain when the widget is closed
-      /*dojoTopic.subscribe('DD_WIDGET_OPEN',dojoLang.hitch(this, this.setGraphicsShown));
-      dojoTopic.subscribe('DD_WIDGET_CLOSE',dojoLang.hitch(this, this.setGraphicsHidden));*/
+      
       dojoTopic.subscribe('TAB_SWITCHED', dojoLang.hitch(this, this.tabSwitched));
       dojoTopic.subscribe(DrawFeedBack.drawnLineLengthDidChange,dojoLang.hitch(this, this.lineLengthDidChange));
       dojoTopic.subscribe(DrawFeedBack.drawnLineAngleDidChange,dojoLang.hitch(this, this.lineAngleDidChange));
                
-      this.dt.watch('startPoint' , dojoLang.hitch(this, function (r, ov, nv) {
+      this.dtStart.watch('startPoint' , dojoLang.hitch(this, function (r, ov, nv) {
         this.coordToolStart.inputCoordinate.set('coordinateEsriGeometry', nv);
         this.coordToolStart.inputCoordinate.set('inputType',this.coordToolStart.inputCoordinate.formatType);
-        this.dt.addStartGraphic(nv, this._ptSym);
+        this.dtStart.addStartGraphic(nv, this._ptSym);         
       }));
 
-      this.dt.watch('endPoint' , dojoLang.hitch(this, function (r, ov, nv) {
-        this.coordToolEnd.inputCoordinate.set('coordinateEsriGeometry',  nv);
+      this.dtStart.watch('endPoint' , dojoLang.hitch(this, function (r, ov, nv) {
+        this.coordToolStart.inputCoordinate.set('coordinateEsriGeometry',  nv);        
       }));
 
-      this.dt.watch('currentEndPoint', dojoLang.hitch(this, function (r, ov, nv) {
-        this.coordToolEnd.inputCoordinate.set('coordinateEsriGeometry', nv);
+      this.dtStart.watch('currentEndPoint', dojoLang.hitch(this, function (r, ov, nv) {
+        this.coordToolStart.inputCoordinate.set('coordinateEsriGeometry', nv);        
       }));
-
+      
+      this.dtStart.on('draw-complete',dojoLang.hitch(this, this.feedbackDidCompleteStart));
+      
       this.coordToolStart.inputCoordinate.watch('outputString',dojoLang.hitch(this,function (r, ov, nv) {
         if(!this.coordToolStart.manualInput){this.coordToolStart.set('value', nv);}
       }));
+      
+      this.coordToolStart.on('keyup',dojoLang.hitch(this, this.coordToolStartKeyWasPressed));
+      
+      this.dtEnd.watch('startPoint' , dojoLang.hitch(this, function (r, ov, nv) {
+        this.coordToolEnd.inputCoordinate.set('coordinateEsriGeometry', nv);
+        this.coordToolEnd.inputCoordinate.set('inputType',this.coordToolEnd.inputCoordinate.formatType);
+        this.dtEnd.addStartGraphic(nv, this._ptSym);
+      }));
+      
+      this.dtEnd.watch('endPoint' , dojoLang.hitch(this, function (r, ov, nv) {
+        this.coordToolEnd.inputCoordinate.set('coordinateEsriGeometry',  nv);        
+      }));
 
+      this.dtEnd.watch('currentEndPoint', dojoLang.hitch(this, function (r, ov, nv) {
+        this.coordToolEnd.inputCoordinate.set('coordinateEsriGeometry', nv);        
+      }));
+      
+      this.dtEnd.on('draw-complete',dojoLang.hitch(this, this.feedbackDidCompleteEnd));
+      
       this.coordToolEnd.inputCoordinate.watch('outputString',dojoLang.hitch(this,function (r, ov, nv) {
         if(!this.coordToolEnd.manualInput){this.coordToolEnd.set('value', nv);}
       }));
 
-      this.own(          
-        this.dt.on('draw-complete',dojoLang.hitch(this, this.feedbackDidComplete)),
+      this.coordToolEnd.on('keyup', dojoLang.hitch(this, this.coordToolEndKeyWasPressed));
 
-        dojoOn(this.coordinateFormatButtonLine, 'click',dojoLang.hitch(this, this.coordinateFormatButtonLineWasClicked)),
+      this.lengthUnitDD.on('change',dojoLang.hitch(this, this.lengthUnitDDDidChange));
+
+      this.angleUnitDD.on('change',dojoLang.hitch(this, this.angleUnitDDDidChange));
+
+      this.lineTypeDD.on('change',dojoLang.hitch(this, this.lineTypeDDDidChange));
+      
+      this.own(
+      
+        dojoOn(this.coordinateFormatButtonStart, 'click', dojoLang.hitch(this, this.coordinateFormatButtonStartClicked)),
 
         dojoOn(this.coordinateFormatStart.content.applyButton,'click',dojoLang.hitch(this, function () {
           var fs = this.coordinateFormatStart.content.formats[this.coordinateFormatStart.content.ct];
@@ -242,37 +277,46 @@ define([
             this.coordinateFormatStart.content.addSignChkBox.checked
           );
           this.coordToolStart.inputCoordinate.set('formatString', cfs);
-          this.coordToolStart.inputCoordinate.set('formatType', fv);
-          this.coordToolEnd.inputCoordinate.set(
-            'formatPrefix',
-            this.coordinateFormatStart.content.addSignChkBox.checked
-          );
-          this.coordToolEnd.inputCoordinate.set('formatString', cfs);
-          this.coordToolEnd.inputCoordinate.set('formatType', fv);
+          this.coordToolStart.inputCoordinate.set('formatType', fv);                    
           this.setCoordLabelStart(fv);
-          this.setCoordLabelEnd(fv);
           DijitPopup.close(this.coordinateFormatStart);
         })),
-
+        
         dojoOn(this.coordinateFormatStart.content.cancelButton,'click',dojoLang.hitch(this, function () {
           DijitPopup.close(this.coordinateFormatStart);
         })),
+        
+        dojoOn(this.coordinateFormatButtonEnd, 'click', dojoLang.hitch(this, this.coordinateFormatButtonEndClicked)),
+        
+        dojoOn(this.coordinateFormatEnd.content.applyButton,'click',dojoLang.hitch(this, function () {
+          var fs = this.coordinateFormatEnd.content.formats[this.coordinateFormatEnd.content.ct];
+          var cfs = fs.defaultFormat;
+          var fv = this.coordinateFormatEnd.content.frmtSelect.get('value');
+          if (fs.useCustom) {cfs = fs.customFormat;}
+          this.coordToolEnd.inputCoordinate.set(
+            'formatPrefix',
+            this.coordinateFormatEnd.content.addSignChkBox.checked
+          );
+          this.coordToolEnd.inputCoordinate.set('formatString', cfs);
+          this.coordToolEnd.inputCoordinate.set('formatType', fv);                    
+          this.setCoordLabelEnd(fv);
+          DijitPopup.close(this.coordinateFormatEnd);
+        })),
+        
+        dojoOn(this.coordinateFormatEnd.content.cancelButton,'click',dojoLang.hitch(this, function () {
+          DijitPopup.close(this.coordinateFormatEnd);
+        })),        
+        
+        dojoOn(this.addPointBtnStart,'click',dojoLang.hitch(this, this.addStartPointButtonClicked)),
+        
+        dojoOn(this.addPointBtnEnd,'click',dojoLang.hitch(this, this.addEndPointButtonClicked)),
 
-        dojoOn(this.coordToolEnd,'keyup', dojoLang.hitch(this, this.coordToolEndKeyWasPressed)),
+        dojoOn(this.interactiveLine,'change',dojoLang.hitch(this, this.interactiveCheckBoxChanged)),
 
-        dojoOn(this.addPointBtnLine,'click',dojoLang.hitch(this, this.pointButtonWasClicked)),
+        dojoOn(this.lengthInputDiv, dojoMouse.leave, dojoLang.hitch(this, this.checkValidInputs)),
 
-        this.lengthUnitDD.on('change',dojoLang.hitch(this, this.lengthUnitDDDidChange)),
-
-        this.angleUnitDD.on('change',dojoLang.hitch(this, this.angleUnitDDDidChange)),
-
-        this.lineTypeDD.on('change',dojoLang.hitch(this, this.lineTypeDDDidChange)),
-
-        this.coordToolStart.on('keyup',dojoLang.hitch(this, this.coordToolKeyWasPressed)),
-
-        dojoOn(this.clearGraphicsButton,'click',dojoLang.hitch(this, this.clearGraphics)),
-
-        dojoOn(this.okButton,'click',dojoLang.hitch(this, this.okButtonClicked))        
+        dojoOn(this.angleInputDiv, dojoMouse.leave, dojoLang.hitch(this, this.checkValidInputs))        
+               
       );
     },
 
@@ -289,95 +333,126 @@ define([
      */
     lineAngleDidChange: function (r) {
       this.angleInput.set('value', r);
+    },
+
+    /*
+     * checkbox changed
+     */
+    interactiveCheckBoxChanged: function () {
+      this.tabSwitched();
+      this.coordToolEnd.set('disabled', this.interactiveLine.checked);
+      if(this.interactiveLine.checked) {
+        dojoDomClass.add(this.addPointBtnEndDiv, 'controlGroupHidden');
+      } else {
+        this.coordToolEnd.clear();
+        dojoDomClass.remove(this.addPointBtnEndDiv, 'controlGroupHidden');
+      }
+      this.checkValidInputs();
+    },
+
+    /*
+    * update the UI to reflect current state
+    */
+    lineTypeDDDidChange: function () {
+      if (this.lineTypeDD.get('value') === 'Points') {
+        this.addPointBtnStart.title = 'Draw Line';
+        this.coordToolEnd.set('disabled', false);
+        this.angleInput.set('disabled', true);
+        this.lengthInput.set('disabled', true);
+        this.interactiveLine.disabled = false;
+        dojoDomClass.remove(this.addPointBtnEndDiv, 'controlGroupHidden');
+        dojoDomClass.remove(this.interactiveLabel, 'disabledLabel');
+      } else {
+        this.addPointBtnStart.title = 'Add Point';
+        this.interactiveLine.disabled = true;
+        if(this.interactiveLine.checked) {
+          this.interactiveLine.checked = false;          
+        }
+         
+        this.coordToolEnd.set('value', '');
+        this.coordToolEnd.set('disabled', true);
+        this.angleInput.set('disabled', false);
+        this.lengthInput.set('disabled', false);
+        dojoDomClass.add(this.addPointBtnEndDiv, 'controlGroupHidden');
+        dojoDomClass.add(this.interactiveLabel, 'disabledLabel');
+      }
+      this.checkValidInputs();      
     },    
 
     /*
      *
      */
-    coordinateFormatButtonLineWasClicked: function () {
+    coordinateFormatButtonStartClicked: function () {
       this.coordinateFormatStart.content.set('ct', this.coordToolStart.inputCoordinate.formatType);
       DijitPopup.open({
         popup: this.coordinateFormatStart,
-        around: this.coordinateFormatButtonLine
+        around: this.coordinateFormatButtonStart
       });
     },
-
+    
     /*
-     * catch key press in end point
+     *
      */
-    coordToolEndKeyWasPressed: function (evt) {
-      this.coordToolEnd.manualInput = true;
-      if (this.lineTypeDD.get('value') !== 'Points') {
-        return;
-      }
-      if (evt.keyCode === dojoKeys.ENTER ) {
-        if(this.coordToolStart.value != "") {
-          this.coordToolEnd.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r) {
-            if(r.inputType == "UNKNOWN"){
-              var alertMessage = new Message({
-                message: 'Unable to determine input coordinate type please check your input.'
-              });
-              this.coordToolEnd.inputCoordinate.coordinateEsriGeometry = null;
-            } else {
-              dojoTopic.publish(
-                'manual-line-end-point-input',
-                this.coordToolEnd.inputCoordinate.coordinateEsriGeometry
-              );
-              this.setCoordLabelEnd(r.inputType);
-              var fs = this.coordinateFormatStart.content.formats[r.inputType];
-              this.coordToolEnd.inputCoordinate.set('formatString', fs.defaultFormat);
-              this.coordToolEnd.inputCoordinate.set('formatType', r.inputType);
-              this.createManualGraphic();
-            }                  
-          }));
-        }
-        else {
-          var alertMessage = new Message({
-            message: '<p>The line creation form contains invalid parameters.  Please ensure:</p><ul><li>You have a start point set</li><li>The length and angle input contain a valid values</li></ul></p>'
-          
-          });
-        }
-      }
-    },       
+    coordinateFormatButtonEndClicked: function () {
+      this.coordinateFormatEnd.content.set('ct', this.coordToolEnd.inputCoordinate.formatType);
+      DijitPopup.open({
+        popup: this.coordinateFormatEnd,
+        around: this.coordinateFormatButtonEnd
+      });
+    },
     
     /*
      * catch key press in start point
      */
-    coordToolKeyWasPressed: function (evt) {
-      this.coordToolStart.manualInput = true;
-      if (evt.keyCode === dojoKeys.ENTER) {
+    coordToolStartKeyWasPressed: function (evt) {
+      this.dtStart.removeStartGraphic();
+      if (evt.keyCode === dojoKeys.ENTER) {        
         this.coordToolStart.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r) {
           if(r.inputType == "UNKNOWN"){
             var alertMessage = new Message({
               message: 'Unable to determine input coordinate type please check your input.'
             });
             this.coordToolStart.inputCoordinate.coordinateEsriGeometry = null;
+            this.checkValidInputs();
           } else {
-            dojoTopic.publish(
-              'manual-linestart-point-input',
-              this.coordToolStart.inputCoordinate.coordinateEsriGeometry
-            );
+            this.dtStart.onLineStartManualInputHandler(this.coordToolStart.inputCoordinate.coordinateEsriGeometry);
             this.setCoordLabelStart(r.inputType);
             var fs = this.coordinateFormatStart.content.formats[r.inputType];
             this.coordToolStart.inputCoordinate.set('formatString', fs.defaultFormat);
             this.coordToolStart.inputCoordinate.set('formatType', r.inputType);
-            this.dt.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
-          }
+            this.dtStart.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
+            this.checkValidInputs();
+          }                  
         }));
       }
-    },        
-
-    /*
-     *
-     */
-    setCoordLabelEnd: function (toType) {
-      this.lineEndPointLabel.innerHTML = dojoString.substitute(
-        'End Point (${crdType})', {
-          crdType: toType
-        }
-      );
     },
 
+    /*
+     * catch key press in end point
+     */
+    coordToolEndKeyWasPressed: function (evt) {
+      this.dtEnd.removeStartGraphic();      
+      if (evt.keyCode === dojoKeys.ENTER) {
+        this.coordToolEnd.inputCoordinate.getInputType().then(dojoLang.hitch(this, function (r) {
+          if(r.inputType == "UNKNOWN"){
+            var alertMessage = new Message({
+              message: 'Unable to determine input coordinate type for the end point please check your input.'
+            });
+            this.coordToolEnd.inputCoordinate.coordinateEsriGeometry = null;
+            this.checkValidInputs();
+          } else {
+            this.dtEnd.onLineStartManualInputHandler(this.coordToolEnd.inputCoordinate.coordinateEsriGeometry);
+            this.setCoordLabelEnd(r.inputType);
+            var fs = this.coordinateFormatEnd.content.formats[r.inputType];
+            this.coordToolEnd.inputCoordinate.set('formatString', fs.defaultFormat);
+            this.coordToolEnd.inputCoordinate.set('formatType', r.inputType);
+            this.dtEnd.addStartGraphic(r.coordinateEsriGeometry, this._ptSym);
+            this.checkValidInputs();            
+          }                  
+        }));        
+      }
+      },
+            
     /*
      *
      */
@@ -388,41 +463,64 @@ define([
         }
       );
     },
-
+    
     /*
-     * update the UI to reflect current state
+     *
      */
-    lineTypeDDDidChange: function () {
-      if (this.lineTypeDD.get('value') === 'Points') {
-        this.addPointBtnLine.title = 'Draw Line';
-        this.coordToolEnd.set('disabled', false);
-        this.angleInput.set('disabled', true);
-        this.lengthInput.set('disabled', true);
-        dojoHTML.addClass(this.okButton, 'controlGroupHidden');
-      } else {
-        this.addPointBtnLine.title = 'Add Point';
-        this.coordToolEnd.set('value', '');
-        this.coordToolEnd.set('disabled', true);
-        this.angleInput.set('disabled', false);
-        this.lengthInput.set('disabled', false);
-        dojoHTML.removeClass(this.okButton, 'controlGroupHidden');
-      }
+    setCoordLabelEnd: function (toType) {
+      this.lineEndPointLabel.innerHTML = dojoString.substitute(
+        'End Point (${crdType})', {
+          crdType: toType
+        }
+      );
+    },
+    
+    /*
+     * Activate the ok button if all the requried inputs are valid
+     */
+    checkValidInputs: function () {
+      dojoDomClass.add(this.okButton, 'jimu-state-disabled');
+        if(!this.interactiveLine.checked) {
+          if(this.lineTypeDD.get('value') === 'DistAndBearing') {
+            if(this.coordToolStart.inputCoordinate.coordinateEsriGeometry != null && this.lengthInput.isValid() && this.angleInput.isValid()) {
+              dojoDomClass.remove(this.okButton, 'jimu-state-disabled');
+            }
+          } else {
+            if(!this.interactiveLine.checked) {
+              if(this.coordToolStart.inputCoordinate.coordinateEsriGeometry != null && this.coordToolEnd.inputCoordinate.coordinateEsriGeometry != null) {
+                dojoDomClass.remove(this.okButton, 'jimu-state-disabled');
+              }
+            }
+          }
+        }
     },
 
     /*
-     * Button click event, activate feedback tool
+     * Add start button click event, activate feedback tool
      */
-    pointButtonWasClicked: function () {
+    addStartPointButtonClicked: function () {
+      this.tabSwitched();
       this.coordToolStart.manualInput = false;
       this.coordToolEnd.manualInput = false;
-      dojoTopic.publish('clear-points');          
       this.map.disableMapNavigation();
-      if (this.lineTypeDD.get('value') === 'Points') {
-        this.dt.activate('polyline');      
+      if (this.lineTypeDD.get('value') === 'Points' && this.interactiveLine.checked) {
+        this.dtStart.activate('polyline');
       } else {
-        this.dt.activate('point');
+        this.dtStart.activate('point');
       }
-      dojoDomClass.toggle(this.addPointBtnLine, 'jimu-state-active');
+      dojoDomClass.toggle(this.addPointBtnStart, 'jimu-state-active');
+    },
+    
+    /*
+     * Button click event, activate feedback tool
+     */
+    addEndPointButtonClicked: function () {
+      this.tabSwitched();
+      this.coordToolStart.manualInput = false;
+      this.coordToolEnd.manualInput = false;
+      this.map.disableMapNavigation();      
+      this.dtEnd.activate('point');      
+      dojoDomClass.toggle(this.addPointBtnEnd, 'jimu-state-active');
     },
 
     /*
@@ -430,7 +528,7 @@ define([
      */
     lengthUnitDDDidChange: function () {
       this.currentLengthUnit = this.lengthUnitDD.get('value');
-      this.dt.set('lengthUnit', this.currentLengthUnit);
+      this.dtStart.set('lengthUnit', this.currentLengthUnit);
     },
 
     /*
@@ -438,7 +536,7 @@ define([
      */
     angleUnitDDDidChange: function () {
       this.currentAngleUnit = this.angleUnitDD.get('value');
-      this.dt.set('angleUnit', this.currentAngleUnit);
+      this.dtStart.set('angleUnit', this.currentAngleUnit);
       if (this.currentAngleUnit == "degrees")
       {
         this.angleInput.constraints.max = 360;
@@ -451,14 +549,13 @@ define([
     },
 
     /*
-     * pass results of feedback to the shapemodel
+     * 
      */
-    feedbackDidComplete: function (results) {
+    feedbackDidCompleteStart: function (results) {
       if(results.geometry.type == 'polyline')
       {
         if (this.lengthInput.get('value') !== undefined || this.angleInput.get('value') !== undefined) {
-          this.currentLine = new ShapeModel(results);
-          
+          this.currentLine = new ShapeModel(results);          
           this.currentLine.graphic = new EsriGraphic(
             this.currentLine.wmGeometry,
             this._lineSym, {
@@ -466,26 +563,40 @@ define([
               'LineAngle': this.angleInput.get('value').toString() + " " + this.angleUnitDD.get('value').charAt(0).toUpperCase() + this.angleUnitDD.get('value').slice(1),
             }
           );
-
           this._gl.add(this.currentLine.graphic);
           this._gl.refresh();
-          this.emit('graphic_created', this.currentLine);
-          this.dt.removeStartGraphic();
+          this.dtEnd.onLineStartManualInputHandler(this.currentLine.endPoint);
+          this.dtStart.onLineStartManualInputHandler(this.currentLine.startPoint);
+          this.dtStart.removeStartGraphic();
+          this.dtEnd.removeStartGraphic();
           this.map.setExtent(this.currentLine.wmGeometry.getExtent().expand(3));
+          if(this.interactiveLine.checked){
+            dojoDomClass.toggle(this.addPointBtnStart, 'jimu-state-active');
+          }          
         }
-      }
+      } else {
+        dojoDomClass.toggle(this.addPointBtnStart, 'jimu-state-active');        
+      } 
+      this.checkValidInputs();
       this.map.enableMapNavigation();
-      this.dt.deactivate();
-      
-      dojoDomClass.toggle(this.addPointBtnLine, 'jimu-state-active');
+      this.dtStart.deactivate();
+    },
+    
+    /*
+     * 
+     */
+    feedbackDidCompleteEnd: function (results) {      
+      this.checkValidInputs();
+      this.map.enableMapNavigation();
+      this.dtEnd.deactivate();      
+      dojoDomClass.toggle(this.addPointBtnEnd, 'jimu-state-active');
     },
 
     /*
     *
     */
     createManualGraphic: function () {
-      this._gl.remove(this.startGraphic);
-
+      
       var stPt = this.coordToolStart.inputCoordinate.coordinateEsriGeometry;
       var endPt = this.coordToolEnd.inputCoordinate.coordinateEsriGeometry;
 
@@ -494,51 +605,53 @@ define([
 
       var lineLengthMeters = EsriGeometryEngine.geodesicLength(newLine, 9001);
 
-      this.lengthInput.set('value',this.dt._utils.convertMetersToUnits(lineLengthMeters, this.lengthUnitDD.get('value')));
-      this.angleInput.set('value',this.dt.getAngle(stPt, endPt));
+      this.lengthInput.set('value',this.dtStart._utils.convertMetersToUnits(lineLengthMeters, this.lengthUnitDD.get('value')));
+      this.angleInput.set('value',this.dtStart.getAngle(stPt, endPt));
 
       this.map.setExtent(newLine.getExtent().expand(3));
 
-      this.feedbackDidComplete({geometry: newLine, geographicGeometry: newLine});
+      this.feedbackDidCompleteStart({geometry: newLine, geographicGeometry: newLine});
+      
+      this.dtStart.clearPoints();
+      this.dtEnd.clearPoints();
     },
 
     /*
     *
     */
-    okButtonClicked: function (evt) {      
-      if(this.lengthInput.isValid() && this.angleInput.isValid() && this.coordToolStart.inputCoordinate.coordinateEsriGeometry) {
-        this._gl.remove(this.startGraphic);
+    okButtonClicked: function (evt) {   
+      if(!dojoDomClass.contains(this.okButton, "jimu-state-disabled")) {
+        if(this.lineTypeDD.get('value') === 'Points') {
+          this.createManualGraphic();          
+        } else {
+          
+          var stPt = this.coordToolStart.inputCoordinate.coordinateEsriGeometry;
 
-        var stPt = this.coordToolStart.inputCoordinate.coordinateEsriGeometry;
+          var l = this.coordToolStart.inputCoordinate.util.convertToMeters(this.lengthInput.get('value'), this.lengthUnitDD.get('value'));            
 
-        var l = this.coordToolStart.inputCoordinate.util.convertToMeters(this.lengthInput.get('value'), this.lengthUnitDD.get('value'));            
+          var tempcircle = new EsriCircle(stPt, {
+            geodesic:true,
+            radius: l,
+            numberOfPoints: 64000              
+          });
+          
+          var currentAngle = this.angleInput.get('value');
+          
+          this.currentAngleUnit === 'degrees'?currentAngle = parseInt(10*currentAngle*17.777777778):currentAngle = parseInt(10*currentAngle);
+          
+          var fpc = tempcircle.getPoint(0,currentAngle);
+          
+          var newLine = new EsriPolyline();
+          newLine.addPath([stPt, fpc]);
 
-        var tempcircle = new EsriCircle(stPt, {
-          geodesic:true,
-          radius: l,
-          numberOfPoints: 64000              
-        });
-        
-        var currentAngle = this.angleInput.get('value');
-        
-        this.currentAngleUnit === 'degrees'?currentAngle = parseInt(10*currentAngle*17.777777778):currentAngle = parseInt(10*currentAngle);
-        
-        var fpc = tempcircle.getPoint(0,currentAngle);
-        
-        var newLine = new EsriPolyline();
-        newLine.addPath([stPt, fpc]);
-
-        this.feedbackDidComplete({
-          geometry: newLine,
-          geographicGeometry: newLine
-        });
-        
-        this.coordToolEnd.inputCoordinate.set('coordinateEsriGeometry',  fpc);
-      } else {
-        var alertMessage = new Message({
-          message: '<p>The line creation form contains invalid parameters.  Please ensure:</p><ul><li>You have a start point set</li><li>The length and angle input contain a valid values</li></ul></p>'
-        });
-      }      
+          this.feedbackDidCompleteStart({
+            geometry: newLine,
+            geographicGeometry: newLine
+          });
+          
+          this.coordToolEnd.inputCoordinate.set('coordinateEsriGeometry',  fpc);
+        }
+      }
     },
 
     /*
@@ -547,10 +660,13 @@ define([
     clearGraphics: function () {
       if (this._gl) {
         this._gl.clear();
-        this.dt.removeStartGraphic();
+        this.dtStart.removeStartGraphic();
+        this.dtEnd.removeStartGraphic();
         this.coordToolStart.clear();
         this.coordToolEnd.clear();
+        this.tabSwitched();
       }
+      this.checkValidInputs();
     },
 
     /*
@@ -575,10 +691,11 @@ define([
      * Make sure any active tools are deselected to prevent multiple actions being performed
      */
     tabSwitched: function () {
-      this.dt.deactivate();
-      this.map.enableMapNavigation();
-      this.dt.removeStartGraphic();
-      dojoDomClass.remove(this.addPointBtnLine, 'jimu-state-active');
+      this.dtStart.deactivate();
+      this.dtEnd.deactivate();
+      this.map.enableMapNavigation();      
+      dojoDomClass.remove(this.addPointBtnStart, 'jimu-state-active');
+      dojoDomClass.remove(this.addPointBtnEnd, 'jimu-state-active');      
     }
   });
 });

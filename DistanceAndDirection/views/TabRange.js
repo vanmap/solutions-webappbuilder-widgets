@@ -271,10 +271,10 @@ define([
       this.tabSwitched();
       if(this.interactiveRings.checked) {
         this.numRingsInput.set('disabled', true);
-        this.numRadialsInput.set('disabled', true);
+        this.ringIntervalInput.set('disabled', true);
       } else {
         this.numRingsInput.set('disabled', false);
-        this.numRadialsInput.set('disabled', false);
+        this.ringIntervalInput.set('disabled', false);
       }
       this.checkValidInputs();
     },    

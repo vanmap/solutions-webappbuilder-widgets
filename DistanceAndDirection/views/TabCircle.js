@@ -272,14 +272,12 @@ define([
       if(this.interactiveCircle.checked) {
         this.radiusInput.set('disabled', true);
         this.distCalcControl.set('open', false);
-        //dojoHTML.addClass(this.distCalcControlDiv, 'controlGroupHidden');
         this.distCalcControl.set('open', false);
         this.distCalcControl.set('toggleable', false);
       } else {
         this.radiusInput.set('disabled', false);
         this.distCalcControl.set('disabled', false);
         this.distCalcControl.set('toggleable', true);
-        //dojoHTML.removeClass(this.distCalcControlDiv, 'controlGroupHidden');
       }
       this.checkValidInputs();
     },

@@ -361,6 +361,7 @@ define([
         this.lengthInput.set('disabled', true);
         this.interactiveLine.disabled = false;
         dojoDomClass.remove(this.addPointBtnEndDiv, 'controlGroupHidden');
+        dojoDomClass.remove(this.interactiveLabel, 'disabledLabel');
       } else {
         this.addPointBtnStart.title = 'Add Point';
         this.interactiveLine.disabled = true;
@@ -373,6 +374,7 @@ define([
         this.angleInput.set('disabled', false);
         this.lengthInput.set('disabled', false);
         dojoDomClass.add(this.addPointBtnEndDiv, 'controlGroupHidden');
+        dojoDomClass.add(this.interactiveLabel, 'disabledLabel');
       }
       this.checkValidInputs();      
     },    

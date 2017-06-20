@@ -152,6 +152,10 @@
    padding-left: 14px;
 }
 
+.jimu-widget-DistanceAndDirection .disabledLabel {
+    color: #c0c0c0 !important;
+}
+
 /****** Dart Theme Overrides ******/
 
 .DartTheme .jimu-widget-DistanceAndDirection  .dijitSelectDisabled,
@@ -180,6 +184,10 @@
 
 .DartTheme .jimu-widget-DistanceAndDirection .jimu-tab3 .tab-item-td.jimu-state-active{
     font-weight: normal;
+}
+
+.DartTheme .jimu-widget-DistanceAndDirection .disabledLabel {
+    color: #c0c0c0 !important;
 }
 
 

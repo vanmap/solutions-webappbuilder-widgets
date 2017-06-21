@@ -252,6 +252,10 @@
     background-color: #000000;
 }
 
+.DartTheme .jimu-widget-DistanceAndDirection .disabledLabel {
+    color: #7b7b7b !important;
+}
+
 
 .jimu-tab>.control>.tab.jimu-state-selected{
   border-bottom: 1px solid #ccc !important;
@@ -261,3 +265,5 @@
     background-color: transparent !important;
     font-size: 12px;
 }
+
+

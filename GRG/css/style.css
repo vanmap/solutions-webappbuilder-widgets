@@ -229,3 +229,20 @@
 .controlItem .paddedLeft{
    padding-left: 14px;
 }
+
+/****** Dart Theme Overrides ******/
+
+.claro .dartThemeClaroDijitTooltipContainerOverride .dijitTooltipContainer {
+    background-color: #4c4c4c;
+    background-image: -webkit-linear-gradient(bottom, rgb(76, 76, 76) 0px, #4c4c4c 10px);
+    border: 1px solid #ffffff;
+    color: #ffffff;
+}
+
+.claro .dartThemeClaroDijitTooltipContainerOverride .jimu-widget-subtitle {
+    color: #ffffff;
+}
+
+.claro .dartThemeClaroDijitTooltipContainerOverride .dijitTooltipConnector {    
+    background-image: url(images/tooltip.png);    
+}

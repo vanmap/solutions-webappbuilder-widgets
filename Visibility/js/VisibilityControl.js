@@ -172,7 +172,12 @@ define([
                   this.coordinateFormat = new dijitTooltipDialog({
                     content: new EditOutputCoordinate(),
                     style: 'width: 400px'
-                  });            
+                  });
+
+                  if(this.appConfig.theme.name === 'DartTheme')
+                  {
+                    dojoDomClass.add(this.coordinateFormat.domNode, 'dartThemeClaroDijitTooltipContainerOverride');
+                  }                  
                   
                   //initiate and add viewshed graphics layer
                   this._initGL();

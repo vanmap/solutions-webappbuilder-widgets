@@ -139,10 +139,20 @@ define([
         style: 'width: 400px'
       });
       
+      if(this.appConfig.theme.name === 'DartTheme')
+      {
+        dojoDomClass.add(this.coordinateFormatStart.domNode, 'dartThemeClaroDijitTooltipContainerOverride');
+      }
+      
       this.coordinateFormatEnd = new DijitTooltipDialog({
         content: new EditOutputCoordinate(),
         style: 'width: 400px'
       });
+      
+      if(this.appConfig.theme.name === 'DartTheme')
+      {
+        dojoDomClass.add(this.coordinateFormatEnd.domNode, 'dartThemeClaroDijitTooltipContainerOverride');
+      }
       
       // add start and endpoint toolbars
       this.dtStart = new DrawFeedBack(this.map,this.coordToolStart.inputCoordinate.util);

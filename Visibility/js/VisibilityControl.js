@@ -206,7 +206,7 @@ define([
               $("input.fov").knob({
                 'min':0,
                 'max':360,
-                'cursor':0,
+                'cursor':360,
                 'inputColor': '#ccc',
                 'width': 160,
                 'height': 160,

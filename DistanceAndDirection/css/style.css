@@ -136,6 +136,10 @@
   margin-left: 5px;
 }
 
+.jimu-widget-DistanceAndDirection .add-with-icon .draw:hover {
+    background-color: #c0c0c0;
+}
+
 .jimu-widget-DistanceAndDirection .add-with-icon .draw .hidden {
   display: none;
 }
@@ -224,5 +228,36 @@
     margin-top: 6px;
 }
 
+.DartTheme .jimu-icon {
+    background-image: url(images/sprite.png);
+}
+
+.DartTheme  .jimu-widget-cw .cpbtn {
+    background: url(../images/copy.png);
+}
+
+.DartTheme  .add-with-icon .draw {
+  background: url(../images/draw_point_dart.png);
+  display: inline-block;
+  background-repeat: no-repeat;
+  background-color: transparent;
+  background-repeat: no-repeat;
+  background-position: center center;
+  width: 30px;
+  height: 30px;
+  margin-left: 5px;
+}
+
+.DartTheme .jimu-widget-DistanceAndDirection .add-with-icon .draw:hover {
+    background-color: #000000;
+}
 
 
+.jimu-tab>.control>.tab.jimu-state-selected{
+  border-bottom: 1px solid #ccc !important;
+    border-right: 0px solid #fff !important;
+    border-left: 0px solid #fff !important;
+    border-top: 0px solid #fff !important;
+    background-color: transparent !important;
+    font-size: 12px;
+}

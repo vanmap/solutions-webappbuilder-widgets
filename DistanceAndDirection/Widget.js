@@ -253,7 +253,7 @@ define([
             if(this.config.feedback.lineSymbol.showTab)
             {
                tabs.push({
-                      title: 'Lines',
+                      title: 'Line',
                       content: this.lineTab
                   });
             }

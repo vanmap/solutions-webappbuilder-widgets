@@ -171,16 +171,6 @@ define([
       if (!this._gl) {
         var layerDefinition = {
           'geometryType': 'esriGeometryPolyline',
-          'extent': {
-            'xmin': 0,
-            'ymin': 0,
-            'xmax': 0,
-            'ymax': 0,
-            'spatialReference': {
-                'wkid': 102100,
-                'latestWkid': 102100
-            }
-          },
           'fields': [{
             'name': 'GeoLength',
             'type': 'esriFieldTypeString',
@@ -565,9 +555,18 @@ define([
       if(results.geometry.type == 'polyline')
       {
         if (this.lengthInput.get('value') !== undefined || this.angleInput.get('value') !== undefined) {
-          this.currentLine = new ShapeModel(results);          
+          this.currentLine = new ShapeModel(results);
+          var geom = null;
+            geom = new EsriPolyline({
+            paths: this.map.spatialReference.wkid === 4326?this.currentLine.geographicGeometry.paths:this.currentLine.wmGeometry.paths,
+            spatialReference: this.map.spatialReference
+          });
+          
+          if(this.map.spatialReference.wkid === 4326){
+            geom = EsriGeometryEngine.geodesicDensify(geom, 10000);
+          }
           this.currentLine.graphic = new EsriGraphic(
-            this.currentLine.wmGeometry,
+            geom,
             this._lineSym, {
               'GeoLength': this.lengthInput.get('value').toString() + " " + this.lengthUnitDD.get('value').charAt(0).toUpperCase() + this.lengthUnitDD.get('value').slice(1),
               'LineAngle': this.angleInput.get('value').toString() + " " + this.angleUnitDD.get('value').charAt(0).toUpperCase() + this.angleUnitDD.get('value').slice(1),
@@ -579,7 +578,7 @@ define([
           this.dtStart.onLineStartManualInputHandler(this.currentLine.startPoint);
           this.dtStart.removeStartGraphic();
           this.dtEnd.removeStartGraphic();
-          this.map.setExtent(this.currentLine.wmGeometry.getExtent().expand(3));
+          this.map.spatialReference.wkid === 4326?this.map.setExtent(this.currentLine.geographicGeometry.getExtent().expand(3)):this.map.setExtent(this.currentLine.wmGeometry.getExtent().expand(3));
           if(this.interactiveLine.checked){
             dojoDomClass.toggle(this.addPointBtnStart, 'jimu-state-active');
           }          
@@ -677,6 +676,10 @@ define([
         this.tabSwitched();
       }
       this.checkValidInputs();
+      //refresh each of the feature/graphic layers to enusre labels are removed
+      for(var j = 0; j < this.map.graphicsLayerIds.length; j++) {
+        this.map.getLayer(this.map.graphicsLayerIds[j]).refresh();
+      }
     },
 
     /*

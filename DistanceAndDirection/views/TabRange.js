@@ -566,6 +566,10 @@ define([
         this.coordTool.clear();
       }
       this.checkValidInputs();
+      //refresh each of the feature/graphic layers to enusre labels are removed
+      for(var j = 0; j < this.map.graphicsLayerIds.length; j++) {
+        this.map.getLayer(this.map.graphicsLayerIds[j]).refresh();
+      }
     },
     
     /*

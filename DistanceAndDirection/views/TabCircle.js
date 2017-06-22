@@ -525,8 +525,7 @@ define([
       this.dt.deactivate();
       this.dt.removeStartGraphic();      
 
-      if (!this.radiusInput.isValid()) {return;}
-
+      
       if (this.creationType.get('value') === 'Diameter') {
         results.calculatedDistance = dojoNumber.parse(this.radiusInput.get('value'), {places: '0,99'})/2;
       } else {
@@ -538,7 +537,8 @@ define([
       results.geometry = this.coordTool.inputCoordinate.coordinateEsriGeometry;
       results.lineGeometry = lineGeom;
       
-      var centerPoint = EsriWMUtils.geographicToWebMercator(results.geometry);
+      var centerPoint;
+      this.map.spatialReference.wkid === 4326?centerPoint = results.geometry:centerPoint = EsriWMUtils.geographicToWebMercator(results.geometry);
       
       var newCurrentCircle = new EsriCircle({
           center: centerPoint,
@@ -583,6 +583,10 @@ define([
         this.clearUI(false);
       }
       this.checkValidInputs();
+      //refresh each of the feature/graphic layers to enusre labels are removed
+      for(var j = 0; j < this.map.graphicsLayerIds.length; j++) {
+        this.map.getLayer(this.map.graphicsLayerIds[j]).refresh();
+      }
     },
 
     /*

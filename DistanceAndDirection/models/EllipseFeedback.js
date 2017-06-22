@@ -105,7 +105,7 @@ define([
     onCreateManualEllipse: function (majorLength,minorLength,orientationAngle,centerPoint) {      
         this._points = [];
         
-        if (centerPoint.spatialReference.wkid === 4326) {
+        if (this.map.spatialReference.wkid !== 4326) {
           centerPoint = esriWebMercatorUtils.geographicToWebMercator(centerPoint);
         }
         
